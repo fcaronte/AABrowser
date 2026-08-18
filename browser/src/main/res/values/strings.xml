@@ -1,0 +1,80 @@
+<resources>
+    <string name="app_name">AA Browser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Android Auto Browser Notification</string>
+    <string name="notification_title">AA Browser running</string>
+    <string name="notification_text">Tap to stop</string>
+
+    <string name="settings_name">Settings</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">Play</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_previous">Previous track</string>
+    <string name="label_next">Next track</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">Quick access for the sites you use most</string>
+    <string name="edit_mode_toggle">Toggle Edit Mode</string>
+    <string name="resume_button">Resume</string>
+    <string name="tabs_button">Tabs</string>
+    <string name="settings_button">Settings</string>
+    <string name="add_favorite_title">Add Favorite</string>
+    <string name="edit_favorite_title">Edit Favorite</string>
+    <string name="favorite_added">Favorite added to Home</string>
+    <string name="field_name">Name</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">Favicon URL (Optional)</string>
+    <string name="field_color">Color</string>
+    <string name="confirm_button">Confirm</string>
+    <string name="cancel_button">Cancel</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="back_button">Back</string>
+    <string name="theme_mode_label">App Theme Mode</string>
+    <string name="theme_mode_desc">Force dark or light style on AA display</string>
+    <string name="dashboard_columns_label">Three Columns Dashboard</string>
+    <string name="dashboard_columns_desc">Enable 3 columns instead of 2 on home screen</string>
+    <string name="dark_pages_label">Dark Web Pages</string>
+    <string name="dark_pages_desc">Force dark mode on websites</string>
+    <string name="desktop_mode_label">Desktop Mode</string>
+    <string name="desktop_mode_desc">Request desktop version of websites</string>
+    <string name="desktop_zoom_label">Desktop Zoom: %d%%</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">Block intrusive ads and trackers</string>
+    <string name="force_english_label">Force English Language</string>
+    <string name="force_english_desc">Always use English regardless of system language</string>
+    <string name="search_engine_label">Default Search Engine</string>
+    <string name="search_engine_desc">Choose engine for quick search</string>
+    <string name="ui_scale_label">UI Scale (DPI)</string>
+    <string name="ui_scale_desc">Adjust the overall size of the app interface</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">Tabs</string>
+    <string name="new_tab">New Tab</string>
+    <string name="close_tab">Close Tab</string>
+    <string name="close_all_tabs">Close All Tabs</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="reload_button">Reload</string>
+    <string name="home_button">Home</string>
+    <string name="exit_button">Exit</string>
+    <string name="menu_button">Menu</string>
+    <string name="search_button">Quick Search</string>
+    <string name="share_button">Share via QR Code</string>
+    <string name="qr_code_title">Share Page</string>
+    <string name="close_button">Close</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">Say something…</string>
+    <string name="voice_listening">Listening…</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AA Browser</string>
+    <string name="media_session_channel_desc">AA Browser MediaSession</string>
+    <string name="media_browser_title">Audio from Browser</string>
+    <string name="media_browser_subtitle">Play current audio</string>
+</resources>

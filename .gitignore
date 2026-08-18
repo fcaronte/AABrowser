@@ -1,0 +1,33 @@
+# IDE & Gradle
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.bak
+
+# Android specific
+/captures
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Signing files (VERY IMPORTANT)
+*.jks
+*.keystore
+*.p12
+signing.properties
+
+# Secrets
+google-services.json
+secrets.xml
+
+# System files
+thumbs.db
+ehthumbs.db
+Desktop.ini

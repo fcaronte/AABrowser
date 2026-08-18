@@ -1,0 +1,80 @@
+<resources>
+    <string name="app_name">AA Browser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Notifiche Android Auto Browser</string>
+    <string name="notification_title">AA Browser in esecuzione</string>
+    <string name="notification_text">Tocca per fermare</string>
+
+    <string name="settings_name">Impostazioni</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">Play</string>
+    <string name="label_pause">Pausa</string>
+    <string name="label_previous">Traccia precedente</string>
+    <string name="label_next">Traccia successiva</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">Accesso rapido ai siti che usi di più</string>
+    <string name="edit_mode_toggle">Cambia modalità modifica</string>
+    <string name="resume_button">Riprendi</string>
+    <string name="tabs_button">Schede</string>
+    <string name="settings_button">Impostazioni</string>
+    <string name="add_favorite_title">Aggiungi Preferito</string>
+    <string name="edit_favorite_title">Modifica Preferito</string>
+    <string name="favorite_added">Preferito aggiunto alla Home</string>
+    <string name="field_name">Nome</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">URL Favicon (Opzionale)</string>
+    <string name="field_color">Colore</string>
+    <string name="confirm_button">Conferma</string>
+    <string name="cancel_button">Annulla</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Impostazioni</string>
+    <string name="back_button">Indietro</string>
+    <string name="theme_mode_label">Modalità Tema App</string>
+    <string name="theme_mode_desc">Forza lo stile chiaro o scuro sul display dell\'auto</string>
+    <string name="dashboard_columns_label">Dashboard a tre colonne</string>
+    <string name="dashboard_columns_desc">Abilita 3 colonne invece di 2 nella home</string>
+    <string name="dark_pages_label">Pagine Web scure</string>
+    <string name="dark_pages_desc">Forza la modalità scura sui siti web</string>
+    <string name="desktop_mode_label">Modalità Desktop</string>
+    <string name="desktop_mode_desc">Richiedi la versione desktop dei siti web</string>
+    <string name="desktop_zoom_label">Zoom Desktop: %d%%</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
+    <string name="force_english_label">Forza lingua inglese</string>
+    <string name="force_english_desc">Usa sempre l\'inglese indipendentemente dalla lingua di sistema</string>
+    <string name="search_engine_label">Motore di ricerca predefinito</string>
+    <string name="search_engine_desc">Scegli il motore per la ricerca rapida</string>
+    <string name="ui_scale_label">Scala UI (DPI)</string>
+    <string name="ui_scale_desc">Regola la dimensione globale dell\'interfaccia</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">Schede</string>
+    <string name="new_tab">Nuova scheda</string>
+    <string name="close_tab">Chiudi scheda</string>
+    <string name="close_all_tabs">Chiudi tutte le schede</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">Aggiungi ai preferiti</string>
+    <string name="reload_button">Ricarica</string>
+    <string name="home_button">Home</string>
+    <string name="exit_button">Esci</string>
+    <string name="menu_button">Menu</string>
+    <string name="search_button">Ricerca</string>
+    <string name="share_button">Condividi tramite QR Code</string>
+    <string name="qr_code_title">Condividi pagina</string>
+    <string name="close_button">Chiudi</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">Dì qualcosa…</string>
+    <string name="voice_listening">In ascolto…</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AA Browser</string>
+    <string name="media_session_channel_desc">AA Browser MediaSession</string>
+    <string name="media_browser_title">Audio dal Browser</string>
+    <string name="media_browser_subtitle">Riproduci l\'audio corrente</string>
+</resources>
