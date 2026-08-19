@@ -11,7 +11,7 @@ class CarApplication : Application() {
         AppSettings.init(this)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         DynamicColors.applyToActivitiesIfAvailable(this)
-        
+
         // Inizializza il gestore delle pubblicità (AdBlock leggero)
         SubscriptionsManager.init(this)
     }

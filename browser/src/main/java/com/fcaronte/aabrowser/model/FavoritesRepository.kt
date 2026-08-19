@@ -4,7 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class FavoritesRepository(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("BOOKMARKS", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("BOOKMARKS", Context.MODE_PRIVATE)
 
     fun loadFavorites(): List<FavoriteSite> {
         val count = prefs.getInt("BookmarksCount", 0)
@@ -16,7 +17,7 @@ class FavoritesRepository(context: Context) {
             val faviconUrl = prefs.getString("BookmarkFavicon$i", null)
             list.add(FavoriteSite(i.toString(), name, url, color, faviconUrl))
         }
-        
+
         // If empty, provide defaults
         if (list.isEmpty()) {
             val defaults = listOf(
@@ -29,7 +30,7 @@ class FavoritesRepository(context: Context) {
             saveFavorites(defaults)
             return defaults
         }
-        
+
         return list
     }
 

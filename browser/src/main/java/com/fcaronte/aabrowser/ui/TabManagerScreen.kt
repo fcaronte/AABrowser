@@ -28,7 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,7 +51,10 @@ fun TabManagerScreen(
                 title = { Text(stringResource(R.string.tabs_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back_button)
+                        )
                     }
                 },
                 actions = {
@@ -60,10 +62,16 @@ fun TabManagerScreen(
                         TabManager.closeAllTabs()
                         onBack()
                     }) {
-                        Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(R.string.close_all_tabs))
+                        Icon(
+                            Icons.Default.DeleteSweep,
+                            contentDescription = stringResource(R.string.close_all_tabs)
+                        )
                     }
                     IconButton(onClick = onAddTab) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_tab))
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.new_tab)
+                        )
                     }
                 }
             )
@@ -81,7 +89,7 @@ fun TabManagerScreen(
                     tab = tab,
                     isActive = index == TabManager.activeTabIndex,
                     onClick = { onTabSelected(index) },
-                    onClose = { 
+                    onClose = {
                         onCloseTab(index)
                         if (TabManager.tabs.isEmpty()) {
                             onBack()
@@ -109,7 +117,10 @@ fun TabCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
         ),
-        border = if (isActive) androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
+        border = if (isActive) androidx.compose.foundation.BorderStroke(
+            2.dp,
+            MaterialTheme.colorScheme.primary
+        ) else null
     ) {
         Row(
             modifier = Modifier

@@ -81,13 +81,13 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
-    
+
     // Riferimento alla WebView attiva per l'input AA
     var activeWebView by remember { mutableStateOf<WebView?>(null) }
-    
+
     // View "fantasma" per gestire l'input sulla Dashboard
     var inputHostView by remember { mutableStateOf<android.view.View?>(null) }
-    
+
     var feedbackMessage by remember { mutableStateOf<String?>(null) }
     var showDashboardSearch by remember { mutableStateOf(value = false) }
 
@@ -118,7 +118,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     // Calcoliamo la densità personalizzata per la scala UI
     val currentDensity = LocalDensity.current
     val customDensity = remember(currentDensity, uiScale) {
-        Density(density = currentDensity.density * uiScale, fontScale = currentDensity.fontScale * uiScale)
+        Density(
+            density = currentDensity.density * uiScale,
+            fontScale = currentDensity.fontScale * uiScale
+        )
     }
 
     // Creiamo un contesto localizzato per forzare la lingua nel display dell'auto
@@ -146,18 +149,38 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             background = null
                             setTextColor(android.graphics.Color.TRANSPARENT)
                             setCursorVisible(true)
-                            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_FILTER
-                            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE or android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
-                            
+                            inputType =
+                                android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_FILTER
+                            imeOptions =
+                                android.view.inputmethod.EditorInfo.IME_ACTION_DONE or android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
+
                             addTextChangedListener(object : android.text.TextWatcher {
-                                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                                override fun beforeTextChanged(
+                                    s: CharSequence?,
+                                    start: Int,
+                                    count: Int,
+                                    after: Int
+                                ) {
+                                }
+
+                                override fun onTextChanged(
+                                    s: CharSequence?,
+                                    start: Int,
+                                    before: Int,
+                                    count: Int
+                                ) {
+                                }
+
                                 override fun afterTextChanged(s: android.text.Editable?) {
                                     if (tag != "internal_update") {
                                         carInputManager?.let { manager ->
                                             if (manager.isImeUpdating) return
                                             val newText = s?.toString() ?: ""
-                                            manager.updateState(newText, selectionStart, selectionEnd)
+                                            manager.updateState(
+                                                newText,
+                                                selectionStart,
+                                                selectionEnd
+                                            )
                                         }
                                     }
                                 }
@@ -170,7 +193,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             val text = manager.getCurrentText()
                             val start = manager.getSelectionStart()
                             val end = manager.getSelectionEnd()
-                            
+
                             // Aggiorniamo l'EditText solo se differente dallo stato Compose
                             // Usiamo un tag per evitare loop infiniti tra TextWatcher e Compose
                             if (editText.tag != "internal_update" && !manager.isImeUpdating) {
@@ -182,7 +205,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                             start.coerceIn(0, text.length),
                                             end.coerceIn(0, text.length)
                                         )
-                                    } catch (_: Exception) {}
+                                    } catch (_: Exception) {
+                                    }
                                     editText.tag = null
                                 } else if (editText.selectionStart != start || editText.selectionEnd != end) {
                                     try {
@@ -190,7 +214,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                             start.coerceIn(0, text.length),
                                             end.coerceIn(0, text.length)
                                         )
-                                    } catch (_: Exception) {}
+                                    } catch (_: Exception) {
+                                    }
                                 }
                             }
                         }
@@ -217,12 +242,16 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             onOpenSettings = { currentScreen = Screen.Settings },
                             onOpenSearch = { showDashboardSearch = true },
                         )
-                        
+
                         if (showDashboardSearch) {
                             val searchEngine by AppSettings.searchEngine
                             SearchOverlay(
                                 onSearch = { query ->
-                                    val searchUrl = searchEngine.baseUrl + java.net.URLEncoder.encode(query, "UTF-8")
+                                    val searchUrl =
+                                        searchEngine.baseUrl + java.net.URLEncoder.encode(
+                                            query,
+                                            "UTF-8"
+                                        )
                                     // La ricerca globale apre sempre una nuova scheda
                                     TabManager.addTab(searchUrl)
                                     currentScreen = Screen.Browser
@@ -234,11 +263,12 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             )
                         }
                     }
+
                     is Screen.Browser -> {
                         val activeTab = TabManager.activeTab
                         val isDesktopMode by AppSettings.desktopMode
                         val searchEngine by AppSettings.searchEngine
-                        
+
                         if (activeTab != null) {
                             BrowserScreen(
                                 url = activeTab.url,
@@ -265,7 +295,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             onOpenSettings = { currentScreen = Screen.Settings },
                             onOpenTabManager = { currentScreen = Screen.TabManager },
                             onSearch = { query ->
-                                val searchUrl = searchEngine.baseUrl + java.net.URLEncoder.encode(query, "UTF-8")
+                                val searchUrl = searchEngine.baseUrl + java.net.URLEncoder.encode(
+                                    query,
+                                    "UTF-8"
+                                )
                                 TabManager.addTab(searchUrl)
                                 currentScreen = Screen.Browser
                             },
@@ -276,20 +309,25 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                         url = activeTab.url,
                                         faviconUrl = activeTab.faviconUrl
                                     )
-                                    feedbackMessage = localizedContext.getString(R.string.favorite_added)
+                                    feedbackMessage =
+                                        localizedContext.getString(R.string.favorite_added)
                                 }
                             },
                             carInputManager = carInputManager,
-                            webView = activeWebView ?: (inputHostView as? WebView), // Passiamo comunque una view valida se possibile
+                            webView = activeWebView
+                                ?: (inputHostView as? WebView), // Passiamo comunque una view valida se possibile
                         )
                     }
+
                     is Screen.Settings -> {
                         SettingsScreen(
                             onBack = {
-                                currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
+                                currentScreen =
+                                    if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
                             },
                         )
                     }
+
                     is Screen.TabManager -> {
                         TabManagerScreen(
                             onTabSelected = { index ->
@@ -301,7 +339,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             },
                             onAddTab = { currentScreen = Screen.Dashboard },
                             onBack = {
-                                currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
+                                currentScreen =
+                                    if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
                             },
                         )
                     }
@@ -312,7 +351,9 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     visible = feedbackMessage != null,
                     enter = fadeIn(),
                     exit = fadeOut(),
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 80.dp),
                 ) {
                     Card(
                         shape = RoundedCornerShape(24.dp),
@@ -562,7 +603,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                                     Button(
                                         onClick = { AppSettings.setSearchEngine(context, engine) },
                                         modifier = Modifier.weight(1f),
-                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                            horizontal = 4.dp
+                                        ),
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary
                                             else MaterialTheme.colorScheme.surfaceVariant,
@@ -652,7 +695,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                             if (isDesktopMode) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = stringResource(R.string.desktop_zoom_label, (desktopScale * 100).toInt()),
+                                    text = stringResource(
+                                        R.string.desktop_zoom_label,
+                                        (desktopScale * 100).toInt()
+                                    ),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 14.sp,
                                 )

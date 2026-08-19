@@ -44,7 +44,7 @@ object UpdateManager {
                     val response = connection.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(response)
                     val latestVersion = json.getString("tag_name").replace("v", "")
-                    
+
                     val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersion = pInfo.versionName ?: "1.0"
 
@@ -80,7 +80,7 @@ object UpdateManager {
         try {
             val latestParts = latest.split(".").map { it.toInt() }
             val currentParts = current.split(".").map { it.toInt() }
-            
+
             val maxLength = maxOf(latestParts.size, currentParts.size)
             for (i in 0 until maxLength) {
                 val l = if (i < latestParts.size) latestParts[i] else 0
@@ -88,7 +88,8 @@ object UpdateManager {
                 if (l > c) return true
                 if (l < c) return false
             }
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
         return false
     }
 
@@ -105,8 +106,9 @@ object UpdateManager {
     fun showUpdateNotification(context: Context, info: UpdateInfo) {
         if (!info.isAvailable || isNotificationAlreadyShown) return
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         // Verifica permesso su Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -129,7 +131,7 @@ object UpdateManager {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        
+
         val pendingIntent = PendingIntent.getActivity(
             context, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -143,8 +145,8 @@ object UpdateManager {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(
-                R.drawable.ic_play_arrow_black_24dp, 
-                context.getString(R.string.download_button), 
+                R.drawable.ic_play_arrow_black_24dp,
+                context.getString(R.string.download_button),
                 pendingIntent
             )
 

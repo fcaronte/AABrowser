@@ -13,15 +13,52 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -38,14 +75,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.FABLocation
-import androidx.compose.runtime.mutableFloatStateOf
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import com.fcaronte.aabrowser.CarInputManager
 
 data class MenuItem(
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -69,7 +105,7 @@ fun NavigationOverlay(
     var showMenu by remember { mutableStateOf(value = false) }
     var showQRCode by remember { mutableStateOf(value = false) }
     var showSearchDialog by remember { mutableStateOf(value = false) }
-    
+
     val context = LocalContext.current
     val fabLocation by AppSettings.fabLocation
 
@@ -93,15 +129,42 @@ fun NavigationOverlay(
             Box {
                 val menuItems = remember(currentUrl) {
                     listOf(
-                        MenuItem(icon = Icons.AutoMirrored.Filled.ArrowBack, labelRes = R.string.back_button) { onGoBack(); showMenu = false },
-                        MenuItem(icon = Icons.Default.Home, labelRes = R.string.home_button) { onGoHome(); showMenu = false },
-                        MenuItem(icon = Icons.Default.Layers, labelRes = R.string.tabs_button) { onOpenTabManager(); showMenu = false },
-                        MenuItem(icon = Icons.Default.Star, labelRes = R.string.add_to_favorites) { onAddToFavorites(); showMenu = false },
-                        MenuItem(icon = Icons.Default.Refresh, labelRes = R.string.reload_button) { onReload(); showMenu = false },
-                        MenuItem(icon = Icons.Default.Search, labelRes = R.string.search_button) { showSearchDialog = true; showMenu = false },
-                        MenuItem(icon = Icons.Default.Share, labelRes = R.string.share_button) { showQRCode = true; showMenu = false },
-                        MenuItem(icon = Icons.Default.Settings, labelRes = R.string.settings_button) { onOpenSettings(); showMenu = false },
-                        MenuItem(icon = Icons.AutoMirrored.Filled.ExitToApp, labelRes = R.string.exit_button) {
+                        MenuItem(
+                            icon = Icons.AutoMirrored.Filled.ArrowBack,
+                            labelRes = R.string.back_button
+                        ) { onGoBack(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Home,
+                            labelRes = R.string.home_button
+                        ) { onGoHome(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Layers,
+                            labelRes = R.string.tabs_button
+                        ) { onOpenTabManager(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Star,
+                            labelRes = R.string.add_to_favorites
+                        ) { onAddToFavorites(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Refresh,
+                            labelRes = R.string.reload_button
+                        ) { onReload(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Search,
+                            labelRes = R.string.search_button
+                        ) { showSearchDialog = true; showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Share,
+                            labelRes = R.string.share_button
+                        ) { showQRCode = true; showMenu = false },
+                        MenuItem(
+                            icon = Icons.Default.Settings,
+                            labelRes = R.string.settings_button
+                        ) { onOpenSettings(); showMenu = false },
+                        MenuItem(
+                            icon = Icons.AutoMirrored.Filled.ExitToApp,
+                            labelRes = R.string.exit_button
+                        ) {
                             showMenu = false
                             try {
                                 (context as? Activity)?.finishAndRemoveTask()
@@ -113,31 +176,34 @@ fun NavigationOverlay(
                 }
 
                 if (showMenu) {
-                    val isLeft = (fabLocation == FABLocation.BOTTOM_LEFT) || (fabLocation == FABLocation.TOP_LEFT)
-                    val isTop = (fabLocation == FABLocation.TOP_LEFT) || (fabLocation == FABLocation.TOP_RIGHT)
-                    
+                    val isLeft =
+                        (fabLocation == FABLocation.BOTTOM_LEFT) || (fabLocation == FABLocation.TOP_LEFT)
+                    val isTop =
+                        (fabLocation == FABLocation.TOP_LEFT) || (fabLocation == FABLocation.TOP_RIGHT)
+
                     val startAngle = when {
                         isLeft && isTop -> 0f
                         !isLeft && isTop -> 90f
                         !isLeft && !isTop -> 180f
                         else -> 270f
                     }
-                    
+
                     val sweepAngle = 90f
                     val innerRadius = 105.dp
                     val outerRadius = 180.dp
-                    
+
                     menuItems.forEachIndexed { index, item ->
                         val isOuter = index >= 3
                         val radius = if (isOuter) outerRadius else innerRadius
                         val arcIndex = if (isOuter) index - 3 else index
                         val arcTotal = if (isOuter) 6 else 3
-                        
-                        val angle = startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
+
+                        val angle =
+                            startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
                         val angleRad = Math.toRadians(angle.toDouble())
                         val targetX = (cos(angleRad) * radius.value).dp
                         val targetY = (sin(angleRad) * radius.value).dp
-                        
+
                         val animatedOffsetX by animateDpAsState(
                             targetValue = targetX,
                             animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
@@ -156,9 +222,18 @@ fun NavigationOverlay(
                             shape = CircleShape,
                             modifier = Modifier
                                 .size(46.dp)
-                                .offset { IntOffset(x = animatedOffsetX.roundToPx(), y = animatedOffsetY.roundToPx()) },
+                                .offset {
+                                    IntOffset(
+                                        x = animatedOffsetX.roundToPx(),
+                                        y = animatedOffsetY.roundToPx()
+                                    )
+                                },
                         ) {
-                            Icon(imageVector = item.icon, contentDescription = stringResource(id = item.labelRes), modifier = Modifier.size(22.dp))
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = stringResource(id = item.labelRes),
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
                     }
                 }
@@ -229,11 +304,11 @@ fun NavigationOverlay(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         val qrBitmap = remember(currentUrl) {
                             QRCodeUtils.generateQRCode(currentUrl, 512)
                         }
-                        
+
                         if (qrBitmap != null) {
                             Image(
                                 bitmap = qrBitmap.asImageBitmap(),
@@ -241,7 +316,7 @@ fun NavigationOverlay(
                                 modifier = Modifier.size(180.dp),
                             )
                         }
-                        
+
                         Spacer(modifier = Modifier.height(16.dp))
                         TextButton(onClick = { showQRCode = false }) {
                             Text(text = stringResource(id = R.string.close_button))
@@ -250,7 +325,7 @@ fun NavigationOverlay(
                 }
             }
         }
-        
+
         // Overlay Ricerca
         if (showSearchDialog) {
             SearchOverlay(
@@ -279,7 +354,7 @@ fun SearchOverlay(
     val focusRequester = remember { FocusRequester() }
 
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
-    
+
     DisposableEffect(Unit) {
         onDispose {
             speechRecognizer.destroy()
@@ -301,7 +376,7 @@ fun SearchOverlay(
     LaunchedEffect(Unit) {
         if (carInputManager != null && carInputManager.isValid) {
             carInputManager.setOnInputEventListener(
-                onText = { text -> 
+                onText = { text ->
                     val currentTime = System.currentTimeMillis()
                     // Debouncing: filtra caratteri identici troppo veloci (effetto burst tastiera remota)
                     if (currentTime - lastCommitTime < 100 && text == lastText) {
@@ -313,15 +388,21 @@ fun SearchOverlay(
                     // Se il cursore è in mezzo, il testo viene inserito lì
                     val selection = queryValue.selection
                     val currentText = queryValue.text
-                    val newText = StringBuilder(currentText).replace(selection.min, selection.max, text).toString()
-                    queryValue = TextFieldValue(text = newText, selection = TextRange(selection.min + text.length))
+                    val newText =
+                        StringBuilder(currentText).replace(selection.min, selection.max, text)
+                            .toString()
+                    queryValue = TextFieldValue(
+                        text = newText,
+                        selection = TextRange(selection.min + text.length)
+                    )
                 },
-                onDelete = { length -> 
+                onDelete = { length ->
                     val selection = queryValue.selection
                     val currentText = queryValue.text
-                    
+
                     val start = (selection.start - length).coerceAtLeast(0)
-                    val newText = StringBuilder(currentText).delete(start, selection.start).toString()
+                    val newText =
+                        StringBuilder(currentText).delete(start, selection.start).toString()
                     queryValue = TextFieldValue(text = newText, selection = TextRange(start))
                 },
                 onSelection = { start, end ->
@@ -362,7 +443,7 @@ fun SearchOverlay(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -392,17 +473,23 @@ fun SearchOverlay(
                         trailingIcon = {
                             if (queryValue.text.isNotEmpty()) {
                                 IconButton(onClick = { queryValue = TextFieldValue("") }) {
-                                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null
+                                    )
                                 }
                             }
                         },
                     )
-                    
+
                     IconButton(
                         onClick = {
                             isListening = true
                             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                )
                             }
                             speechRecognizer.setRecognitionListener(object : RecognitionListener {
                                 override fun onReadyForSpeech(params: Bundle?) {}
@@ -418,12 +505,19 @@ fun SearchOverlay(
                                 }
 
                                 override fun onResults(results: Bundle?) {
-                                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                                    val matches =
+                                        results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                                     matches?.firstOrNull()?.let { spokenText ->
                                         val selection = queryValue.selection
                                         val currentText = queryValue.text
-                                        val newText = StringBuilder(currentText).insert(selection.start, spokenText).toString()
-                                        queryValue = TextFieldValue(text = newText, selection = TextRange(index = selection.start + spokenText.length))
+                                        val newText = StringBuilder(currentText).insert(
+                                            selection.start,
+                                            spokenText
+                                        ).toString()
+                                        queryValue = TextFieldValue(
+                                            text = newText,
+                                            selection = TextRange(index = selection.start + spokenText.length)
+                                        )
                                     }
                                     isListening = false
                                 }
@@ -436,19 +530,19 @@ fun SearchOverlay(
                         modifier = Modifier.size(48.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Mic, 
-                            contentDescription = "Voice Search", 
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Voice Search",
                             tint = if (isListening) Color.Red else MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = { onDismiss() }) {
                         Text(text = stringResource(id = R.string.cancel_button))
                     }
-                    Button(onClick = { 
+                    Button(onClick = {
                         if (queryValue.text.isNotBlank()) {
                             onSearch(queryValue.text)
                         }

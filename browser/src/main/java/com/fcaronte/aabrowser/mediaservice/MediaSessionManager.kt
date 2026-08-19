@@ -64,12 +64,15 @@ class MediaSessionManager(private val context: Context) {
                     PlaybackStateCompat.ACTION_PLAY -> {
                         onPlay?.invoke()
                     }
+
                     PlaybackStateCompat.ACTION_PAUSE -> {
                         onPause?.invoke()
                     }
+
                     PlaybackStateCompat.ACTION_STOP -> {
                         onStop?.invoke()
                     }
+
                     PlaybackStateCompat.ACTION_SKIP_TO_NEXT -> onSkipToNext?.invoke()
                     PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS -> onSkipToPrevious?.invoke()
                     PlaybackStateCompat.ACTION_SEEK_TO -> {

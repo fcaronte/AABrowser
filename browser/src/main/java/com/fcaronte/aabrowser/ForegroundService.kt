@@ -7,7 +7,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -24,7 +23,7 @@ class ForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent != null && intent.getAction() != null && intent.getAction() == "STOP") stopSelf()
+        if (intent != null && intent.action != null && intent.action == "STOP") stopSelf()
         return START_STICKY
     }
 
@@ -47,7 +46,7 @@ class ForegroundService : Service() {
                     channelName,
                     NotificationManager.IMPORTANCE_MIN
                 )
-                channel.setDescription(channelDescription)
+                channel.description = channelDescription
                 channel.setShowBadge(false)
                 notificationManager.createNotificationChannel(channel)
             }

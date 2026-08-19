@@ -108,7 +108,7 @@ internal class CarMediaNotificationManager {
     ): NotificationCompat.Builder {
         createChannel()
 
-        val isPlaying = state.getState() == PlaybackStateCompat.STATE_PLAYING
+        val isPlaying = state.state == PlaybackStateCompat.STATE_PLAYING
 
         val builder: NotificationCompat.Builder =
             NotificationCompat.Builder(m_CarMediaService!!, CHANNEL_ID)
@@ -125,8 +125,8 @@ internal class CarMediaNotificationManager {
         )
 
         builder.setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle(description.getTitle())
-            .setContentText(description.getSubtitle())
+            .setContentTitle(description.title)
+            .setContentText(description.subtitle)
             .setContentIntent(createContentIntent())
             .setOngoing(isPlaying)
 
@@ -136,13 +136,13 @@ internal class CarMediaNotificationManager {
             )
         )
 
-        if ((state.getActions() and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0L) builder.addAction(
+        if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0L) builder.addAction(
             m_PrevAction
         )
 
         builder.addAction(if (isPlaying) m_PauseAction else m_PlayAction)
 
-        if ((state.getActions() and PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0L) builder.addAction(
+        if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0L) builder.addAction(
             m_NextAction
         )
 
@@ -155,8 +155,12 @@ internal class CarMediaNotificationManager {
             ) == null
         ) {
             val channel =
-                NotificationChannel(CHANNEL_ID, m_CarMediaService!!.getString(R.string.media_session_channel_name), NotificationManager.IMPORTANCE_LOW)
-            channel.setDescription(m_CarMediaService!!.getString(R.string.media_session_channel_desc))
+                NotificationChannel(
+                    CHANNEL_ID,
+                    m_CarMediaService!!.getString(R.string.media_session_channel_name),
+                    NotificationManager.IMPORTANCE_LOW
+                )
+            channel.description = m_CarMediaService!!.getString(R.string.media_session_channel_desc)
             m_NotificationManager!!.createNotificationChannel(channel)
         }
     }

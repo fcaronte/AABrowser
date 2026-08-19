@@ -3,6 +3,8 @@ package com.fcaronte.aabrowser
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -18,7 +20,8 @@ import com.fcaronte.aabrowser.ui.MainScreen
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.input.InputManager
 
-class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
+    SavedStateRegistryOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val mViewModelStore = ViewModelStore()
@@ -52,10 +55,10 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
             setViewTreeLifecycleOwner(this@MainCarActivity)
             setViewTreeViewModelStoreOwner(this@MainCarActivity)
             setViewTreeSavedStateRegistryOwner(this@MainCarActivity)
-            
+
             val inputManager = try {
                 CarInputManager(findInputManager())
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
 
@@ -74,14 +77,15 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
                 it.setViewTreeViewModelStoreOwner(this)
                 it.setViewTreeSavedStateRegistryOwner(this)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Fallback or ignore if obfuscated name changed
         }
 
         try {
-            val methodSetIgnore = this.javaClass.getMethod("setIgnoreConfigChanges", Int::class.javaPrimitiveType)
+            val methodSetIgnore =
+                this.javaClass.getMethod("setIgnoreConfigChanges", Int::class.javaPrimitiveType)
             methodSetIgnore.invoke(this, 0xFFFF)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
 
         updateSystemUi(true)
@@ -91,7 +95,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
         return try {
             val methodC = this.javaClass.getMethod("c")
             methodC.invoke(this) as? android.view.Window
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -142,12 +146,12 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
                 }
                 currentClass = currentClass.superclass
             }
-            
+
             // Fallback: prova a chiamare il metodo "getInputManager" se esiste
             val getIM = this.javaClass.getMethod("getInputManager")
             getIM.isAccessible = true
             getIM.invoke(this) as? InputManager
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ultima spiaggia: cerca un metodo che restituisca Object ma si chiami in modo sospetto
             try {
                 val methods = CarActivity::class.java.declaredMethods
@@ -160,26 +164,25 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
                         }
                     }
                 }
-            } catch (e2: Exception) {}
+            } catch (_: Exception) {
+            }
             null
         }
     }
 
     fun updateSystemUi(fullscreen: Boolean) {
         try {
-            val window = getCarWindow()
-            val decorView = window?.decorView
-            if (decorView != null) {
-                if (fullscreen) {
-                    decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-                } else {
-                    decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
-                }
+            val window = getCarWindow() ?: return
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+
+            if (fullscreen) {
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars())
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
     }
 
@@ -187,13 +190,17 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner, Save
     // Se dà errore di override, usiamo una versione senza override e vediamo se viene chiamata
     fun handleActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
         if (requestCode == 1002 && resultCode == -1) { // -1 is Activity.RESULT_OK
-            val results = data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+            val results =
+                data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
             val spokenText = results?.firstOrNull()
             if (!spokenText.isNullOrEmpty()) {
                 getCarWindow()?.decorView?.let { decor ->
                     findWebView(decor)?.let { webView ->
                         val escaped = spokenText.replace("'", "\\'")
-                        webView.evaluateJavascript("if(window.AndroidBridge) AndroidBridge.injectText('$escaped');", null)
+                        webView.evaluateJavascript(
+                            "if(window.AndroidBridge) AndroidBridge.injectText('$escaped');",
+                            null
+                        )
                     }
                 }
             }

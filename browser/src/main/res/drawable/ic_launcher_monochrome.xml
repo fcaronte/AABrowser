@@ -3,39 +3,43 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  <group android:scaleX="1.0153847"
-      android:scaleY="1.0153847"
-      android:translateX="-0.83076924"
-      android:translateY="-0.83076924">
-    <group android:scaleX="0.9777778"
-        android:scaleY="0.9777778"
-        android:translateX="1.2"
-        android:translateY="1.2">
-      <group android:scaleX="0.8"
-          android:scaleY="0.8"
-          android:translateX="10.8"
-          android:translateY="10.8">
-        <group android:scaleX="1.1"
-            android:scaleY="1.1"
-            android:translateX="-5.4"
-            android:translateY="-5.4">
+    <group
+        android:scaleX="1.0153847"
+        android:scaleY="1.0153847"
+        android:translateX="-0.83076924"
+        android:translateY="-0.83076924">
+        <group
+            android:scaleX="0.9777778"
+            android:scaleY="0.9777778"
+            android:translateX="1.2"
+            android:translateY="1.2">
+            <group
+                android:scaleX="0.8"
+                android:scaleY="0.8"
+                android:translateX="10.8"
+                android:translateY="10.8">
+                <group
+                    android:scaleX="1.1"
+                    android:scaleY="1.1"
+                    android:translateX="-5.4"
+                    android:translateY="-5.4">
 
-            <!-- Sagoma del cerchio/globo principale -->
-            <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M54,24 c16.56,0 30,13.44 30,30 s-13.44,30 -30,30 s-30,-13.44 -30,-30 s13.44,-30 30,-30 z" />
+                    <!-- Sagoma del cerchio/globo principale -->
+                    <path
+                        android:fillColor="#FFFFFF"
+                        android:pathData="M54,24 c16.56,0 30,13.44 30,30 s-13.44,30 -30,30 s-30,-13.44 -30,-30 s13.44,-30 30,-30 z" />
 
-            <!-- Dettaglio interno (linee longitudinali che creano contrasto) -->
-            <path
-                android:fillColor="#000000"
-                android:pathData="M54,26 c-7.5,0 -13.5,12.5 -13.5,28 s6,28 13.5,28 s13.5,-12.5 13.5,-28 s-6,-28 -13.5,-28 z M26,54 c0,-7.5 12.5,-13.5 28,-13.5 s28,6 28,13.5 s-12.5,13.5 -28,13.5 s-28,-6 -28,-13.5 z" />
+                    <!-- Dettaglio interno (linee longitudinali che creano contrasto) -->
+                    <path
+                        android:fillColor="#000000"
+                        android:pathData="M54,26 c-7.5,0 -13.5,12.5 -13.5,28 s6,28 13.5,28 s13.5,-12.5 13.5,-28 s-6,-28 -13.5,-28 z M26,54 c0,-7.5 12.5,-13.5 28,-13.5 s28,6 28,13.5 s-12.5,13.5 -28,13.5 s-28,-6 -28,-13.5 z" />
 
-            <!-- Cursore / Freccia centrale resa nera per staccare sullo sfondo bianco -->
-            <path
-                android:fillColor="#000000"
-                android:pathData="M48,42 l18,10 l-7,3.5 l-4,8.5 z" />
+                    <!-- Cursore / Freccia centrale resa nera per staccare sullo sfondo bianco -->
+                    <path
+                        android:fillColor="#000000"
+                        android:pathData="M48,42 l18,10 l-7,3.5 l-4,8.5 z" />
+                </group>
+            </group>
         </group>
-      </group>
     </group>
-  </group>
 </vector>

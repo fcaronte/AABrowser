@@ -2,7 +2,6 @@ package com.fcaronte.aabrowser
 
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.CompletionInfo
 import android.view.inputmethod.CorrectionInfo
@@ -10,7 +9,6 @@ import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputContentInfo
-import android.view.inputmethod.BaseInputConnection
 
 class CarInputConnection internal constructor(
     private val m_CarInputManager: CarInputManager?,
@@ -60,7 +58,7 @@ class CarInputConnection internal constructor(
             val managerText = m_CarInputManager.getCurrentText()
             val start = m_CarInputManager.getSelectionStart()
             val end = m_CarInputManager.getSelectionEnd()
-            
+
             return ExtractedText().apply {
                 this.text = managerText
                 this.startOffset = 0
@@ -74,7 +72,7 @@ class CarInputConnection internal constructor(
 
     override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
         android.util.Log.d(TAG, "deleteSurroundingText: $beforeLength, $afterLength")
-        
+
         if (m_CarInputManager?.onTextCommitted != null) {
             m_CarInputManager.onDeleteRequested?.invoke(beforeLength)
             return true
@@ -94,13 +92,13 @@ class CarInputConnection internal constructor(
 
     override fun setComposingText(text: CharSequence?, newCursorPosition: Int): Boolean {
         if (text == null) return false
-        
+
         // MODALITÀ SINCRONIZZATA (Campi nativi Compose)
         if (m_CarInputManager?.onTextCommitted != null) {
             if (text.toString() == m_LastCommittedText) return true
             return commitText(text, newCursorPosition)
         }
-        
+
         // MODALITÀ DIRETTA (WebView)
         // Alcune tastiere AA usano setComposingText invece di commitText per inserire singoli caratteri
         val result = m_InputConnection.setComposingText(text, newCursorPosition)
@@ -132,10 +130,10 @@ class CarInputConnection internal constructor(
         m_LastCommittedText = textStr
 
         android.util.Log.d(TAG, "commitText: '$textStr'")
-        
+
         if (m_CarInputManager?.onTextCommitted != null) {
             val currentText = m_CarInputManager.getCurrentText()
-            
+
             m_CarInputManager.isImeUpdating = true
             try {
                 if (textStr.length == 1) {
@@ -150,46 +148,61 @@ class CarInputConnection internal constructor(
                     var currentSuffixIdx = currentText.length - 1
                     var textSuffixIdx = textStr.length - 1
                     var commonSuffixLen = 0
-                    while (currentSuffixIdx >= commonPrefixLen && textSuffixIdx >= commonPrefixLen && 
-                           currentText[currentSuffixIdx] == textStr[textSuffixIdx]) {
+                    while (currentSuffixIdx >= commonPrefixLen && textSuffixIdx >= commonPrefixLen &&
+                        currentText[currentSuffixIdx] == textStr[textSuffixIdx]
+                    ) {
                         commonSuffixLen++
                         currentSuffixIdx--
                         textSuffixIdx--
                     }
 
                     val deletedLen = currentText.length - commonPrefixLen - commonSuffixLen
-                    val insertedText = textStr.substring(commonPrefixLen, textStr.length - commonSuffixLen)
+                    val insertedText =
+                        textStr.substring(commonPrefixLen, textStr.length - commonSuffixLen)
 
                     if (deletedLen > 0) {
-                        m_CarInputManager.onSelectionChanged?.invoke(commonPrefixLen + deletedLen, commonPrefixLen + deletedLen)
+                        m_CarInputManager.onSelectionChanged?.invoke(
+                            commonPrefixLen + deletedLen,
+                            commonPrefixLen + deletedLen
+                        )
                         m_CarInputManager.onDeleteRequested?.invoke(deletedLen)
                     }
                     if (insertedText.isNotEmpty()) {
-                        m_CarInputManager.onSelectionChanged?.invoke(commonPrefixLen, commonPrefixLen)
+                        m_CarInputManager.onSelectionChanged?.invoke(
+                            commonPrefixLen,
+                            commonPrefixLen
+                        )
                         m_CarInputManager.onTextCommitted?.invoke(insertedText)
                     }
                 }
-                
+
                 // Deleghiamo anche alla connessione nativa (EditText)
                 return m_InputConnection.commitText(text, newCursorPosition)
             } finally {
                 m_CarInputManager.isImeUpdating = false
             }
         }
-        
+
         // MODALITÀ DIRETTA (WebView)
         val result = m_InputConnection.commitText(text, newCursorPosition)
-        
+
         // Per le WebView su AA, se il commit nativo sembra non funzionare (comune su AA),
         // emuliamo un evento JavaScript per forzare l'inserimento del testo.
         // Lo facciamo SOLO per singoli caratteri (Tastiera Car) per evitare duplicati con lo smartphone.
         if (result && textStr.length == 1 && textStr != "\n") {
             val webView = m_CarInputManager?.getTargetView() as? android.webkit.WebView
             webView?.post {
-                webView.evaluateJavascript("if(window.AndroidBridge) AndroidBridge.injectText('${textStr.replace("'", "\\'")}');", null)
+                webView.evaluateJavascript(
+                    "if(window.AndroidBridge) AndroidBridge.injectText('${
+                        textStr.replace(
+                            "'",
+                            "\\'"
+                        )
+                    }');", null
+                )
             }
         }
-        
+
         // Backup: ENTER key handling
         if (textStr == "\n") {
             m_InputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
@@ -265,7 +278,7 @@ class CarInputConnection internal constructor(
     }
 
     override fun getHandler(): Handler? {
-        return m_InputConnection.getHandler()
+        return m_InputConnection.handler
     }
 
     override fun closeConnection() {

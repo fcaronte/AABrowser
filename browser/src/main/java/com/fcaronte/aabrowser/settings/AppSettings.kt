@@ -77,23 +77,33 @@ object AppSettings {
 
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        _themeMode.value = ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.AMOLED.name) ?: ThemeMode.AMOLED.name)
+        _themeMode.value = ThemeMode.valueOf(
+            prefs.getString("theme_mode", ThemeMode.AMOLED.name) ?: ThemeMode.AMOLED.name
+        )
         _dynamicColor.value = prefs.getBoolean("dynamic_color", true) // Default attivo
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _resumeLastPage.value = prefs.getBoolean("resume_last_page", true)
         _restoreLastTabs.value = prefs.getBoolean("restore_last_tabs", false)
         _persistentUrlBar.value = prefs.getBoolean("persistent_url_bar", false)
-        _fabLocation.value = FABLocation.valueOf(prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name) ?: FABLocation.BOTTOM_RIGHT.name)
-        _fabBehavior.value = FABBehavior.valueOf(prefs.getString("fab_behavior", FABBehavior.OPEN_MENU.name) ?: FABBehavior.OPEN_MENU.name)
+        _fabLocation.value = FABLocation.valueOf(
+            prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
+                ?: FABLocation.BOTTOM_RIGHT.name
+        )
+        _fabBehavior.value = FABBehavior.valueOf(
+            prefs.getString("fab_behavior", FABBehavior.OPEN_MENU.name)
+                ?: FABBehavior.OPEN_MENU.name
+        )
         _displayScale.value = prefs.getFloat("display_scale", 1.0f)
         _desktopMode.value = prefs.getBoolean("desktop_mode", false)
         _desktopScale.value = prefs.getFloat("desktop_scale", 1.0f)
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
         _dashboardThreeColumns.value = prefs.getBoolean("dashboard_three_columns", false)
         _forceEnglish.value = prefs.getBoolean("force_english", false)
-        _searchEngine.value = SearchEngine.valueOf(prefs.getString("search_engine", SearchEngine.GOOGLE.name) ?: SearchEngine.GOOGLE.name)
+        _searchEngine.value = SearchEngine.valueOf(
+            prefs.getString("search_engine", SearchEngine.GOOGLE.name) ?: SearchEngine.GOOGLE.name
+        )
         _uiScale.value = prefs.getFloat("ui_scale", 1.0f)
-        
+
         updateLocale()
     }
 
@@ -160,14 +170,17 @@ object AppSettings {
     }
 
     private fun saveString(context: Context, key: String, value: String) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value).apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value)
+            .apply()
     }
 
     private fun saveBoolean(context: Context, key: String, value: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(key, value).apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(key, value)
+            .apply()
     }
 
     private fun saveFloat(context: Context, key: String, value: Float) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putFloat(key, value).apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putFloat(key, value)
+            .apply()
     }
 }

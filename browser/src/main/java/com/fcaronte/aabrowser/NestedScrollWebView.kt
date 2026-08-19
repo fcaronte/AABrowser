@@ -32,14 +32,14 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.getAction()) {
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                m_LastMotionY = event.getY().toInt()
+                m_LastMotionY = event.y.toInt()
                 startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL)
             }
 
             MotionEvent.ACTION_MOVE -> {
-                var deltaY = m_LastMotionY - event.getY().toInt()
+                var deltaY = m_LastMotionY - event.y.toInt()
                 if (deltaY != 0) {
                     val scrollConsumed = IntArray(2)
                     val scrollOffset = IntArray(2)
@@ -66,7 +66,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
 
     private fun init() {
         m_NestedScrollingChildHelper = NestedScrollingChildHelper(this)
-        setNestedScrollingEnabled(true)
+        isNestedScrollingEnabled = true
     }
 
     override fun setNestedScrollingEnabled(enabled: Boolean) {
@@ -74,7 +74,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
     }
 
     override fun isNestedScrollingEnabled(): Boolean {
-        return m_NestedScrollingChildHelper!!.isNestedScrollingEnabled()
+        return m_NestedScrollingChildHelper!!.isNestedScrollingEnabled
     }
 
     override fun hasNestedScrollingParent(): Boolean {

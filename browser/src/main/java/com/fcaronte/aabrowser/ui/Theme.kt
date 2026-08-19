@@ -65,11 +65,14 @@ fun AABrowserTheme(
     val colorScheme = when (themeMode) {
         ThemeMode.LIGHT -> {
             if (supportsDynamic && dynamicColorEnabled) {
-                if (systemIsDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                if (systemIsDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(
+                    context
+                )
             } else {
                 if (systemIsDark) DarkColorScheme else LightColorScheme
             }
         }
+
         ThemeMode.DARK -> {
             if (supportsDynamic && dynamicColorEnabled) {
                 dynamicDarkColorScheme(context)
@@ -77,6 +80,7 @@ fun AABrowserTheme(
                 DarkColorScheme
             }
         }
+
         ThemeMode.AMOLED -> {
             if (supportsDynamic && dynamicColorEnabled) {
                 val dynamicDark = dynamicDarkColorScheme(context)

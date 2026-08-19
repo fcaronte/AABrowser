@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Card
@@ -63,7 +62,8 @@ import kotlinx.coroutines.delay
 import java.io.ByteArrayInputStream
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val DESKTOP_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+private const val DESKTOP_USER_AGENT =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
 private fun isDesktopRequired(url: String?): Boolean {
     val lowUrl = url?.lowercase() ?: ""
@@ -139,7 +139,8 @@ fun BrowserScreen(
                         displayZoomControls = false
                         allowContentAccess = true
                         allowFileAccess = true
-                        mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                        mixedContentMode =
+                            android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                     }
 
                     // Abilita i cookie in modo persistente
@@ -278,7 +279,12 @@ fun BrowserScreen(
                                 albumArtUrl: String,
                                 duration: Float,
                             ) {
-                                mediaSessionManager?.updateMetadata(title, artist, albumArtUrl, (duration * 1000).toLong())
+                                mediaSessionManager?.updateMetadata(
+                                    title,
+                                    artist,
+                                    albumArtUrl,
+                                    (duration * 1000).toLong()
+                                )
                             }
 
                             @android.webkit.JavascriptInterface
@@ -354,7 +360,11 @@ fun BrowserScreen(
                     }
 
                     webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        override fun onPageStarted(
+                            view: WebView?,
+                            url: String?,
+                            favicon: android.graphics.Bitmap?
+                        ) {
                             if (isDesktopMode || isDesktopRequired(url)) {
                                 view?.settings?.userAgentString = DESKTOP_USER_AGENT
                             } else {
@@ -362,14 +372,24 @@ fun BrowserScreen(
                             }
                         }
 
-                        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                        override fun shouldInterceptRequest(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): WebResourceResponse? {
                             if (SubscriptionsManager.shouldBlock(request?.url?.toString() ?: "")) {
-                                return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream("".toByteArray()))
+                                return WebResourceResponse(
+                                    "text/plain",
+                                    "utf-8",
+                                    ByteArrayInputStream("".toByteArray())
+                                )
                             }
                             return super.shouldInterceptRequest(view, request)
                         }
 
-                        override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                        override fun onRenderProcessGone(
+                            view: WebView?,
+                            detail: android.webkit.RenderProcessGoneDetail?
+                        ): Boolean {
                             return true
                         }
 
@@ -568,7 +588,12 @@ fun BrowserScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Mic, null, tint = Color.Red, modifier = Modifier.size(48.dp))
+                        Icon(
+                            Icons.Default.Mic,
+                            null,
+                            tint = Color.Red,
+                            modifier = Modifier.size(48.dp)
+                        )
                         Spacer(Modifier.height(16.dp))
                         Text(stringResource(R.string.voice_listening), color = Color.White)
                     }
@@ -591,7 +616,10 @@ fun BrowserScreen(
                     showInputPopup = false
                     isListening = true
                     val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                        putExtra(
+                            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                        )
                         putExtra(RecognizerIntent.EXTRA_PROMPT, voicePrompt)
                     }
                     speechRecognizer.setRecognitionListener(object : RecognitionListener {
@@ -608,9 +636,18 @@ fun BrowserScreen(
                         }
 
                         override fun onResults(results: Bundle?) {
-                            val spokenText = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                            val spokenText =
+                                results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                                    ?.firstOrNull()
                             if (!spokenText.isNullOrEmpty()) {
-                                webViewReference?.evaluateJavascript("AndroidBridge.injectText('${spokenText.replace("'", "\\'")}');", null)
+                                webViewReference?.evaluateJavascript(
+                                    "AndroidBridge.injectText('${
+                                        spokenText.replace(
+                                            "'",
+                                            "\\'"
+                                        )
+                                    }');", null
+                                )
                             }
                             isListening = false
                         }
@@ -655,12 +692,25 @@ fun InputSelectionPopup(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         ) {
-            Row(modifier = Modifier.padding(24.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+            Row(
+                modifier = Modifier.padding(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
                 IconButton(onClick = onKeyboardSelected, modifier = Modifier.size(64.dp)) {
-                    Icon(Icons.Default.Keyboard, null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Keyboard,
+                        null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
                 IconButton(onClick = onMicSelected, modifier = Modifier.size(64.dp)) {
-                    Icon(Icons.Default.Mic, null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.secondary)
+                    Icon(
+                        Icons.Default.Mic,
+                        null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
         }

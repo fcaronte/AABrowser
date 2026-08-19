@@ -5,7 +5,6 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -16,6 +15,8 @@ import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
 
+// TODO: Valutare migrazione a Jetpack Media3 in futuro
+@Suppress("DEPRECATION")
 class CarMediaService : MediaBrowserServiceCompat() {
     private var m_CarMediaNotificationManager: CarMediaNotificationManager? = null
     private var m_MediaSessionCompat: MediaSessionCompat? = null
@@ -30,12 +31,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 // per evitare stop indesiderati su alcuni sistemi che lo inviano erroneamente.
                 // broadcastPlaybackAction(PlaybackStateCompat.ACTION_PAUSE)
             }
+
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
                 // Perdita temporanea (es. assistente vocale): NON stoppiamo il browser.
             }
+
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                 // L'audio si abbassa ma non deve stopparsi (es. indicazioni stradali)
             }
+
             AudioManager.AUDIOFOCUS_GAIN -> {
                 // Focus riottenuto: potremmo voler riprendere se avevamo pausato
             }
@@ -45,7 +49,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
         m_CarMediaNotificationManager = CarMediaNotificationManager()
         m_CarMediaNotificationManager!!.setCarMediaService(this)
@@ -80,11 +84,12 @@ class CarMediaService : MediaBrowserServiceCompat() {
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
             .build()
 
-        focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) // Prova anche AUDIOFOCUS_GAIN_TRANSIENT se continua a fallire
-            .setAudioAttributes(playbackAttributes)
-            .setAcceptsDelayedFocusGain(true)
-            .setOnAudioFocusChangeListener(audioFocusListener)
-            .build()
+        focusRequest =
+            AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) // Prova anche AUDIOFOCUS_GAIN_TRANSIENT se continua a fallire
+                .setAudioAttributes(playbackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(audioFocusListener)
+                .build()
 
         audioManager.requestAudioFocus(focusRequest!!)
 
@@ -135,7 +140,12 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 .setSubtitle(getString(R.string.media_browser_subtitle))
                 .build()
 
-            mediaItems.add(MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
+            mediaItems.add(
+                MediaBrowserCompat.MediaItem(
+                    description,
+                    MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                )
+            )
         }
 
         result.sendResult(mediaItems)
@@ -148,14 +158,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
             var update = false
             var cancel = false
             if (action == PLAYBACK_STATE_COMPAT) {
-                val playbackStateCompat = extras.getParcelable<PlaybackStateCompat?>(PLAYBACK_STATE_COMPAT)
+                val playbackStateCompat =
+                    extras.getParcelable<PlaybackStateCompat?>(PLAYBACK_STATE_COMPAT)
                 if (playbackStateCompat != null) {
                     update = stateChanged(playbackStateCompat)
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
                     // Richiede il focus solo se stiamo effettivamente cambiando stato verso PLAYING
-                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_PLAYING && 
-                        (m_MediaControllerCompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)) {
+                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_PLAYING &&
+                        (m_MediaControllerCompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)
+                    ) {
                         requestAudioFocus()
                     }
 
@@ -163,7 +175,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 }
             }
             if (action == MEDIA_METADATA_COMPAT) {
-                val mediaMetadataCompat = extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
+                val mediaMetadataCompat =
+                    extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
                 if (mediaMetadataCompat != null) {
                     m_MediaSessionCompat!!.setMetadata(mediaMetadataCompat)
                     update = true
@@ -185,22 +198,32 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
     }
 
-    private class MediaSessionCallback(private val service: CarMediaService) : MediaSessionCompat.Callback() {
+    private class MediaSessionCallback(private val service: CarMediaService) :
+        MediaSessionCompat.Callback() {
         override fun onPlay() {
             // CORRETTO: Richiediamo l'audio focus immediatamente alla ricezione del comando Play
             service.requestAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
+
         override fun onPause() {
             service.abandonAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PAUSE)
         }
+
         override fun onStop() {
             service.abandonAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_STOP)
         }
-        override fun onSkipToPrevious() { service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) }
-        override fun onSkipToNext() { service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT) }
+
+        override fun onSkipToPrevious() {
+            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+        }
+
+        override fun onSkipToNext() {
+            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+        }
+
         override fun onSeekTo(pos: Long) {
             val bundle = Bundle().apply {
                 putLong(PLAYBACK_ACTION, PlaybackStateCompat.ACTION_SEEK_TO)
@@ -225,7 +248,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
         val state = m_MediaControllerCompat?.playbackState?.state
         if (notification != null && m_CarMediaNotificationManager != null) {
             if (state == PlaybackStateCompat.STATE_PLAYING) {
-                startForeground(600, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                startForeground(
+                    600,
+                    notification,
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                )
             } else {
                 stopForeground(STOP_FOREGROUND_DETACH)
                 m_CarMediaNotificationManager!!.notify(notification)

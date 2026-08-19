@@ -3,46 +3,50 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  <group android:scaleX="1.0153847"
-      android:scaleY="1.0153847"
-      android:translateX="-0.83076924"
-      android:translateY="-0.83076924">
-    <group android:scaleX="0.9777778"
-        android:scaleY="0.9777778"
-        android:translateX="1.2"
-        android:translateY="1.2">
-      <group android:scaleX="0.8"
-          android:scaleY="0.8"
-          android:translateX="10.8"
-          android:translateY="10.8">
-        <group android:scaleX="1.1"
-            android:scaleY="1.1"
-            android:translateX="-5.4"
-            android:translateY="-5.4">
+    <group
+        android:scaleX="1.0153847"
+        android:scaleY="1.0153847"
+        android:translateX="-0.83076924"
+        android:translateY="-0.83076924">
+        <group
+            android:scaleX="0.9777778"
+            android:scaleY="0.9777778"
+            android:translateX="1.2"
+            android:translateY="1.2">
+            <group
+                android:scaleX="0.8"
+                android:scaleY="0.8"
+                android:translateX="10.8"
+                android:translateY="10.8">
+                <group
+                    android:scaleX="1.1"
+                    android:scaleY="1.1"
+                    android:translateX="-5.4"
+                    android:translateY="-5.4">
 
-            <!-- Sfera/Globo principale a gradiente o tinta piatta pulita (Blu oceano profondo) -->
-            <path
-                android:fillColor="#1A73E8"
-                android:pathData="M54,24 c16.56,0 30,13.44 30,30 s-13.44,30 -30,30 s-30,-13.44 -30,-30 s13.44,-30 30,-30 z" />
+                    <!-- Sfera/Globo principale a gradiente o tinta piatta pulita (Blu oceano profondo) -->
+                    <path
+                        android:fillColor="#1A73E8"
+                        android:pathData="M54,24 c16.56,0 30,13.44 30,30 s-13.44,30 -30,30 s-30,-13.44 -30,-30 s13.44,-30 30,-30 z" />
 
-            <!-- Linea curva longitudinale 1 -->
-            <path
-                android:fillColor="#ffffff"
-                android:fillAlpha="0.25"
-                android:pathData="M54,24 c-8,0 -14.5,13.44 -14.5,30 s6.5,30 14.5,30 s14.5,-13.44 14.5,-30 s-6.5,-30 -14.5,-30 z" />
+                    <!-- Linea curva longitudinale 1 -->
+                    <path
+                        android:fillAlpha="0.25"
+                        android:fillColor="#ffffff"
+                        android:pathData="M54,24 c-8,0 -14.5,13.44 -14.5,30 s6.5,30 14.5,30 s14.5,-13.44 14.5,-30 s-6.5,-30 -14.5,-30 z" />
 
-            <!-- Linea curva longitudinale 2 (orizzontale stilizzata) -->
-            <path
-                android:fillColor="#ffffff"
-                android:fillAlpha="0.2"
-                android:pathData="M24,54 c0,-8 13.44,-14.5 30,-14.5 s30,6.5 30,14.5 s-13.44,14.5 -30,14.5 s-30,-6.5 -30,-14.5 z" />
+                    <!-- Linea curva longitudinale 2 (orizzontale stilizzata) -->
+                    <path
+                        android:fillAlpha="0.2"
+                        android:fillColor="#ffffff"
+                        android:pathData="M24,54 c0,-8 13.44,-14.5 30,-14.5 s30,6.5 30,14.5 s-13.44,14.5 -30,14.5 s-30,-6.5 -30,-14.5 z" />
 
-            <!-- Freccia di navigazione / cursore centrale stilizzato bianco -->
-            <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M48,42 l18,10 l-7,3.5 l-4,8.5 z" />
+                    <!-- Freccia di navigazione / cursore centrale stilizzato bianco -->
+                    <path
+                        android:fillColor="#FFFFFF"
+                        android:pathData="M48,42 l18,10 l-7,3.5 l-4,8.5 z" />
+                </group>
+            </group>
         </group>
-      </group>
     </group>
-  </group>
 </vector>

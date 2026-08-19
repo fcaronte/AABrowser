@@ -100,11 +100,13 @@ fun DashboardScreen(
     val lastUrl by AppSettings.lastUrl
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val context = LocalContext.current
-    
+
     val currentVersion = remember {
         try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
-        } catch (_: Exception) { "1.0" }
+        } catch (_: Exception) {
+            "1.0"
+        }
     }
 
     var updateInfo by remember { mutableStateOf<UpdateManager.UpdateInfo?>(null) }
@@ -237,13 +239,27 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Row(
-                                modifier = Modifier.weight(1f).clickable { UpdateManager.openDownloadPage(context, info.downloadUrl) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        UpdateManager.openDownloadPage(
+                                            context,
+                                            info.downloadUrl
+                                        )
+                                    },
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.SystemUpdate, null, modifier = Modifier.size(16.dp))
+                                Icon(
+                                    Icons.Default.SystemUpdate,
+                                    null,
+                                    modifier = Modifier.size(16.dp)
+                                )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = stringResource(R.string.update_available, info.latestVersion),
+                                    text = stringResource(
+                                        R.string.update_available,
+                                        info.latestVersion
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -251,12 +267,14 @@ fun DashboardScreen(
                             }
                             // Tasto X piccolo e discreto
                             Icon(
-                                imageVector = Icons.Default.Close, 
-                                contentDescription = null, 
-                                modifier = Modifier.size(16.dp).clickable { 
-                                    bannerDismissed = true
-                                    UpdateManager.isBannerDismissed = true
-                                },
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clickable {
+                                        bannerDismissed = true
+                                        UpdateManager.isBannerDismissed = true
+                                    },
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                             )
                         }
@@ -375,7 +393,7 @@ fun FavoriteCard(
             site.url
         }
     }
-    
+
     val faviconUrl = remember(site.url, site.faviconUrl) {
         if (!site.faviconUrl.isNullOrEmpty()) site.faviconUrl
         else "https://www.google.com/s2/favicons?domain=$domain&sz=128"
@@ -413,27 +431,62 @@ fun FavoriteCard(
             if (isEditMode) {
                 Row(modifier = Modifier.align(Alignment.TopEnd)) {
                     IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.Edit,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.Delete,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
                 Row(modifier = Modifier.align(Alignment.BottomEnd)) {
                     IconButton(onClick = onMoveLeft, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                     IconButton(onClick = onMoveRight, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
 
-            Column(modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(end = if (isEditMode) 60.dp else 0.dp)) {
-                Text(text = site.name, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(text = domain, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(end = if (isEditMode) 60.dp else 0.dp)
+            ) {
+                Text(
+                    text = site.name,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = domain,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -446,7 +499,11 @@ fun AddFavoriteCard(onClick: () -> Unit) {
             .fillMaxWidth()
             .height(95.dp),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                alpha = 0.5f
+            )
+        ),
     ) {
         Box(
             modifier = Modifier
@@ -454,7 +511,12 @@ fun AddFavoriteCard(onClick: () -> Unit) {
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp))
+            Icon(
+                Icons.Default.Add,
+                null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(36.dp)
+            )
         }
     }
 }
@@ -468,10 +530,28 @@ fun EditFavoriteOverlay(
     onDismiss: () -> Unit,
     onConfirm: (String, String, Long, String?) -> Unit,
 ) {
-    var nameValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.name ?: "")) }
-    var urlValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.url ?: "")) }
-    var faviconValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.faviconUrl ?: "")) }
-    
+    var nameValue by remember {
+        mutableStateOf(
+            androidx.compose.ui.text.input.TextFieldValue(
+                site?.name ?: ""
+            )
+        )
+    }
+    var urlValue by remember {
+        mutableStateOf(
+            androidx.compose.ui.text.input.TextFieldValue(
+                site?.url ?: ""
+            )
+        )
+    }
+    var faviconValue by remember {
+        mutableStateOf(
+            androidx.compose.ui.text.input.TextFieldValue(
+                site?.faviconUrl ?: ""
+            )
+        )
+    }
+
     val dynamicPrimaryColor = MaterialTheme.colorScheme.primary.toArgb().toLong() and 0xFFFFFFFFL
     var color by remember { mutableLongStateOf(site?.color ?: dynamicPrimaryColor) }
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
@@ -519,18 +599,41 @@ fun EditFavoriteOverlay(
                     when (focusedField) {
                         1 -> {
                             val selection = nameValue.selection
-                            val newText = StringBuilder(nameValue.text).replace(selection.min, selection.max, text).toString()
-                            nameValue = nameValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                            val newText = StringBuilder(nameValue.text).replace(
+                                selection.min,
+                                selection.max,
+                                text
+                            ).toString()
+                            nameValue = nameValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(selection.min + text.length)
+                            )
                         }
+
                         2 -> {
                             val selection = urlValue.selection
-                            val newText = StringBuilder(urlValue.text).replace(selection.min, selection.max, text).toString()
-                            urlValue = urlValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                            val newText = StringBuilder(urlValue.text).replace(
+                                selection.min,
+                                selection.max,
+                                text
+                            ).toString()
+                            urlValue = urlValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(selection.min + text.length)
+                            )
                         }
+
                         3 -> {
                             val selection = faviconValue.selection
-                            val newText = StringBuilder(faviconValue.text).replace(selection.min, selection.max, text).toString()
-                            faviconValue = faviconValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                            val newText = StringBuilder(faviconValue.text).replace(
+                                selection.min,
+                                selection.max,
+                                text
+                            ).toString()
+                            faviconValue = faviconValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(selection.min + text.length)
+                            )
                         }
                     }
                 },
@@ -539,20 +642,37 @@ fun EditFavoriteOverlay(
                         1 -> {
                             val selection = nameValue.selection
                             val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(nameValue.text).delete(start, selection.start).toString()
-                            nameValue = nameValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                            val newText =
+                                StringBuilder(nameValue.text).delete(start, selection.start)
+                                    .toString()
+                            nameValue = nameValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(start)
+                            )
                         }
+
                         2 -> {
                             val selection = urlValue.selection
                             val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(urlValue.text).delete(start, selection.start).toString()
-                            urlValue = urlValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                            val newText =
+                                StringBuilder(urlValue.text).delete(start, selection.start)
+                                    .toString()
+                            urlValue = urlValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(start)
+                            )
                         }
+
                         3 -> {
                             val selection = faviconValue.selection
                             val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(faviconValue.text).delete(start, selection.start).toString()
-                            faviconValue = faviconValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                            val newText =
+                                StringBuilder(faviconValue.text).delete(start, selection.start)
+                                    .toString()
+                            faviconValue = faviconValue.copy(
+                                text = newText,
+                                selection = androidx.compose.ui.text.TextRange(start)
+                            )
                         }
                     }
                 },
@@ -565,7 +685,8 @@ fun EditFavoriteOverlay(
                     }
                     currentValue?.let {
                         if (it.selection.start != start || it.selection.end != end) {
-                            val newVal = it.copy(selection = androidx.compose.ui.text.TextRange(start, end))
+                            val newVal =
+                                it.copy(selection = androidx.compose.ui.text.TextRange(start, end))
                             when (focusedField) {
                                 1 -> nameValue = newVal
                                 2 -> urlValue = newVal
@@ -584,7 +705,10 @@ fun EditFavoriteOverlay(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.6f))
-            .clickable(remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, null) { onDismiss() },
+            .clickable(
+                remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                null
+            ) { onDismiss() },
         contentAlignment = Alignment.Center,
     ) {
         Card(
@@ -592,62 +716,90 @@ fun EditFavoriteOverlay(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
-                .clickable(remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, null) { },
+                .clickable(
+                    remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    null
+                ) { },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
-            Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(if (site == null) stringResource(R.string.add_favorite_title) else stringResource(R.string.edit_favorite_title), style = MaterialTheme.typography.titleLarge)
-                
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    if (site == null) stringResource(R.string.add_favorite_title) else stringResource(
+                        R.string.edit_favorite_title
+                    ), style = MaterialTheme.typography.titleLarge
+                )
+
                 OutlinedTextField(
                     value = nameValue,
                     onValueChange = { nameValue = it },
                     label = { Text(stringResource(R.string.field_name)) },
-                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            focusedField = 1
-                            inputHostView?.let { view ->
-                                view.requestFocus()
-                                carInputManager?.startInput(view)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (focusState.isFocused) {
+                                focusedField = 1
+                                inputHostView?.let { view ->
+                                    view.requestFocus()
+                                    carInputManager?.startInput(view)
+                                }
                             }
                         }
-                    }
                 )
-                
+
                 OutlinedTextField(
                     value = urlValue,
                     onValueChange = { urlValue = it },
                     label = { Text(stringResource(R.string.field_url)) },
-                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            focusedField = 2
-                            inputHostView?.let { view ->
-                                view.requestFocus()
-                                carInputManager?.startInput(view)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (focusState.isFocused) {
+                                focusedField = 2
+                                inputHostView?.let { view ->
+                                    view.requestFocus()
+                                    carInputManager?.startInput(view)
+                                }
                             }
                         }
-                    }
                 )
-                
+
                 OutlinedTextField(
                     value = faviconValue,
                     onValueChange = { faviconValue = it },
                     label = { Text(stringResource(R.string.field_favicon)) },
-                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            focusedField = 3
-                            inputHostView?.let { view ->
-                                view.requestFocus()
-                                carInputManager?.startInput(view)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (focusState.isFocused) {
+                                focusedField = 3
+                                inputHostView?.let { view ->
+                                    view.requestFocus()
+                                    carInputManager?.startInput(view)
+                                }
                             }
                         }
-                    }
                 )
 
                 Text(stringResource(R.string.field_color))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     colorOptions.forEach { c ->
-                        Box(modifier = Modifier.size(32.dp).background(Color(c), RoundedCornerShape(4.dp)).clickable { color = c }.padding(4.dp), contentAlignment = Alignment.Center) {
-                            if (color == c) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Color(c), RoundedCornerShape(4.dp))
+                                .clickable { color = c }
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (color == c) Icon(
+                                Icons.Default.Check,
+                                null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }
@@ -655,19 +807,35 @@ fun EditFavoriteOverlay(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
                     Button(onClick = {
-                        val finalUrl = if (!urlValue.text.startsWith("http://") && !urlValue.text.startsWith("https://")) "https://${urlValue.text}" else urlValue.text
-                        
+                        val finalUrl =
+                            if (!urlValue.text.startsWith("http://") && !urlValue.text.startsWith("https://")) "https://${urlValue.text}" else urlValue.text
+
                         if (faviconValue.text.isBlank()) {
-                            if (currentWebView != null && currentWebView.url?.contains(java.net.URI(finalUrl).host ?: "") == true) {
+                            if (currentWebView != null && currentWebView.url?.contains(
+                                    URI(
+                                        finalUrl
+                                    ).host ?: ""
+                                ) == true
+                            ) {
                                 currentWebView.evaluateJavascript(
                                     "(function() { const icon = document.querySelector('link[rel=\"apple-touch-icon\"]') || document.querySelector('link[rel=\"icon\"]'); return icon ? icon.href : ''; })();"
                                 ) { result ->
-                                    val extracted = result?.removeSurrounding("\"")?.takeIf { it.isNotBlank() }
-                                    val fallback = "https://www.google.com/s2/favicons?domain=${java.net.URI(finalUrl).host ?: finalUrl}&sz=128"
-                                    onConfirm(nameValue.text, finalUrl, color, extracted ?: fallback)
+                                    val extracted =
+                                        result?.removeSurrounding("\"")?.takeIf { it.isNotBlank() }
+                                    val fallback = "https://www.google.com/s2/favicons?domain=${
+                                        URI(finalUrl).host ?: finalUrl
+                                    }&sz=128"
+                                    onConfirm(
+                                        nameValue.text,
+                                        finalUrl,
+                                        color,
+                                        extracted ?: fallback
+                                    )
                                 }
                             } else {
-                                val fallback = "https://www.google.com/s2/favicons?domain=${java.net.URI(finalUrl).host ?: finalUrl}&sz=128"
+                                val fallback = "https://www.google.com/s2/favicons?domain=${
+                                    URI(finalUrl).host ?: finalUrl
+                                }&sz=128"
                                 onConfirm(nameValue.text, finalUrl, color, fallback)
                             }
                         } else {

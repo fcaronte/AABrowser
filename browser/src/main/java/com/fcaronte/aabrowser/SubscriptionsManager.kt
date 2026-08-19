@@ -9,9 +9,9 @@ import java.net.URL
  * Sostituisce il vecchio AdBlock Plus che causava problemi di dimensioni e prestazioni.
  */
 object SubscriptionsManager {
-    
+
     private val blockedHosts = mutableSetOf<String>()
-    
+
     // Lista iniziale di domini comuni da bloccare
     private val defaultAdHosts = setOf(
         "doubleclick.net",
@@ -73,18 +73,18 @@ object SubscriptionsManager {
 
     fun shouldBlock(url: String): Boolean {
         if (!AdBlockSettings.isEnabled.value) return false
-        
+
         return try {
             val host = URL(url).host.lowercase()
             // Controlla se l'host o i suoi sottodomini sono nella lista nera
-            blockedHosts.any { adHost -> 
+            blockedHosts.any { adHost ->
                 host == adHost || host.endsWith(".$adHost")
             }
         } catch (e: Exception) {
             false
         }
     }
-    
+
     /**
      * Permette di aggiungere dinamicamente nuovi host alla lista di blocco.
      */
