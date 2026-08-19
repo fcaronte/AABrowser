@@ -101,6 +101,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     }
 
     LaunchedEffect(Unit) {
+        android.util.Log.d("MainScreen", "LaunchedEffect(Unit) - connecting mediaSessionManager")
         AdBlockSettings.init(context)
         mediaSessionManager.connect()
     }

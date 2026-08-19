@@ -5,21 +5,27 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.core.content.ContextCompat
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaBrowser
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
 
+@OptIn(UnstableApi::class)
 class MediaSessionManager(private val context: Context) {
 
-    private var mediaBrowser: MediaBrowserCompat? = null
-    private var mediaController: MediaControllerCompat? = null
+    private var mediaBrowser: MediaBrowser? = null
 
     var onPlay: (() -> Unit)? = null
     var onPause: (() -> Unit)? = null
@@ -28,82 +34,83 @@ class MediaSessionManager(private val context: Context) {
     var onSkipToPrevious: (() -> Unit)? = null
     var onSeekTo: ((Long) -> Unit)? = null
 
-    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            mediaBrowser?.let {
-                if (it.isConnected) {
-                    try {
-                        mediaController = MediaControllerCompat(context, it.sessionToken).apply {
-                            registerCallback(controllerCallback)
-                        }
-                        Log.d(TAG, "MediaBrowser connesso e MediaController inizializzato.")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Errore durante l'inizializzazione del MediaController", e)
-                    }
-                }
+    private val metadataScope = CoroutineScope(Dispatchers.Main)
+    private var lastArtUrl: String? = null
+    private var lastBitmap: Bitmap? = null
+    private var lastDuration: Long = 0
+
+    fun connect() {
+        Log.e("MediaSessionManager", "@@@ connect() called @@@")
+        if (mediaBrowser != null) {
+            Log.e("MediaSessionManager", "@@@ mediaBrowser is already NOT null @@@")
+            return
+        }
+
+        Log.e("MediaSessionManager", "@@@ Connecting to CarMediaService... @@@")
+        val serviceIntent = android.content.Intent(context, CarMediaService::class.java)
+        try {
+            context.startService(serviceIntent)
+        } catch (e: Exception) {
+            Log.e("MediaSessionManager", "@@@ Error starting service @@@", e)
+        }
+
+        val sessionToken = SessionToken(context, ComponentName(context, CarMediaService::class.java))
+        val browserFuture = MediaBrowser.Builder(context, sessionToken)
+            .setListener(browserListener)
+            .buildAsync()
+        browserFuture.addListener({
+            try {
+                mediaBrowser = browserFuture.get()
+                Log.e("MediaSessionManager", "@@@ MediaBrowser connesso. @@@")
+            } catch (e: Exception) {
+                Log.e("MediaSessionManager", "@@@ Errore durante la connessione al MediaBrowser @@@", e)
             }
-        }
-
-        override fun onConnectionSuspended() {
-            Log.w(TAG, "Connessione al MediaBrowser sospesa.")
-            mediaController?.unregisterCallback(controllerCallback)
-            mediaController = null
-        }
-
-        override fun onConnectionFailed() {
-            Log.e(TAG, "Connessione al MediaBrowser fallita.")
-            mediaController = null
-        }
+        }, ContextCompat.getMainExecutor(context))
     }
 
-    private val controllerCallback = object : MediaControllerCompat.Callback() {
-        override fun onSessionEvent(event: String?, extras: Bundle?) {
-            if (event == "PlaybackAction") {
-                val action = extras?.getLong("PlaybackAction") ?: 0
+    private val browserListener = object : MediaBrowser.Listener {
+        override fun onCustomCommand(
+            controller: MediaController,
+            command: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            Log.d(TAG, "onCustomCommand: action=${command.customAction}")
+            if (command.customAction == "PlaybackAction") {
+                val action = args.getLong("PlaybackAction")
+                Log.d(TAG, "Received PlaybackAction: $action")
                 when (action) {
-                    PlaybackStateCompat.ACTION_PLAY -> {
-                        onPlay?.invoke()
-                    }
-
-                    PlaybackStateCompat.ACTION_PAUSE -> {
-                        onPause?.invoke()
-                    }
-
-                    PlaybackStateCompat.ACTION_STOP -> {
-                        onStop?.invoke()
-                    }
-
-                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT -> onSkipToNext?.invoke()
-                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS -> onSkipToPrevious?.invoke()
-                    PlaybackStateCompat.ACTION_SEEK_TO -> {
-                        val pos = extras?.getLong("SeekPosition") ?: 0L
+                    ACTION_PLAY -> onPlay?.invoke()
+                    ACTION_PAUSE -> onPause?.invoke()
+                    ACTION_STOP -> onStop?.invoke()
+                    ACTION_SKIP_TO_NEXT -> onSkipToNext?.invoke()
+                    ACTION_SKIP_TO_PREVIOUS -> onSkipToPrevious?.invoke()
+                    ACTION_SEEK_TO -> {
+                        val pos = args.getLong("SeekPosition")
                         onSeekTo?.invoke(pos)
                     }
                 }
             }
-        }
-    }
-
-    fun connect() {
-        if (mediaBrowser == null) {
-            mediaBrowser = MediaBrowserCompat(
-                context,
-                ComponentName(context, CarMediaService::class.java),
-                connectionCallback,
-                null
-            ).apply {
-                connect()
-            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
     }
 
     fun disconnect() {
-        mediaController?.let {
-            it.unregisterCallback(controllerCallback)
-        }
-        mediaBrowser?.disconnect()
+        mediaBrowser?.release()
         mediaBrowser = null
-        mediaController = null
+    }
+
+    fun resetPlaybackState() {
+        val browser = mediaBrowser
+        if (browser == null || !browser.isConnected) return
+        
+        Log.e(TAG, "@@@ resetPlaybackState() @@@")
+        androidx.core.content.ContextCompat.getMainExecutor(context).execute {
+            try {
+                browser.sendCustomCommand(SessionCommand("ResetCommand", Bundle.EMPTY), Bundle.EMPTY)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending reset command", e)
+            }
+        }
     }
 
     fun updatePlaybackState(state: Int, position: Long) {
@@ -113,32 +120,24 @@ class MediaSessionManager(private val context: Context) {
             return
         }
 
-        val playbackState = PlaybackStateCompat.Builder()
-            .setState(state, position, 1.0f)
-            .setActions(
-                PlaybackStateCompat.ACTION_PLAY or
-                        PlaybackStateCompat.ACTION_PAUSE or
-                        PlaybackStateCompat.ACTION_STOP or
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                        PlaybackStateCompat.ACTION_SEEK_TO
-            )
-            .build()
-
+        Log.d(TAG, "updatePlaybackState: state=$state, position=$position")
+        
         val bundle = Bundle().apply {
-            putParcelable("PlaybackStateCompat", playbackState)
+            putInt("state", state)
+            putLong("position", position)
         }
-        browser.sendCustomAction("PlaybackStateCompat", bundle, null)
+
+        androidx.core.content.ContextCompat.getMainExecutor(context).execute {
+            try {
+                browser.sendCustomCommand(SessionCommand("PlaybackStateCompat", Bundle.EMPTY), bundle)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating playback state", e)
+            }
+        }
     }
 
-    private val metadataScope = CoroutineScope(Dispatchers.Main)
-    private var lastArtUrl: String? = null
-    private var lastBitmap: Bitmap? = null
-    private var lastDuration: Long = 0
-
     fun updateMetadata(title: String, artist: String?, artUrl: String?, duration: Long = 0) {
-        Log.d(TAG, "updateMetadata: $title - $artist (Art: $artUrl)")
+        Log.d(TAG, "updateMetadata: $title - $artist (Art: $artUrl, Duration: $duration)")
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
             Log.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
@@ -147,17 +146,13 @@ class MediaSessionManager(private val context: Context) {
 
         lastDuration = duration
 
-        // Se l'URL è lo stesso, usa l'ultimo bitmap per evitare che l'icona sparisca
         if (!artUrl.isNullOrBlank() && artUrl == lastArtUrl && lastBitmap != null) {
             sendMetadata(title, artist, lastBitmap, duration)
             return
         }
 
-        // Se l'URL è nuovo, invia intanto il testo senza icona (o con l'icona vecchia se preferisci, 
-        // ma di solito è meglio resettare se il brano è diverso)
         sendMetadata(title, artist, null, duration)
 
-        // Se c'è una URL, scarica l'immagine
         if (!artUrl.isNullOrBlank() && artUrl != lastArtUrl) {
             lastArtUrl = artUrl
             metadataScope.launch {
@@ -183,23 +178,32 @@ class MediaSessionManager(private val context: Context) {
 
     private fun sendMetadata(title: String, artist: String?, icon: Bitmap?, duration: Long) {
         val browser = mediaBrowser ?: return
-        val metadataBuilder = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
-
-        icon?.let {
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, it)
-        }
-
+        Log.e(TAG, "@@@ sendMetadata: $title - $artist @@@")
+        
         val bundle = Bundle().apply {
-            putParcelable("MediaMetadataCompat", metadataBuilder.build())
+            putString("title", title)
+            putString("artist", artist ?: "")
+            putLong("duration", duration)
+            putParcelable("icon", icon)
         }
-        browser.sendCustomAction("MediaMetadataCompat", bundle, null)
+        
+        androidx.core.content.ContextCompat.getMainExecutor(context).execute {
+            try {
+                browser.sendCustomCommand(SessionCommand("MediaMetadataCompat", Bundle.EMPTY), bundle)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending metadata", e)
+            }
+        }
     }
 
     companion object {
         private const val TAG = "MediaSessionManager"
+        
+        private const val ACTION_PAUSE = 2L
+        private const val ACTION_PLAY = 4L
+        private const val ACTION_STOP = 1L
+        private const val ACTION_SKIP_TO_NEXT = 32L
+        private const val ACTION_SKIP_TO_PREVIOUS = 16L
+        private const val ACTION_SEEK_TO = 256L
     }
 }

@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.ui
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -94,10 +95,6 @@ fun BrowserScreen(
     var webViewReference by remember { mutableStateOf<WebView?>(null) }
     var showInputPopup by remember { mutableStateOf(value = false) }
     var isListening by remember { mutableStateOf(value = false) }
-
-    LaunchedEffect(Unit) {
-        mediaSessionManager?.connect()
-    }
 
     LaunchedEffect(url) {
         webViewReference?.let {
@@ -226,8 +223,15 @@ fun BrowserScreen(
                             evaluateJavascript(
                                 """
                                 (function() {
-                                    const video = document.querySelector('video');
-                                    if (video) video.currentTime = ${pos / 1000.0};
+                                    const video = document.querySelector('video.html5-main-video') || document.querySelector('video');
+                                    if (video) {
+                                        video.isSeekingExternally = true;
+                                        video.currentTime = ${pos / 1000.0};
+                                        if (window.location.host.includes('youtube.com')) {
+                                            video.dispatchEvent(new Event('seeked'));
+                                        }
+                                        setTimeout(() => { video.isSeekingExternally = false; }, 3000);
+                                    }
                                 })();
                                 """.trimIndent(),
                                 null,
@@ -240,6 +244,7 @@ fun BrowserScreen(
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
                             fun onVideoStarted(time: Float) {
+                                Log.d("AndroidBridge", "onVideoStarted: $time")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING,
@@ -250,6 +255,7 @@ fun BrowserScreen(
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
                             fun onMediaTimeUpdate(time: Float) {
+                                // Log.d("AndroidBridge", "onMediaTimeUpdate: $time")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING,
@@ -260,6 +266,7 @@ fun BrowserScreen(
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
                             fun onMediaStatusChanged(isPlaying: Boolean, time: Float) {
+                                Log.d("AndroidBridge", "onMediaStatusChanged: isPlaying=$isPlaying, time=$time")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
@@ -279,6 +286,7 @@ fun BrowserScreen(
                                 albumArtUrl: String,
                                 duration: Float,
                             ) {
+                                Log.d("AndroidBridge", "updateMediaMetadata: $title, artist=$artist, duration=$duration")
                                 mediaSessionManager?.updateMetadata(
                                     title,
                                     artist,
@@ -365,6 +373,8 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
+                            Log.e("BrowserScreen", "@@@ onPageStarted: $url @@@")
+                            mediaSessionManager?.resetPlaybackState()
                             if (isDesktopMode || isDesktopRequired(url)) {
                                 view?.settings?.userAgentString = DESKTOP_USER_AGENT
                             } else {
@@ -394,6 +404,7 @@ fun BrowserScreen(
                         }
 
                         override fun onPageFinished(view: WebView?, url: String?) {
+                            Log.e("BrowserScreen", "@@@ onPageFinished: $url @@@")
                             if (url != null) {
                                 onPageFinished(url)
                                 if (url.contains("youtube.com")) injectYouTubeAdBlock(view)
@@ -436,74 +447,99 @@ fun BrowserScreen(
                                         }
                                         setTimeout(syncPageMetadata, 1500);
 
-                                        // Monitoraggio Metadati Media
-                                        let lastTitle = "";
-                                        let lastDuration = 0;
-                                        function syncMetadata() {
-                                            const video = document.querySelector('video');
-                                            if (!video) return;
+                                            let lastTitle = "";
+                                            let lastDuration = 0;
+                                            let lastReportedTime = -1;
 
-                                            let title = document.title;
-                                            let artist = "AA Browser Audio";
-                                            let artUrl = "";
-                                            let duration = isFinite(video.duration) ? video.duration : 0;
+                                            function syncMetadata() {
+                                                const video = document.querySelector('video.html5-main-video') || document.querySelector('video');
+                                                if (!video) return;
 
-                                            if (window.location.host.includes('youtube.com')) {
-                                                const ytTitle = document.querySelector('.ytp-title-link')?.innerText || 
-                                                                 document.querySelector('ytmusic-player-bar .title')?.textContent ||
-                                                                 document.querySelector('.ytmusic-player-bar .title')?.textContent ||
-                                                                 document.querySelector('ytmusic-player-bar a.title')?.textContent ||
-                                                                 document.querySelector('.title.ytmusic-player-bar')?.textContent;
-                                                const ytArtist = document.querySelector('.ytp-ce-channel-title')?.innerText || 
-                                                                 document.querySelector('.yt-user-info')?.innerText ||
-                                                                 document.querySelector('#upload-info #channel-name')?.innerText ||
-                                                                 document.querySelector('ytmusic-player-bar .byline')?.textContent ||
-                                                                 document.querySelector('.ytmusic-player-bar .byline')?.textContent ||
-                                                                 document.querySelector('ytmusic-player-bar .byline a')?.textContent;
-                                                
-                                                if (ytTitle) title = ytTitle.trim();
-                                                if (ytArtist) artist = ytArtist.trim();
-                                                
-                                                const urlParams = new URLSearchParams(window.location.search);
-                                                const v = urlParams.get('v');
-                                                if (v) artUrl = 'https://img.youtube.com/vi/' + v + '/0.jpg';
-                                                
-                                                // Supporto specifico per YT Music (copertina)
-                                                if (window.location.host.includes('music.youtube.com')) {
-                                                    const musicArt = document.querySelector('ytmusic-player-bar img')?.src || 
-                                                                     document.querySelector('.ytmusic-player-bar img')?.src ||
-                                                                     document.querySelector('#thumbnail img')?.src;
-                                                    if (musicArt) artUrl = musicArt;
+                                                let title = document.title;
+                                                let artist = "AA Browser Audio";
+                                                let artUrl = "";
+                                                let duration = (isFinite(video.duration) && video.duration > 0.1) ? Math.floor(video.duration * 1000) : 0;
+
+                                                if (window.location.host.includes('youtube.com')) {
+                                                    const ytTitle = document.querySelector('.ytp-title-link')?.innerText || 
+                                                                     document.querySelector('ytmusic-player-bar .title')?.textContent ||
+                                                                     document.querySelector('.ytmusic-player-bar .title')?.textContent ||
+                                                                     document.querySelector('ytmusic-player-bar a.title')?.textContent ||
+                                                                     document.querySelector('.title.ytmusic-player-bar')?.textContent;
+                                                    const ytArtist = document.querySelector('.ytp-ce-channel-title')?.innerText || 
+                                                                     document.querySelector('.yt-user-info')?.innerText ||
+                                                                     document.querySelector('#upload-info #channel-name')?.innerText ||
+                                                                     document.querySelector('ytmusic-player-bar .byline')?.textContent ||
+                                                                     document.querySelector('.ytmusic-player-bar .byline')?.textContent ||
+                                                                     document.querySelector('ytmusic-player-bar .byline a')?.textContent;
+                                                    
+                                                    if (ytTitle) title = ytTitle.trim();
+                                                    if (ytArtist) artist = ytArtist.trim();
+                                                    
+                                                    const urlParams = new URLSearchParams(window.location.search);
+                                                    const v = urlParams.get('v');
+                                                    if (v) artUrl = 'https://img.youtube.com/vi/' + v + '/0.jpg';
+                                                    
+                                                    if (window.location.host.includes('music.youtube.com')) {
+                                                        const musicArt = document.querySelector('ytmusic-player-bar img')?.src || 
+                                                                         document.querySelector('.ytmusic-player-bar img')?.src ||
+                                                                         document.querySelector('#thumbnail img')?.src;
+                                                        if (musicArt) artUrl = musicArt;
+                                                    }
+                                                }
+
+                                                if (title && (title !== lastTitle || Math.abs(duration - lastDuration) > 100)) {
+                                                    console.log("@@@ Syncing metadata:", title, duration, "@@@");
+                                                    lastTitle = title;
+                                                    lastDuration = duration;
+                                                    AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration / 1000.0);
                                                 }
                                             }
 
-                                            if (title && (title !== lastTitle || Math.abs(duration - lastDuration) > 1)) {
-                                                lastTitle = title;
-                                                lastDuration = duration;
-                                                AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
-                                            }
-                                        }
+                                            function setupVideoListeners(video) {
+                                                if (video.dataset.mediaListenersAdded) return;
+                                                video.dataset.mediaListenersAdded = 'true';
 
-                                        function setupVideoListeners(video) {
-                                            if (video.dataset.mediaListenersAdded) return;
-                                            video.dataset.mediaListenersAdded = 'true';
-
-                                            video.addEventListener('play', () => {
-                                                AndroidBridge.onMediaStatusChanged(true, video.currentTime);
-                                                syncMetadata();
-                                            });
-                                            video.addEventListener('pause', () => {
-                                                AndroidBridge.onMediaStatusChanged(false, video.currentTime);
-                                            });
-                                            video.addEventListener('timeupdate', () => {
-                                                if (!video.isSeeking) {
+                                                video.onplay = () => {
+                                                    AndroidBridge.onMediaStatusChanged(true, video.currentTime);
                                                     AndroidBridge.onMediaTimeUpdate(video.currentTime);
-                                                }
-                                            });
-                                            video.addEventListener('durationchange', () => {
-                                                syncMetadata();
-                                            });
-                                        }
+                                                    syncMetadata();
+                                                };
+                                                video.onpause = () => {
+                                                    console.log("@@@ JS Video Pause @@@");
+                                                    AndroidBridge.onMediaStatusChanged(false, video.currentTime);
+                                                    AndroidBridge.onMediaTimeUpdate(video.currentTime);
+                                                };
+                                                video.onseeked = () => {
+                                                    syncMetadata();
+                                                    // Don't report time immediately if we are seeking externally
+                                                    // to allow the Service's lock to stay in place.
+                                                    if (!video.isSeekingExternally) {
+                                                        AndroidBridge.onMediaTimeUpdate(video.currentTime);
+                                                    }
+                                                };
+                                                video.onended = () => {
+                                                    AndroidBridge.onMediaStatusChanged(false, video.currentTime);
+                                                };
+
+                                                video.addEventListener('timeupdate', () => {
+                                                    if (!video.isSeeking && !video.isSeekingExternally && !video.paused) {
+                                                        const now = Date.now();
+                                                        const currentPos = Math.floor(video.currentTime * 1000);
+                                                        // Increased frequency: report every 250ms or if position jumps
+                                                        if (Math.abs(currentPos - (video.lastBridgePos || 0)) >= 250) {
+                                                            if (!video.lastReportTime || now - video.lastReportTime > 250) {
+                                                                AndroidBridge.onMediaTimeUpdate(video.currentTime);
+                                                                video.lastReportTime = now;
+                                                                video.lastBridgePos = currentPos;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                                video.addEventListener('durationchange', () => {
+                                                    setTimeout(syncMetadata, 500);
+                                                });
+                                            }
 
                                         const videoObserver = new MutationObserver(() => {
                                             const video = document.querySelector('video');
