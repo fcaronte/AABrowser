@@ -307,14 +307,24 @@ fun BrowserScreen(
                                         (function() {
                                             var el = document.activeElement;
                                             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.contentEditable === 'true')) {
+                                                // Debouncing JS per evitare inserimenti multipli dallo smartphone
+                                                var now = Date.now();
+                                                if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === "$text") {
+                                                    return;
+                                                }
+                                                el.lastInjectTime = now;
+                                                el.lastInjectText = "$text";
+
                                                 var start = el.selectionStart || 0;
                                                 var end = el.selectionEnd || 0;
                                                 var val = el.value || el.innerText || "";
                                                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                                                     el.value = val.substring(0, start) + "$text" + val.substring(end);
                                                     el.selectionStart = el.selectionEnd = start + "$text".length;
+                                                    el.focus(); // Assicura che rimanga focused
                                                 } else {
                                                     el.innerText = val.substring(0, start) + "$text" + val.substring(end);
+                                                    el.focus();
                                                 }
                                                 el.dispatchEvent(new Event('input', { bubbles: true }));
                                                 el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -570,7 +580,12 @@ fun BrowserScreen(
             InputSelectionPopup(
                 onKeyboardSelected = {
                     showInputPopup = false
-                    webViewReference?.let { carInputManager?.startInput(it) }
+                    webViewReference?.let { webView ->
+                        webView.post {
+                            webView.requestFocus()
+                            carInputManager?.startInput(webView)
+                        }
+                    }
                 },
                 onMicSelected = {
                     showInputPopup = false

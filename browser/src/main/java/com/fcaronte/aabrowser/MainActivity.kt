@@ -23,6 +23,15 @@ class MainActivity : ComponentActivity() {
         }
 
         requestIgnoreBatteryOptimizations()
+        requestNotificationPermission()
+    }
+
+    private fun requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1002)
+            }
+        }
     }
 
     override fun onDestroy() {

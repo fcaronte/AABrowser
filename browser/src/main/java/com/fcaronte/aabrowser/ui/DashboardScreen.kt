@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
@@ -46,6 +48,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -54,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -82,6 +86,8 @@ fun DashboardScreen(
         ),
     ),
     currentWebView: android.webkit.WebView? = null,
+    carInputManager: com.fcaronte.aabrowser.CarInputManager? = null,
+    inputHostView: android.view.View? = null,
     onSiteSelected: (String) -> Unit,
     onOpenTabManager: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -95,10 +101,22 @@ fun DashboardScreen(
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val context = LocalContext.current
     
+    val currentVersion = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
+        } catch (_: Exception) { "1.0" }
+    }
+
     var updateInfo by remember { mutableStateOf<UpdateManager.UpdateInfo?>(null) }
+    var bannerDismissed by remember { mutableStateOf(UpdateManager.isBannerDismissed) }
 
     LaunchedEffect(Unit) {
         updateInfo = UpdateManager.checkForUpdates(context)
+        updateInfo?.let {
+            if (it.isAvailable) {
+                UpdateManager.showUpdateNotification(context, it)
+            }
+        }
     }
 
     Box(
@@ -118,27 +136,37 @@ fun DashboardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                    .padding(bottom = 8.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Bottom,
                 ) {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "v$currentVersion",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(bottom = 2.dp) // Piccolo offset per allineare meglio le baseline
+                        )
+                    }
 
                     Row {
                         IconButton(onClick = onOpenSearch) {
@@ -196,27 +224,40 @@ fun DashboardScreen(
 
             // Update Banner (Sopra i tasti in basso)
             updateInfo?.let { info ->
-                if (info.isAvailable) {
+                if (info.isAvailable && !bannerDismissed) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .clickable { UpdateManager.openDownloadPage(context, info.downloadUrl) },
+                            .padding(vertical = 8.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.SystemUpdate, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.update_available, info.latestVersion),
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            Row(
+                                modifier = Modifier.weight(1f).clickable { UpdateManager.openDownloadPage(context, info.downloadUrl) },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.SystemUpdate, null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.update_available, info.latestVersion),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            // Tasto X piccolo e discreto
+                            Icon(
+                                imageVector = Icons.Default.Close, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(16.dp).clickable { 
+                                    bannerDismissed = true
+                                    UpdateManager.isBannerDismissed = true
+                                },
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                             )
                         }
                     }
@@ -238,6 +279,7 @@ fun DashboardScreen(
                         .height(46.dp),
                     enabled = lastUrl.isNotEmpty(),
                     shape = RoundedCornerShape(23.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -254,6 +296,7 @@ fun DashboardScreen(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(23.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -270,6 +313,7 @@ fun DashboardScreen(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(23.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -285,6 +329,8 @@ fun DashboardScreen(
         if (showAddDialog) {
             EditFavoriteOverlay(
                 currentWebView = currentWebView,
+                carInputManager = carInputManager,
+                inputHostView = inputHostView,
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, url, color, favicon ->
                     viewModel.addFavorite(name, url, color, favicon)
@@ -297,6 +343,8 @@ fun DashboardScreen(
             EditFavoriteOverlay(
                 site = site,
                 currentWebView = currentWebView,
+                carInputManager = carInputManager,
+                inputHostView = inputHostView,
                 onDismiss = { siteToEdit = null },
                 onConfirm = { name, url, color, favicon ->
                     viewModel.updateFavorite(site, name, url, color, favicon)
@@ -415,16 +463,122 @@ fun AddFavoriteCard(onClick: () -> Unit) {
 fun EditFavoriteOverlay(
     site: FavoriteSite? = null,
     currentWebView: android.webkit.WebView? = null,
+    carInputManager: com.fcaronte.aabrowser.CarInputManager? = null,
+    inputHostView: android.view.View? = null,
     onDismiss: () -> Unit,
     onConfirm: (String, String, Long, String?) -> Unit,
 ) {
-    var name by remember { mutableStateOf(site?.name ?: "") }
-    var url by remember { mutableStateOf(site?.url ?: "") }
-    var faviconUrl by remember { mutableStateOf(site?.faviconUrl ?: "") }
+    var nameValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.name ?: "")) }
+    var urlValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.url ?: "")) }
+    var faviconValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(site?.faviconUrl ?: "")) }
+    
     val dynamicPrimaryColor = MaterialTheme.colorScheme.primary.toArgb().toLong() and 0xFFFFFFFFL
     var color by remember { mutableLongStateOf(site?.color ?: dynamicPrimaryColor) }
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
     val context = LocalContext.current
+
+    DisposableEffect(Unit) {
+        onDispose {
+            carInputManager?.clearListeners()
+        }
+    }
+
+    // Sincronizzazione con CarInputManager
+    var focusedField by remember { mutableStateOf(0) } // 0: none, 1: name, 2: url, 3: favicon
+
+    LaunchedEffect(focusedField, nameValue, urlValue, faviconValue) {
+        if (carInputManager != null && focusedField > 0) {
+            val currentValue = when (focusedField) {
+                1 -> nameValue
+                2 -> urlValue
+                3 -> faviconValue
+                else -> androidx.compose.ui.text.input.TextFieldValue("")
+            }
+            carInputManager.updateState(
+                text = currentValue.text,
+                selectionStart = currentValue.selection.start,
+                selectionEnd = currentValue.selection.end
+            )
+        }
+    }
+
+    var lastCommitTime by remember { mutableLongStateOf(0L) }
+    var lastText by remember { mutableStateOf("") }
+
+    LaunchedEffect(focusedField) {
+        if (focusedField > 0 && carInputManager != null) {
+            carInputManager.setOnInputEventListener(
+                onText = { text ->
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastCommitTime < 100 && text == lastText) {
+                        return@setOnInputEventListener
+                    }
+                    lastCommitTime = currentTime
+                    lastText = text
+
+                    when (focusedField) {
+                        1 -> {
+                            val selection = nameValue.selection
+                            val newText = StringBuilder(nameValue.text).replace(selection.min, selection.max, text).toString()
+                            nameValue = nameValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                        }
+                        2 -> {
+                            val selection = urlValue.selection
+                            val newText = StringBuilder(urlValue.text).replace(selection.min, selection.max, text).toString()
+                            urlValue = urlValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                        }
+                        3 -> {
+                            val selection = faviconValue.selection
+                            val newText = StringBuilder(faviconValue.text).replace(selection.min, selection.max, text).toString()
+                            faviconValue = faviconValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(selection.min + text.length))
+                        }
+                    }
+                },
+                onDelete = { length ->
+                    when (focusedField) {
+                        1 -> {
+                            val selection = nameValue.selection
+                            val start = (selection.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(nameValue.text).delete(start, selection.start).toString()
+                            nameValue = nameValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                        }
+                        2 -> {
+                            val selection = urlValue.selection
+                            val start = (selection.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(urlValue.text).delete(start, selection.start).toString()
+                            urlValue = urlValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                        }
+                        3 -> {
+                            val selection = faviconValue.selection
+                            val start = (selection.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(faviconValue.text).delete(start, selection.start).toString()
+                            faviconValue = faviconValue.copy(text = newText, selection = androidx.compose.ui.text.TextRange(start))
+                        }
+                    }
+                },
+                onSelection = { start, end ->
+                    val currentValue = when (focusedField) {
+                        1 -> nameValue
+                        2 -> urlValue
+                        3 -> faviconValue
+                        else -> null
+                    }
+                    currentValue?.let {
+                        if (it.selection.start != start || it.selection.end != end) {
+                            val newVal = it.copy(selection = androidx.compose.ui.text.TextRange(start, end))
+                            when (focusedField) {
+                                1 -> nameValue = newVal
+                                2 -> urlValue = newVal
+                                3 -> faviconValue = newVal
+                            }
+                        }
+                    }
+                }
+            )
+        } else {
+            carInputManager?.clearListeners()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -443,9 +597,52 @@ fun EditFavoriteOverlay(
         ) {
             Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(if (site == null) stringResource(R.string.add_favorite_title) else stringResource(R.string.edit_favorite_title), style = MaterialTheme.typography.titleLarge)
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = url, onValueChange = { url = it }, label = { Text(stringResource(R.string.field_url)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = faviconUrl, onValueChange = { faviconUrl = it }, label = { Text(stringResource(R.string.field_favicon)) }, modifier = Modifier.fillMaxWidth())
+                
+                OutlinedTextField(
+                    value = nameValue,
+                    onValueChange = { nameValue = it },
+                    label = { Text(stringResource(R.string.field_name)) },
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            focusedField = 1
+                            inputHostView?.let { view ->
+                                view.requestFocus()
+                                carInputManager?.startInput(view)
+                            }
+                        }
+                    }
+                )
+                
+                OutlinedTextField(
+                    value = urlValue,
+                    onValueChange = { urlValue = it },
+                    label = { Text(stringResource(R.string.field_url)) },
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            focusedField = 2
+                            inputHostView?.let { view ->
+                                view.requestFocus()
+                                carInputManager?.startInput(view)
+                            }
+                        }
+                    }
+                )
+                
+                OutlinedTextField(
+                    value = faviconValue,
+                    onValueChange = { faviconValue = it },
+                    label = { Text(stringResource(R.string.field_favicon)) },
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            focusedField = 3
+                            inputHostView?.let { view ->
+                                view.requestFocus()
+                                carInputManager?.startInput(view)
+                            }
+                        }
+                    }
+                )
+
                 Text(stringResource(R.string.field_color))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     colorOptions.forEach { c ->
@@ -458,23 +655,23 @@ fun EditFavoriteOverlay(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
                     Button(onClick = {
-                        val finalUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) "https://$url" else url
+                        val finalUrl = if (!urlValue.text.startsWith("http://") && !urlValue.text.startsWith("https://")) "https://${urlValue.text}" else urlValue.text
                         
-                        if (faviconUrl.isBlank()) {
-                            if (currentWebView != null && currentWebView.url?.contains(URI(finalUrl).host ?: "") == true) {
+                        if (faviconValue.text.isBlank()) {
+                            if (currentWebView != null && currentWebView.url?.contains(java.net.URI(finalUrl).host ?: "") == true) {
                                 currentWebView.evaluateJavascript(
                                     "(function() { const icon = document.querySelector('link[rel=\"apple-touch-icon\"]') || document.querySelector('link[rel=\"icon\"]'); return icon ? icon.href : ''; })();"
                                 ) { result ->
                                     val extracted = result?.removeSurrounding("\"")?.takeIf { it.isNotBlank() }
-                                    val fallback = "https://www.google.com/s2/favicons?domain=${URI(finalUrl).host ?: finalUrl}&sz=128"
-                                    onConfirm(name, finalUrl, color, extracted ?: fallback)
+                                    val fallback = "https://www.google.com/s2/favicons?domain=${java.net.URI(finalUrl).host ?: finalUrl}&sz=128"
+                                    onConfirm(nameValue.text, finalUrl, color, extracted ?: fallback)
                                 }
                             } else {
-                                val fallback = "https://www.google.com/s2/favicons?domain=${URI(finalUrl).host ?: finalUrl}&sz=128"
-                                onConfirm(name, finalUrl, color, fallback)
+                                val fallback = "https://www.google.com/s2/favicons?domain=${java.net.URI(finalUrl).host ?: finalUrl}&sz=128"
+                                onConfirm(nameValue.text, finalUrl, color, fallback)
                             }
                         } else {
-                            onConfirm(name, finalUrl, color, faviconUrl)
+                            onConfirm(nameValue.text, finalUrl, color, faviconValue.text)
                         }
                     }) {
                         Text(stringResource(R.string.confirm_button))

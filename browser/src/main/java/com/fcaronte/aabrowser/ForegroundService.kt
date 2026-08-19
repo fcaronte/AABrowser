@@ -45,7 +45,7 @@ class ForegroundService : Service() {
                 val channel = NotificationChannel(
                     CHANNEL_ID,
                     channelName,
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_MIN
                 )
                 channel.setDescription(channelDescription)
                 channel.setShowBadge(false)
@@ -66,6 +66,7 @@ class ForegroundService : Service() {
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_text))
                 .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setShowWhen(true)
 
             startForeground(

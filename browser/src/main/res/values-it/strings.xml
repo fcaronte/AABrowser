@@ -80,4 +80,7 @@
 
     <!-- Update -->
     <string name="update_available">Nuovo aggiornamento disponibile: %s</string>
+    <string name="update_available_title">Aggiornamento AABrowser %s</string>
+    <string name="update_available_text">È disponibile una nuova versione da scaricare.</string>
+    <string name="download_button">Scarica</string>
 </resources>

@@ -1,9 +1,15 @@
 package com.fcaronte.aabrowser.model
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import com.fcaronte.aabrowser.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -14,6 +20,11 @@ object UpdateManager {
     private const val TAG = "UpdateManager"
     private const val REPO_URL = "https://api.github.com/repos/fcaronte/AABrowser/releases/latest"
     private const val DOWNLOAD_PAGE = "https://github.com/fcaronte/AABrowser/releases"
+    private const val CHANNEL_ID = "com.fcaronte.aabrowser.updates"
+    private const val NOTIFICATION_ID = 1001
+
+    private var isNotificationAlreadyShown = false
+    var isBannerDismissed = false
 
     data class UpdateInfo(
         val isAvailable: Boolean,
@@ -89,5 +100,55 @@ object UpdateManager {
         } catch (e: Exception) {
             Log.e(TAG, "Error opening download page: ${e.message}")
         }
+    }
+
+    fun showUpdateNotification(context: Context, info: UpdateInfo) {
+        if (!info.isAvailable || isNotificationAlreadyShown) return
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Verifica permesso su Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "Missing POST_NOTIFICATIONS permission")
+                return
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "App Updates",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications for new app versions"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(context.getString(R.string.update_available_title, info.latestVersion))
+            .setContentText(context.getString(R.string.update_available_text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .addAction(
+                R.drawable.ic_play_arrow_black_24dp, 
+                context.getString(R.string.download_button), 
+                pendingIntent
+            )
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+        isNotificationAlreadyShown = true
     }
 }

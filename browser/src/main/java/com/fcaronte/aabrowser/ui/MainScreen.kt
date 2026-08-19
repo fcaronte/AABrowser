@@ -138,16 +138,63 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     ) {
         AABrowserTheme(themeMode = themeMode) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // View invisibile sempre presente per l'input
+                // View invisibile (EditText) per gestire l'input nativo AA con supporto cursore
                 AndroidView(
                     factory = { ctx ->
-                        android.view.View(ctx).apply {
+                        android.widget.EditText(ctx).apply {
                             layoutParams = android.view.ViewGroup.LayoutParams(1, 1)
-                            isFocusable = true
-                            isFocusableInTouchMode = true
+                            background = null
+                            setTextColor(android.graphics.Color.TRANSPARENT)
+                            setCursorVisible(true)
+                            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_FILTER
+                            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE or android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                            
+                            addTextChangedListener(object : android.text.TextWatcher {
+                                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                                override fun afterTextChanged(s: android.text.Editable?) {
+                                    if (tag != "internal_update") {
+                                        carInputManager?.let { manager ->
+                                            if (manager.isImeUpdating) return
+                                            val newText = s?.toString() ?: ""
+                                            manager.updateState(newText, selectionStart, selectionEnd)
+                                        }
+                                    }
+                                }
+                            })
                         }
                     },
-                    update = { inputHostView = it },
+                    update = { editText ->
+                        inputHostView = editText
+                        carInputManager?.let { manager ->
+                            val text = manager.getCurrentText()
+                            val start = manager.getSelectionStart()
+                            val end = manager.getSelectionEnd()
+                            
+                            // Aggiorniamo l'EditText solo se differente dallo stato Compose
+                            // Usiamo un tag per evitare loop infiniti tra TextWatcher e Compose
+                            if (editText.tag != "internal_update" && !manager.isImeUpdating) {
+                                if (editText.text.toString() != text) {
+                                    editText.tag = "internal_update"
+                                    editText.setText(text)
+                                    try {
+                                        editText.setSelection(
+                                            start.coerceIn(0, text.length),
+                                            end.coerceIn(0, text.length)
+                                        )
+                                    } catch (_: Exception) {}
+                                    editText.tag = null
+                                } else if (editText.selectionStart != start || editText.selectionEnd != end) {
+                                    try {
+                                        editText.setSelection(
+                                            start.coerceIn(0, text.length),
+                                            end.coerceIn(0, text.length)
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            }
+                        }
+                    },
                     modifier = Modifier.size(1.dp),
                 )
 
@@ -155,6 +202,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     is Screen.Dashboard -> {
                         DashboardScreen(
                             currentWebView = activeWebView,
+                            carInputManager = carInputManager,
+                            inputHostView = inputHostView,
                             onSiteSelected = { url ->
                                 val activeTab = TabManager.activeTab
                                 if (activeTab != null) {

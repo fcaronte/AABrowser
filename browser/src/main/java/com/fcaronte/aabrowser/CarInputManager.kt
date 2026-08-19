@@ -22,20 +22,39 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
         get() = m_InputManager != null && m_InputManager.isValid()
 
     fun startInput(TargetView: View?) {
-        if (m_InputManager != null && !this.isInputActive) {
-            m_TargetView = TargetView
-            
-            android.util.Log.d("CarInputManager", "Requesting startInput for WebView")
-            try {
-                // Rilasciamo eventuali connessioni pendenti senza togliere il focus alla View
+        if (m_InputManager == null || TargetView == null) return
+        
+        // Se stiamo già gestendo la stessa View e l'input è attivo, non facciamo nulla
+        if (m_TargetView == TargetView && m_InputManager.isInputActive) {
+            android.util.Log.d("CarInputManager", "Input already active for this view")
+            return
+        }
+
+        m_TargetView = TargetView
+        
+        android.util.Log.d("CarInputManager", "Requesting startInput for view: $TargetView")
+        try {
+            // Se l'input è già attivo su un'altra view, facciamo stop pulito
+            if (m_InputManager.isInputActive && m_TargetView != TargetView) {
                 m_InputManager.stopInput()
-                
-                // Richiediamo l'input. Il sistema car chiamerà onCreateInputConnection.
-                // NON chiamiamo requestFocus() qui per evitare di deselezionare il campo HTML.
-                m_InputManager.startInput(this)
-            } catch (e: Exception) {
-                android.util.Log.e("CarInputManager", "Error starting input", e)
             }
+            
+            // Forza il focus sulla view prima di iniziare
+            if (!TargetView.isFocused) {
+                TargetView.requestFocus()
+            }
+
+            // Per le WebView, usiamo un ciclo di post per garantire che il thread UI 
+            // abbia processato il focus HTML prima di agganciare la tastiera car.
+            if (TargetView is android.webkit.WebView) {
+                TargetView.post {
+                    m_InputManager.startInput(this)
+                }
+            } else {
+                m_InputManager.startInput(this)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("CarInputManager", "Error starting input", e)
         }
     }
 
@@ -55,16 +74,21 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
     override fun onCreateInputConnection(editorInfo: EditorInfo?): InputConnection? {
         if (m_TargetView == null) return null
 
-        // Forza il sistema a rinfrescare lo stato dell'editor
+        // NON chiamiamo requestFocus() qui perché potrebbe resettare il campo HTML 
+        // se chiamato nel thread sbagliato o nel momento sbagliato dell'SDK AA.
         m_TargetView?.onCheckIsTextEditor()
         
         var inputConnection = m_TargetView!!.onCreateInputConnection(editorInfo)
         
-        // Se la WebView non fornisce una connessione, proviamo a richiederla di nuovo dopo un micro-delay
-        // ma siccome questo metodo deve essere sincrono, usiamo un fallback BaseInputConnection
-        // legato alla WebView, che è meglio di niente.
+        // Se la WebView non fornisce una connessione, proviamo a forzare il focus e riprovare una volta
+        if (inputConnection == null && m_TargetView is android.webkit.WebView) {
+            android.util.Log.w("CarInputManager", "WebView returned null InputConnection, forcing focus sync")
+            m_TargetView?.requestFocus()
+            inputConnection = m_TargetView!!.onCreateInputConnection(editorInfo)
+        }
+        
         if (inputConnection == null) {
-            android.util.Log.w("CarInputManager", "WebView returned null InputConnection, using BaseInputConnection")
+            android.util.Log.w("CarInputManager", "Using BaseInputConnection fallback")
             inputConnection = android.view.inputmethod.BaseInputConnection(m_TargetView!!, true)
         }
         
@@ -74,8 +98,13 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
                 inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_NORMAL
             }
             imeOptions = imeOptions or EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-            initialSelStart = 0
-            initialSelEnd = 0
+            
+            // Sovrascriviamo la selezione solo se siamo in modalità sincronizzazione manuale (campi nativi)
+            // Per le WebView, lasciamo che il sistema usi quanto riportato dalla WebView stessa.
+            if (onTextCommitted != null) {
+                initialSelStart = m_SelectionStart
+                initialSelEnd = m_SelectionEnd
+            }
         }
 
         return CarInputConnection(this, inputConnection)
@@ -91,6 +120,7 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
         private const val TAG = "CarInputManager"
     }
 
+    internal var isImeUpdating = false
     internal var onTextCommitted: ((String) -> Unit)? = null
     internal var onDeleteRequested: ((Int) -> Unit)? = null
     internal var onSelectionChanged: ((Int, Int) -> Unit)? = null
@@ -106,14 +136,6 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
         m_CurrentText = text
         m_SelectionStart = selectionStart
         m_SelectionEnd = selectionEnd
-        
-        // Se l'input è attivo, informiamo il sistema car del cambiamento
-        // Questo dovrebbe aiutare a sincronizzare il cursore sulla proiezione
-        if (isInputActive) {
-            // Alcune versioni di Gearhead richiedono il riavvio dell'input per aggiornare i metadati
-            // ma lo facciamo solo se necessario per evitare loop.
-            // android.util.Log.d("CarInputManager", "State updated: $text ($selectionStart-$selectionEnd)")
-        }
     }
 
     fun getCurrentText(): String = m_CurrentText

@@ -287,44 +287,50 @@ fun SearchOverlay(
         }
     }
 
-    var isInternalUpdate by remember { mutableStateOf(value = false) }
-
     LaunchedEffect(queryValue) {
-        if (!isInternalUpdate) {
-            carInputManager?.updateState(
-                text = queryValue.text,
-                selectionStart = queryValue.selection.start,
-                selectionEnd = queryValue.selection.end,
-            )
-        }
-        isInternalUpdate = false
+        carInputManager?.updateState(
+            text = queryValue.text,
+            selectionStart = queryValue.selection.start,
+            selectionEnd = queryValue.selection.end,
+        )
     }
+
+    var lastCommitTime by remember { mutableLongStateOf(0L) }
+    var lastText by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (carInputManager != null && carInputManager.isValid) {
             carInputManager.setOnInputEventListener(
                 onText = { text -> 
-                    isInternalUpdate = true
+                    val currentTime = System.currentTimeMillis()
+                    // Debouncing: filtra caratteri identici troppo veloci (effetto burst tastiera remota)
+                    if (currentTime - lastCommitTime < 100 && text == lastText) {
+                        return@setOnInputEventListener
+                    }
+                    lastCommitTime = currentTime
+                    lastText = text
+
+                    // Se il cursore è in mezzo, il testo viene inserito lì
                     val selection = queryValue.selection
                     val currentText = queryValue.text
-                    val newText = StringBuilder(currentText).insert(selection.start, text).toString()
-                    val newSelection = TextRange(index = selection.start + text.length)
-                    queryValue = TextFieldValue(text = newText, selection = newSelection)
+                    val newText = StringBuilder(currentText).replace(selection.min, selection.max, text).toString()
+                    queryValue = TextFieldValue(text = newText, selection = TextRange(selection.min + text.length))
                 },
                 onDelete = { length -> 
-                    isInternalUpdate = true
                     val selection = queryValue.selection
                     val currentText = queryValue.text
-                    if (selection.start > 0) {
-                        val start = (selection.start - length).coerceAtLeast(0)
-                        val newText = StringBuilder(currentText).delete(start, selection.start).toString()
-                        queryValue = TextFieldValue(text = newText, selection = TextRange(index = start))
-                    }
+                    
+                    val start = (selection.start - length).coerceAtLeast(0)
+                    val newText = StringBuilder(currentText).delete(start, selection.start).toString()
+                    queryValue = TextFieldValue(text = newText, selection = TextRange(start))
                 },
-            ) { start, end ->
-                isInternalUpdate = true
-                queryValue = queryValue.copy(selection = TextRange(start = start, end = end))
-            }
+                onSelection = { start, end ->
+                    // Sincronizzazione atomica: aggiorniamo solo se differente per evitare loop
+                    if (queryValue.selection.start != start || queryValue.selection.end != end) {
+                        queryValue = queryValue.copy(selection = TextRange(start, end))
+                    }
+                }
+            )
         }
     }
 
