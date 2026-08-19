@@ -77,4 +77,7 @@
     <string name="media_session_channel_desc">AA Browser MediaSession</string>
     <string name="media_browser_title">Audio from Browser</string>
     <string name="media_browser_subtitle">Play current audio</string>
+
+    <!-- Update -->
+    <string name="update_available">New update available: %s</string>
 </resources>

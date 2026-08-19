@@ -11,11 +11,14 @@
 *.bak
 
 # Android specific
-/captures
 *.apk
 *.ap_
 *.dex
 *.class
+
+# Project artifacts & documentation
+.artifacts/
+*.artifact.md
 
 # Signing files (VERY IMPORTANT)
 *.jks

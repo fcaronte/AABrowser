@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +46,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +69,7 @@ import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesViewModel
+import com.fcaronte.aabrowser.model.UpdateManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import java.net.URI
 
@@ -78,6 +81,7 @@ fun DashboardScreen(
             LocalContext.current.applicationContext as Application,
         ),
     ),
+    currentWebView: android.webkit.WebView? = null,
     onSiteSelected: (String) -> Unit,
     onOpenTabManager: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -89,12 +93,20 @@ fun DashboardScreen(
     var showAddDialog by remember { mutableStateOf(value = false) }
     val lastUrl by AppSettings.lastUrl
     val useThreeColumns by AppSettings.dashboardThreeColumns
+    val context = LocalContext.current
+    
+    var updateInfo by remember { mutableStateOf<UpdateManager.UpdateInfo?>(null) }
+
+    LaunchedEffect(Unit) {
+        updateInfo = UpdateManager.checkForUpdates(context)
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
+        // Background Image
         AsyncImage(
             model = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop",
             contentDescription = null,
@@ -109,6 +121,7 @@ fun DashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,6 +164,7 @@ fun DashboardScreen(
                 )
             }
 
+            // Griglia dei preferiti
             LazyVerticalGrid(
                 columns = GridCells.Fixed(if (useThreeColumns) 3 else 2),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -180,10 +194,40 @@ fun DashboardScreen(
                 }
             }
 
+            // Update Banner (Sopra i tasti in basso)
+            updateInfo?.let { info ->
+                if (info.isAvailable) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable { UpdateManager.openDownloadPage(context, info.downloadUrl) },
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.SystemUpdate, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.update_available, info.latestVersion),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Bottom Actions
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
+                    .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -240,6 +284,7 @@ fun DashboardScreen(
 
         if (showAddDialog) {
             EditFavoriteOverlay(
+                currentWebView = currentWebView,
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, url, color, favicon ->
                     viewModel.addFavorite(name, url, color, favicon)
@@ -251,6 +296,7 @@ fun DashboardScreen(
         siteToEdit?.let { site ->
             EditFavoriteOverlay(
                 site = site,
+                currentWebView = currentWebView,
                 onDismiss = { siteToEdit = null },
                 onConfirm = { name, url, color, favicon ->
                     viewModel.updateFavorite(site, name, url, color, favicon)
@@ -368,6 +414,7 @@ fun AddFavoriteCard(onClick: () -> Unit) {
 @Composable
 fun EditFavoriteOverlay(
     site: FavoriteSite? = null,
+    currentWebView: android.webkit.WebView? = null,
     onDismiss: () -> Unit,
     onConfirm: (String, String, Long, String?) -> Unit,
 ) {
@@ -377,6 +424,7 @@ fun EditFavoriteOverlay(
     val dynamicPrimaryColor = MaterialTheme.colorScheme.primary.toArgb().toLong() and 0xFFFFFFFFL
     var color by remember { mutableLongStateOf(site?.color ?: dynamicPrimaryColor) }
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -401,14 +449,7 @@ fun EditFavoriteOverlay(
                 Text(stringResource(R.string.field_color))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     colorOptions.forEach { c ->
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(Color(c), RoundedCornerShape(4.dp))
-                                .clickable { color = c }
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
+                        Box(modifier = Modifier.size(32.dp).background(Color(c), RoundedCornerShape(4.dp)).clickable { color = c }.padding(4.dp), contentAlignment = Alignment.Center) {
                             if (color == c) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
                         }
                     }
@@ -416,7 +457,28 @@ fun EditFavoriteOverlay(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
-                    Button(onClick = { onConfirm(name, url, color, faviconUrl.ifBlank { null }) }) { Text(stringResource(R.string.confirm_button)) }
+                    Button(onClick = {
+                        val finalUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) "https://$url" else url
+                        
+                        if (faviconUrl.isBlank()) {
+                            if (currentWebView != null && currentWebView.url?.contains(URI(finalUrl).host ?: "") == true) {
+                                currentWebView.evaluateJavascript(
+                                    "(function() { const icon = document.querySelector('link[rel=\"apple-touch-icon\"]') || document.querySelector('link[rel=\"icon\"]'); return icon ? icon.href : ''; })();"
+                                ) { result ->
+                                    val extracted = result?.removeSurrounding("\"")?.takeIf { it.isNotBlank() }
+                                    val fallback = "https://www.google.com/s2/favicons?domain=${URI(finalUrl).host ?: finalUrl}&sz=128"
+                                    onConfirm(name, finalUrl, color, extracted ?: fallback)
+                                }
+                            } else {
+                                val fallback = "https://www.google.com/s2/favicons?domain=${URI(finalUrl).host ?: finalUrl}&sz=128"
+                                onConfirm(name, finalUrl, color, fallback)
+                            }
+                        } else {
+                            onConfirm(name, finalUrl, color, faviconUrl)
+                        }
+                    }) {
+                        Text(stringResource(R.string.confirm_button))
+                    }
                 }
             }
         }

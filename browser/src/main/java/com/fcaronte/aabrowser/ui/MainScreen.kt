@@ -154,6 +154,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                 when (currentScreen) {
                     is Screen.Dashboard -> {
                         DashboardScreen(
+                            currentWebView = activeWebView,
                             onSiteSelected = { url ->
                                 val activeTab = TabManager.activeTab
                                 if (activeTab != null) {

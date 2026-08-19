@@ -394,7 +394,15 @@ fun BrowserScreen(
                                         Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: false });
 
                                         function syncPageMetadata() {
-                                            AndroidBridge.onMetadataUpdated(document.title, "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128");
+                                            const getFavicon = () => {
+                                                const icon = document.querySelector('link[rel="apple-touch-icon"]') || 
+                                                             document.querySelector('link[rel="icon"][sizes="192x192"]') ||
+                                                             document.querySelector('link[rel="icon"][sizes="96x96"]') ||
+                                                             document.querySelector('link[rel="icon"]') ||
+                                                             document.querySelector('link[rel="shortcut icon"]');
+                                                return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
+                                            };
+                                            AndroidBridge.onMetadataUpdated(document.title, getFavicon());
                                         }
                                         setTimeout(syncPageMetadata, 1500);
 
