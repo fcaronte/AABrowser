@@ -3,50 +3,53 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group
-        android:scaleX="1.0153847"
-        android:scaleY="1.0153847"
-        android:translateX="-0.83076924"
-        android:translateY="-0.83076924">
-        <group
-            android:scaleX="0.9777778"
-            android:scaleY="0.9777778"
-            android:translateX="1.2"
-            android:translateY="1.2">
-            <group
-                android:scaleX="0.8"
-                android:scaleY="0.8"
-                android:translateX="10.8"
-                android:translateY="10.8">
-                <group
-                    android:scaleX="1.1"
-                    android:scaleY="1.1"
-                    android:translateX="-5.4"
-                    android:translateY="-5.4">
+  <group android:scaleX="0.6769231"
+      android:scaleY="0.6769231"
+      android:translateX="17.446154"
+      android:translateY="17.446154">
 
-                    <!-- Sfera/Globo principale a gradiente o tinta piatta pulita (Blu oceano profondo) -->
-                    <path
-                        android:fillColor="#1A73E8"
-                        android:pathData="M54,24 c16.56,0 30,13.44 30,30 s-13.44,30 -30,30 s-30,-13.44 -30,-30 s13.44,-30 30,-30 z" />
+      <!-- Gruppo del globo inclinato -->
+      <group
+          android:pivotX="54"
+          android:pivotY="54"
+          android:rotation="-15">
 
-                    <!-- Linea curva longitudinale 1 -->
-                    <path
-                        android:fillAlpha="0.25"
-                        android:fillColor="#ffffff"
-                        android:pathData="M54,24 c-8,0 -14.5,13.44 -14.5,30 s6.5,30 14.5,30 s14.5,-13.44 14.5,-30 s-6.5,-30 -14.5,-30 z" />
+          <!-- Cerchio esterno del globo -->
+          <path
+              android:strokeColor="#EDEAE1"
+              android:strokeWidth="4.5"
+              android:pathData="M 54,18 A 36,36 0 1,0 90,54 A 36,36 0 0,0 54,18 Z" />
 
-                    <!-- Linea curva longitudinale 2 (orizzontale stilizzata) -->
-                    <path
-                        android:fillAlpha="0.2"
-                        android:fillColor="#ffffff"
-                        android:pathData="M24,54 c0,-8 13.44,-14.5 30,-14.5 s30,6.5 30,14.5 s-13.44,14.5 -30,14.5 s-30,-6.5 -30,-14.5 z" />
+          <!-- Ellissoide verticale centrale -->
+          <path
+              android:strokeColor="#EDEAE1"
+              android:strokeWidth="4.5"
+              android:pathData="M 54,18 C 32,18 32,90 54,90 C 76,90 76,18 54,18 Z" />
 
-                    <!-- Freccia di navigazione / cursore centrale stilizzato bianco -->
-                    <path
-                        android:fillColor="#FFFFFF"
-                        android:pathData="M48,42 l18,10 l-7,3.5 l-4,8.5 z" />
-                </group>
-            </group>
-        </group>
-    </group>
+          <!-- Equatore (linea orizzontale) -->
+          <path
+              android:strokeColor="#EDEAE1"
+              android:strokeWidth="4.5"
+              android:pathData="M 18,54 L 90,54" />
+
+          <!-- Latitudini (curve orizzontali) -->
+          <path
+              android:strokeColor="#EDEAE1"
+              android:strokeWidth="4.5"
+              android:pathData="M 22.5,35 Q 54,48 85.5,35" />
+          <path
+              android:strokeColor="#EDEAE1"
+              android:strokeWidth="4.5"
+              android:pathData="M 22.5,73 Q 54,60 85.5,73" />
+      </group>
+
+      <!-- Freccia ingrandita del 10% con stroke ridotto a 4 -->
+      <path
+          android:fillColor="#3B82F6"
+          android:strokeColor="#213345"
+          android:strokeWidth="4"
+          android:strokeLineJoin="round"
+          android:strokeLineCap="round"
+          android:pathData="M 86.7,19.0 L 45.6,37.9 L 61.0,44.8 L 67.9,61.9 Z" />
+  </group>
 </vector>
