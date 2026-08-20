@@ -7,7 +7,11 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.webkit.WebView
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,6 +70,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -101,8 +107,11 @@ fun NavigationOverlay(
     onAddToFavorites: () -> Unit = {},
     carInputManager: CarInputManager? = null,
     webView: WebView? = null,
+    isVisible: Boolean = true,
+    showMenu: Boolean = false,
+    onShowMenuChange: (Boolean) -> Unit = {},
+    onInteraction: () -> Unit = {},
 ) {
-    var showMenu by remember { mutableStateOf(value = false) }
     var showQRCode by remember { mutableStateOf(value = false) }
     var showSearchDialog by remember { mutableStateOf(value = false) }
 
@@ -120,150 +129,178 @@ fun NavigationOverlay(
     var offsetY by remember { mutableFloatStateOf(0f) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .align(alignment)
-                .offset { IntOffset(x = offsetX.roundToInt(), y = offsetY.roundToInt()) }
-                .padding(all = 16.dp),
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.fillMaxSize()
         ) {
-            Box {
-                val menuItems = remember(currentUrl) {
-                    listOf(
-                        MenuItem(
-                            icon = Icons.AutoMirrored.Filled.ArrowBack,
-                            labelRes = R.string.back_button
-                        ) { onGoBack(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Home,
-                            labelRes = R.string.home_button
-                        ) { onGoHome(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Layers,
-                            labelRes = R.string.tabs_button
-                        ) { onOpenTabManager(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Star,
-                            labelRes = R.string.add_to_favorites
-                        ) { onAddToFavorites(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Refresh,
-                            labelRes = R.string.reload_button
-                        ) { onReload(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Search,
-                            labelRes = R.string.search_button
-                        ) { showSearchDialog = true; showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Share,
-                            labelRes = R.string.share_button
-                        ) { showQRCode = true; showMenu = false },
-                        MenuItem(
-                            icon = Icons.Default.Settings,
-                            labelRes = R.string.settings_button
-                        ) { onOpenSettings(); showMenu = false },
-                        MenuItem(
-                            icon = Icons.AutoMirrored.Filled.ExitToApp,
-                            labelRes = R.string.exit_button
-                        ) {
-                            showMenu = false
-                            try {
-                                (context as? Activity)?.finishAndRemoveTask()
-                            } catch (_: Exception) {
-                                (context as? Activity)?.finish()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .align(alignment)
+                        .offset { IntOffset(x = offsetX.roundToInt(), y = offsetY.roundToInt()) }
+                        .padding(all = 16.dp),
+                ) {
+                    Box {
+                        val menuItems = remember(currentUrl) {
+                            listOf(
+                                MenuItem(
+                                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                                    labelRes = R.string.back_button
+                                ) { onInteraction(); onGoBack(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Home,
+                                    labelRes = R.string.home_button
+                                ) { onInteraction(); onGoHome(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Layers,
+                                    labelRes = R.string.tabs_button
+                                ) { onInteraction(); onOpenTabManager(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Star,
+                                    labelRes = R.string.add_to_favorites
+                                ) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Refresh,
+                                    labelRes = R.string.reload_button
+                                ) { onInteraction(); onReload(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Search,
+                                    labelRes = R.string.search_button
+                                ) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Share,
+                                    labelRes = R.string.share_button
+                                ) { onInteraction(); showQRCode = true; onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.Default.Settings,
+                                    labelRes = R.string.settings_button
+                                ) { onInteraction(); onOpenSettings(); onShowMenuChange(false) },
+                                MenuItem(
+                                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                                    labelRes = R.string.exit_button
+                                ) {
+                                    onInteraction()
+                                    onShowMenuChange(false)
+                                    try {
+                                        (context as? Activity)?.finishAndRemoveTask()
+                                    } catch (_: Exception) {
+                                        (context as? Activity)?.finish()
+                                    }
+                                },
+                            )
+                        }
+
+                        val isLeft =
+                            (fabLocation == FABLocation.BOTTOM_LEFT) || (fabLocation == FABLocation.TOP_LEFT)
+                        val isTop =
+                            (fabLocation == FABLocation.TOP_LEFT) || (fabLocation == FABLocation.TOP_RIGHT)
+
+                        val startAngle = when {
+                            isLeft && isTop -> 0f
+                            !isLeft && isTop -> 90f
+                            !isLeft && !isTop -> 180f
+                            else -> 270f
+                        }
+
+                        val sweepAngle = 90f
+                        val innerRadius = 105.dp
+                        val outerRadius = 180.dp
+
+                        menuItems.forEachIndexed { index, item ->
+                            val isOuter = index >= 3
+                            val radius = if (isOuter) outerRadius else innerRadius
+                            val arcIndex = if (isOuter) index - 3 else index
+                            val arcTotal = if (isOuter) 6 else 3
+
+                            val angle =
+                                startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
+                            val angleRad = Math.toRadians(angle.toDouble())
+
+                            val targetX = if (showMenu) (cos(angleRad) * radius.value).dp else 0.dp
+                            val targetY = if (showMenu) (sin(angleRad) * radius.value).dp else 0.dp
+
+                            val animatedOffsetX by animateDpAsState(
+                                targetValue = targetX,
+                                animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
+                                label = "offsetX",
+                            )
+                            val animatedOffsetY by animateDpAsState(
+                                targetValue = targetY,
+                                animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
+                                label = "offsetY",
+                            )
+                            val alpha by animateFloatAsState(
+                                targetValue = if (showMenu) 1f else 0f,
+                                label = "alpha"
+                            )
+
+                            if (alpha > 0f) {
+                                FloatingActionButton(
+                                    onClick = {
+                                        onInteraction()
+                                        item.onClick()
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                        alpha = alpha
+                                    ),
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .graphicsLayer(alpha = alpha)
+                                        .offset {
+                                            IntOffset(
+                                                x = animatedOffsetX.roundToPx(),
+                                                y = animatedOffsetY.roundToPx()
+                                            )
+                                        },
+                                ) {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = stringResource(id = item.labelRes),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
                             }
-                        },
-                    )
-                }
+                        }
 
-                if (showMenu) {
-                    val isLeft =
-                        (fabLocation == FABLocation.BOTTOM_LEFT) || (fabLocation == FABLocation.TOP_LEFT)
-                    val isTop =
-                        (fabLocation == FABLocation.TOP_LEFT) || (fabLocation == FABLocation.TOP_RIGHT)
-
-                    val startAngle = when {
-                        isLeft && isTop -> 0f
-                        !isLeft && isTop -> 90f
-                        !isLeft && !isTop -> 180f
-                        else -> 270f
-                    }
-
-                    val sweepAngle = 90f
-                    val innerRadius = 105.dp
-                    val outerRadius = 180.dp
-
-                    menuItems.forEachIndexed { index, item ->
-                        val isOuter = index >= 3
-                        val radius = if (isOuter) outerRadius else innerRadius
-                        val arcIndex = if (isOuter) index - 3 else index
-                        val arcTotal = if (isOuter) 6 else 3
-
-                        val angle =
-                            startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
-                        val angleRad = Math.toRadians(angle.toDouble())
-                        val targetX = (cos(angleRad) * radius.value).dp
-                        val targetY = (sin(angleRad) * radius.value).dp
-
-                        val animatedOffsetX by animateDpAsState(
-                            targetValue = targetX,
-                            animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
-                            label = "offsetX",
-                        )
-                        val animatedOffsetY by animateDpAsState(
-                            targetValue = targetY,
-                            animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
-                            label = "offsetY",
-                        )
-
-                        FloatingActionButton(
-                            onClick = item.onClick,
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        LargeFloatingActionButton(
+                            onClick = {
+                                onInteraction()
+                                onShowMenuChange(!showMenu)
+                            },
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             shape = CircleShape,
                             modifier = Modifier
-                                .size(46.dp)
-                                .offset {
-                                    IntOffset(
-                                        x = animatedOffsetX.roundToPx(),
-                                        y = animatedOffsetY.roundToPx()
-                                    )
-                                },
+                                .size(58.dp)
+                                .then(
+                                    if (!showMenu) {
+                                        Modifier.pointerInput(Unit) {
+                                            detectDragGestures { change, dragAmount ->
+                                                change.consume()
+                                                onInteraction()
+                                                offsetX += dragAmount.x
+                                                offsetY += dragAmount.y
+                                            }
+                                        }
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
                         ) {
                             Icon(
-                                imageVector = item.icon,
-                                contentDescription = stringResource(id = item.labelRes),
-                                modifier = Modifier.size(22.dp)
+                                imageVector = if (showMenu) Icons.Default.Close else Icons.Default.Menu,
+                                contentDescription = stringResource(R.string.menu_button),
+                                modifier = Modifier.size(26.dp),
                             )
                         }
                     }
-                }
-
-                LargeFloatingActionButton(
-                    onClick = { showMenu = !showMenu },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .size(58.dp)
-                        .then(
-                            if (!showMenu) {
-                                Modifier.pointerInput(Unit) {
-                                    detectDragGestures { change, dragAmount ->
-                                        change.consume()
-                                        offsetX += dragAmount.x
-                                        offsetY += dragAmount.y
-                                    }
-                                }
-                            } else {
-                                Modifier
-                            },
-                        ),
-                ) {
-                    Icon(
-                        imageVector = if (showMenu) Icons.Default.Close else Icons.Default.Menu,
-                        contentDescription = stringResource(R.string.menu_button),
-                        modifier = Modifier.size(26.dp),
-                    )
                 }
             }
         }

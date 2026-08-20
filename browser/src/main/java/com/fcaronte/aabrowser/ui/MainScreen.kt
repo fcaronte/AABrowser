@@ -39,11 +39,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -86,6 +89,24 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
+
+    var isNavVisible by remember { mutableStateOf(true) }
+    var isNavMenuOpen by remember { mutableStateOf(false) }
+    var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(lastInteractionTime) {
+        delay(5.seconds)
+        isNavVisible = false
+        isNavMenuOpen = false
+    }
+
+    fun onInteraction(fromPage: Boolean = false) {
+        lastInteractionTime = System.currentTimeMillis()
+        isNavVisible = true
+        if (fromPage) {
+            isNavMenuOpen = false
+        }
+    }
 
     // Riferimento alla WebView attiva per l'input AA
     var activeWebView by remember { mutableStateOf<WebView?>(null) }
@@ -145,7 +166,18 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         LocalDensity provides customDensity
     ) {
         AABrowserTheme(themeMode = themeMode) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(PointerEventPass.Initial)
+                                onInteraction(fromPage = true)
+                            }
+                        }
+                    }
+            ) {
                 // View invisibile (EditText) per gestire l'input nativo AA con supporto cursore
                 AndroidView(
                     factory = { ctx ->
@@ -321,6 +353,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             carInputManager = carInputManager,
                             webView = activeWebView
                                 ?: (inputHostView as? WebView), // Passiamo comunque una view valida se possibile
+                            isVisible = isNavVisible,
+                            showMenu = isNavMenuOpen,
+                            onShowMenuChange = { isNavMenuOpen = it },
+                            onInteraction = { onInteraction() }
                         )
                     }
 
