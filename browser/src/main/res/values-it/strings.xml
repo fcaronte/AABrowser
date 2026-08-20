@@ -30,6 +30,10 @@
     <string name="confirm_button">Conferma</string>
     <string name="cancel_button">Annulla</string>
 
+    <!-- Settings Categories -->
+    <string name="settings_category_app">Estetica App</string>
+    <string name="settings_category_web">Pagine Web</string>
+
     <!-- Settings -->
     <string name="settings_title">Impostazioni</string>
     <string name="back_button">Indietro</string>
@@ -42,6 +46,8 @@
     <string name="desktop_mode_label">Modalità Desktop</string>
     <string name="desktop_mode_desc">Richiedi la versione desktop dei siti web</string>
     <string name="desktop_zoom_label">Zoom Desktop: %d%%</string>
+    <string name="mobile_zoom_label">Zoom Mobile: %d%%</string>
+    <string name="mobile_zoom_desc">Regola lo zoom delle pagine web in modalità mobile</string>
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
     <string name="force_english_label">Forza lingua inglese</string>

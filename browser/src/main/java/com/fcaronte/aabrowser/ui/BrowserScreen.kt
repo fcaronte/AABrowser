@@ -377,9 +377,20 @@ fun BrowserScreen(
                             request: WebResourceRequest?
                         ): Boolean {
                             val uri = request?.url?.toString() ?: ""
-                            if (uri.startsWith("intent://") || uri.startsWith("market://") || 
-                                uri.contains("play.google.com/store/apps")) {
-                                android.util.Log.d("BrowserScreen", "Blocked external intent: $uri")
+                            if (uri.startsWith("intent://")) {
+                                try {
+                                    val intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
+                                    val fallbackUrl = intent.getStringExtra("browser_fallback_url")
+                                    if (!fallbackUrl.isNullOrEmpty()) {
+                                        view?.loadUrl(fallbackUrl)
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("BrowserScreen", "Intent parse error", e)
+                                }
+                                return true
+                            }
+                            if (uri.startsWith("market://") || uri.contains("play.google.com/store/apps")) {
+                                android.util.Log.d("BrowserScreen", "Blocked store link: $uri")
                                 return true
                             }
                             return false
@@ -423,6 +434,17 @@ fun BrowserScreen(
                                             if (!meta) { meta = document.createElement('meta'); meta.name = "viewport"; document.head.appendChild(meta); }
                                             meta.content = "width=1280, initial-scale=" + $desktopScale + ", user-scalable=yes";
                                             document.body.style.minWidth = '1280px';
+                                        })();
+                                        """.trimIndent(),
+                                        null,
+                                    )
+                                } else {
+                                    view?.evaluateJavascript(
+                                        """
+                                        (function() {
+                                            var meta = document.querySelector('meta[name="viewport"]');
+                                            if (!meta) { meta = document.createElement('meta'); meta.name = "viewport"; document.head.appendChild(meta); }
+                                            meta.content = "initial-scale=" + $displayScale + ", user-scalable=yes";
                                         })();
                                         """.trimIndent(),
                                         null,

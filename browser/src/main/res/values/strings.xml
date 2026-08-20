@@ -30,6 +30,10 @@
     <string name="confirm_button">Confirm</string>
     <string name="cancel_button">Cancel</string>
 
+    <!-- Settings Categories -->
+    <string name="settings_category_app">App Appearance</string>
+    <string name="settings_category_web">Web Pages</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back_button">Back</string>
@@ -42,6 +46,8 @@
     <string name="desktop_mode_label">Desktop Mode</string>
     <string name="desktop_mode_desc">Request desktop version of websites</string>
     <string name="desktop_zoom_label">Desktop Zoom: %d%%</string>
+    <string name="mobile_zoom_label">Mobile Zoom: %d%%</string>
+    <string name="mobile_zoom_desc">Adjust the zoom of web pages in mobile mode</string>
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Block intrusive ads and trackers</string>
     <string name="force_english_label">Force English Language</string>

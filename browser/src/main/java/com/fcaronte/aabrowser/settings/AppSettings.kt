@@ -123,6 +123,11 @@ object AppSettings {
         saveBoolean(context, "dark_pages", enabled)
     }
 
+    fun setDisplayScale(context: Context, scale: Float) {
+        _displayScale.value = scale
+        saveFloat(context, "display_scale", scale)
+    }
+
     fun setDesktopMode(context: Context, enabled: Boolean) {
         _desktopMode.value = enabled
         saveBoolean(context, "desktop_mode", enabled)

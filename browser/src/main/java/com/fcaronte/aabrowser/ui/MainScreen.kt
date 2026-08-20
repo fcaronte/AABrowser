@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -405,12 +407,17 @@ fun SettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val isDesktopMode by AppSettings.desktopMode
     val desktopScale by AppSettings.desktopScale
+    val displayScale by AppSettings.displayScale
     val isAdBlockEnabled by AdBlockSettings.isEnabled
     val isDarkPagesEnabled by AppSettings.darkPages
     val themeMode by AppSettings.themeMode
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val searchEngine by AppSettings.searchEngine
     val uiScale by AppSettings.uiScale
+    val forceEnglish by AppSettings.forceEnglish
+
+    var expandedAppSection by remember { mutableStateOf(false) }
+    var expandedWebSection by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
@@ -445,337 +452,313 @@ fun SettingsScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // SEZIONE: ESTETICA APP
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.theme_mode_label),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = stringResource(R.string.theme_mode_desc),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontSize = 12.sp,
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                ThemeMode.entries.forEach { mode ->
-                                    val isSelected = themeMode == mode
-                                    Button(
-                                        onClick = { AppSettings.setThemeMode(context, mode) },
-                                        modifier = Modifier.weight(1f),
-                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary
-                                            else MaterialTheme.colorScheme.surfaceVariant,
-                                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        ),
-                                    ) {
-                                        Text(text = mode.name, fontSize = 11.sp, maxLines = 1)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    SettingsSectionHeader(
+                        title = stringResource(R.string.settings_category_app),
+                        isExpanded = expandedAppSection,
+                        onClick = { expandedAppSection = !expandedAppSection }
+                    )
                 }
 
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.dashboard_columns_label),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = stringResource(R.string.dashboard_columns_desc),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
-                                )
-                            }
-                            Switch(
-                                checked = useThreeColumns,
-                                onCheckedChange = { enabled ->
-                                    AppSettings.setDashboardThreeColumns(context, enabled)
-                                },
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    val forceEnglish by AppSettings.forceEnglish
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.force_english_label),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = stringResource(R.string.force_english_desc),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
-                                )
-                            }
-                            Switch(
-                                checked = forceEnglish,
-                                onCheckedChange = { enabled ->
-                                    AppSettings.setForceEnglish(context, enabled)
-                                },
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.ui_scale_label) + ": ${(uiScale * 100).toInt()}%",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = stringResource(R.string.ui_scale_desc),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontSize = 12.sp,
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Slider(
-                                value = uiScale,
-                                onValueChange = { scale -> AppSettings.setUiScale(context, scale) },
-                                valueRange = 0.5f..1.5f,
-                                steps = 19,
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.search_engine_label),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = stringResource(R.string.search_engine_desc),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontSize = 12.sp,
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                com.fcaronte.aabrowser.settings.SearchEngine.entries.forEach { engine ->
-                                    val isSelected = searchEngine == engine
-                                    Button(
-                                        onClick = { AppSettings.setSearchEngine(context, engine) },
-                                        modifier = Modifier.weight(1f),
-                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                                            horizontal = 4.dp
-                                        ),
-                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary
-                                            else MaterialTheme.colorScheme.surfaceVariant,
-                                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        ),
-                                    ) {
-                                        Text(text = engine.name, fontSize = 9.sp, maxLines = 1)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.dark_pages_label),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = stringResource(R.string.dark_pages_desc),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
-                                )
-                            }
-                            Switch(
-                                checked = isDarkPagesEnabled,
-                                onCheckedChange = { enabled ->
-                                    AppSettings.setDarkPages(context, enabled)
-                                },
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
+                    AnimatedVisibility(visible = expandedAppSection) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            // Tema
+                            SettingsCard {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
                                     Text(
-                                        text = stringResource(R.string.desktop_mode_label),
+                                        text = stringResource(R.string.theme_mode_label),
                                         color = MaterialTheme.colorScheme.onSurface,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
                                     Text(
-                                        text = stringResource(R.string.desktop_mode_desc),
+                                        text = stringResource(R.string.theme_mode_desc),
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                         fontSize = 12.sp,
                                     )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        ThemeMode.entries.forEach { mode ->
+                                            val isSelected = themeMode == mode
+                                            Button(
+                                                onClick = { AppSettings.setThemeMode(context, mode) },
+                                                modifier = Modifier.weight(1f),
+                                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary
+                                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                ),
+                                            ) {
+                                                Text(text = mode.name, fontSize = 11.sp, maxLines = 1)
+                                            }
+                                        }
+                                    }
                                 }
-                                Switch(
-                                    checked = isDesktopMode,
-                                    onCheckedChange = { enabled ->
-                                        AppSettings.setDesktopMode(context, enabled)
-                                    },
+                            }
+
+                            // Dashboard 3 colonne
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.dashboard_columns_label),
+                                    description = stringResource(R.string.dashboard_columns_desc),
+                                    checked = useThreeColumns,
+                                    onCheckedChange = { AppSettings.setDashboardThreeColumns(context, it) }
                                 )
                             }
 
-                            if (isDesktopMode) {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = stringResource(
-                                        R.string.desktop_zoom_label,
-                                        (desktopScale * 100).toInt()
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 14.sp,
+                            // Forza Inglese
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.force_english_label),
+                                    description = stringResource(R.string.force_english_desc),
+                                    checked = forceEnglish,
+                                    onCheckedChange = { AppSettings.setForceEnglish(context, it) }
                                 )
-                                androidx.compose.material3.Slider(
-                                    value = desktopScale,
-                                    onValueChange = { AppSettings.setDesktopScale(context, it) },
-                                    valueRange = 0.25f..1.5f,
-                                    steps = 10,
-                                )
+                            }
+
+                            // Scala DPI (UI Scale)
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.ui_scale_label) + ": ${(uiScale * 100).toInt()}%",
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.ui_scale_desc),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontSize = 12.sp,
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Slider(
+                                        value = uiScale,
+                                        onValueChange = { scale -> AppSettings.setUiScale(context, scale) },
+                                        valueRange = 0.5f..1.5f,
+                                        steps = 19, // 0.05 steps: 0.5, 0.55, ..., 1.0, ..., 1.5
+                                    )
+                                }
+                            }
+
+                            // Motore di Ricerca
+                            SettingsCard {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.search_engine_label),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.search_engine_desc),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontSize = 12.sp,
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        com.fcaronte.aabrowser.settings.SearchEngine.entries.forEach { engine ->
+                                            val isSelected = searchEngine == engine
+                                            Button(
+                                                onClick = { AppSettings.setSearchEngine(context, engine) },
+                                                modifier = Modifier.weight(1f),
+                                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
+                                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary
+                                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                ),
+                                            ) {
+                                                Text(text = engine.name, fontSize = 9.sp, maxLines = 1)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
+                // SEZIONE: PAGINE WEB
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.adblock_label),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = stringResource(R.string.adblock_desc),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
+                    SettingsSectionHeader(
+                        title = stringResource(R.string.settings_category_web),
+                        isExpanded = expandedWebSection,
+                        onClick = { expandedWebSection = !expandedWebSection }
+                    )
+                }
+
+                item {
+                    AnimatedVisibility(visible = expandedWebSection) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            // Dark Pages
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.dark_pages_label),
+                                    description = stringResource(R.string.dark_pages_desc),
+                                    checked = isDarkPagesEnabled,
+                                    onCheckedChange = { AppSettings.setDarkPages(context, it) }
                                 )
                             }
-                            Switch(
-                                checked = isAdBlockEnabled,
-                                onCheckedChange = { enabled ->
-                                    AdBlockSettings.setEnabled(context, enabled)
-                                },
-                            )
+
+                            // Desktop Mode & Zooms
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.desktop_mode_label),
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.desktop_mode_desc),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                fontSize = 12.sp,
+                                            )
+                                        }
+                                        Switch(
+                                            checked = isDesktopMode,
+                                            onCheckedChange = { AppSettings.setDesktopMode(context, it) },
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    if (isDesktopMode) {
+                                        Text(
+                                            text = stringResource(R.string.desktop_zoom_label, (desktopScale * 100).toInt()),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 14.sp,
+                                        )
+                                        Slider(
+                                            value = desktopScale,
+                                            onValueChange = { AppSettings.setDesktopScale(context, it) },
+                                            valueRange = 0.25f..1.5f,
+                                            steps = 24, // 0.05 steps: 0.25, 0.30, ..., 1.0, ..., 1.5
+                                        )
+                                    } else {
+                                        Text(
+                                            text = stringResource(R.string.mobile_zoom_label, (displayScale * 100).toInt()),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 14.sp,
+                                        )
+                                        Slider(
+                                            value = displayScale,
+                                            onValueChange = { AppSettings.setDisplayScale(context, it) },
+                                            valueRange = 0.25f..1.5f,
+                                            steps = 24, // 0.05 steps
+                                        )
+                                    }
+                                }
+                            }
+
+                            // AdBlock
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.adblock_label),
+                                    description = stringResource(R.string.adblock_desc),
+                                    checked = isAdBlockEnabled,
+                                    onCheckedChange = { AdBlockSettings.setEnabled(context, it) }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SettingsSectionHeader(title: String, isExpanded: Boolean, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        content = content
+    )
+}
+
+@Composable
+fun SettingsSwitchItem(
+    label: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = description,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
     }
 }
