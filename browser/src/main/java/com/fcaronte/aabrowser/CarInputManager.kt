@@ -3,6 +3,8 @@ package com.fcaronte.aabrowser
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import com.google.android.gms.car.input.CarEditable
 import com.google.android.gms.car.input.CarEditableListener
 import com.google.android.gms.car.input.InputManager
@@ -11,12 +13,27 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
     CarEditable {
     private var m_TargetView: View? = null
 
+    private val _isInputActiveState = mutableStateOf(false)
+    val isInputActiveState: State<Boolean> = _isInputActiveState
+
+    private var m_ManualStop = false
+
     fun isCurrentCarEditable(carEditable: CarEditable?): Boolean {
         return m_InputManager != null && m_InputManager.isCurrentCarEditable(carEditable)
     }
 
     val isInputActive: Boolean
-        get() = m_InputManager != null && m_InputManager.isInputActive
+        get() {
+            if (m_ManualStop) {
+                if (_isInputActiveState.value) _isInputActiveState.value = false
+                return false
+            }
+            val active = m_InputManager != null && m_InputManager.isInputActive
+            if (_isInputActiveState.value != active) {
+                _isInputActiveState.value = active
+            }
+            return active
+        }
 
     val isValid: Boolean
         get() = m_InputManager != null && m_InputManager.isValid
@@ -30,6 +47,7 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
             return
         }
 
+        m_ManualStop = false
         m_TargetView = TargetView
 
         android.util.Log.d("CarInputManager", "Requesting startInput for view: $TargetView")
@@ -49,9 +67,11 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
             if (TargetView is android.webkit.WebView) {
                 TargetView.post {
                     m_InputManager.startInput(this)
+                    updateActiveState()
                 }
             } else {
                 m_InputManager.startInput(this)
+                updateActiveState()
             }
         } catch (e: Exception) {
             android.util.Log.e("CarInputManager", "Error starting input", e)
@@ -59,13 +79,26 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
     }
 
     fun stopInput() {
-        if (m_InputManager != null && this.isInputActive) {
+        m_ManualStop = true
+        if (m_InputManager != null) {
             try {
                 m_InputManager.stopInput()
+                _isInputActiveState.value = false
             } catch (e: Exception) {
                 android.util.Log.e("CarInputManager", "Error stopping input", e)
             }
             m_TargetView = null
+        }
+    }
+
+    private fun updateActiveState() {
+        if (m_ManualStop) {
+            _isInputActiveState.value = false
+            return
+        }
+        val active = m_InputManager != null && m_InputManager.isInputActive
+        if (_isInputActiveState.value != active) {
+            _isInputActiveState.value = active
         }
     }
 

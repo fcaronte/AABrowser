@@ -372,6 +372,19 @@ fun BrowserScreen(
                             }
                         }
 
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            val uri = request?.url?.toString() ?: ""
+                            if (uri.startsWith("intent://") || uri.startsWith("market://") || 
+                                uri.contains("play.google.com/store/apps")) {
+                                android.util.Log.d("BrowserScreen", "Blocked external intent: $uri")
+                                return true
+                            }
+                            return false
+                        }
+
                         override fun shouldInterceptRequest(
                             view: WebView?,
                             request: WebResourceRequest?

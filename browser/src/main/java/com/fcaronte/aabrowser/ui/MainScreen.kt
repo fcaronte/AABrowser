@@ -16,12 +16,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -364,6 +367,31 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             color = MaterialTheme.colorScheme.inverseOnSurface,
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                             style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+
+                // Tasto Kill Globale di Emergenza - Sempre in alto a destra
+                if (carInputManager?.isInputActiveState?.value == true) {
+                    FloatingActionButton(
+                        onClick = { 
+                            android.util.Log.d("##MainScreen", "Emergency Kill clicked")
+                            carInputManager.stopInput()
+                            // Forza blur sulla WebView attiva se presente
+                            activeWebView?.evaluateJavascript("(function(){ if(document.activeElement) document.activeElement.blur(); })();", null)
+                        },
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(64.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardHide,
+                            contentDescription = "Force close keyboard",
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
