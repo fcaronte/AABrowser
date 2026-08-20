@@ -104,6 +104,7 @@ fun NavigationOverlay(
     onOpenSettings: () -> Unit,
     onOpenTabManager: () -> Unit,
     onSearch: (String) -> Unit,
+    onExit: () -> Unit,
     onAddToFavorites: () -> Unit = {},
     carInputManager: CarInputManager? = null,
     webView: WebView? = null,
@@ -186,11 +187,7 @@ fun NavigationOverlay(
                                 ) {
                                     onInteraction()
                                     onShowMenuChange(false)
-                                    try {
-                                        (context as? Activity)?.finishAndRemoveTask()
-                                    } catch (_: Exception) {
-                                        (context as? Activity)?.finish()
-                                    }
+                                    onExit()
                                 },
                             )
                         }

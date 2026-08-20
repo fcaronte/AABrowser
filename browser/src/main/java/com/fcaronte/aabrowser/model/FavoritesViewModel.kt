@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.model
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
-import java.util.Collections
 
 class FavoritesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = FavoritesRepository(application)
@@ -21,7 +20,13 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         color: Long = 0xFF2196F3,
         faviconUrl: String? = null
     ) {
-        val newSite = FavoriteSite(_favorites.size.toString(), name, url, color, faviconUrl)
+        val newSite = FavoriteSite(
+            java.util.UUID.randomUUID().toString(),
+            name,
+            url,
+            color,
+            faviconUrl
+        )
         _favorites.add(newSite)
         repository.saveFavorites(_favorites)
     }
@@ -47,8 +52,9 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun moveFavorite(fromIndex: Int, toIndex: Int) {
-        if (fromIndex in _favorites.indices && toIndex in _favorites.indices) {
-            Collections.swap(_favorites, fromIndex, toIndex)
+        if (fromIndex in _favorites.indices && toIndex in _favorites.indices && fromIndex != toIndex) {
+            val item = _favorites.removeAt(fromIndex)
+            _favorites.add(toIndex, item)
             repository.saveFavorites(_favorites)
         }
     }

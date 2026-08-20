@@ -75,6 +75,12 @@ object AppSettings {
     private val _uiScale = mutableStateOf(1.0f)
     val uiScale: State<Float> = _uiScale
 
+    private val _autoOpenFavoriteId = mutableStateOf<String?>(null)
+    val autoOpenFavoriteId: State<String?> = _autoOpenFavoriteId
+
+    private val _persistentNavigation = mutableStateOf(false)
+    val persistentNavigation: State<Boolean> = _persistentNavigation
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _themeMode.value = ThemeMode.valueOf(
@@ -103,6 +109,8 @@ object AppSettings {
             prefs.getString("search_engine", SearchEngine.GOOGLE.name) ?: SearchEngine.GOOGLE.name
         )
         _uiScale.value = prefs.getFloat("ui_scale", 1.0f)
+        _autoOpenFavoriteId.value = prefs.getString("auto_open_favorite_id", null)
+        _persistentNavigation.value = prefs.getBoolean("persistent_navigation", false)
 
         updateLocale()
     }
@@ -164,6 +172,16 @@ object AppSettings {
         saveFloat(context, "ui_scale", scale)
     }
 
+    fun setAutoOpenFavoriteId(context: Context, id: String?) {
+        _autoOpenFavoriteId.value = id
+        saveStringOrNull(context, "auto_open_favorite_id", id)
+    }
+
+    fun setPersistentNavigation(context: Context, enabled: Boolean) {
+        _persistentNavigation.value = enabled
+        saveBoolean(context, "persistent_navigation", enabled)
+    }
+
     private fun updateLocale() {
         val languageCode = if (_forceEnglish.value) "en" else null
         val localeList = if (languageCode != null) {
@@ -175,6 +193,11 @@ object AppSettings {
     }
 
     private fun saveString(context: Context, key: String, value: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value)
+            .apply()
+    }
+
+    private fun saveStringOrNull(context: Context, key: String, value: String?) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value)
             .apply()
     }

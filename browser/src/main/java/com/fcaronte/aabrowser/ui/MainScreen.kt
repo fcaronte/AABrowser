@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardHide
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,6 +31,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -52,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,9 +70,11 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.ThemeMode
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 sealed class Screen {
+    object Splash : Screen()
     object Dashboard : Screen()
     object Browser : Screen()
     object Settings : Screen()
@@ -86,7 +91,13 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         ),
     )
 
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
+    var currentScreen by remember { 
+        mutableStateOf<Screen>(
+            if (TabManager.activeTab != null) Screen.Browser 
+            else if (AppSettings.autoOpenFavoriteId.value != null) Screen.Splash
+            else Screen.Dashboard
+        ) 
+    }
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
 
@@ -94,10 +105,14 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     var isNavMenuOpen by remember { mutableStateOf(false) }
     var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    LaunchedEffect(lastInteractionTime) {
-        delay(5.seconds)
-        isNavVisible = false
-        isNavMenuOpen = false
+    val persistentNav by AppSettings.persistentNavigation
+
+    LaunchedEffect(lastInteractionTime, persistentNav) {
+        if (!persistentNav) {
+            delay(5.seconds)
+            isNavVisible = false
+            isNavMenuOpen = false
+        }
     }
 
     fun onInteraction(fromPage: Boolean = false) {
@@ -129,6 +144,28 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     LaunchedEffect(Unit) {
         AdBlockSettings.init(context)
         mediaSessionManager.connect()
+
+        if (currentScreen == Screen.Splash) {
+            // Aspettiamo che i preferiti siano pronti (caricati dal repo)
+            // Se la lista rimane vuota per troppo tempo, andiamo alla Dashboard
+            var attempts = 0
+            while (favoritesViewModel.favorites.isEmpty() && attempts < 20) {
+                delay(100.milliseconds)
+                attempts++
+            }
+
+            val autoOpenId = AppSettings.autoOpenFavoriteId.value
+            val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
+            
+            if (favorite != null && TabManager.tabs.isEmpty()) {
+                android.util.Log.d("MainScreen", "Auto-opening favorite: ${favorite.name}")
+                TabManager.addTab(favorite.url)
+                currentScreen = Screen.Browser
+            } else {
+                android.util.Log.d("MainScreen", "No auto-open match found (ID: $autoOpenId), going to Dashboard")
+                currentScreen = Screen.Dashboard
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -178,6 +215,30 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                         }
                     }
             ) {
+                if (currentScreen == Screen.Splash) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.app_name),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+                }
+
                 // View invisibile (EditText) per gestire l'input nativo AA con supporto cursore
                 AndroidView(
                     factory = { ctx ->
@@ -261,6 +322,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                 )
 
                 when (currentScreen) {
+                    is Screen.Splash -> {
+                        // Già gestito sopra con il Box vuoto
+                    }
+
                     is Screen.Dashboard -> {
                         DashboardScreen(
                             currentWebView = activeWebView,
@@ -356,12 +421,23 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             isVisible = isNavVisible,
                             showMenu = isNavMenuOpen,
                             onShowMenuChange = { isNavMenuOpen = it },
-                            onInteraction = { onInteraction() }
+                            onInteraction = { onInteraction() },
+                            onExit = {
+                                try {
+                                    val activity = context as? android.app.Activity
+                                    activity?.finishAndRemoveTask()
+                                    // Forza la chiusura del processo per assicurare il ritorno alla home di AA
+                                    android.os.Process.killProcess(android.os.Process.myPid())
+                                } catch (e: Exception) {
+                                    (context as? android.app.Activity)?.finish()
+                                }
+                            }
                         )
                     }
 
                     is Screen.Settings -> {
                         SettingsScreen(
+                            favoritesViewModel = favoritesViewModel,
                             onBack = {
                                 currentScreen =
                                     if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
@@ -439,7 +515,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 }
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
     val isDesktopMode by AppSettings.desktopMode
     val desktopScale by AppSettings.desktopScale
@@ -451,6 +527,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     val searchEngine by AppSettings.searchEngine
     val uiScale by AppSettings.uiScale
     val forceEnglish by AppSettings.forceEnglish
+    val persistentNav by AppSettings.persistentNavigation
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(true) }
@@ -548,6 +625,77 @@ fun SettingsScreen(onBack: () -> Unit) {
                                     description = stringResource(R.string.dashboard_columns_desc),
                                     checked = useThreeColumns,
                                     onCheckedChange = { AppSettings.setDashboardThreeColumns(context, it) }
+                                )
+                            }
+
+                            // Auto-Open Favorite
+                            val autoOpenFavoriteId by AppSettings.autoOpenFavoriteId
+                            val favorites = favoritesViewModel.favorites
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(bottom = if (autoOpenFavoriteId != null) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.auto_open_favorite_label),
+                                        description = stringResource(R.string.auto_open_favorite_desc),
+                                        checked = autoOpenFavoriteId != null,
+                                        onCheckedChange = { enabled ->
+                                            if (enabled) {
+                                                // Se attiviamo e non c'è nulla, mettiamo il primo della lista se esiste
+                                                if (autoOpenFavoriteId == null) {
+                                                    AppSettings.setAutoOpenFavoriteId(context, favorites.firstOrNull()?.id)
+                                                }
+                                            } else {
+                                                AppSettings.setAutoOpenFavoriteId(context, null)
+                                            }
+                                        }
+                                    )
+
+                                    if (autoOpenFavoriteId != null && favorites.isNotEmpty()) {
+                                        Column(
+                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            favorites.forEach { favorite ->
+                                                val isSelected = autoOpenFavoriteId == favorite.id
+                                                Card(
+                                                    onClick = { AppSettings.setAutoOpenFavoriteId(context, favorite.id) },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    colors = CardDefaults.cardColors(
+                                                        containerColor = if (isSelected)
+                                                            MaterialTheme.colorScheme.primaryContainer
+                                                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                                    ),
+                                                    shape = RoundedCornerShape(12.dp)
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.padding(12.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        RadioButton(
+                                                            selected = isSelected,
+                                                            onClick = null
+                                                        )
+                                                        Text(
+                                                            favorite.name,
+                                                            modifier = Modifier.padding(start = 12.dp),
+                                                            style = MaterialTheme.typography.bodyLarge,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Tasto Navigazione Persistente
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.persistent_nav_label),
+                                    description = stringResource(R.string.persistent_nav_desc),
+                                    checked = persistentNav,
+                                    onCheckedChange = { AppSettings.setPersistentNavigation(context, it) }
                                 )
                             }
 

@@ -41,6 +41,11 @@
     <string name="theme_mode_desc">Force dark or light style on AA display</string>
     <string name="dashboard_columns_label">Three Columns Dashboard</string>
     <string name="dashboard_columns_desc">Enable 3 columns instead of 2 on home screen</string>
+    <string name="auto_open_favorite_label">Use Favorite as Startup Page</string>
+    <string name="auto_open_favorite_desc">Automatically load a specific favorite instead of the dashboard</string>
+    <string name="auto_open_none">None (Open Dashboard)</string>
+    <string name="persistent_nav_label">Persistent Navigation Button</string>
+    <string name="persistent_nav_desc">Keep navigation button always visible (disable auto-hide)</string>
     <string name="dark_pages_label">Dark Web Pages</string>
     <string name="dark_pages_desc">Force dark mode on websites</string>
     <string name="desktop_mode_label">Desktop Mode</string>

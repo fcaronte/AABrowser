@@ -10,12 +10,21 @@ class FavoritesRepository(context: Context) {
     fun loadFavorites(): List<FavoriteSite> {
         val count = prefs.getInt("BookmarksCount", 0)
         val list = mutableListOf<FavoriteSite>()
+        var migrationNeeded = false
         for (i in 0 until count) {
+            val idFromPrefs = prefs.getString("BookmarkId$i", null)
+            val id = idFromPrefs ?: java.util.UUID.randomUUID().toString()
+            if (idFromPrefs == null) migrationNeeded = true
+            
             val name = prefs.getString("BookmarkName$i", "") ?: ""
             val url = prefs.getString("BookmarkUrl$i", "") ?: ""
             val color = prefs.getLong("BookmarkColor$i", 0xFF2196F3)
             val faviconUrl = prefs.getString("BookmarkFavicon$i", null)
-            list.add(FavoriteSite(i.toString(), name, url, color, faviconUrl))
+            list.add(FavoriteSite(id, name, url, color, faviconUrl))
+        }
+
+        if (migrationNeeded && list.isNotEmpty()) {
+            saveFavorites(list)
         }
 
         // If empty, provide defaults
@@ -39,6 +48,7 @@ class FavoritesRepository(context: Context) {
             clear()
             putInt("BookmarksCount", favorites.size)
             favorites.forEachIndexed { i, site ->
+                putString("BookmarkId$i", site.id)
                 putString("BookmarkName$i", site.name)
                 putString("BookmarkUrl$i", site.url)
                 putLong("BookmarkColor$i", site.color)

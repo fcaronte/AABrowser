@@ -41,6 +41,11 @@
     <string name="theme_mode_desc">Forza lo stile chiaro o scuro sul display dell\'auto</string>
     <string name="dashboard_columns_label">Dashboard a tre colonne</string>
     <string name="dashboard_columns_desc">Abilita 3 colonne invece di 2 nella home</string>
+    <string name="auto_open_favorite_label">Usa Preferito come pagina iniziale</string>
+    <string name="auto_open_favorite_desc">Carica automaticamente un preferito specifico invece della dashboard</string>
+    <string name="auto_open_none">Nessuno (Apri Dashboard)</string>
+    <string name="persistent_nav_label">Tasto navigazione persistente</string>
+    <string name="persistent_nav_desc">Mantieni il tasto di navigazione sempre visibile (disabilita auto-nascondi)</string>
     <string name="dark_pages_label">Pagine Web scure</string>
     <string name="dark_pages_desc">Forza la modalità scura sui siti web</string>
     <string name="desktop_mode_label">Modalità Desktop</string>
