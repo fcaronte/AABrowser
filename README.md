@@ -1,4 +1,4 @@
-# AA Browser: A Modern Revival of the "Old School" Trick
+# AABrowser: A Modern Revival of the "Old School" Trick
 
 🇮🇹 [Vai alla versione italiana](#aa-browser-una-rinascita-moderna)
 
@@ -48,7 +48,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <a id="aa-browser-una-rinascita-moderna"></a>
 
-# AA Browser: Una rinascita moderna del "vecchio trucco"
+# AABrowser: Una rinascita moderna del "vecchio trucco"
 
 🇬🇧 [Go to the English version](#aa-browser-a-modern-revival-of-the-old-school-trick)
 

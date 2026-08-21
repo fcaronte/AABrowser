@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">AA Browser</string>
+    <string name="app_name">AABrowser</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">Notifiche Android Auto Browser</string>
-    <string name="notification_title">AA Browser in esecuzione</string>
+    <string name="notification_title">AABrowser in esecuzione</string>
     <string name="notification_text">Tocca per fermare</string>
 
     <string name="settings_name">Impostazioni</string>
@@ -84,8 +84,8 @@
     <string name="voice_listening">In ascolto…</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AA Browser</string>
-    <string name="media_session_channel_desc">AA Browser MediaSession</string>
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio dal Browser</string>
     <string name="media_browser_subtitle">Riproduci l\'audio corrente</string>
 

@@ -479,7 +479,7 @@ fun BrowserScreen(
                                             if (!video) return;
 
                                             let title = document.title;
-                                            let artist = "AA Browser Audio";
+                                            let artist = "AABrowser Audio";
                                             let artUrl = "";
                                             let duration = isFinite(video.duration) ? video.duration : 0;
 
