@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,6 +80,35 @@ sealed class Screen {
     object Browser : Screen()
     object Settings : Screen()
     object TabManager : Screen()
+}
+
+private fun calculateCacheSize(context: android.content.Context): String {
+    return try {
+        var size: Long = 0
+        context.cacheDir?.let { size += getDirSize(it) }
+        context.externalCacheDir?.let { size += getDirSize(it) }
+
+        // Approssimazione per WebView data (molto variabile)
+        val webViewDir = android.util.Log.getStackTraceString(Exception()).let {
+            // Dummy access to ensure context is used if needed
+        }
+
+        if (size <= 0) "0 B"
+        else if (size < 1024) "$size B"
+        else if (size < 1024 * 1024) "${size / 1024} KB"
+        else "${size / (1024 * 1024)} MB"
+    } catch (e: Exception) {
+        "..."
+    }
+}
+
+private fun getDirSize(dir: java.io.File): Long {
+    var size: Long = 0
+    dir.listFiles()?.forEach { file ->
+        if (file.isFile) size += file.length()
+        else if (file.isDirectory) size += getDirSize(file)
+    }
+    return size
 }
 
 @Composable
@@ -438,10 +468,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     is Screen.Settings -> {
                         SettingsScreen(
                             favoritesViewModel = favoritesViewModel,
-                            onBack = {
-                                currentScreen =
-                                    if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
-                            },
+                            onBack = { currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard },
+                            onShowFeedback = { feedbackMessage = it }
                         )
                     }
 
@@ -515,7 +543,11 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 }
 
 @Composable
-fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
+fun SettingsScreen(
+    favoritesViewModel: FavoritesViewModel,
+    onBack: () -> Unit,
+    onShowFeedback: (String) -> Unit
+) {
     val context = LocalContext.current
     val isDesktopMode by AppSettings.desktopMode
     val desktopScale by AppSettings.desktopScale
@@ -531,6 +563,14 @@ fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(true) }
+
+    var cacheSize by remember { mutableStateOf("...") }
+    val dataClearedMsg = stringResource(R.string.data_cleared)
+
+    LaunchedEffect(Unit) {
+        val size = calculateCacheSize(context)
+        cacheSize = size
+    }
 
     Box(
         modifier = Modifier
@@ -817,13 +857,20 @@ fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
                                             )
                                             Text(
                                                 text = stringResource(R.string.desktop_mode_desc),
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = 0.6f
+                                                ),
                                                 fontSize = 12.sp,
                                             )
                                         }
                                         Switch(
                                             checked = isDesktopMode,
-                                            onCheckedChange = { AppSettings.setDesktopMode(context, it) },
+                                            onCheckedChange = {
+                                                AppSettings.setDesktopMode(
+                                                    context,
+                                                    it
+                                                )
+                                            },
                                         )
                                     }
 
@@ -831,25 +878,41 @@ fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
 
                                     if (isDesktopMode) {
                                         Text(
-                                            text = stringResource(R.string.desktop_zoom_label, (desktopScale * 100).toInt()),
+                                            text = stringResource(
+                                                R.string.desktop_zoom_label,
+                                                (desktopScale * 100).toInt()
+                                            ),
                                             color = MaterialTheme.colorScheme.onSurface,
                                             fontSize = 14.sp,
                                         )
                                         Slider(
                                             value = desktopScale,
-                                            onValueChange = { AppSettings.setDesktopScale(context, it) },
+                                            onValueChange = {
+                                                AppSettings.setDesktopScale(
+                                                    context,
+                                                    it
+                                                )
+                                            },
                                             valueRange = 0.25f..1.5f,
                                             steps = 24, // 0.05 steps: 0.25, 0.30, ..., 1.0, ..., 1.5
                                         )
                                     } else {
                                         Text(
-                                            text = stringResource(R.string.mobile_zoom_label, (displayScale * 100).toInt()),
+                                            text = stringResource(
+                                                R.string.mobile_zoom_label,
+                                                (displayScale * 100).toInt()
+                                            ),
                                             color = MaterialTheme.colorScheme.onSurface,
                                             fontSize = 14.sp,
                                         )
                                         Slider(
                                             value = displayScale,
-                                            onValueChange = { AppSettings.setDisplayScale(context, it) },
+                                            onValueChange = {
+                                                AppSettings.setDisplayScale(
+                                                    context,
+                                                    it
+                                                )
+                                            },
                                             valueRange = 0.25f..1.5f,
                                             steps = 24, // 0.05 steps
                                         )
@@ -865,6 +928,89 @@ fun SettingsScreen(favoritesViewModel: FavoritesViewModel, onBack: () -> Unit) {
                                     checked = isAdBlockEnabled,
                                     onCheckedChange = { AdBlockSettings.setEnabled(context, it) }
                                 )
+                            }
+                            // Clear Data
+                            SettingsCard {
+                                var clearCache by remember { mutableStateOf(false) }
+                                var clearCookies by remember { mutableStateOf(false) }
+
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.clear_data_label),
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.clear_data_desc),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = 0.6f
+                                                ),
+                                                fontSize = 12.sp,
+                                            )
+                                        }
+
+                                        // Tasto refresh manuale dimensione cache
+                                        IconButton(onClick = {
+                                            cacheSize = calculateCacheSize(context)
+                                        }) {
+                                            Icon(
+                                                Icons.Default.Refresh,
+                                                contentDescription = "Refresh cache size",
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        androidx.compose.material3.Checkbox(
+                                            checked = clearCache,
+                                            onCheckedChange = { clearCache = it }
+                                        )
+                                        Text(
+                                            text = "Cache ($cacheSize)",
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        androidx.compose.material3.Checkbox(
+                                            checked = clearCookies,
+                                            onCheckedChange = { clearCookies = it }
+                                        )
+                                        Text(
+                                            text = "Cookies",
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Button(
+                                        onClick = {
+                                            if (clearCache) AppSettings.clearCache(context)
+                                            if (clearCookies) AppSettings.clearCookies()
+                                            onShowFeedback(dataClearedMsg)
+                                        },
+                                        enabled = clearCache || clearCookies,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error,
+                                            disabledContainerColor = MaterialTheme.colorScheme.error.copy(
+                                                alpha = 0.3f
+                                            )
+                                        )
+                                    ) {
+                                        Text(stringResource(R.string.confirm_button))
+                                    }
+                                }
                             }
                         }
                     }

@@ -1,6 +1,9 @@
 package com.fcaronte.aabrowser.settings
 
 import android.content.Context
+import android.webkit.CookieManager
+import android.webkit.WebStorage
+import android.webkit.WebView
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 
@@ -180,6 +183,31 @@ object AppSettings {
     fun setPersistentNavigation(context: Context, enabled: Boolean) {
         _persistentNavigation.value = enabled
         saveBoolean(context, "persistent_navigation", enabled)
+    }
+
+    fun clearBrowserData(context: Context) {
+        clearCache(context)
+        clearCookies()
+    }
+
+    fun clearCache(context: Context) {
+        try {
+            WebStorage.getInstance().deleteAllData()
+            val webView = WebView(context)
+            webView.clearCache(true)
+            webView.destroy()
+        } catch (e: Exception) {
+            android.util.Log.e("AppSettings", "Error clearing cache", e)
+        }
+    }
+
+    fun clearCookies() {
+        try {
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+        } catch (e: Exception) {
+            android.util.Log.e("AppSettings", "Error clearing cookies", e)
+        }
     }
 
     private fun updateLocale() {

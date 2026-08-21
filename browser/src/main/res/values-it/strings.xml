@@ -23,10 +23,14 @@
     <string name="add_favorite_title">Aggiungi Preferito</string>
     <string name="edit_favorite_title">Modifica Preferito</string>
     <string name="favorite_added">Preferito aggiunto alla Home</string>
+    <string name="favorite_updated">Preferito aggiornato</string>
     <string name="field_name">Nome</string>
     <string name="field_url">URL</string>
     <string name="field_favicon">URL Favicon (Opzionale)</string>
     <string name="field_color">Colore</string>
+    <string name="site_info_title">Informazioni Sito</string>
+    <string name="display_settings_title">Impostazioni Visualizzazione</string>
+    <string name="desktop_mode_desc_site">Usa modalità desktop per questo sito</string>
     <string name="confirm_button">Conferma</string>
     <string name="cancel_button">Annulla</string>
 
@@ -55,17 +59,22 @@
     <string name="mobile_zoom_desc">Regola lo zoom delle pagine web in modalità mobile</string>
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">Salta pubblicità YouTube e ricorda velocità di riproduzione</string>
     <string name="force_english_label">Forza lingua inglese</string>
     <string name="force_english_desc">Usa sempre l\'inglese indipendentemente dalla lingua di sistema</string>
     <string name="search_engine_label">Motore di ricerca predefinito</string>
     <string name="search_engine_desc">Scegli il motore per la ricerca rapida</string>
     <string name="ui_scale_label">Scala UI (DPI)</string>
     <string name="ui_scale_desc">Regola la dimensione globale dell\'interfaccia</string>
+    <string name="clear_data_label">Cancella Dati Navigazione</string>
+    <string name="clear_data_desc">Seleziona i dati da rimuovere dal dispositivo</string>
+    <string name="data_cleared">Dati selezionati cancellati</string>
 
     <!-- Tab Manager -->
     <string name="tabs_title">Schede</string>
-    <string name="new_tab">Nuova scheda</string>
-    <string name="close_tab">Chiudi scheda</string>
+    <string name="new_tab">Nuova Scheda</string>
+    <string name="close_tab">Chiudi Scheda</string>
     <string name="close_all_tabs">Chiudi tutte le schede</string>
 
     <!-- Navigation Overlay -->

@@ -32,9 +32,8 @@ class FavoritesRepository(context: Context) {
             val defaults = listOf(
                 FavoriteSite("0", "Google", "https://www.google.com", 0xFF4285F4),
                 FavoriteSite("1", "YouTube", "https://www.youtube.com", 0xFFFF0000),
-                FavoriteSite("2", "Maps", "https://maps.google.com", 0xFF34A853),
-                FavoriteSite("3", "News", "https://news.google.com", 0xFFFBBC05),
-                FavoriteSite("4", "GitHub", "https://github.com", 0xFF24292E)
+                FavoriteSite("2", "YouTube Music", "https://music.youtube.com", 0xFFFF0000),
+                FavoriteSite("3", "WhatsApp", "https://web.whatsapp.com", 0xFF34A853)
             )
             saveFavorites(defaults)
             return defaults

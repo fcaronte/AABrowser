@@ -23,10 +23,14 @@
     <string name="add_favorite_title">Add Favorite</string>
     <string name="edit_favorite_title">Edit Favorite</string>
     <string name="favorite_added">Favorite added to Home</string>
+    <string name="favorite_updated">Favorite updated</string>
     <string name="field_name">Name</string>
     <string name="field_url">URL</string>
     <string name="field_favicon">Favicon URL (Optional)</string>
     <string name="field_color">Color</string>
+    <string name="site_info_title">Site Information</string>
+    <string name="display_settings_title">Display Settings</string>
+    <string name="desktop_mode_desc_site">Use desktop mode for this site</string>
     <string name="confirm_button">Confirm</string>
     <string name="cancel_button">Cancel</string>
 
@@ -55,12 +59,17 @@
     <string name="mobile_zoom_desc">Adjust the zoom of web pages in mobile mode</string>
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Block intrusive ads and trackers</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">Auto-skip YouTube ads and remember playback speed</string>
     <string name="force_english_label">Force English Language</string>
     <string name="force_english_desc">Always use English regardless of system language</string>
     <string name="search_engine_label">Default Search Engine</string>
     <string name="search_engine_desc">Choose engine for quick search</string>
     <string name="ui_scale_label">UI Scale (DPI)</string>
     <string name="ui_scale_desc">Adjust the overall size of the app interface</string>
+    <string name="clear_data_label">Clear Browser Data</string>
+    <string name="clear_data_desc">Select data to remove from your device</string>
+    <string name="data_cleared">Selected data cleared</string>
 
     <!-- Tab Manager -->
     <string name="tabs_title">Tabs</string>
