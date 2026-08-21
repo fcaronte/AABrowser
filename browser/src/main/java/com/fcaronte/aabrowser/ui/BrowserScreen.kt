@@ -54,7 +54,7 @@ import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.SubscriptionsManager
+import com.fcaronte.aabrowser.AdBlockHost
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -400,7 +400,7 @@ fun BrowserScreen(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
-                            if (SubscriptionsManager.shouldBlock(request?.url?.toString() ?: "")) {
+                            if (AdBlockHost.shouldBlock(request?.url?.toString() ?: "")) {
                                 return WebResourceResponse(
                                     "text/plain",
                                     "utf-8",

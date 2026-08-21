@@ -8,7 +8,7 @@ import java.net.URL
  * Gestore leggero per il blocco delle pubblicità basato su liste di host.
  * Sostituisce il vecchio AdBlock Plus che causava problemi di dimensioni e prestazioni.
  */
-object SubscriptionsManager {
+object AdBlockHost {
 
     private val blockedHosts = mutableSetOf<String>()
 
@@ -63,11 +63,19 @@ object SubscriptionsManager {
         "tapad.com",
         "turn.com",
         "undertone.com",
-        "vibrantmedia.com"
+        "vibrantmedia.com",
+        "adcolony.com",
+        "applovin.com",
+        "unityads.unity3d.com",
+        "ironsrc.com",
+        "vungle.com",
+        "ad.doubleclick.net",
+        "googleads.g.doubleclick.net",
+        "pagead2.googlesyndication.com",
+        "ade.googlesyndication.com"
     )
 
     fun init(context: Context) {
-        // Log rimosso o silenziato
         blockedHosts.addAll(defaultAdHosts)
     }
 

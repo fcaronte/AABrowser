@@ -13,7 +13,7 @@ class CarApplication : Application() {
         DynamicColors.applyToActivitiesIfAvailable(this)
 
         // Inizializza il gestore delle pubblicità (AdBlock leggero)
-        SubscriptionsManager.init(this)
+        AdBlockHost.init(this)
     }
 
     companion object {
