@@ -2,8 +2,9 @@ package com.fcaronte.aabrowser.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.fcaronte.aabrowser.R
 
-class FavoritesRepository(context: Context) {
+class FavoritesRepository(private val context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("BOOKMARKS", Context.MODE_PRIVATE)
 
@@ -35,10 +36,10 @@ class FavoritesRepository(context: Context) {
         // If empty, provide defaults
         if (list.isEmpty()) {
             val defaults = listOf(
-                FavoriteSite("0", "Google", "https://www.google.com", 0xFF4285F4),
-                FavoriteSite("1", "YouTube", "https://www.youtube.com", 0xFFFF0000),
-                FavoriteSite("2", "YouTube Music", "https://music.youtube.com", 0xFFFF0000),
-                FavoriteSite("3", "WhatsApp", "https://web.whatsapp.com", 0xFF34A853)
+                FavoriteSite("0", "Google", context.getString(R.string.default_fav_google_url), 0xFF4285F4),
+                FavoriteSite("1", "YouTube", context.getString(R.string.default_fav_youtube_url), 0xFFFF0000),
+                FavoriteSite("2", "YouTube Music", context.getString(R.string.default_fav_ytmusic_url), 0xFFFF0000),
+                FavoriteSite("3", "WhatsApp", context.getString(R.string.default_fav_whatsapp_url), 0xFF34A853)
             )
             saveFavorites(defaults)
             return defaults

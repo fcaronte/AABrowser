@@ -1,9 +1,15 @@
 package com.fcaronte.aabrowser.ui
 
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,12 +18,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
@@ -31,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +51,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.settings.AdBlockSettings
@@ -82,8 +95,13 @@ fun SettingsScreen(
     val autoplayMedia by AppSettings.autoplayMedia
 
     var expandedAppSection by remember { mutableStateOf(false) }
-    var expandedWebSection by remember { mutableStateOf(true) }
+    var expandedWebSection by remember { mutableStateOf(false) }
     var cacheSize by remember { mutableStateOf("...") }
+    var qrUrlToShow by remember { mutableStateOf<String?>(null) }
+
+    val configuration = LocalConfiguration.current
+    val isCarMode = (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_CAR
+
     val dataClearedMsg = stringResource(R.string.data_cleared)
 
     LaunchedEffect(Unit) {
@@ -120,20 +138,22 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // SEZIONE: ESTETICA APP
-                item {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                val scrollState = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = maxHeight)
+                        .verticalScroll(scrollState),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // SEZIONE: ESTETICA APP
                     SettingsSectionHeader(
                         title = stringResource(R.string.settings_category_app),
                         isExpanded = expandedAppSection,
                         onClick = { expandedAppSection = !expandedAppSection }
                     )
-                }
 
-                item {
                     AnimatedVisibility(visible = expandedAppSection) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             // Tema personalizzato / di sistema
@@ -494,18 +514,14 @@ fun SettingsScreen(
                             }
                         }
                     }
-                }
 
-                // SEZIONE: PAGINE WEB
-                item {
+                    // SEZIONE: PAGINE WEB
                     SettingsSectionHeader(
                         title = stringResource(R.string.settings_category_web),
                         isExpanded = expandedWebSection,
                         onClick = { expandedWebSection = !expandedWebSection }
                     )
-                }
 
-                item {
                     AnimatedVisibility(visible = expandedWebSection) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             // Dark Pages
@@ -710,8 +726,114 @@ fun SettingsScreen(
                             }
                         }
                     }
+
+                    // Spazio elastico che spinge il footer in basso se possibile
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // FOOTER: GitHub & Donation
+                    val githubUrl = stringResource(R.string.url_github)
+                    val paypalUrl = stringResource(R.string.url_paypal)
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // GitHub Side (Left, smaller)
+                        Column(
+                            modifier = Modifier.weight(0.3f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clickable {
+                                        handleExternalLink(context, githubUrl, isCarMode) { qrUrlToShow = it }
+                                    },
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color.White,
+                                shadowElevation = 1.dp
+                            ) {
+                                AsyncImage(
+                                    model = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+                                    contentDescription = "GitHub",
+                                    modifier = Modifier.padding(5.dp)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(4.dp))
+                            
+                            Text(
+                                text = stringResource(R.string.settings_footer_github),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                fontSize = 9.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+
+                        // PayPal Side (Right, larger)
+                        Column(
+                            modifier = Modifier.weight(0.7f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_footer_donation),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                                fontWeight = FontWeight.Medium,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                fontSize = 10.sp,
+                                lineHeight = 13.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    handleExternalLink(context, paypalUrl, isCarMode) { qrUrlToShow = it }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF003087),
+                                    contentColor = Color.White
+                                ),
+                                modifier = Modifier.height(34.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                            ) {
+                                Text("PayPal.me", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        // Overlay QR Code se necessario
+        qrUrlToShow?.let { url ->
+            QRCodeOverlay(
+                currentUrl = url,
+                onDismiss = { qrUrlToShow = null }
+            )
+        }
+    }
+}
+
+private fun handleExternalLink(
+    context: Context,
+    url: String,
+    isCarMode: Boolean,
+    onShowQR: (String) -> Unit
+) {
+    if (isCarMode) {
+        onShowQR(url)
+    } else {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (_: Exception) {
+            onShowQR(url)
         }
     }
 }

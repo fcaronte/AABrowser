@@ -68,7 +68,7 @@
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
-    <string name="adblock_youtube_desc">Salta pubblicità YouTube e ricorda velocità di riproduzione</string>
+    <string name="adblock_youtube_desc">Salta pubblicità YouTube (Beta: può smettere di funzionare da un momento all\'altro)</string>
     <string name="force_english_label">Forza lingua inglese</string>
     <string name="force_english_desc">Usa sempre l\'inglese indipendentemente dalla lingua di sistema</string>
     <string name="search_engine_label">Motore di ricerca predefinito</string>
@@ -111,4 +111,7 @@
     <string name="update_available_title">Aggiornamento AABrowser %s</string>
     <string name="update_available_text">È disponibile una nuova versione da scaricare.</string>
     <string name="download_button">Scarica</string>
+
+    <string name="settings_footer_github">Progetto GitHub</string>
+    <string name="settings_footer_donation">Se ti piace il progetto, puoi offrirmi un caffè per supportare le ore di sonno perse a scrivere questo codice a litigare con Gemini 😂</string>
 </resources>

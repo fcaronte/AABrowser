@@ -68,7 +68,7 @@
     <string name="adblock_label">AdBlock</string>
     <string name="adblock_desc">Block intrusive ads and trackers</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
-    <string name="adblock_youtube_desc">Auto-skip YouTube ads and remember playback speed</string>
+    <string name="adblock_youtube_desc">Auto-skip YouTube ads (Beta: may stop working at any time)</string>
     <string name="force_english_label">Force English Language</string>
     <string name="force_english_desc">Always use English regardless of system language</string>
     <string name="search_engine_label">Default Search Engine</string>
@@ -111,4 +111,15 @@
     <string name="update_available_title">AABrowser Update %s</string>
     <string name="update_available_text">A new version is available for download.</string>
     <string name="download_button">Download</string>
+
+    <string name="settings_footer_github">GitHub Project</string>
+    <string name="settings_footer_donation">If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte</string>
+    <string name="default_fav_google_url" translatable="false">https://www.google.com</string>
+    <string name="default_fav_youtube_url" translatable="false">https://www.youtube.com</string>
+    <string name="default_fav_ytmusic_url" translatable="false">https://music.youtube.com</string>
+    <string name="default_fav_whatsapp_url" translatable="false">https://web.whatsapp.com</string>
 </resources>

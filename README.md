@@ -35,10 +35,15 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 ## Disclaimer & Compatibility
 
 * **It’s a bit buggy:** Expect some "surprises" here and there. It's a work in progress!
-* **Testing:** I have only tested this on my **Samsung S24 Ultra**.
-* **Installation:** I installed the APK
-  using [KingInstaller](https://github.com/fcaronte/KingInstaller) (or similar methods to bypass
-  Play Store restrictions). Your mileage may vary on other devices.
+* **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless** or if it's installed via **KingInstaller** (to bypass Play Store restrictions).
+* **Compatibility:** Note that the **KingInstaller** method currently seems to work reliably only on **Pixel** and **Samsung** devices.
+* **Important:** Remember to enable **"Unknown sources"** in the Android Auto developer options on your phone.
+* **Testing:** Primarily tested on a **Samsung S24 Ultra**.
+
+## Support the project
+
+If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂:
+[![](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.me/FCaronte)
 
 ## License
 
@@ -87,10 +92,15 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 ## Disclaimer & Compatibilità
 
 * **Ci sono dei bug:** Aspettatevi qualche sorpresa qua e là. È un work in progress!
-* **Test:** L'ho testata solo sul mio **Samsung S24 Ultra**.
-* **Installazione:** Ho installato l'APK
-  usando [KingInstaller](https://github.com/fcaronte/KingInstaller). Potrebbe funzionare
-  diversamente su altri dispositivi.
+* **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless** o se viene installata con **KingInstaller** (per bypassare le restrizioni del Play Store).
+* **Compatibilità:** Nota che il metodo tramite **KingInstaller** attualmente sembra funzionare correttamente soprattutto su dispositivi **Pixel** e **Samsung**.
+* **Importante:** Ricordarsi di abilitare le **"Origini sconosciute"** nelle impostazioni sviluppatore di Android Auto sul telefono.
+* **Test:** Testata principalmente su **Samsung S24 Ultra**.
+
+## Supporta il progetto
+
+Se ti piace il progetto, puoi offrirmi un caffè per supportare le ore di sonno perse a scrivere questo codice a litigare con Gemini 😂:
+[![](https://img.shields.io/badge/Dona-PayPal-blue.svg)](https://www.paypal.me/FCaronte)
 
 ## Licenza
 
