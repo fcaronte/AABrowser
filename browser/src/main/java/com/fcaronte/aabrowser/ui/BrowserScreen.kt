@@ -89,6 +89,7 @@ fun BrowserScreen(
     val darkPages by AppSettings.darkPages
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
+    val autoplayMedia by AppSettings.autoplayMedia
 
     val actualDesktopMode = desktopModeOverride ?: isDesktopMode
     val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
@@ -178,14 +179,14 @@ fun BrowserScreen(
                         databaseEnabled = true
                         loadWithOverviewMode = true
                         useWideViewPort = true
-                        mediaPlaybackRequiresUserGesture = false
+                        // Se autoplay è disattivato, richiede il tocco dell'utente
+                        mediaPlaybackRequiresUserGesture = !autoplayMedia
                         setSupportZoom(true)
                         builtInZoomControls = true
                         displayZoomControls = false
                         allowContentAccess = true
                         allowFileAccess = true
-                        mixedContentMode =
-                            android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                        mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                     }
 
                     // Abilita i cookie in modo persistente
@@ -397,17 +398,27 @@ fun BrowserScreen(
                                 onPageFinished(url)
                                 android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
 
+                                if (!autoplayMedia) {
+                                    // Blocca qualsiasi riproduzione partita in automatico e silenzia l'audio
+                                    view?.evaluateJavascript(
+                                        "(function() { document.querySelectorAll('video, audio').forEach(el => el.pause()); })();",
+                                        null
+                                    )
+                                }
+
                                 if (url.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != url) {
-                                    android.util.Log.d("##BrowserScreen", "Injecting AdBlock from onPageFinished")
-                                    view?.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                                    view?.evaluateJavascript(
+                                        AdBlockJavascript.getYouTubeAdBlockScript(),
+                                        null
+                                    )
                                     lastInjectedUrl = url
                                 }
 
-                                // Salva i cookie su disco ad ogni caricamento terminato
                                 CookieManager.getInstance().flush()
 
                                 val needsDesktop = actualDesktopMode || isDesktopRequired(url)
-                                val targetScale = if (needsDesktop) actualDesktopScale else actualDisplayScale
+                                val targetScale =
+                                    if (needsDesktop) actualDesktopScale else actualDisplayScale
                                 view?.evaluateJavascript(
                                     BrowserJavascript.getViewportScript(targetScale, needsDesktop),
                                     null

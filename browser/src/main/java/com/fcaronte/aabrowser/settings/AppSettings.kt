@@ -6,6 +6,7 @@ import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 
@@ -41,11 +42,15 @@ object AppSettings {
     private val _darkPages = mutableStateOf(false)
     val darkPages: State<Boolean> = _darkPages
 
+    // Autoplay media all'avvio
+    private val _autoplayMedia = mutableStateOf(false)
+    val autoplayMedia: State<Boolean> = _autoplayMedia
+
     // Precaricamento schede preferiti all'avvio
     private val _preloadFavorites = mutableStateOf(false)
     val preloadFavorites: State<Boolean> = _preloadFavorites
 
-    private val _preloadFavoritesCount = mutableStateOf(4)
+    private val _preloadFavoritesCount = mutableIntStateOf(4)
     val preloadFavoritesCount: State<Int> = _preloadFavoritesCount
 
     private val _resumeLastPage = mutableStateOf(true)
@@ -100,8 +105,9 @@ object AppSettings {
         )
         _dynamicColor.value = prefs.getBoolean("dynamic_color", true) // Default attivo
         _darkPages.value = prefs.getBoolean("dark_pages", false)
+        _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
-        _preloadFavoritesCount.value = prefs.getInt("preload_favorites_count", 4)
+        _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _resumeLastPage.value = prefs.getBoolean("resume_last_page", true)
         _restoreLastTabs.value = prefs.getBoolean("restore_last_tabs", false)
         _persistentUrlBar.value = prefs.getBoolean("persistent_url_bar", false)
@@ -140,6 +146,11 @@ object AppSettings {
         saveBoolean(context, "dynamic_color", enabled)
     }
 
+    fun setAutoplayMedia(context: Context, enabled: Boolean) {
+        _autoplayMedia.value = enabled
+        saveBoolean(context, "autoplay_media", enabled)
+    }
+
     fun setDarkPages(context: Context, enabled: Boolean) {
         _darkPages.value = enabled
         saveBoolean(context, "dark_pages", enabled)
@@ -151,7 +162,7 @@ object AppSettings {
     }
 
     fun setPreloadFavoritesCount(context: Context, count: Int) {
-        _preloadFavoritesCount.value = count
+        _preloadFavoritesCount.intValue = count
         saveInt(context, "preload_favorites_count", count)
     }
 

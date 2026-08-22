@@ -75,6 +75,7 @@ fun SettingsScreen(
     val persistentNav by AppSettings.persistentNavigation
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
+    val autoplayMedia by AppSettings.autoplayMedia
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(true) }
@@ -264,6 +265,16 @@ fun SettingsScreen(
                                         }
                                     }
                                 }
+                            }
+
+                            // Autoplay
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = "Riproduzione automatica media",
+                                    description = "Consente l'avvio immediato di audio e video all'apertura delle schede",
+                                    checked = autoplayMedia,
+                                    onCheckedChange = { AppSettings.setAutoplayMedia(context, it) }
+                                )
                             }
 
                             // Precarica schede preferiti all'avvio
