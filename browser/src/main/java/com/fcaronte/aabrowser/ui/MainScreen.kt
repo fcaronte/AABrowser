@@ -492,8 +492,16 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                         if (showDashboardSearch) {
                             SearchOverlay(
                                 onSearch = { query ->
-                                    val searchUrl = searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
-                                    TabManager.openOrSwitchTo(searchUrl)
+                                    val searchUrl =
+                                        searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
+
+                                    // Usa addTab invece di openOrSwitchTo per garantire una ricerca fresca ogni volta
+                                    TabManager.addTab(
+                                        url = searchUrl,
+                                        title = query,
+                                        setActive = true
+                                    )
+
                                     currentScreen = Screen.Browser
                                     showDashboardSearch = false
                                 },

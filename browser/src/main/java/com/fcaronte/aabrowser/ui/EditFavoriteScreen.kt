@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +59,7 @@ fun EditFavoriteScreen(
     site: FavoriteSite? = null,
     currentWebView: WebView? = null,
     carInputManager: CarInputManager? = null,
-    inputHostView: View? = null,
+    inputHostView: View? = null, // Parametro originale corretto
     onBack: () -> Unit,
     onConfirm: (String, String, Long, String?, Boolean?, Float?, Float?) -> Unit,
 ) {
@@ -76,7 +77,7 @@ fun EditFavoriteScreen(
     var color by remember { mutableLongStateOf(site?.color ?: dynamicPrimaryColor) }
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
 
-    var focusedField by remember { mutableStateOf(0) } // 0: none, 1: name, 2: url, 3: favicon
+    var focusedField by remember { mutableIntStateOf(0) } // 0: none, 1: name, 2: url, 3: favicon
 
     DisposableEffect(Unit) {
         onDispose {
@@ -84,84 +85,77 @@ fun EditFavoriteScreen(
         }
     }
 
-    LaunchedEffect(focusedField, nameValue, urlValue, faviconValue) {
-        if (carInputManager != null && focusedField > 0) {
-            val currentValue = when (focusedField) {
-                1 -> nameValue
-                2 -> urlValue
-                3 -> faviconValue
-                else -> TextFieldValue("")
-            }
-            carInputManager.updateState(
-                text = currentValue.text,
-                selectionStart = currentValue.selection.start,
-                selectionEnd = currentValue.selection.end
+    // Sincronizza lo stato corrente con il CarInputManager
+    val activeVal = when (focusedField) {
+        1 -> nameValue
+        2 -> urlValue
+        3 -> faviconValue
+        else -> null
+    }
+
+    LaunchedEffect(activeVal?.text) {
+        activeVal?.let {
+            carInputManager?.updateState(
+                text = it.text,
+                selectionStart = it.selection.start,
+                selectionEnd = it.selection.end
             )
         }
     }
 
-    var lastCommitTime by remember { mutableLongStateOf(0L) }
-    var lastText by remember { mutableStateOf("") }
-
+    // Gestione degli eventi di input remoti (Auto)
     LaunchedEffect(focusedField) {
-        if (focusedField > 0 && carInputManager != null) {
+        if (carInputManager != null && carInputManager.isValid && focusedField > 0) {
             carInputManager.setOnInputEventListener(
                 onText = { text ->
-                    val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastCommitTime < 100 && text == lastText) {
-                        return@setOnInputEventListener
-                    }
-                    lastCommitTime = currentTime
-                    lastText = text
-
                     when (focusedField) {
                         1 -> {
-                            val selection = nameValue.selection
-                            val newText = StringBuilder(nameValue.text).replace(selection.min, selection.max, text).toString()
-                            nameValue = nameValue.copy(text = newText, selection = TextRange(selection.min + text.length))
+                            val sel = nameValue.selection
+                            val newText = StringBuilder(nameValue.text).replace(sel.min, sel.max, text).toString()
+                            nameValue = nameValue.copy(text = newText, selection = TextRange(sel.min + text.length))
                         }
                         2 -> {
-                            val selection = urlValue.selection
-                            val newText = StringBuilder(urlValue.text).replace(selection.min, selection.max, text).toString()
-                            urlValue = urlValue.copy(text = newText, selection = TextRange(selection.min + text.length))
+                            val sel = urlValue.selection
+                            val newText = StringBuilder(urlValue.text).replace(sel.min, sel.max, text).toString()
+                            urlValue = urlValue.copy(text = newText, selection = TextRange(sel.min + text.length))
                         }
                         3 -> {
-                            val selection = faviconValue.selection
-                            val newText = StringBuilder(faviconValue.text).replace(selection.min, selection.max, text).toString()
-                            faviconValue = faviconValue.copy(text = newText, selection = TextRange(selection.min + text.length))
+                            val sel = faviconValue.selection
+                            val newText = StringBuilder(faviconValue.text).replace(sel.min, sel.max, text).toString()
+                            faviconValue = faviconValue.copy(text = newText, selection = TextRange(sel.min + text.length))
                         }
                     }
                 },
                 onDelete = { length ->
                     when (focusedField) {
                         1 -> {
-                            val selection = nameValue.selection
-                            val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(nameValue.text).delete(start, selection.start).toString()
+                            val sel = nameValue.selection
+                            val start = (sel.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(nameValue.text).delete(start, sel.start).toString()
                             nameValue = nameValue.copy(text = newText, selection = TextRange(start))
                         }
                         2 -> {
-                            val selection = urlValue.selection
-                            val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(urlValue.text).delete(start, selection.start).toString()
+                            val sel = urlValue.selection
+                            val start = (sel.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(urlValue.text).delete(start, sel.start).toString()
                             urlValue = urlValue.copy(text = newText, selection = TextRange(start))
                         }
                         3 -> {
-                            val selection = faviconValue.selection
-                            val start = (selection.start - length).coerceAtLeast(0)
-                            val newText = StringBuilder(faviconValue.text).delete(start, selection.start).toString()
+                            val sel = faviconValue.selection
+                            val start = (sel.start - length).coerceAtLeast(0)
+                            val newText = StringBuilder(faviconValue.text).delete(start, sel.start).toString()
                             faviconValue = faviconValue.copy(text = newText, selection = TextRange(start))
                         }
                     }
                 },
                 onSelection = { start, end ->
-                    val currentValue = when (focusedField) {
+                    val current = when (focusedField) {
                         1 -> nameValue
                         2 -> urlValue
                         3 -> faviconValue
                         else -> null
                     }
-                    currentValue?.let {
+                    current?.let {
                         if (it.selection.start != start || it.selection.end != end) {
                             val newVal = it.copy(selection = TextRange(start, end))
                             when (focusedField) {
@@ -235,9 +229,11 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 1
-                                                inputHostView?.let { view ->
-                                                    view.requestFocus()
-                                                    carInputManager?.startInput(view)
+                                                if (carInputManager != null && carInputManager.isValid) {
+                                                    inputHostView?.let { view -> // Usiamo inputHostView
+                                                        view.requestFocus()
+                                                        carInputManager.startInput(view)
+                                                    }
                                                 }
                                             }
                                         }
@@ -252,9 +248,11 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 2
-                                                inputHostView?.let { view ->
-                                                    view.requestFocus()
-                                                    carInputManager?.startInput(view)
+                                                if (carInputManager != null && carInputManager.isValid) {
+                                                    inputHostView?.let { view -> // Usiamo inputHostView
+                                                        view.requestFocus()
+                                                        carInputManager.startInput(view)
+                                                    }
                                                 }
                                             }
                                         }
@@ -269,9 +267,11 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 3
-                                                inputHostView?.let { view ->
-                                                    view.requestFocus()
-                                                    carInputManager?.startInput(view)
+                                                if (carInputManager != null && carInputManager.isValid) {
+                                                    inputHostView?.let { view -> // Usiamo inputHostView
+                                                        view.requestFocus()
+                                                        carInputManager.startInput(view)
+                                                    }
                                                 }
                                             }
                                         }
