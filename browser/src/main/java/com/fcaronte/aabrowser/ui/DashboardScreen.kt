@@ -73,7 +73,7 @@ import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesViewModel
-import com.fcaronte.aabrowser.model.UpdateManager
+import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import java.net.URI
 

@@ -15,6 +15,7 @@
 *.ap_
 *.dex
 *.class
+.kotlin/
 
 # Project artifacts & documentation
 .artifacts/
