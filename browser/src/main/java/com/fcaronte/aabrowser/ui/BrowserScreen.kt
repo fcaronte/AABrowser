@@ -242,22 +242,22 @@ fun BrowserScreen(
                     // Configurazione Tema Scuro (Nativo + Forza Dark)
                     val isNight = isAppDark
                     android.util.Log.d("##BrowserScreen", "Theme Factory: isNight=$isNight, darkPages=$darkPages")
-                    
+
                     setBackgroundColor(if (isNight) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
 
                     if (isNight) {
-                        // Per far sì che 'prefers-color-scheme: dark' funzioni, su molte versioni 
+                        // Per far sì che 'prefers-color-scheme: dark' funzioni, su molte versioni
                         // di WebView è necessario impostre FORCE_DARK_ON.
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
                             WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
                         }
-                        
+
                         // Poi usiamo ALGORITHMIC_DARKENING per decidere se vogliamo il filtro forzato
                         // o se vogliamo solo che il sito usi il suo tema scuro nativo.
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
                             WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darkPages)
                         }
-                        
+
                         // Strategia: preferisci sempre il tema del sito se disponibile
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
                             WebSettingsCompat.setForceDarkStrategy(settings, WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING)
@@ -609,40 +609,15 @@ fun BrowserScreen(
         DisposableEffect(Unit) { onDispose { speechRecognizer.destroy() } }
 
         if (isListening) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) {
-                        isListening = false
-                        try {
-                            speechRecognizer.stopListening()
-                        } catch (_: Exception) {
-                        }
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(200.dp)
-                        .background(Color.DarkGray, RoundedCornerShape(16.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Mic,
-                            null,
-                            tint = Color.Red,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(stringResource(R.string.voice_listening), color = Color.White)
+            VoiceListeningPopup(
+                onDismiss = {
+                    isListening = false
+                    try {
+                        speechRecognizer.stopListening()
+                    } catch (_: Exception) {
                     }
                 }
-            }
+            )
         }
 
         if (showInputPopup) {
