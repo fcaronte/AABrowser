@@ -106,7 +106,9 @@ fun BrowserScreen(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val voicePrompt = stringResource(R.string.voice_prompt)
 
-    var webViewReference by remember { mutableStateOf<WebView?>(null) }
+    val webViewState = remember { mutableStateOf<WebView?>(null) }
+    var webViewReference by webViewState
+    
     var showInputPopup by remember { mutableStateOf(value = false) }
     var isListening by remember { mutableStateOf(value = false) }
     var customView by remember { mutableStateOf<android.view.View?>(null) }
@@ -136,18 +138,14 @@ fun BrowserScreen(
         }
     }
 
-    DisposableEffect(lifecycleOwner, webViewReference) {
+    DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             when (event) {
                 androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
                     webViewReference?.let {
                         it.onResume()
-                        // Forza il ridisegno dell'immagine se era congelata
                         it.invalidate()
                     }
-                }
-                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> {
-                    // Non chiamiamo webView.onPause() qui perché vogliamo il background play
                 }
                 else -> {}
             }
@@ -155,6 +153,18 @@ fun BrowserScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Effetto separato per la pulizia definitiva quando la scheda viene rimossa dalla composizione
+    DisposableEffect(tabId) {
+        onDispose {
+            webViewState.value?.let { webView ->
+                android.util.Log.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
+                webView.stopLoading()
+                webView.loadUrl("about:blank")
+                webView.destroy()
+            }
         }
     }
 
@@ -322,22 +332,13 @@ fun BrowserScreen(
                                 mediaSessionManager?.updatePlaybackState(
                                     android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING,
                                     (time * 1000).toLong(),
+                                    1.0f
                                 )
                             }
 
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
-                            fun onMediaTimeUpdate(time: Float) {
-                                @Suppress("DEPRECATION")
-                                mediaSessionManager?.updatePlaybackState(
-                                    android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING,
-                                    (time * 1000).toLong(),
-                                )
-                            }
-
-                            @android.webkit.JavascriptInterface
-                            @Suppress("unused")
-                            fun onMediaStatusChanged(isPlaying: Boolean, time: Float) {
+                            fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
@@ -346,6 +347,22 @@ fun BrowserScreen(
                                         android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
                                     },
                                     (time * 1000).toLong(),
+                                    speed
+                                )
+                            }
+
+                            @android.webkit.JavascriptInterface
+                            @Suppress("unused")
+                            fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {
+                                @Suppress("DEPRECATION")
+                                mediaSessionManager?.updatePlaybackState(
+                                    if (isPlaying) {
+                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
+                                    } else {
+                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
+                                    },
+                                    (time * 1000).toLong(),
+                                    speed
                                 )
                             }
 
@@ -437,24 +454,7 @@ fun BrowserScreen(
                         }
 
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                            if (newProgress > 10) {
-                                val mode = if (isAppDark) "dark" else "light"
-                                val themeScript = """
-                                    (function() {
-                                        var apply = function() {
-                                            if (document.documentElement) {
-                                                document.documentElement.style.colorScheme = '$mode';
-                                                document.documentElement.setAttribute('data-theme', '$mode');
-                                            }
-                                        };
-                                        apply();
-                                        window.addEventListener('DOMContentLoaded', apply);
-                                        setTimeout(apply, 100);
-                                        setTimeout(apply, 500);
-                                    })();
-                                """.trimIndent()
-                                view?.evaluateJavascript(themeScript, null)
-                            }
+                            // Rimosso forzatura tema via JS per lasciare gestione nativa
                         }
                     }
 
@@ -533,14 +533,6 @@ fun BrowserScreen(
                                 onPageFinished(url)
                                 android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
 
-                                // Forza il color-scheme via JS per assicurarsi che il sito risponda al tema
-                                val themeScript = if (isAppDark) {
-                                    "(function() { document.documentElement.style.colorScheme = 'dark'; document.documentElement.setAttribute('data-theme', 'dark'); })();"
-                                } else {
-                                    "(function() { document.documentElement.style.colorScheme = 'light'; document.documentElement.setAttribute('data-theme', 'light'); })();"
-                                }
-                                view?.evaluateJavascript(themeScript, null)
-
                                 if (!autoplayMedia) {
                                     // Blocca qualsiasi riproduzione partita in automatico e silenzia l'audio
                                     view?.evaluateJavascript(
@@ -585,7 +577,9 @@ fun BrowserScreen(
             },
             update = { view ->
                 val webView = view.getChildAt(0) as? WebView
-                webViewReference = webView
+                if (webViewReference != webView) {
+                    webViewReference = webView
+                }
                 webView?.let {
                     if (it.tag != reloadTrigger) {
                         it.reload()
@@ -606,16 +600,6 @@ fun BrowserScreen(
                     if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
                         WebSettingsCompat.setAlgorithmicDarkeningAllowed(it.settings, activeDarkPages)
                     }
-
-                    // Forzatura CSS immediata per evitare qualsiasi flash bianco in corsa
-                    val mode = if (isAppDark) "dark" else "light"
-                    it.evaluateJavascript(
-                        "(function() { " +
-                                "document.documentElement.style.colorScheme = '$mode';" +
-                                "document.documentElement.setAttribute('data-theme', '$mode');" +
-                                "})();",
-                        null
-                    )
                 }
             },
         )

@@ -13,13 +13,13 @@ object AdBlockSettings {
     private val _isEnabled = mutableStateOf(true)
     val isEnabled: State<Boolean> = _isEnabled
 
-    private val _isYouTubeEnabled = mutableStateOf(true)
+    private val _isYouTubeEnabled = mutableStateOf(false)
     val isYouTubeEnabled: State<Boolean> = _isYouTubeEnabled
 
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _isEnabled.value = prefs.getBoolean(KEY_ENABLED, true)
-        _isYouTubeEnabled.value = prefs.getBoolean(KEY_YOUTUBE_ENABLED, true)
+        _isYouTubeEnabled.value = prefs.getBoolean(KEY_YOUTUBE_ENABLED, false)
     }
 
     fun setEnabled(context: Context?, enabled: Boolean) {

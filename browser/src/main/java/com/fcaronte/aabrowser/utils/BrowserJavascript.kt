@@ -28,44 +28,47 @@ object BrowserJavascript {
         (function() {
             // Shield anti-pausa e visibilità sempre attiva
             const mockVisibility = () => {
-                const props = { value: false, writable: false, configurable: true };
-                const visibleProps = { value: 'visible', writable: false, configurable: true };
-                Object.defineProperty(document, 'hidden', props);
-                Object.defineProperty(document, 'visibilityState', visibleProps);
-                Object.defineProperty(document, 'webkitVisibilityState', visibleProps);
-                Object.defineProperty(document, 'webkitHidden', props);
-                // Mock per evitare che YouTube rilevi la perdita di focus della finestra
-                Object.defineProperty(window, 'onblur', { value: null, writable: true });
-                Object.defineProperty(document, 'onblur', { value: null, writable: true });
-                document.hasFocus = () => true;
+                try {
+                    if (document.aabMocked) return;
+                    
+                    const defineProp = (obj, prop, val) => {
+                        Object.defineProperty(obj, prop, {
+                            get: () => val,
+                            set: () => {},
+                            configurable: true
+                        });
+                    };
+
+                    defineProp(document, 'hidden', false);
+                    defineProp(document, 'visibilityState', 'visible');
+                    defineProp(document, 'webkitVisibilityState', 'visible');
+                    defineProp(document, 'webkitHidden', false);
+                    
+                    document.hasFocus = () => true;
+                    document.aabMocked = true;
+                } catch (e) {}
             };
             mockVisibility();
             
             // Blocca gli eventi di cambio visibilità e focus che causano pause
             const blockEvent = (e) => { 
-                if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility')) {
+                if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
                     e.stopImmediatePropagation(); 
-                    mockVisibility(); 
                 }
             };
-            ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave'].forEach(evt => {
+            ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave', 'pagehide'].forEach(evt => {
                 document.addEventListener(evt, blockEvent, true);
                 window.addEventListener(evt, blockEvent, true);
             });
 
-            // Fix per il background play e transizione full-screen
+            // Fix per il background play: intercetta le chiamate a pause()
             const originalPause = HTMLVideoElement.prototype.pause;
             HTMLVideoElement.prototype.pause = function() {
-                // YouTube usa pause() quando l'utente cambia tab o minimizza.
-                // Blocca la pausa se la pagina è nascosta o se stiamo in fullscreen (che spesso stacca il video dal DOM principale)
-                if (document.hidden || document.visibilityState === 'hidden' || document.webkitVisibilityState === 'hidden') {
-                    console.log("AABrowser: Prevented pause in background");
-                    if (window.aabIsAdPlaying) return originalPause.apply(this, arguments);
-                    return Promise.resolve();
-                }
-                // Se la pausa viene chiamata ma il video dovrebbe essere in play (stato interno nostro)
-                if (window.isMediaPlaying === true && !window.aabIsAdPlaying) {
-                    console.log("AABrowser: Prevented forced pause while state is playing");
+                // YouTube mobile spesso forza la pausa quando l'app va in background.
+                // Lo blocchiamo se siamo in uno stato di riproduzione desiderata, 
+                // MA solo se non stiamo interagendo (permettendo pause manuali).
+                if (window.isMediaPlaying === true && !window.aabIsAdPlaying && (document.hidden || document.visibilityState === 'hidden')) {
+                    console.log("AABrowser: Blocked background pause()");
                     return Promise.resolve();
                 }
                 return originalPause.apply(this, arguments);
@@ -75,22 +78,22 @@ object BrowserJavascript {
                 const getFavicon = () => {
                     const icon = document.querySelector('link[rel="apple-touch-icon"]') || 
                                  document.querySelector('link[rel="icon"][sizes="192x192"]') ||
-                                 document.querySelector('link[rel="icon"][sizes="96x96"]') ||
                                  document.querySelector('link[rel="icon"]') ||
                                  document.querySelector('link[rel="shortcut icon"]');
                     return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
                 };
-                AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
+                if (window.AndroidBridge) {
+                    AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
+                }
             }
             
-            // Monitoraggio cambiamenti titolo e URL (per SPA come YouTube)
             let lastHref = window.location.href;
             let lastTitle = document.title;
             const observer = new MutationObserver(() => {
                 if (window.location.href !== lastHref) {
                     lastHref = window.location.href;
                     syncPageMetadata();
-                    if (window.location.host.includes('youtube.com')) {
+                    if (window.location.host.includes('youtube.com') && window.AndroidBridge) {
                         AndroidBridge.onStartAdBlock();
                     }
                 } else if (document.title !== lastTitle) {
@@ -100,12 +103,9 @@ object BrowserJavascript {
             });
             observer.observe(document.querySelector('title') || document.documentElement, { subtree: true, characterData: true, childList: true });
 
-            // Eventi specifici YouTube e YouTube Music
             const handleNavFinish = () => {
                 syncPageMetadata();
-                // Re-inizializza AdBlock su navigazione interna
-                window.aabAdBlockInitialized = false;
-                AndroidBridge.onStartAdBlock();
+                if (window.AndroidBridge) AndroidBridge.onStartAdBlock();
             };
             window.addEventListener('yt-navigate-finish', handleNavFinish);
             window.addEventListener('ytmusic-navigate-finish', handleNavFinish);
@@ -117,7 +117,7 @@ object BrowserJavascript {
             let lastDuration = 0;
             function syncMetadata() {
                 const video = document.querySelector('video');
-                if (!video) return;
+                if (!video || !window.AndroidBridge) return;
 
                 let title = document.title;
                 let artist = "AABrowser Audio";
@@ -127,34 +127,33 @@ object BrowserJavascript {
                 if (window.location.host.includes('youtube.com')) {
                     const ytTitle = document.querySelector('.ytp-title-link')?.innerText || 
                                      document.querySelector('ytmusic-player-bar .title')?.textContent ||
-                                     document.querySelector('.ytmusic-player-bar .title')?.textContent ||
-                                     document.querySelector('ytmusic-player-bar a.title')?.textContent ||
-                                     document.querySelector('.title.ytmusic-player-bar')?.textContent;
+                                     document.querySelector('.ytmusic-player-bar .title')?.textContent;
                     const ytArtist = document.querySelector('.ytp-ce-channel-title')?.innerText || 
-                                     document.querySelector('.yt-user-info')?.innerText ||
                                      document.querySelector('#upload-info #channel-name')?.innerText ||
-                                     document.querySelector('ytmusic-player-bar .byline')?.textContent ||
-                                     document.querySelector('.ytmusic-player-bar .byline')?.textContent ||
-                                     document.querySelector('ytmusic-player-bar .byline a')?.textContent;
+                                     document.querySelector('ytmusic-player-bar .byline')?.textContent;
                     
                     if (ytTitle) title = ytTitle.trim();
                     if (ytArtist) artist = ytArtist.trim();
                     
                     const urlParams = new URLSearchParams(window.location.search);
                     const v = urlParams.get('v');
-                    if (v) artUrl = 'https://img.youtube.com/vi/' + v + '/0.jpg';
+                    if (v) {
+                        // HQ Thumbnail for YouTube
+                        artUrl = 'https://img.youtube.com/vi/' + v + '/hqdefault.jpg';
+                    }
                     
-                    // Supporto specifico per YT Music (copertina)
                     if (window.location.host.includes('music.youtube.com')) {
-                        const musicArt = document.querySelector('ytmusic-player-bar img')?.src || 
-                                         document.querySelector('.ytmusic-player-bar img')?.src ||
-                                         document.querySelector('#thumbnail img')?.src;
-                        if (musicArt) artUrl = musicArt;
+                        let musicArt = document.querySelector('ytmusic-player-bar img')?.src || 
+                                         document.querySelector('.ytmusic-player-bar img')?.src;
+                        if (musicArt) {
+                            // Richiedi versione ad alta risoluzione (es. 512x512)
+                            artUrl = musicArt.replace(/=w\d+-h\d+/, '=w512-h512');
+                        }
                     }
                 }
 
-                if (title && (title !== lastTitle || Math.abs(duration - lastDuration) > 1)) {
-                    lastTitle = title;
+                if (title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
+                    lastMediaTitle = title;
                     lastDuration = duration;
                     AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
                 }
@@ -167,36 +166,26 @@ object BrowserJavascript {
 
                 video.addEventListener('play', () => {
                     window.isMediaPlaying = true;
-                    AndroidBridge.onMediaStatusChanged(true, video.currentTime);
+                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, video.currentTime, video.playbackRate);
                     syncMetadata();
                 });
                 video.addEventListener('pause', () => {
-                    // Non cambiamo window.isMediaPlaying qui perché potrebbe essere una pausa forzata
-                    // che vogliamo contrastare. Lo stato viene cambiato solo da input utente/MediaSession.
-                    AndroidBridge.onMediaStatusChanged(false, video.currentTime);
+                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, video.currentTime, video.playbackRate);
                 });
                 video.addEventListener('timeupdate', () => {
-                    if (!video.isSeeking) {
-                        const now = Date.now();
-                        // Throttling: invia aggiornamenti al MediaService ogni secondo (per fluidità)
-                        const timeDiff = Math.abs(video.currentTime - (video.lastReportedTime || 0));
-                        if (now - video.lastBridgeUpdate > 1000 || timeDiff > 2) {
-                            AndroidBridge.onMediaTimeUpdate(video.currentTime);
-                            video.lastBridgeUpdate = now;
-                            video.lastReportedTime = video.currentTime;
-                        }
+                    const now = Date.now();
+                    // Pool di aggiornamento: invia dati a Android max ogni 500ms
+                    if (now - video.lastBridgeUpdate > 500) {
+                        if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(video.currentTime, video.playbackRate, !video.paused);
+                        video.lastBridgeUpdate = now;
                     }
                 });
-                video.addEventListener('durationchange', () => {
-                    syncMetadata();
-                });
+                video.addEventListener('durationchange', syncMetadata);
             }
 
             const videoObserver = new MutationObserver(() => {
                 const video = document.querySelector('video');
-                if (video) {
-                    setupVideoListeners(video);
-                }
+                if (video) setupVideoListeners(video);
             });
             videoObserver.observe(document.body, { childList: true, subtree: true });
 
@@ -209,9 +198,8 @@ object BrowserJavascript {
             function setupInputListeners() {
                 document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
                     if (!el.dataset.listenerAdded) {
-                        el.addEventListener('focus', () => AndroidBridge.onStartInput());
-                        // Alcuni elementi mobile potrebbero aver bisogno di click se focus non scatta
-                        el.addEventListener('click', () => AndroidBridge.onStartInput());
+                        el.addEventListener('focus', () => window.AndroidBridge && AndroidBridge.onStartInput());
+                        el.addEventListener('click', () => window.AndroidBridge && AndroidBridge.onStartInput());
                         el.dataset.listenerAdded = 'true';
                     }
                 });

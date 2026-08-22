@@ -35,7 +35,7 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 ## Disclaimer & Compatibility
 
 * **It’s a bit buggy:** Expect some "surprises" here and there. It's a work in progress!
-* **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless** or if it's installed via **KingInstaller** (to bypass Play Store restrictions).
+* **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless**, an open-source solution like [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (which can be installed on a Raspberry Pi and includes app unlocking among its features), or if it's installed via **KingInstaller** (to bypass Play Store restrictions).
 * **Compatibility:** Note that the **KingInstaller** method currently seems to work reliably only on **Pixel** and **Samsung** devices.
 * **Important:** Remember to enable **"Unknown sources"** in the Android Auto developer options on your phone.
 * **Testing:** Primarily tested on a **Samsung S24 Ultra**.
@@ -92,7 +92,7 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 ## Disclaimer & Compatibilità
 
 * **Ci sono dei bug:** Aspettatevi qualche sorpresa qua e là. È un work in progress!
-* **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless** o se viene installata con **KingInstaller** (per bypassare le restrizioni del Play Store).
+* **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless**, una soluzione open source come [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (installabile su Raspberry Pi o simili, che tra le sue funzioni include lo sblocco delle app), o se viene installata con **KingInstaller** (per bypassare le restrizioni del Play Store).
 * **Compatibilità:** Nota che il metodo tramite **KingInstaller** attualmente sembra funzionare correttamente soprattutto su dispositivi **Pixel** e **Samsung**.
 * **Importante:** Ricordarsi di abilitare le **"Origini sconosciute"** nelle impostazioni sviluppatore di Android Auto sul telefono.
 * **Test:** Testata principalmente su **Samsung S24 Ultra**.

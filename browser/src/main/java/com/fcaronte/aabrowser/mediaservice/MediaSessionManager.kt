@@ -106,15 +106,18 @@ class MediaSessionManager(private val context: Context) {
 
     private var lastState: Int = PlaybackStateCompat.STATE_NONE
     private var lastPosition: Long = -1
+    private var lastSpeed: Float = 1.0f
 
-    fun updatePlaybackState(state: Int, position: Long) {
-        // Evita aggiornamenti ridondanti se lo stato non è cambiato e la posizione è molto simile
-        // Ridotto a 500ms per maggiore precisione nella seekbar di Android Auto
-        if (state == lastState && kotlin.math.abs(position - lastPosition) < 500) {
-            return
-        }
+    fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
+        // Pool di aggiornamento più conservativo: evita di saturare il sistema
+        val positionDiff = kotlin.math.abs(position - lastPosition)
+        val isCoherent = state == lastState && speed == lastSpeed && positionDiff < 1000
+                         
+        if (isCoherent) return
+        
         lastState = state
         lastPosition = position
+        lastSpeed = speed
 
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
@@ -123,7 +126,7 @@ class MediaSessionManager(private val context: Context) {
         }
 
         val playbackState = PlaybackStateCompat.Builder()
-            .setState(state, position, 1.0f)
+            .setState(state, position, speed)
             .setActions(
                 PlaybackStateCompat.ACTION_PLAY or
                         PlaybackStateCompat.ACTION_PAUSE or
