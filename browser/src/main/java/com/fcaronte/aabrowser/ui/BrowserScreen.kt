@@ -16,24 +16,16 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -51,16 +43,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import com.fcaronte.aabrowser.AdBlockHost
+import com.fcaronte.aabrowser.AdBlockJavascript
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.AdBlockHost
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
-import kotlinx.coroutines.delay
 import java.io.ByteArrayInputStream
-import kotlin.time.Duration.Companion.milliseconds
 
 private const val DESKTOP_USER_AGENT =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
@@ -82,34 +73,70 @@ fun BrowserScreen(
     isDesktopMode: Boolean = false,
     mediaSessionManager: MediaSessionManager? = null,
     carInputManager: CarInputManager? = null,
+    desktopModeOverride: Boolean? = null,
+    mobileZoomOverride: Float? = null,
+    desktopZoomOverride: Float? = null,
+    isTabActive: Boolean = true,
+    isGlobalSearchActive: Boolean = false,
     onPageFinished: (String) -> Unit,
     onWebViewCreated: (WebView) -> Unit = {},
+    onFullScreenChange: (Boolean) -> Unit = {},
 ) {
     val darkPages by AppSettings.darkPages
-    val displayScale by AppSettings.displayScale
-    val desktopScale by AppSettings.desktopScale
+    val globalDisplayScale by AppSettings.displayScale
+    val globalDesktopScale by AppSettings.desktopScale
+
+    val actualDesktopMode = desktopModeOverride ?: isDesktopMode
+    val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
+    val actualDesktopScale = desktopZoomOverride ?: globalDesktopScale
+    val isYouTubeAdBlockEnabled by com.fcaronte.aabrowser.settings.AdBlockSettings.isYouTubeEnabled
     val context = LocalContext.current
     val voicePrompt = stringResource(R.string.voice_prompt)
 
     var webViewReference by remember { mutableStateOf<WebView?>(null) }
     var showInputPopup by remember { mutableStateOf(value = false) }
     var isListening by remember { mutableStateOf(value = false) }
+    var customView by remember { mutableStateOf<android.view.View?>(null) }
+    var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
+
+    var lastInjectedUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(customView) {
+        onFullScreenChange(customView != null)
+    }
+
+    LaunchedEffect(isTabActive) {
+        if (isTabActive) {
+            webViewReference?.let { onWebViewCreated(it) }
+        }
+    }
 
     LaunchedEffect(Unit) {
         mediaSessionManager?.connect()
     }
 
-    LaunchedEffect(url) {
+    LaunchedEffect(url, isYouTubeAdBlockEnabled) {
         webViewReference?.let {
             val currentUrl = it.url
             if (currentUrl.isNullOrBlank() || (!currentUrl.contains(url) && !url.contains(currentUrl))) {
+                android.util.Log.d("##BrowserScreen", "Loading URL: $url")
                 it.loadUrl(url)
+            } else if (currentUrl.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != currentUrl) {
+                android.util.Log.d("##BrowserScreen", "Injecting AdBlock from LaunchedEffect (URL changed)")
+                it.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                lastInjectedUrl = currentUrl
             }
         }
     }
 
     LaunchedEffect(backTrigger) {
         if (backTrigger > 0) {
+            if (customView != null) {
+                customViewCallback?.onCustomViewHidden()
+                customView = null
+                customViewCallback = null
+                return@LaunchedEffect
+            }
             val webView = webViewReference
             if (webView?.canGoBack() == true) {
                 webView.goBack()
@@ -121,7 +148,18 @@ fun BrowserScreen(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
-                val webView = WebView(context).apply {
+                val webView = object : WebView(context) {
+                    // Impedisce alla WebView di andare in pausa profonda quando l'app è in background
+                    // Questo aiuta a mantenere l'esecuzione degli script e del video
+                    override fun onPause() {
+                        // Non chiamiamo super.onPause() per evitare che il motore Chromium sospenda tutto
+                        // ma informiamo il sistema che siamo ancora "attivi" per i media
+                    }
+                    override fun onWindowVisibilityChanged(visibility: Int) {
+                        // Forza la visibilità a essere sempre VISIBLE per Chromium
+                        super.onWindowVisibilityChanged(VISIBLE)
+                    }
+                }.apply {
                     isFocusable = true
                     isFocusableInTouchMode = true
                     setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
@@ -151,7 +189,7 @@ fun BrowserScreen(
                         WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darkPages)
                     }
 
-                    if (isDesktopMode || isDesktopRequired(url)) {
+                    if (actualDesktopMode || isDesktopRequired(url)) {
                         settings.userAgentString = DESKTOP_USER_AGENT
                     }
 
@@ -289,7 +327,7 @@ fun BrowserScreen(
 
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
-                            fun onMetadataUpdated(title: String, faviconUrl: String) {
+                            fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {
                                 post {
                                     TabManager.activeTab?.let { currentTab ->
                                         TabManager.updateTabTitle(currentTab.id, title)
@@ -300,8 +338,22 @@ fun BrowserScreen(
 
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
+                            fun onStartAdBlock() {
+                                post {
+                                    android.util.Log.d("##BrowserScreen", "AdBlock request, YouTube enabled: $isYouTubeAdBlockEnabled")
+                                    if (isYouTubeAdBlockEnabled) {
+                                        webViewReference?.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                                    }
+                                }
+                            }
+
+                            @android.webkit.JavascriptInterface
+                            @Suppress("unused")
                             fun onStartInput() {
-                                post { showInputPopup = true }
+                                android.util.Log.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
+                                if (isTabActive && !isGlobalSearchActive) {
+                                    post { showInputPopup = true }
+                                }
                             }
 
                             @android.webkit.JavascriptInterface
@@ -346,6 +398,23 @@ fun BrowserScreen(
                     )
 
                     webChromeClient = object : WebChromeClient() {
+                        override fun onShowCustomView(
+                            view: android.view.View?,
+                            callback: CustomViewCallback?
+                        ) {
+                            if (customView != null) {
+                                callback?.onCustomViewHidden()
+                                return
+                            }
+                            customView = view
+                            customViewCallback = callback
+                        }
+
+                        override fun onHideCustomView() {
+                            customView = null
+                            customViewCallback = null
+                        }
+
                         override fun onReceivedTitle(view: WebView?, title: String?) {
                             title?.let { newTitle ->
                                 TabManager.activeTab?.let { currentTab ->
@@ -365,7 +434,7 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
-                            if (isDesktopMode || isDesktopRequired(url)) {
+                            if (actualDesktopMode || isDesktopRequired(url)) {
                                 view?.settings?.userAgentString = DESKTOP_USER_AGENT
                             } else {
                                 view?.settings?.userAgentString = null
@@ -420,19 +489,25 @@ fun BrowserScreen(
                         override fun onPageFinished(view: WebView?, url: String?) {
                             if (url != null) {
                                 onPageFinished(url)
-                                if (url.contains("youtube.com")) injectYouTubeAdBlock(view)
+                                android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
+
+                                if (url.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != url) {
+                                    android.util.Log.d("##BrowserScreen", "Injecting AdBlock from onPageFinished")
+                                    view?.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                                    lastInjectedUrl = url
+                                }
 
                                 // Salva i cookie su disco ad ogni caricamento terminato
                                 CookieManager.getInstance().flush()
 
-                                val needsDesktop = isDesktopMode || isDesktopRequired(url)
+                                val needsDesktop = actualDesktopMode || isDesktopRequired(url)
                                 if (needsDesktop) {
                                     view?.evaluateJavascript(
                                         """
                                         (function() {
                                             var meta = document.querySelector('meta[name="viewport"]');
                                             if (!meta) { meta = document.createElement('meta'); meta.name = "viewport"; document.head.appendChild(meta); }
-                                            meta.content = "width=1280, initial-scale=" + $desktopScale + ", user-scalable=yes";
+                                            meta.content = "width=1280, initial-scale=" + $actualDesktopScale + ", user-scalable=yes";
                                             document.body.style.minWidth = '1280px';
                                         })();
                                         """.trimIndent(),
@@ -444,7 +519,7 @@ fun BrowserScreen(
                                         (function() {
                                             var meta = document.querySelector('meta[name="viewport"]');
                                             if (!meta) { meta = document.createElement('meta'); meta.name = "viewport"; document.head.appendChild(meta); }
-                                            meta.content = "initial-scale=" + $displayScale + ", user-scalable=yes";
+                                            meta.content = "initial-scale=" + $actualDisplayScale + ", user-scalable=yes";
                                         })();
                                         """.trimIndent(),
                                         null,
@@ -455,8 +530,49 @@ fun BrowserScreen(
                                     """
                                     (function() {
                                         // Shield anti-pausa e visibilità sempre attiva
-                                        Object.defineProperty(document, 'hidden', { value: false, writable: false });
-                                        Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: false });
+                                        const mockVisibility = () => {
+                                            const props = { value: false, writable: false, configurable: true };
+                                            const visibleProps = { value: 'visible', writable: false, configurable: true };
+                                            Object.defineProperty(document, 'hidden', props);
+                                            Object.defineProperty(document, 'visibilityState', visibleProps);
+                                            Object.defineProperty(document, 'webkitVisibilityState', visibleProps);
+                                            Object.defineProperty(document, 'webkitHidden', props);
+                                            // Mock per evitare che YouTube rilevi la perdita di focus della finestra
+                                            Object.defineProperty(window, 'onblur', { value: null, writable: true });
+                                            Object.defineProperty(document, 'onblur', { value: null, writable: true });
+                                            document.hasFocus = () => true;
+                                        };
+                                        mockVisibility();
+                                        
+                                        // Blocca gli eventi di cambio visibilità e focus che causano pause
+                                        const blockEvent = (e) => { 
+                                            if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility')) {
+                                                e.stopImmediatePropagation(); 
+                                                mockVisibility(); 
+                                            }
+                                        };
+                                        ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave'].forEach(evt => {
+                                            document.addEventListener(evt, blockEvent, true);
+                                            window.addEventListener(evt, blockEvent, true);
+                                        });
+
+                                        // Fix per il background play e transizione full-screen
+                                        const originalPause = HTMLVideoElement.prototype.pause;
+                                        HTMLVideoElement.prototype.pause = function() {
+                                            // YouTube usa pause() quando l'utente cambia tab o minimizza.
+                                            // Blocca la pausa se la pagina è nascosta o se stiamo in fullscreen (che spesso stacca il video dal DOM principale)
+                                            if (document.hidden || document.visibilityState === 'hidden' || document.webkitVisibilityState === 'hidden') {
+                                                console.log("AABrowser: Prevented pause in background");
+                                                if (window.aabIsAdPlaying) return originalPause.apply(this, arguments);
+                                                return Promise.resolve();
+                                            }
+                                            // Se la pausa viene chiamata ma il video dovrebbe essere in play (stato interno nostro)
+                                            if (window.isMediaPlaying === true && !window.aabIsAdPlaying) {
+                                                console.log("AABrowser: Prevented forced pause while state is playing");
+                                                return Promise.resolve();
+                                            }
+                                            return originalPause.apply(this, arguments);
+                                        };
 
                                         function syncPageMetadata() {
                                             const getFavicon = () => {
@@ -467,12 +583,40 @@ fun BrowserScreen(
                                                              document.querySelector('link[rel="shortcut icon"]');
                                                 return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
                                             };
-                                            AndroidBridge.onMetadataUpdated(document.title, getFavicon());
+                                            AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
                                         }
+                                        
+                                        // Monitoraggio cambiamenti titolo e URL (per SPA come YouTube)
+                                        let lastHref = window.location.href;
+                                        let lastTitle = document.title;
+                                        const observer = new MutationObserver(() => {
+                                            if (window.location.href !== lastHref) {
+                                                lastHref = window.location.href;
+                                                syncPageMetadata();
+                                                if (window.location.host.includes('youtube.com')) {
+                                                    AndroidBridge.onStartAdBlock();
+                                                }
+                                            } else if (document.title !== lastTitle) {
+                                                lastTitle = document.title;
+                                                syncPageMetadata();
+                                            }
+                                        });
+                                        observer.observe(document.querySelector('title') || document.documentElement, { subtree: true, characterData: true, childList: true });
+
+                                        // Eventi specifici YouTube e YouTube Music
+                                        const handleNavFinish = () => {
+                                            syncPageMetadata();
+                                            // Re-inizializza AdBlock su navigazione interna
+                                            window.aabAdBlockInitialized = false;
+                                            AndroidBridge.onStartAdBlock();
+                                        };
+                                        window.addEventListener('yt-navigate-finish', handleNavFinish);
+                                        window.addEventListener('ytmusic-navigate-finish', handleNavFinish);
+                                        
                                         setTimeout(syncPageMetadata, 1500);
 
                                         // Monitoraggio Metadati Media
-                                        let lastTitle = "";
+                                        let lastMediaTitle = "";
                                         let lastDuration = 0;
                                         function syncMetadata() {
                                             const video = document.querySelector('video');
@@ -522,17 +666,28 @@ fun BrowserScreen(
                                         function setupVideoListeners(video) {
                                             if (video.dataset.mediaListenersAdded) return;
                                             video.dataset.mediaListenersAdded = 'true';
+                                            video.lastBridgeUpdate = 0;
 
                                             video.addEventListener('play', () => {
+                                                window.isMediaPlaying = true;
                                                 AndroidBridge.onMediaStatusChanged(true, video.currentTime);
                                                 syncMetadata();
                                             });
                                             video.addEventListener('pause', () => {
+                                                // Non cambiamo window.isMediaPlaying qui perché potrebbe essere una pausa forzata
+                                                // che vogliamo contrastare. Lo stato viene cambiato solo da input utente/MediaSession.
                                                 AndroidBridge.onMediaStatusChanged(false, video.currentTime);
                                             });
                                             video.addEventListener('timeupdate', () => {
                                                 if (!video.isSeeking) {
-                                                    AndroidBridge.onMediaTimeUpdate(video.currentTime);
+                                                    const now = Date.now();
+                                                    // Throttling: invia aggiornamenti al MediaService ogni secondo (per fluidità)
+                                                    const timeDiff = Math.abs(video.currentTime - (video.lastReportedTime || 0));
+                                                    if (now - video.lastBridgeUpdate > 1000 || timeDiff > 2) {
+                                                        AndroidBridge.onMediaTimeUpdate(video.currentTime);
+                                                        video.lastBridgeUpdate = now;
+                                                        video.lastReportedTime = video.currentTime;
+                                                    }
                                                 }
                                             });
                                             video.addEventListener('durationchange', () => {
@@ -558,6 +713,8 @@ fun BrowserScreen(
                                             document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
                                                 if (!el.dataset.listenerAdded) {
                                                     el.addEventListener('focus', () => AndroidBridge.onStartInput());
+                                                    // Alcuni elementi mobile potrebbero aver bisogno di click se focus non scatta
+                                                    el.addEventListener('click', () => AndroidBridge.onStartInput());
                                                     el.dataset.listenerAdded = 'true';
                                                 }
                                             });
@@ -589,12 +746,24 @@ fun BrowserScreen(
                         it.reload()
                         it.tag = reloadTrigger
                     }
-                    val needsDesktop = isDesktopMode || isDesktopRequired(it.url)
-                    val targetScale = if (needsDesktop) desktopScale else displayScale
+                    val needsDesktop = actualDesktopMode || isDesktopRequired(it.url)
+                    val targetScale = if (needsDesktop) actualDesktopScale else actualDisplayScale
                     it.setInitialScale(if (targetScale == 1.0f) 0 else (targetScale * 100).toInt())
                 }
             },
         )
+
+        customView?.let { view ->
+            AndroidView(
+                factory = {
+                    (view.parent as? android.view.ViewGroup)?.removeView(view)
+                    view
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            )
+        }
 
         val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
         DisposableEffect(Unit) { onDispose { speechRecognizer.destroy() } }
@@ -696,113 +865,4 @@ fun BrowserScreen(
             )
         }
     }
-}
-
-
-@Composable
-fun InputSelectionPopup(
-    onKeyboardSelected: () -> Unit,
-    onMicSelected: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    LaunchedEffect(Unit) {
-        delay(3000.milliseconds)
-        onDismiss()
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.6f))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) { onDismiss() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Card(
-            modifier = Modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) { },
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        ) {
-            Row(
-                modifier = Modifier.padding(24.dp),
-                horizontalArrangement = Arrangement.spacedBy(32.dp)
-            ) {
-                IconButton(onClick = onKeyboardSelected, modifier = Modifier.size(64.dp)) {
-                    Icon(
-                        Icons.Default.Keyboard,
-                        null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onMicSelected, modifier = Modifier.size(64.dp)) {
-                    Icon(
-                        Icons.Default.Mic,
-                        null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun injectYouTubeAdBlock(webView: WebView?) {
-    webView?.evaluateJavascript(
-        """
-        (function() {
-            setInterval(() => {
-                document.querySelectorAll('.video-ads, .ytp-ad-module, .ytp-ad-overlay-container, .ytp-ad-message-container').forEach(el => el.style.display = 'none');
-                const skipButton = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button-slot');
-                if (skipButton) skipButton.click();
-                const video = document.querySelector('video');
-                if (video && (document.querySelector('.ad-showing') || document.querySelector('.ad-interrupting'))) {
-                    if (isFinite(video.duration)) video.currentTime = video.duration;
-                    video.playbackRate = 16.0; video.muted = true;
-                }
-            }, 250);
-
-            // Gestione Intelligente della Velocità di Riproduzione
-            function handlePlaybackSpeed() {
-                const video = document.querySelector('video');
-                if (!video) return;
-
-                const isMusic = window.location.host.includes('music.youtube.com') || 
-                                document.title.toLowerCase().includes('official music video') ||
-                                document.title.toLowerCase().includes(' - topic') ||
-                                !!document.querySelector('.ytp-ce-channel-title')?.innerText.toLowerCase().includes('topic');
-
-                if (isMusic) {
-                    if (video.playbackRate !== 1.0) {
-                        video.playbackRate = 1.0;
-                    }
-                } else {
-                    // Recupera l'ultima velocità salvata (default 1x)
-                    const savedSpeed = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
-                    if (!video.dataset.speedInitialized) {
-                        video.playbackRate = savedSpeed;
-                        video.dataset.speedInitialized = 'true';
-                    }
-
-                    // Ascolta i cambiamenti manuali dell'utente
-                    if (!video.dataset.speedListenerAdded) {
-                        video.addEventListener('ratechange', () => {
-                            if (!isMusic) {
-                                localStorage.setItem('yt-custom-speed', video.playbackRate.toString());
-                            }
-                        });
-                        video.dataset.speedListenerAdded = 'true';
-                    }
-                }
-            }
-            setInterval(handlePlaybackSpeed, 2000);
-        })();
-        """.trimIndent(),
-        null,
-    )
 }

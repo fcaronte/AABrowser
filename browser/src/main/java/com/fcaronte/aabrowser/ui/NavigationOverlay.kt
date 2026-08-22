@@ -1,15 +1,17 @@
 package com.fcaronte.aabrowser.ui
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.view.View
 import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -71,7 +73,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -104,8 +105,11 @@ fun NavigationOverlay(
     onOpenSettings: () -> Unit,
     onOpenTabManager: () -> Unit,
     onSearch: (String) -> Unit,
+    onSearchClick: () -> Unit,
+    onSearchOverlayDismiss: () -> Unit,
     onExit: () -> Unit,
     onAddToFavorites: () -> Unit = {},
+    showSearchDialogOverride: Boolean = false,
     carInputManager: CarInputManager? = null,
     webView: WebView? = null,
     isVisible: Boolean = true,
@@ -114,7 +118,6 @@ fun NavigationOverlay(
     onInteraction: () -> Unit = {},
 ) {
     var showQRCode by remember { mutableStateOf(value = false) }
-    var showSearchDialog by remember { mutableStateOf(value = false) }
 
     val context = LocalContext.current
     val fabLocation by AppSettings.fabLocation
@@ -172,7 +175,7 @@ fun NavigationOverlay(
                                 MenuItem(
                                     icon = Icons.Default.Search,
                                     labelRes = R.string.search_button
-                                ) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
+                                ) { onInteraction(); onSearchClick(); onShowMenuChange(false) },
                                 MenuItem(
                                     icon = Icons.Default.Share,
                                     labelRes = R.string.share_button
@@ -223,12 +226,12 @@ fun NavigationOverlay(
 
                             val animatedOffsetX by animateDpAsState(
                                 targetValue = targetX,
-                                animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                                 label = "offsetX",
                             )
                             val animatedOffsetY by animateDpAsState(
                                 targetValue = targetY,
-                                animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                                 label = "offsetY",
                             )
                             val alpha by animateFloatAsState(
@@ -282,8 +285,30 @@ fun NavigationOverlay(
                                             detectDragGestures { change, dragAmount ->
                                                 change.consume()
                                                 onInteraction()
-                                                offsetX += dragAmount.x
-                                                offsetY += dragAmount.y
+
+                                                // Calcola i nuovi offset
+                                                val newX = offsetX + dragAmount.x
+                                                val newY = offsetY + dragAmount.y
+
+                                                // Confina l'offset per evitare che il tasto esca dallo schermo
+                                                // Usiamo valori approssimativi basati sulla densità se possibile,
+                                                // o limiti di sicurezza generosi.
+                                                // Poiché l'allineamento è dinamico, i limiti dipendono da 'alignment'
+
+                                                val maxW = 400f // Valore di sicurezza per schermi AA
+                                                val maxH = 300f
+
+                                                offsetX = when(alignment) {
+                                                    Alignment.BottomEnd, Alignment.TopEnd -> newX.coerceIn(-maxW, 0f)
+                                                    Alignment.BottomStart, Alignment.TopStart -> newX.coerceIn(0f, maxW)
+                                                    else -> newX
+                                                }
+
+                                                offsetY = when(alignment) {
+                                                    Alignment.BottomEnd, Alignment.BottomStart -> newY.coerceIn(-maxH, 0f)
+                                                    Alignment.TopEnd, Alignment.TopStart -> newY.coerceIn(0f, maxH)
+                                                    else -> newY
+                                                }
                                             }
                                         }
                                     } else {
@@ -361,13 +386,13 @@ fun NavigationOverlay(
         }
 
         // Overlay Ricerca
-        if (showSearchDialog) {
+        if (showSearchDialogOverride) {
             SearchOverlay(
                 onSearch = { query ->
                     onSearch(query)
-                    showSearchDialog = false
+                    onSearchOverlayDismiss()
                 },
-                onDismiss = { showSearchDialog = false },
+                onDismiss = { onSearchOverlayDismiss() },
                 carInputManager = carInputManager,
                 inputView = webView,
             )
@@ -380,7 +405,7 @@ fun SearchOverlay(
     onSearch: (String) -> Unit,
     onDismiss: () -> Unit,
     carInputManager: CarInputManager? = null,
-    inputView: android.view.View? = null,
+    inputView: View? = null,
 ) {
     var queryValue by remember { mutableStateOf(value = TextFieldValue("")) }
     val context = LocalContext.current

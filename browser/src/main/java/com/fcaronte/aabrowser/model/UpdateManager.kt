@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import androidx.core.net.toUri
 
 object UpdateManager {
     private const val TAG = "UpdateManager"
@@ -95,7 +96,7 @@ object UpdateManager {
 
     fun openDownloadPage(context: Context, url: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } catch (e: Exception) {
@@ -117,18 +118,16 @@ object UpdateManager {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "App Updates",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications for new app versions"
-            }
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "App Updates",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Notifications for new app versions"
         }
+        notificationManager.createNotificationChannel(channel)
 
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl)).apply {
+        val intent = Intent(Intent.ACTION_VIEW, info.downloadUrl.toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 

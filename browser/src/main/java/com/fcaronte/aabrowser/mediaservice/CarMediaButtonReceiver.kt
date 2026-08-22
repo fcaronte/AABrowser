@@ -10,7 +10,7 @@ class CarMediaButtonReceiver : MediaButtonReceiver() {
         try {
             super.onReceive(context, intent)
         } catch (e: Exception) {
-            Log.d(TAG, "onReceive exception : " + e.toString())
+            Log.d(TAG, "onReceive exception : $e")
         }
     }
 

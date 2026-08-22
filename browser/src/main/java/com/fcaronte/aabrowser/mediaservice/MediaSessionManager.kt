@@ -98,15 +98,24 @@ class MediaSessionManager(private val context: Context) {
     }
 
     fun disconnect() {
-        mediaController?.let {
-            it.unregisterCallback(controllerCallback)
-        }
+        mediaController?.unregisterCallback(controllerCallback)
         mediaBrowser?.disconnect()
         mediaBrowser = null
         mediaController = null
     }
 
+    private var lastState: Int = PlaybackStateCompat.STATE_NONE
+    private var lastPosition: Long = -1
+
     fun updatePlaybackState(state: Int, position: Long) {
+        // Evita aggiornamenti ridondanti se lo stato non è cambiato e la posizione è molto simile
+        // Ridotto a 500ms per maggiore precisione nella seekbar di Android Auto
+        if (state == lastState && kotlin.math.abs(position - lastPosition) < 500) {
+            return
+        }
+        lastState = state
+        lastPosition = position
+
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
             Log.w(TAG, "Impossibile aggiornare lo stato: MediaBrowser non connesso.")

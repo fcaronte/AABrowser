@@ -15,54 +15,54 @@ import androidx.media.session.MediaButtonReceiver
 import com.fcaronte.aabrowser.R
 
 internal class CarMediaNotificationManager {
-    private var m_CarMediaService: CarMediaService? = null
-    private var m_NotificationManager: NotificationManager? = null
+    private var mCarmediaservice: CarMediaService? = null
+    private var mNotificationmanager: NotificationManager? = null
 
-    private var m_PlayAction: NotificationCompat.Action? = null
-    private var m_PauseAction: NotificationCompat.Action? = null
-    private var m_NextAction: NotificationCompat.Action? = null
-    private var m_PrevAction: NotificationCompat.Action? = null
+    private var mPlayaction: NotificationCompat.Action? = null
+    private var mPauseaction: NotificationCompat.Action? = null
+    private var mNextaction: NotificationCompat.Action? = null
+    private var mPrevaction: NotificationCompat.Action? = null
 
     fun setCarMediaService(carMediaService: CarMediaService?) {
-        m_CarMediaService = carMediaService
+        mCarmediaservice = carMediaService
     }
 
     fun onCreate() {
-        if (m_CarMediaService != null) {
-            m_NotificationManager =
-                m_CarMediaService!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
+        if (mCarmediaservice != null) {
+            mNotificationmanager =
+                mCarmediaservice!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
             cancel()
 
-            m_PlayAction =
+            mPlayaction =
                 NotificationCompat.Action(
                     R.drawable.ic_play_arrow_black_24dp,
-                    m_CarMediaService!!.getString(R.string.label_play),
+                    mCarmediaservice!!.getString(R.string.label_play),
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        m_CarMediaService, PlaybackStateCompat.ACTION_PLAY
+                        mCarmediaservice, PlaybackStateCompat.ACTION_PLAY
                     )
                 )
-            m_PauseAction =
+            mPauseaction =
                 NotificationCompat.Action(
                     R.drawable.ic_pause_black_24dp,
-                    m_CarMediaService!!.getString(R.string.label_pause),
+                    mCarmediaservice!!.getString(R.string.label_pause),
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        m_CarMediaService, PlaybackStateCompat.ACTION_PAUSE
+                        mCarmediaservice, PlaybackStateCompat.ACTION_PAUSE
                     )
                 )
-            m_PrevAction =
+            mPrevaction =
                 NotificationCompat.Action(
                     R.drawable.ic_skip_previous_black_24dp,
-                    m_CarMediaService!!.getString(R.string.label_previous),
+                    mCarmediaservice!!.getString(R.string.label_previous),
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        m_CarMediaService, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        mCarmediaservice, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
                     )
                 )
-            m_NextAction =
+            mNextaction =
                 NotificationCompat.Action(
                     R.drawable.ic_skip_next_black_24dp,
-                    m_CarMediaService!!.getString(R.string.label_next),
+                    mCarmediaservice!!.getString(R.string.label_next),
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        m_CarMediaService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                        mCarmediaservice, PlaybackStateCompat.ACTION_SKIP_TO_NEXT
                     )
                 )
         }
@@ -70,23 +70,23 @@ internal class CarMediaNotificationManager {
 
     fun onDestroy() {
         cancel()
-        m_CarMediaService = null
-        m_NotificationManager = null
-        m_PlayAction = null
-        m_PauseAction = null
-        m_NextAction = null
-        m_PrevAction = null
+        mCarmediaservice = null
+        mNotificationmanager = null
+        mPlayaction = null
+        mPauseaction = null
+        mNextaction = null
+        mPrevaction = null
     }
 
     fun notify(notification: Notification?) {
-        if (m_NotificationManager != null) m_NotificationManager!!.notify(
+        if (mNotificationmanager != null) mNotificationmanager!!.notify(
             NOTIFICATION_ID,
             notification
         )
     }
 
     fun cancel() {
-        if (m_NotificationManager != null) m_NotificationManager!!.cancel(NOTIFICATION_ID)
+        if (mNotificationmanager != null) mNotificationmanager!!.cancel(NOTIFICATION_ID)
     }
 
     fun getNotification(
@@ -94,7 +94,7 @@ internal class CarMediaNotificationManager {
         state: PlaybackStateCompat?,
         token: MediaSessionCompat.Token?
     ): Notification? {
-        if (m_CarMediaService == null || metadata == null || state == null || token == null) return null
+        if (mCarmediaservice == null || metadata == null || state == null || token == null) return null
 
         val description = metadata.getDescription()
         val builder = buildNotification(state, token, description)
@@ -111,7 +111,7 @@ internal class CarMediaNotificationManager {
         val isPlaying = state.state == PlaybackStateCompat.STATE_PLAYING
 
         val builder: NotificationCompat.Builder =
-            NotificationCompat.Builder(m_CarMediaService!!, CHANNEL_ID)
+            NotificationCompat.Builder(mCarmediaservice!!, CHANNEL_ID)
         builder.setStyle(
             androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(token)
@@ -119,7 +119,7 @@ internal class CarMediaNotificationManager {
                 .setShowCancelButton(true)
                 .setCancelButtonIntent(
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        m_CarMediaService, PlaybackStateCompat.ACTION_STOP
+                        mCarmediaservice, PlaybackStateCompat.ACTION_STOP
                     )
                 )
         )
@@ -132,36 +132,36 @@ internal class CarMediaNotificationManager {
 
         builder.setDeleteIntent(
             MediaButtonReceiver.buildMediaButtonPendingIntent(
-                m_CarMediaService, PlaybackStateCompat.ACTION_STOP
+                mCarmediaservice, PlaybackStateCompat.ACTION_STOP
             )
         )
 
         if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0L) builder.addAction(
-            m_PrevAction
+            mPrevaction
         )
 
-        builder.addAction(if (isPlaying) m_PauseAction else m_PlayAction)
+        builder.addAction(if (isPlaying) mPauseaction else mPlayaction)
 
         if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0L) builder.addAction(
-            m_NextAction
+            mNextaction
         )
 
         return builder
     }
 
     private fun createChannel() {
-        if (m_NotificationManager != null && m_NotificationManager!!.getNotificationChannel(
+        if (mNotificationmanager != null && mNotificationmanager!!.getNotificationChannel(
                 CHANNEL_ID
             ) == null
         ) {
             val channel =
                 NotificationChannel(
                     CHANNEL_ID,
-                    m_CarMediaService!!.getString(R.string.media_session_channel_name),
+                    mCarmediaservice!!.getString(R.string.media_session_channel_name),
                     NotificationManager.IMPORTANCE_LOW
                 )
-            channel.description = m_CarMediaService!!.getString(R.string.media_session_channel_desc)
-            m_NotificationManager!!.createNotificationChannel(channel)
+            channel.description = mCarmediaservice!!.getString(R.string.media_session_channel_desc)
+            mNotificationmanager!!.createNotificationChannel(channel)
         }
     }
 
@@ -172,7 +172,7 @@ internal class CarMediaNotificationManager {
         var flags = PendingIntent.FLAG_CANCEL_CURRENT
         flags =
             flags or PendingIntent.FLAG_IMMUTABLE
-        return PendingIntent.getActivity(m_CarMediaService, REQUEST_CODE, openUI, flags)
+        return PendingIntent.getActivity(mCarmediaservice, REQUEST_CODE, openUI, flags)
     }
 
     companion object {

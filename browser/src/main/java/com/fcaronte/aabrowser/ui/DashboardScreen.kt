@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -29,7 +31,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
@@ -60,16 +61,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -91,10 +88,11 @@ fun DashboardScreen(
     currentWebView: android.webkit.WebView? = null,
     carInputManager: com.fcaronte.aabrowser.CarInputManager? = null,
     inputHostView: android.view.View? = null,
-    onSiteSelected: (String) -> Unit,
+    onSiteSelected: (String, Boolean?, Float?, Float?) -> Unit,
     onOpenTabManager: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenSearch: () -> Unit = {},
+    onShowFeedback: (String) -> Unit = {},
 ) {
     val favorites = viewModel.favorites
     var isEditMode by remember { mutableStateOf(value = false) }
@@ -217,7 +215,7 @@ fun DashboardScreen(
                             }
                         },
                         onClick = {
-                            if (!isEditMode) onSiteSelected(site.url)
+                            if (!isEditMode) onSiteSelected(site.url, site.isDesktopMode, site.mobileZoom, site.desktopZoom)
                         },
                     )
                 }
@@ -294,7 +292,7 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Button(
-                    onClick = { if (lastUrl.isNotEmpty()) onSiteSelected(lastUrl) },
+                    onClick = { if (lastUrl.isNotEmpty()) onSiteSelected(lastUrl, null, null, null) },
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
@@ -306,7 +304,7 @@ fun DashboardScreen(
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                 ) {
-                    Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.resume_button), fontSize = 11.sp, maxLines = 1)
                 }
@@ -317,7 +315,7 @@ fun DashboardScreen(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(23.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -325,7 +323,7 @@ fun DashboardScreen(
                 ) {
                     Icon(Icons.Default.Layers, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.tabs_button), fontSize = 11.sp, maxLines = 1)
+                    Text(stringResource(R.string.tabs_button), fontSize = 10.sp, maxLines = 1)
                 }
 
                 Button(
@@ -334,7 +332,7 @@ fun DashboardScreen(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(23.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -342,34 +340,38 @@ fun DashboardScreen(
                 ) {
                     Icon(Icons.Default.Settings, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.settings_button), fontSize = 11.sp, maxLines = 1)
+                    Text(stringResource(R.string.settings_button), fontSize = 10.sp, maxLines = 1)
                 }
             }
         }
 
         if (showAddDialog) {
+            val feedbackMsg = stringResource(R.string.favorite_added)
             EditFavoriteOverlay(
                 currentWebView = currentWebView,
                 carInputManager = carInputManager,
                 inputHostView = inputHostView,
                 onDismiss = { showAddDialog = false },
-                onConfirm = { name, url, color, favicon ->
-                    viewModel.addFavorite(name, url, color, favicon)
+                onConfirm = { name, url, color, favicon, isDesktop, mobileZoom, desktopZoom ->
+                    viewModel.addFavorite(name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
                     showAddDialog = false
+                    onShowFeedback(feedbackMsg)
                 },
             )
         }
 
         siteToEdit?.let { site ->
+            val feedbackMsg = stringResource(R.string.favorite_updated)
             EditFavoriteOverlay(
                 site = site,
                 currentWebView = currentWebView,
                 carInputManager = carInputManager,
                 inputHostView = inputHostView,
                 onDismiss = { siteToEdit = null },
-                onConfirm = { name, url, color, favicon ->
-                    viewModel.updateFavorite(site, name, url, color, favicon)
+                onConfirm = { name, url, color, favicon, isDesktop, mobileZoom, desktopZoom ->
+                    viewModel.updateFavorite(site, name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
                     siteToEdit = null
+                    onShowFeedback(feedbackMsg)
                 },
             )
         }
@@ -531,7 +533,7 @@ fun EditFavoriteOverlay(
     carInputManager: com.fcaronte.aabrowser.CarInputManager? = null,
     inputHostView: android.view.View? = null,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, Long, String?) -> Unit,
+    onConfirm: (String, String, Long, String?, Boolean?, Float?, Float?) -> Unit,
 ) {
     var nameValue by remember {
         mutableStateOf(
@@ -555,10 +557,15 @@ fun EditFavoriteOverlay(
         )
     }
 
+    var isDesktopOverride by remember { mutableStateOf(site?.isDesktopMode) }
+    var mobileZoomOverride by remember { mutableStateOf(site?.mobileZoom) }
+    var desktopZoomOverride by remember { mutableStateOf(site?.desktopZoom) }
+    var siteDataExpanded by remember { mutableStateOf(site == null) }
+    var displaySettingsExpanded by remember { mutableStateOf(site != null) }
+
     val dynamicPrimaryColor = MaterialTheme.colorScheme.primary.toArgb().toLong() and 0xFFFFFFFFL
     var color by remember { mutableLongStateOf(site?.color ?: dynamicPrimaryColor) }
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
-    val context = LocalContext.current
 
     DisposableEffect(Unit) {
         onDispose {
@@ -718,15 +725,19 @@ fun EditFavoriteOverlay(
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = 32.dp, vertical = 16.dp)
                 .clickable(
                     remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                     null
                 ) { },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
+            val scrollState = rememberScrollState()
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
@@ -735,79 +746,144 @@ fun EditFavoriteOverlay(
                     ), style = MaterialTheme.typography.titleLarge
                 )
 
-                OutlinedTextField(
-                    value = nameValue,
-                    onValueChange = { nameValue = it },
-                    label = { Text(stringResource(R.string.field_name)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                focusedField = 1
-                                inputHostView?.let { view ->
-                                    view.requestFocus()
-                                    carInputManager?.startInput(view)
-                                }
-                            }
-                        }
+                SettingsSectionHeader(
+                    title = stringResource(R.string.site_info_title),
+                    isExpanded = siteDataExpanded,
+                    onClick = { siteDataExpanded = !siteDataExpanded }
                 )
 
-                OutlinedTextField(
-                    value = urlValue,
-                    onValueChange = { urlValue = it },
-                    label = { Text(stringResource(R.string.field_url)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                focusedField = 2
-                                inputHostView?.let { view ->
-                                    view.requestFocus()
-                                    carInputManager?.startInput(view)
-                                }
-                            }
-                        }
-                )
-
-                OutlinedTextField(
-                    value = faviconValue,
-                    onValueChange = { faviconValue = it },
-                    label = { Text(stringResource(R.string.field_favicon)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                focusedField = 3
-                                inputHostView?.let { view ->
-                                    view.requestFocus()
-                                    carInputManager?.startInput(view)
-                                }
-                            }
-                        }
-                )
-
-                Text(stringResource(R.string.field_color))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    colorOptions.forEach { c ->
-                        Box(
+                androidx.compose.animation.AnimatedVisibility(visible = siteDataExpanded) {
+                    Column(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = nameValue,
+                            onValueChange = { nameValue = it },
+                            label = { Text(stringResource(R.string.field_name)) },
                             modifier = Modifier
-                                .size(32.dp)
-                                .background(Color(c), RoundedCornerShape(4.dp))
-                                .clickable { color = c }
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (color == c) Icon(
-                                Icons.Default.Check,
-                                null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                                .fillMaxWidth()
+                                .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                        focusedField = 1
+                                        inputHostView?.let { view ->
+                                            view.requestFocus()
+                                            carInputManager?.startInput(view)
+                                        }
+                                    }
+                                }
+                        )
+
+                        OutlinedTextField(
+                            value = urlValue,
+                            onValueChange = { urlValue = it },
+                            label = { Text(stringResource(R.string.field_url)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                        focusedField = 2
+                                        inputHostView?.let { view ->
+                                            view.requestFocus()
+                                            carInputManager?.startInput(view)
+                                        }
+                                    }
+                                }
+                        )
+
+                        OutlinedTextField(
+                            value = faviconValue,
+                            onValueChange = { faviconValue = it },
+                            label = { Text(stringResource(R.string.field_favicon)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                        focusedField = 3
+                                        inputHostView?.let { view ->
+                                            view.requestFocus()
+                                            carInputManager?.startInput(view)
+                                        }
+                                    }
+                                }
+                        )
+
+                        Text(
+                            text = stringResource(R.string.field_color),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            colorOptions.forEach { c ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .background(Color(c), RoundedCornerShape(4.dp))
+                                        .clickable { color = c }
+                                        .padding(4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (color == c) Icon(
+                                        Icons.Default.Check,
+                                        null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                SettingsSectionHeader(
+                    title = stringResource(R.string.display_settings_title),
+                    isExpanded = displaySettingsExpanded,
+                    onClick = { displaySettingsExpanded = !displaySettingsExpanded },
+                )
+
+                androidx.compose.animation.AnimatedVisibility(visible = displaySettingsExpanded) {
+                    val isDesktop = isDesktopOverride ?: AppSettings.desktopMode.value
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SettingsSwitchItem(
+                            label = stringResource(R.string.desktop_mode_label),
+                            description = stringResource(R.string.desktop_mode_desc_site),
+                            checked = isDesktop,
+                            onCheckedChange = { isDesktopOverride = it }
+                        )
+
+                        Column {
+                            val currentZoom =
+                                if (isDesktop) (desktopZoomOverride ?: AppSettings.desktopScale.value)
+                                else (mobileZoomOverride ?: AppSettings.displayScale.value)
+
+                            Text(
+                                text = (if (isDesktop) stringResource(R.string.desktop_zoom_label, (currentZoom * 100).toInt())
+                                       else stringResource(R.string.mobile_zoom_label, (currentZoom * 100).toInt())),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            androidx.compose.material3.Slider(
+                                value = currentZoom,
+                                onValueChange = {
+                                    if (isDesktop) desktopZoomOverride = it
+                                    else mobileZoomOverride = it
+                                },
+                                valueRange = 0.25f..1.5f,
+                                steps = 24
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
                     Button(onClick = {
                         val finalUrl =
@@ -832,17 +908,36 @@ fun EditFavoriteOverlay(
                                         nameValue.text,
                                         finalUrl,
                                         color,
-                                        extracted ?: fallback
+                                        extracted ?: fallback,
+                                        isDesktopOverride,
+                                        mobileZoomOverride,
+                                        desktopZoomOverride
                                     )
                                 }
                             } else {
                                 val fallback = "https://www.google.com/s2/favicons?domain=${
                                     URI(finalUrl).host ?: finalUrl
                                 }&sz=128"
-                                onConfirm(nameValue.text, finalUrl, color, fallback)
+                                onConfirm(
+                                    nameValue.text,
+                                    finalUrl,
+                                    color,
+                                    fallback,
+                                    isDesktopOverride,
+                                    mobileZoomOverride,
+                                    desktopZoomOverride
+                                )
                             }
                         } else {
-                            onConfirm(nameValue.text, finalUrl, color, faviconValue.text)
+                            onConfirm(
+                                nameValue.text,
+                                finalUrl,
+                                color,
+                                faviconValue.text,
+                                isDesktopOverride,
+                                mobileZoomOverride,
+                                desktopZoomOverride
+                            )
                         }
                     }) {
                         Text(stringResource(R.string.confirm_button))

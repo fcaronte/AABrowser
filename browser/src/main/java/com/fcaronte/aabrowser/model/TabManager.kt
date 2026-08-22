@@ -11,7 +11,10 @@ data class TabState(
     val url: String,
     var title: String = "New Tab",
     val faviconUrl: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val desktopModeOverride: Boolean? = null,
+    val mobileZoomOverride: Float? = null,
+    val desktopZoomOverride: Float? = null
 )
 
 object TabManager {
@@ -22,8 +25,19 @@ object TabManager {
     val activeTab: TabState?
         get() = if (activeTabIndex in tabs.indices) tabs[activeTabIndex] else null
 
-    fun addTab(url: String, setActive: Boolean = true) {
-        val newTab = TabState(url = url)
+    fun addTab(
+        url: String,
+        setActive: Boolean = true,
+        desktopModeOverride: Boolean? = null,
+        mobileZoomOverride: Float? = null,
+        desktopZoomOverride: Float? = null
+    ) {
+        val newTab = TabState(
+            url = url,
+            desktopModeOverride = desktopModeOverride,
+            mobileZoomOverride = mobileZoomOverride,
+            desktopZoomOverride = desktopZoomOverride
+        )
         tabs.add(newTab)
         if (setActive) {
             activeTabIndex = tabs.size - 1

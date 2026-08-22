@@ -5,7 +5,9 @@ import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.edit
 
 enum class ThemeMode {
     LIGHT, DARK, AMOLED
@@ -54,13 +56,13 @@ object AppSettings {
     private val _fabBehavior = mutableStateOf(FABBehavior.OPEN_MENU)
     val fabBehavior: State<FABBehavior> = _fabBehavior
 
-    private val _displayScale = mutableStateOf(1.0f)
+    private val _displayScale = mutableFloatStateOf(1.0f)
     val displayScale: State<Float> = _displayScale
 
     private val _desktopMode = mutableStateOf(false)
     val desktopMode: State<Boolean> = _desktopMode
 
-    private val _desktopScale = mutableStateOf(1.0f)
+    private val _desktopScale = mutableFloatStateOf(1.0f)
     val desktopScale: State<Float> = _desktopScale
 
     private val _lastUrl = mutableStateOf("")
@@ -75,7 +77,7 @@ object AppSettings {
     private val _searchEngine = mutableStateOf(SearchEngine.GOOGLE)
     val searchEngine: State<SearchEngine> = _searchEngine
 
-    private val _uiScale = mutableStateOf(1.0f)
+    private val _uiScale = mutableFloatStateOf(1.0f)
     val uiScale: State<Float> = _uiScale
 
     private val _autoOpenFavoriteId = mutableStateOf<String?>(null)
@@ -102,16 +104,16 @@ object AppSettings {
             prefs.getString("fab_behavior", FABBehavior.OPEN_MENU.name)
                 ?: FABBehavior.OPEN_MENU.name
         )
-        _displayScale.value = prefs.getFloat("display_scale", 1.0f)
+        _displayScale.floatValue = prefs.getFloat("display_scale", 1.0f)
         _desktopMode.value = prefs.getBoolean("desktop_mode", false)
-        _desktopScale.value = prefs.getFloat("desktop_scale", 1.0f)
+        _desktopScale.floatValue = prefs.getFloat("desktop_scale", 1.0f)
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
         _dashboardThreeColumns.value = prefs.getBoolean("dashboard_three_columns", false)
         _forceEnglish.value = prefs.getBoolean("force_english", false)
         _searchEngine.value = SearchEngine.valueOf(
             prefs.getString("search_engine", SearchEngine.GOOGLE.name) ?: SearchEngine.GOOGLE.name
         )
-        _uiScale.value = prefs.getFloat("ui_scale", 1.0f)
+        _uiScale.floatValue = prefs.getFloat("ui_scale", 1.0f)
         _autoOpenFavoriteId.value = prefs.getString("auto_open_favorite_id", null)
         _persistentNavigation.value = prefs.getBoolean("persistent_navigation", false)
 
@@ -135,7 +137,7 @@ object AppSettings {
     }
 
     fun setDisplayScale(context: Context, scale: Float) {
-        _displayScale.value = scale
+        _displayScale.floatValue = scale
         saveFloat(context, "display_scale", scale)
     }
 
@@ -145,7 +147,7 @@ object AppSettings {
     }
 
     fun setDesktopScale(context: Context, scale: Float) {
-        _desktopScale.value = scale
+        _desktopScale.floatValue = scale
         saveFloat(context, "desktop_scale", scale)
     }
 
@@ -171,7 +173,7 @@ object AppSettings {
     }
 
     fun setUiScale(context: Context, scale: Float) {
-        _uiScale.value = scale
+        _uiScale.floatValue = scale
         saveFloat(context, "ui_scale", scale)
     }
 
@@ -221,22 +223,26 @@ object AppSettings {
     }
 
     private fun saveString(context: Context, key: String, value: String) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value)
-            .apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putString(key, value)
+        }
     }
 
     private fun saveStringOrNull(context: Context, key: String, value: String?) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(key, value)
-            .apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putString(key, value)
+        }
     }
 
     private fun saveBoolean(context: Context, key: String, value: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(key, value)
-            .apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putBoolean(key, value)
+        }
     }
 
     private fun saveFloat(context: Context, key: String, value: Float) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putFloat(key, value)
-            .apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putFloat(key, value)
+        }
     }
 }

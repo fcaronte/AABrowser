@@ -20,7 +20,12 @@ class FavoritesRepository(context: Context) {
             val url = prefs.getString("BookmarkUrl$i", "") ?: ""
             val color = prefs.getLong("BookmarkColor$i", 0xFF2196F3)
             val faviconUrl = prefs.getString("BookmarkFavicon$i", null)
-            list.add(FavoriteSite(id, name, url, color, faviconUrl))
+
+            val isDesktopMode = if (prefs.contains("BookmarkDesktop$i")) prefs.getBoolean("BookmarkDesktop$i", false) else null
+            val mobileZoom = if (prefs.contains("BookmarkMobileZoom$i")) prefs.getFloat("BookmarkMobileZoom$i", 1.0f) else null
+            val desktopZoom = if (prefs.contains("BookmarkDesktopZoom$i")) prefs.getFloat("BookmarkDesktopZoom$i", 1.0f) else null
+
+            list.add(FavoriteSite(id, name, url, color, faviconUrl, isDesktopMode, mobileZoom, desktopZoom))
         }
 
         if (migrationNeeded && list.isNotEmpty()) {
@@ -52,6 +57,9 @@ class FavoritesRepository(context: Context) {
                 putString("BookmarkUrl$i", site.url)
                 putLong("BookmarkColor$i", site.color)
                 putString("BookmarkFavicon$i", site.faviconUrl)
+                site.isDesktopMode?.let { putBoolean("BookmarkDesktop$i", it) }
+                site.mobileZoom?.let { putFloat("BookmarkMobileZoom$i", it) }
+                site.desktopZoom?.let { putFloat("BookmarkDesktopZoom$i", it) }
             }
             apply()
         }

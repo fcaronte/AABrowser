@@ -1,7 +1,6 @@
 package com.fcaronte.aabrowser.mediaservice
 
 import android.app.Notification
-import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -18,9 +17,9 @@ import com.fcaronte.aabrowser.R
 // TODO: Valutare migrazione a Jetpack Media3 in futuro
 @Suppress("DEPRECATION")
 class CarMediaService : MediaBrowserServiceCompat() {
-    private var m_CarMediaNotificationManager: CarMediaNotificationManager? = null
-    private var m_MediaSessionCompat: MediaSessionCompat? = null
-    private var m_MediaControllerCompat: MediaControllerCompat? = null
+    private var mCarmedianotificationmanager: CarMediaNotificationManager? = null
+    private var mMediasessioncompat: MediaSessionCompat? = null
+    private var mMediacontrollercompat: MediaControllerCompat? = null
     private lateinit var audioManager: AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
@@ -33,11 +32,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                // Perdita temporanea (es. assistente vocale): NON stoppiamo il browser.
+                // Perdita temporanea (es. Assistente vocale): NON stoppiamo il browser.
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                // L'audio si abbassa ma non deve stopparsi (es. indicazioni stradali)
+                // L'audio si abbassa ma non deve stopparsi (es. Indicazioni stradali)
             }
 
             AudioManager.AUDIOFOCUS_GAIN -> {
@@ -51,9 +50,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
-        m_CarMediaNotificationManager = CarMediaNotificationManager()
-        m_CarMediaNotificationManager!!.setCarMediaService(this)
-        m_CarMediaNotificationManager!!.onCreate()
+        mCarmedianotificationmanager = CarMediaNotificationManager()
+        mCarmedianotificationmanager!!.setCarMediaService(this)
+        mCarmedianotificationmanager!!.onCreate()
 
         val builder = PlaybackStateCompat.Builder()
         builder.setActions(
@@ -67,15 +66,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
         )
         builder.setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
 
-        m_MediaSessionCompat = MediaSessionCompat(this, "CarMediaService").apply {
+        mMediasessioncompat = MediaSessionCompat(this, "CarMediaService").apply {
             setCallback(MediaSessionCallback(this@CarMediaService))
             setActive(true)
             setPlaybackState(builder.build())
             setMetadata(MediaMetadataCompat.Builder().build())
         }
 
-        m_MediaControllerCompat = m_MediaSessionCompat!!.controller
-        sessionToken = m_MediaSessionCompat!!.sessionToken
+        mMediacontrollercompat = mMediasessioncompat!!.controller
+        sessionToken = mMediasessioncompat!!.sessionToken
     }
 
     fun requestAudioFocus(): Boolean {
@@ -106,16 +105,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         abandonAudioFocus()
-        m_CarMediaNotificationManager?.onDestroy()
-        m_CarMediaNotificationManager = null
+        mCarmedianotificationmanager?.onDestroy()
+        mCarmedianotificationmanager = null
 
-        m_MediaSessionCompat?.let {
+        mMediasessioncompat?.let {
             it.setCallback(null)
             it.isActive = false
             it.release()
-            m_MediaSessionCompat = null
+            mMediasessioncompat = null
         }
-        m_MediaControllerCompat = null
+        mMediacontrollercompat = null
         super.onDestroy()
     }
 
@@ -153,7 +152,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     override fun onCustomAction(action: String, extras: Bundle?, result: Result<Bundle?>) {
         Log.d(TAG, "onCustomAction: $action")
-        if (m_MediaSessionCompat != null && extras != null) {
+        if (mMediasessioncompat != null && extras != null) {
             extras.classLoader = PlaybackStateCompat::class.java.classLoader
             var update = false
             var cancel = false
@@ -166,24 +165,24 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
                     // Richiede il focus solo se stiamo effettivamente cambiando stato verso PLAYING
                     if (playbackStateCompat.state == PlaybackStateCompat.STATE_PLAYING &&
-                        (m_MediaControllerCompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)
+                        (mMediacontrollercompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)
                     ) {
                         requestAudioFocus()
                     }
 
-                    m_MediaSessionCompat!!.setPlaybackState(playbackStateCompat)
+                    mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
                 }
             }
             if (action == MEDIA_METADATA_COMPAT) {
                 val mediaMetadataCompat =
                     extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
                 if (mediaMetadataCompat != null) {
-                    m_MediaSessionCompat!!.setMetadata(mediaMetadataCompat)
+                    mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
                     update = true
                 }
             }
-            if (cancel && m_CarMediaNotificationManager != null) {
-                m_CarMediaNotificationManager!!.cancel()
+            if (cancel && mCarmedianotificationmanager != null) {
+                mCarmedianotificationmanager!!.cancel()
             } else if (update) {
                 updateNotification()
             }
@@ -193,8 +192,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun broadcastPlaybackAction(action: Long) {
         val bundle = Bundle().apply { putLong(PLAYBACK_ACTION, action) }
-        if (m_MediaSessionCompat?.isActive == true) {
-            m_MediaSessionCompat!!.sendSessionEvent(PLAYBACK_ACTION, bundle)
+        if (mMediasessioncompat?.isActive == true) {
+            mMediasessioncompat!!.sendSessionEvent(PLAYBACK_ACTION, bundle)
         }
     }
 
@@ -229,24 +228,24 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 putLong(PLAYBACK_ACTION, PlaybackStateCompat.ACTION_SEEK_TO)
                 putLong("SeekPosition", pos)
             }
-            service.m_MediaSessionCompat?.sendSessionEvent(PLAYBACK_ACTION, bundle)
+            service.mMediasessioncompat?.sendSessionEvent(PLAYBACK_ACTION, bundle)
         }
     }
 
     val notification: Notification?
         get() {
-            if (m_CarMediaNotificationManager == null || m_MediaControllerCompat == null) return null
-            return m_CarMediaNotificationManager!!.getNotification(
-                m_MediaControllerCompat!!.metadata,
-                m_MediaControllerCompat!!.playbackState,
+            if (mCarmedianotificationmanager == null || mMediacontrollercompat == null) return null
+            return mCarmedianotificationmanager!!.getNotification(
+                mMediacontrollercompat!!.metadata,
+                mMediacontrollercompat!!.playbackState,
                 sessionToken
             )
         }
 
     private fun updateNotification() {
         val notification = this.notification
-        val state = m_MediaControllerCompat?.playbackState?.state
-        if (notification != null && m_CarMediaNotificationManager != null) {
+        val state = mMediacontrollercompat?.playbackState?.state
+        if (notification != null && mCarmedianotificationmanager != null) {
             if (state == PlaybackStateCompat.STATE_PLAYING) {
                 startForeground(
                     600,
@@ -255,14 +254,14 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 )
             } else {
                 stopForeground(STOP_FOREGROUND_DETACH)
-                m_CarMediaNotificationManager!!.notify(notification)
+                mCarmedianotificationmanager!!.notify(notification)
             }
         }
     }
 
     fun stateChanged(playbackStateCompat: PlaybackStateCompat): Boolean {
-        if (m_MediaControllerCompat?.playbackState == null) return false
-        return m_MediaControllerCompat!!.playbackState.state != playbackStateCompat.state
+        if (mMediacontrollercompat?.playbackState == null) return false
+        return mMediacontrollercompat!!.playbackState.state != playbackStateCompat.state
     }
 
 
