@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
@@ -56,6 +57,7 @@ import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.FABLocation
+import com.fcaronte.aabrowser.settings.TabBarMode
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -70,6 +72,7 @@ data class MenuItem(
 fun NavigationOverlay(
     currentUrl: String,
     onGoBack: () -> Unit,
+    onGoForward: () -> Unit,
     onGoHome: () -> Unit,
     onReload: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -88,6 +91,7 @@ fun NavigationOverlay(
     var showSearchDialog by remember { mutableStateOf(false) }
 
     val fabLocation by AppSettings.fabLocation
+    val tabBarMode by AppSettings.tabBarMode
 
     val baseAlignment = when (fabLocation) {
         FABLocation.BOTTOM_RIGHT -> Alignment.BottomEnd
@@ -114,9 +118,15 @@ fun NavigationOverlay(
             Alignment.BottomEnd, Alignment.TopEnd -> screenWidth - 16.dp.value
             else -> 16.dp.value
         }
+        val topOffset = when (tabBarMode) {
+            TabBarMode.OFF -> 0f
+            TabBarMode.ALWAYS_ON -> 48.dp.value
+            TabBarMode.AUTO_HIDE -> if (isVisible) 48.dp.value else 0f
+        }
+
         val startY = when (baseAlignment) {
             Alignment.BottomEnd, Alignment.BottomStart -> screenHeight - 16.dp.value
-            else -> 16.dp.value
+            else -> 16.dp.value + topOffset
         }
 
         val currentX = startX + offsetX
@@ -159,6 +169,7 @@ fun NavigationOverlay(
                     val menuItems = remember(currentUrl) {
                         listOf(
                             MenuItem(Icons.AutoMirrored.Filled.ArrowBack, R.string.back_button) { onInteraction(); onGoBack(); onShowMenuChange(false) },
+                            MenuItem(Icons.AutoMirrored.Filled.ArrowForward, R.string.forward_button) { onInteraction(); onGoForward(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Home, R.string.home_button) { onInteraction(); onGoHome(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Layers, R.string.tabs_button) { onInteraction(); onOpenTabManager(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Star, R.string.add_to_favorites) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
@@ -179,10 +190,10 @@ fun NavigationOverlay(
                     val outerRadius = 180.dp
 
                     menuItems.forEachIndexed { index, item ->
-                        val isOuter = index >= 3
+                        val isOuter = index >= 4
                         val radius = if (isOuter) outerRadius else innerRadius
-                        val arcIndex = if (isOuter) index - 3 else index
-                        val arcTotal = if (isOuter) 6 else 3
+                        val arcIndex = if (isOuter) index - 4 else index
+                        val arcTotal = if (isOuter) 6 else 4
 
                         val angle = startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
                         val angleRad = Math.toRadians(angle.toDouble())

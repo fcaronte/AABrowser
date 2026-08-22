@@ -50,6 +50,14 @@
     <string name="auto_open_none">Nessuno (Apri Dashboard)</string>
     <string name="persistent_nav_label">Tasto navigazione persistente</string>
     <string name="persistent_nav_desc">Mantieni il tasto di navigazione sempre visibile (disabilita auto-nascondi)</string>
+    <string name="tab_bar_mode_label">Visibilità barra schede</string>
+    <string name="tab_bar_mode_off">Spenta</string>
+    <string name="tab_bar_mode_auto">Dissolvenza</string>
+    <string name="tab_bar_mode_always">Sempre attiva</string>
+    <string name="tab_bar_mode_desc">Scegli se la barra delle schede deve sparire o restare fissa</string>
+    <string name="tab_bar_enable_label">Barra delle schede</string>
+    <string name="tab_bar_enable_desc">Abilita una barra orizzontale per le schede aperte direttamente sopra il browser</string>
+    <string name="forward_button">Avanti</string>
     <string name="dark_pages_label">Pagine Web scure</string>
     <string name="dark_pages_desc">Forza la modalità scura sui siti web</string>
     <string name="desktop_mode_label">Modalità Desktop</string>

@@ -52,6 +52,7 @@ import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
+import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 
 @Composable
@@ -75,6 +76,7 @@ fun SettingsScreen(
     val uiScale by AppSettings.uiScale
     val forceEnglish by AppSettings.forceEnglish
     val persistentNav by AppSettings.persistentNavigation
+    val tabBarMode by AppSettings.tabBarMode
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
@@ -329,6 +331,69 @@ fun SettingsScreen(
                                         )
                                     }
                                 )
+                            }
+
+                            // Barra delle Schede
+                            SettingsCard {
+                                Column {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.tab_bar_enable_label),
+                                        description = stringResource(R.string.tab_bar_enable_desc),
+                                        checked = tabBarMode != TabBarMode.OFF,
+                                        onCheckedChange = { enabled ->
+                                            if (enabled) {
+                                                AppSettings.setTabBarMode(context, TabBarMode.AUTO_HIDE)
+                                            } else {
+                                                AppSettings.setTabBarMode(context, TabBarMode.OFF)
+                                            }
+                                        }
+                                    )
+
+                                    AnimatedVisibility(visible = tabBarMode != TabBarMode.OFF) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.tab_bar_mode_label),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            ) {
+                                                listOf(TabBarMode.AUTO_HIDE, TabBarMode.ALWAYS_ON).forEach { mode ->
+                                                    val isSelected = tabBarMode == mode
+                                                    val label = when (mode) {
+                                                        TabBarMode.AUTO_HIDE -> stringResource(R.string.tab_bar_mode_auto)
+                                                        TabBarMode.ALWAYS_ON -> stringResource(R.string.tab_bar_mode_always)
+                                                        else -> ""
+                                                    }
+                                                    Button(
+                                                        onClick = { AppSettings.setTabBarMode(context, mode) },
+                                                        modifier = Modifier.weight(1f),
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary
+                                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        ),
+                                                        contentPadding = PaddingValues(horizontal = 4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = label,
+                                                            fontSize = 11.sp,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             // Forza Inglese

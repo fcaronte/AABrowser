@@ -58,6 +58,7 @@ import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import kotlinx.coroutines.delay
 import java.net.URLEncoder
@@ -132,6 +133,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
+    var forwardTrigger by remember { mutableIntStateOf(0) }
 
     var isNavVisible by remember { mutableStateOf(true) }
     var isNavMenuOpen by remember { mutableStateOf(false) }
@@ -139,6 +141,13 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     var isKeyboardActiveManual by remember { mutableStateOf(false) }
 
     val persistentNav by AppSettings.persistentNavigation
+    val tabBarMode by AppSettings.tabBarMode
+
+    LaunchedEffect(persistentNav) {
+        if (persistentNav) {
+            isNavVisible = true
+        }
+    }
 
     LaunchedEffect(lastInteractionTime, persistentNav, isNavMenuOpen) {
         if (!persistentNav && !isNavMenuOpen) {
@@ -398,9 +407,16 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                 val searchEngine by AppSettings.searchEngine
                 val isBrowserVisible = currentScreen == Screen.Browser
 
+                val isTabBarVisible = when (tabBarMode) {
+                    TabBarMode.OFF -> false
+                    TabBarMode.AUTO_HIDE -> isNavVisible && !isFullScreen
+                    TabBarMode.ALWAYS_ON -> !isFullScreen
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(top = if (isTabBarVisible && isBrowserVisible) 48.dp else 0.dp)
                         .graphicsLayer(alpha = if (isBrowserVisible) 1f else 0.01f)
                         .zIndex(if (isBrowserVisible) 1f else -1f)
                 ) {
@@ -414,6 +430,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                     url = tab.url,
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
                                     backTrigger = if (isTabActive) backTrigger else 0,
+                                    forwardTrigger = if (isTabActive) forwardTrigger else 0,
                                     isDesktopMode = isDesktopMode,
                                     mediaSessionManager = mediaSessionManager,
                                     carInputManager = carInputManager,
@@ -478,23 +495,68 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
                     is Screen.Browser -> {
                         Box(modifier = Modifier.fillMaxSize().zIndex(10f)) {
+                            if (isTabBarVisible) {
+                                PersistentTabBar(
+                                    modifier = Modifier.align(Alignment.TopCenter),
+                                    onTabSelected = { index ->
+                                        TabManager.switchTab(index)
+                                        onInteraction()
+                                    },
+                                    onCloseTab = { index ->
+                                        TabManager.closeTab(index)
+                                        if (TabManager.tabs.isEmpty()) {
+                                            currentScreen = Screen.Dashboard
+                                        }
+                                        onInteraction()
+                                    },
+                                    onAddTab = {
+                                        TabManager.addTab(AppSettings.effectiveSearchEngine.homeUrl)
+                                        onInteraction()
+                                    },
+                                    onGoBack = {
+                                        backTrigger++
+                                        onInteraction()
+                                    },
+                                    onGoForward = {
+                                        forwardTrigger++
+                                        onInteraction()
+                                    }
+                                )
+                            }
+
                             NavigationOverlay(
                                 currentUrl = activeTab?.url ?: "",
-                                onGoBack = { backTrigger++ },
-                                onGoHome = { currentScreen = Screen.Dashboard },
-                                onReload = { reloadTrigger++ },
+                                onGoBack = {
+                                    backTrigger++
+                                    onInteraction()
+                                },
+                                onGoForward = {
+                                    forwardTrigger++
+                                    onInteraction()
+                                },
+                                onGoHome = {
+                                    currentScreen = Screen.Dashboard
+                                    onInteraction()
+                                },
+                                onReload = {
+                                    reloadTrigger++
+                                    onInteraction()
+                                },
                                 onOpenSettings = {
                                     previousScreen = Screen.Browser
                                     currentScreen = Screen.Settings
+                                    onInteraction()
                                 },
                                 onOpenTabManager = {
                                     previousScreen = Screen.Browser
                                     currentScreen = Screen.TabManager
+                                    onInteraction()
                                 },
                                 onSearch = { query ->
                                     val searchUrl = searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
                                     TabManager.openOrSwitchTo(searchUrl)
                                     currentScreen = Screen.Browser
+                                    onInteraction()
                                 },
                                 onAddToFavorites = {
                                     TabManager.activeTab?.let { activeTab ->
@@ -508,6 +570,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                         )
                                         feedbackMessage = favoriteAddedMsg
                                     }
+                                    onInteraction()
                                 },
                                 carInputManager = carInputManager,
                                 webView = activeWebView ?: (inputHostView as? WebView),
@@ -516,6 +579,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                 onShowMenuChange = {
                                     isNavMenuOpen = it
                                     com.fcaronte.aabrowser.utils.InactivityTracker.isMenuOpen = it
+                                    onInteraction()
                                 },
                                 onInteraction = { onInteraction(fromPage = false) },
                                 onExit = {
@@ -523,7 +587,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                         val activity = context as? Activity
                                         activity?.finishAndRemoveTask()
                                         Process.killProcess(Process.myPid())
-                                    } catch (e: Exception) { (context as? Activity)?.finish() }
+                                    } catch (_: Exception) { (context as? Activity)?.finish() }
                                 }
                             )
                         }
@@ -545,8 +609,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             },
                             onCloseTab = { index -> TabManager.closeTab(index) },
                             onAddTab = {
-                                TabManager.addTab("")
-                                currentScreen = Screen.Dashboard
+                                TabManager.addTab(AppSettings.effectiveSearchEngine.homeUrl)
+                                currentScreen = Screen.Browser
                             },
                             onBack = {
                                 currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen

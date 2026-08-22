@@ -50,6 +50,14 @@
     <string name="auto_open_none">None (Open Dashboard)</string>
     <string name="persistent_nav_label">Persistent Navigation Button</string>
     <string name="persistent_nav_desc">Keep navigation button always visible (disable auto-hide)</string>
+    <string name="tab_bar_mode_label">Tab Bar Visibility</string>
+    <string name="tab_bar_mode_off">Off</string>
+    <string name="tab_bar_mode_auto">Auto-hide</string>
+    <string name="tab_bar_mode_always">Always on</string>
+    <string name="tab_bar_mode_desc">Choose if the horizontal tab bar should be hidden or fixed</string>
+    <string name="tab_bar_enable_label">Tab Bar</string>
+    <string name="tab_bar_enable_desc">Enable a horizontal bar for open tabs directly above the browser</string>
+    <string name="forward_button">Forward</string>
     <string name="dark_pages_label">Dark Web Pages</string>
     <string name="dark_pages_desc">Force dark mode on websites</string>
     <string name="desktop_mode_label">Desktop Mode</string>

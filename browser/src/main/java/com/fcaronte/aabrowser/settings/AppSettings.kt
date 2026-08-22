@@ -22,11 +22,15 @@ enum class FABBehavior {
     OPEN_MENU, JUMP_TO_URL
 }
 
-enum class SearchEngine(val baseUrl: String) {
-    GOOGLE("https://www.google.com/search?q="),
-    DUCKDUCKGO("https://duckduckgo.com/?q="),
-    BING("https://www.bing.com/search?q="),
-    YAHOO("https://search.yahoo.com/search?p=")
+enum class TabBarMode {
+    OFF, AUTO_HIDE, ALWAYS_ON
+}
+
+enum class SearchEngine(val baseUrl: String, val homeUrl: String) {
+    GOOGLE("https://www.google.com/search?q=", "https://www.google.com"),
+    DUCKDUCKGO("https://duckduckgo.com/?q=", "https://duckduckgo.com"),
+    BING("https://www.bing.com/search?q=", "https://www.bing.com"),
+    YAHOO("https://search.yahoo.com/search?p=", "https://search.yahoo.com")
 }
 
 object AppSettings {
@@ -108,6 +112,12 @@ object AppSettings {
     private val _persistentNavigation = mutableStateOf(false)
     val persistentNavigation: State<Boolean> = _persistentNavigation
 
+    private val _persistentTabBar = mutableStateOf(false)
+    val persistentTabBar: State<Boolean> = _persistentTabBar
+
+    private val _tabBarMode = mutableStateOf(TabBarMode.OFF)
+    val tabBarMode: State<TabBarMode> = _tabBarMode
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _forceTheme.value = prefs.getBoolean("force_theme", false)
@@ -143,6 +153,10 @@ object AppSettings {
         _uiScale.floatValue = prefs.getFloat("ui_scale", 1.0f)
         _autoOpenFavoriteId.value = prefs.getString("auto_open_favorite_id", null)
         _persistentNavigation.value = prefs.getBoolean("persistent_navigation", false)
+        _persistentTabBar.value = prefs.getBoolean("persistent_tab_bar", false)
+        _tabBarMode.value = TabBarMode.valueOf(
+            prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
+        )
 
         updateLocale()
     }
@@ -243,6 +257,17 @@ object AppSettings {
         _persistentNavigation.value = enabled
         saveBoolean(context, "persistent_navigation", enabled)
     }
+
+    fun setPersistentTabBar(context: Context, enabled: Boolean) {
+        _persistentTabBar.value = enabled
+        saveBoolean(context, "persistent_tab_bar", enabled)
+    }
+
+    fun setTabBarMode(context: Context, mode: TabBarMode) {
+        _tabBarMode.value = mode
+        saveString(context, "tab_bar_mode", mode.name)
+    }
+
     fun clearCache(context: Context) {
         try {
             // 1. Pulizia standard API WebView: rimuove file HTML/immagini temporanei

@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,6 +74,7 @@ fun BrowserScreen(
     url: String,
     reloadTrigger: Int = 0,
     backTrigger: Int = 0,
+    forwardTrigger: Int = 0,
     isDesktopMode: Boolean = false,
     mediaSessionManager: MediaSessionManager? = null,
     carInputManager: CarInputManager? = null,
@@ -110,6 +112,18 @@ fun BrowserScreen(
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
+    var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
+    var lastProcessedForwardTrigger by remember { mutableIntStateOf(forwardTrigger) }
+    var lastProcessedReloadTrigger by remember { mutableIntStateOf(reloadTrigger) }
+
+    // Sync triggers when tab becomes active to avoid accidental triggers
+    LaunchedEffect(isTabActive) {
+        if (isTabActive) {
+            lastProcessedBackTrigger = backTrigger
+            lastProcessedForwardTrigger = forwardTrigger
+            lastProcessedReloadTrigger = reloadTrigger
+        }
+    }
 
     LaunchedEffect(customView) {
         onFullScreenChange(customView != null)
@@ -140,7 +154,8 @@ fun BrowserScreen(
     }
 
     LaunchedEffect(backTrigger) {
-        if (backTrigger > 0) {
+        if (isTabActive && backTrigger > lastProcessedBackTrigger) {
+            lastProcessedBackTrigger = backTrigger
             if (customView != null) {
                 customViewCallback?.onCustomViewHidden()
                 customView = null
@@ -151,6 +166,29 @@ fun BrowserScreen(
             if (webView?.canGoBack() == true) {
                 webView.goBack()
             }
+        } else {
+            lastProcessedBackTrigger = backTrigger
+        }
+    }
+
+    LaunchedEffect(forwardTrigger) {
+        if (isTabActive && forwardTrigger > lastProcessedForwardTrigger) {
+            lastProcessedForwardTrigger = forwardTrigger
+            val webView = webViewReference
+            if (webView?.canGoForward() == true) {
+                webView.goForward()
+            }
+        } else {
+            lastProcessedForwardTrigger = forwardTrigger
+        }
+    }
+
+    LaunchedEffect(reloadTrigger) {
+        if (isTabActive && reloadTrigger > lastProcessedReloadTrigger) {
+            lastProcessedReloadTrigger = reloadTrigger
+            webViewReference?.reload()
+        } else {
+            lastProcessedReloadTrigger = reloadTrigger
         }
     }
 
