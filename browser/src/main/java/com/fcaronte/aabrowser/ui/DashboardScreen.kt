@@ -73,6 +73,7 @@ import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesViewModel
+import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import java.net.URI
@@ -167,7 +168,8 @@ fun DashboardScreen(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(bottom = 2.dp) // Piccolo offset per allineare meglio le baseline
+                            // Piccolo offset per allineare meglio le baseline
+                            modifier = Modifier.padding(bottom = 2.dp)
                         )
                     }
 
@@ -208,14 +210,26 @@ fun DashboardScreen(
                         isEditMode = isEditMode,
                         onEdit = { siteToEdit = site },
                         onDelete = { viewModel.removeFavorite(site) },
-                        onMoveLeft = { if (index > 0) viewModel.moveFavorite(index, index - 1) },
-                        onMoveRight = {
-                            if (index < (favorites.size - 1)) {
-                                viewModel.moveFavorite(index, index + 1)
-                            }
-                        },
+                        onMoveLeft = { viewModel.moveLeft(index) },
+                        onMoveRight = { viewModel.moveRight(index) },
                         onClick = {
-                            if (!isEditMode) onSiteSelected(site.url, site.isDesktopMode, site.mobileZoom, site.desktopZoom)
+                            if (!isEditMode) {
+                                // Usa l'apertura intelligente: se esiste già fa lo switch, altrimenti apre/carica
+                                TabManager.openOrSwitchTo(
+                                    url = site.url,
+                                    title = site.name,
+                                    faviconUrl = site.faviconUrl,
+                                    desktopModeOverride = site.isDesktopMode,
+                                    mobileZoomOverride = site.mobileZoom,
+                                    desktopZoomOverride = site.desktopZoom
+                                )
+                                onSiteSelected(
+                                    site.url,
+                                    site.isDesktopMode,
+                                    site.mobileZoom,
+                                    site.desktopZoom
+                                )
+                            }
                         },
                     )
                 }
@@ -292,7 +306,12 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Button(
-                    onClick = { if (lastUrl.isNotEmpty()) onSiteSelected(lastUrl, null, null, null) },
+                    onClick = {
+                        if (lastUrl.isNotEmpty()) {
+                            TabManager.openOrSwitchTo(lastUrl)
+                            onSiteSelected(lastUrl, null, null, null)
+                        }
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
@@ -863,7 +882,7 @@ fun EditFavoriteOverlay(
 
                             Text(
                                 text = (if (isDesktop) stringResource(R.string.desktop_zoom_label, (currentZoom * 100).toInt())
-                                       else stringResource(R.string.mobile_zoom_label, (currentZoom * 100).toInt())),
+                                else stringResource(R.string.mobile_zoom_label, (currentZoom * 100).toInt())),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )

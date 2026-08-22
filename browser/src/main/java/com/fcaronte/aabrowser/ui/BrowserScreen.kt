@@ -69,6 +69,7 @@ private fun isDesktopRequired(url: String?): Boolean {
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
 fun BrowserScreen(
+    tabId: String,
     url: String,
     reloadTrigger: Int = 0,
     backTrigger: Int = 0,
@@ -152,14 +153,10 @@ fun BrowserScreen(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 val webView = object : WebView(context) {
-                    // Impedisce alla WebView di andare in pausa profonda quando l'app è in background
-                    // Questo aiuta a mantenere l'esecuzione degli script e del video
                     override fun onPause() {
-                        // Non chiamiamo super.onPause() per evitare che il motore Chromium sospenda tutto
-                        // ma informiamo il sistema che siamo ancora "attivi" per i media
+                        // Impedisce a Chromium di sospendere l'esecuzione multimediale in background
                     }
                     override fun onWindowVisibilityChanged(visibility: Int) {
-                        // Forza la visibilità a essere sempre VISIBLE per Chromium
                         super.onWindowVisibilityChanged(VISIBLE)
                     }
                 }.apply {
@@ -269,10 +266,8 @@ fun BrowserScreen(
                             @Suppress("unused")
                             fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {
                                 post {
-                                    TabManager.activeTab?.let { currentTab ->
-                                        TabManager.updateTabTitle(currentTab.id, title)
-                                        TabManager.updateTabFavicon(currentTab.id, faviconUrl)
-                                    }
+                                    TabManager.updateTabTitle(tabId, title)
+                                    TabManager.updateTabFavicon(tabId, faviconUrl)
                                 }
                             }
 
@@ -330,9 +325,7 @@ fun BrowserScreen(
 
                         override fun onReceivedTitle(view: WebView?, title: String?) {
                             title?.let { newTitle ->
-                                TabManager.activeTab?.let { currentTab ->
-                                    TabManager.updateTabTitle(currentTab.id, newTitle)
-                                }
+                                TabManager.updateTabTitle(tabId, newTitle)
                             }
                         }
 

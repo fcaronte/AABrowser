@@ -41,6 +41,13 @@ object AppSettings {
     private val _darkPages = mutableStateOf(false)
     val darkPages: State<Boolean> = _darkPages
 
+    // Precaricamento schede preferiti all'avvio
+    private val _preloadFavorites = mutableStateOf(false)
+    val preloadFavorites: State<Boolean> = _preloadFavorites
+
+    private val _preloadFavoritesCount = mutableStateOf(4)
+    val preloadFavoritesCount: State<Int> = _preloadFavoritesCount
+
     private val _resumeLastPage = mutableStateOf(true)
     val resumeLastPage: State<Boolean> = _resumeLastPage
 
@@ -93,6 +100,8 @@ object AppSettings {
         )
         _dynamicColor.value = prefs.getBoolean("dynamic_color", true) // Default attivo
         _darkPages.value = prefs.getBoolean("dark_pages", false)
+        _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
+        _preloadFavoritesCount.value = prefs.getInt("preload_favorites_count", 4)
         _resumeLastPage.value = prefs.getBoolean("resume_last_page", true)
         _restoreLastTabs.value = prefs.getBoolean("restore_last_tabs", false)
         _persistentUrlBar.value = prefs.getBoolean("persistent_url_bar", false)
@@ -134,6 +143,22 @@ object AppSettings {
     fun setDarkPages(context: Context, enabled: Boolean) {
         _darkPages.value = enabled
         saveBoolean(context, "dark_pages", enabled)
+    }
+
+    fun setPreloadFavorites(context: Context, enabled: Boolean) {
+        _preloadFavorites.value = enabled
+        saveBoolean(context, "preload_favorites", enabled)
+    }
+
+    fun setPreloadFavoritesCount(context: Context, count: Int) {
+        _preloadFavoritesCount.value = count
+        saveInt(context, "preload_favorites_count", count)
+    }
+
+    private fun saveInt(context: Context, key: String, value: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putInt(key, value)
+        }
     }
 
     fun setDisplayScale(context: Context, scale: Float) {

@@ -4,12 +4,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
+import java.net.URI
 import java.util.UUID
 
 data class TabState(
     val id: String = UUID.randomUUID().toString(),
     val url: String,
-    var title: String = "New Tab",
+    val title: String = "New Tab",
     val faviconUrl: String? = null,
     val isLoading: Boolean = false,
     val desktopModeOverride: Boolean? = null,
@@ -27,13 +28,17 @@ object TabManager {
 
     fun addTab(
         url: String,
+        title: String = "New Tab",
+        faviconUrl: String? = null,
         setActive: Boolean = true,
         desktopModeOverride: Boolean? = null,
         mobileZoomOverride: Float? = null,
         desktopZoomOverride: Float? = null
-    ) {
+    ): TabState {
         val newTab = TabState(
             url = url,
+            title = title,
+            faviconUrl = faviconUrl,
             desktopModeOverride = desktopModeOverride,
             mobileZoomOverride = mobileZoomOverride,
             desktopZoomOverride = desktopZoomOverride
@@ -41,6 +46,80 @@ object TabManager {
         tabs.add(newTab)
         if (setActive) {
             activeTabIndex = tabs.size - 1
+        }
+        return newTab
+    }
+
+    /**
+     * Cerca se esiste già una scheda con lo stesso dominio/host o URL.
+     * Se esiste fa lo switch a quell'indice, altrimenti crea una nuova scheda.
+     */
+    fun openOrSwitchTo(
+        url: String,
+        title: String = "New Tab",
+        faviconUrl: String? = null,
+        desktopModeOverride: Boolean? = null,
+        mobileZoomOverride: Float? = null,
+        desktopZoomOverride: Float? = null
+    ) {
+        val existingIndex = findTabIndexByUrlOrHost(url)
+        if (existingIndex != -1) {
+            switchTab(existingIndex)
+        } else {
+            val current = activeTab
+            if (current != null && current.url.isEmpty()) {
+                updateTabUrl(current.id, url)
+                updateTabTitle(current.id, title)
+                if (faviconUrl != null) updateTabFavicon(current.id, faviconUrl)
+            } else {
+                addTab(
+                    url = url,
+                    title = title,
+                    faviconUrl = faviconUrl,
+                    setActive = true,
+                    desktopModeOverride = desktopModeOverride,
+                    mobileZoomOverride = mobileZoomOverride,
+                    desktopZoomOverride = desktopZoomOverride
+                )
+            }
+        }
+    }
+
+    /**
+     * Precarica una lista di preferiti impostando subito i metadati noti (titolo, icona, zoom).
+     */
+    fun preloadFavorites(favorites: List<FavoriteSite>, limit: Int) {
+        val sitesToPreload = favorites.take(limit)
+        sitesToPreload.forEach { fav ->
+            // Evita di creare duplicati se una scheda esiste già
+            if (findTabIndexByUrlOrHost(fav.url) == -1) {
+                addTab(
+                    url = fav.url,
+                    title = fav.name,
+                    faviconUrl = fav.faviconUrl,
+                    setActive = false,
+                    desktopModeOverride = fav.isDesktopMode,
+                    mobileZoomOverride = fav.mobileZoom,
+                    desktopZoomOverride = fav.desktopZoom
+                )
+            }
+        }
+    }
+
+    fun findTabIndexByUrlOrHost(targetUrl: String): Int {
+        if (targetUrl.isBlank()) return -1
+        val targetHost = extractHost(targetUrl)
+        return tabs.indexOfFirst { tab ->
+            tab.url == targetUrl || (targetHost.isNotEmpty() && extractHost(tab.url) == targetHost)
+        }
+    }
+
+    private fun extractHost(urlStr: String): String {
+        return try {
+            val uri = URI(urlStr)
+            uri.host ?: urlStr
+        } catch (_: Exception) {
+            urlStr
         }
     }
 
@@ -69,11 +148,9 @@ object TabManager {
         }
     }
 
-    // Aggiunta questa funzione per aggiornare il titolo della pagina dinamicamente
     fun updateTabTitle(id: String, newTitle: String) {
         val index = tabs.indexOfFirst { it.id == id }
         if (index != -1 && newTitle.isNotBlank()) {
-            // Aggiorniamo direttamente la proprietà o riassegnamo l'elemento nella lista osservabile
             tabs[index] = tabs[index].copy(title = newTitle)
         }
     }

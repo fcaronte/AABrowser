@@ -114,11 +114,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
     var currentScreen by remember {
         mutableStateOf<Screen>(
-            if (TabManager.activeTab != null) Screen.Browser 
-            else if (AppSettings.autoOpenFavoriteId.value != null) Screen.Splash
-            else Screen.Dashboard
-        ) 
+            if (AppSettings.autoOpenFavoriteId.value != null) Screen.Splash else Screen.Dashboard
+        )
     }
+
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
 
@@ -180,24 +179,68 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         AdBlockSettings.init(context)
         mediaSessionManager.connect()
 
-        if (currentScreen == Screen.Splash) {
-            // Aspettiamo che i preferiti siano pronti (caricati dal repo)
-            // Se la lista rimane vuota per troppo tempo, andiamo alla Dashboard
-            var attempts = 0
-            while (favoritesViewModel.favorites.isEmpty() && attempts < 20) {
-                delay(100.milliseconds)
-                attempts++
-            }
+        // Aspetta che i preferiti siano caricati dal repository
+        var attempts = 0
+        while (favoritesViewModel.favorites.isEmpty() && attempts < 20) {
+            delay(100.milliseconds)
+            attempts++
+        }
 
-            val autoOpenId = AppSettings.autoOpenFavoriteId.value
-            val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
-            
-            if (favorite != null && TabManager.tabs.isEmpty()) {
-                android.util.Log.d("MainScreen", "Auto-opening favorite: ${favorite.name}")
-                TabManager.addTab(favorite.url)
-                currentScreen = Screen.Browser
+        val autoOpenId = AppSettings.autoOpenFavoriteId.value
+        val isPreloadEnabled = AppSettings.preloadFavorites.value
+        val preloadLimit = AppSettings.preloadFavoritesCount.value
+
+        if (TabManager.tabs.isEmpty()) {
+            if (isPreloadEnabled && favoritesViewModel.favorites.isNotEmpty()) {
+                // Precarica i preferiti passando subito nome e icona
+                TabManager.preloadFavorites(favoritesViewModel.favorites, preloadLimit)
+
+                if (autoOpenId != null) {
+                    val targetIndex = TabManager.tabs.indexOfFirst { it.id == autoOpenId }
+                    if (targetIndex != -1) {
+                        TabManager.switchTab(targetIndex)
+                        currentScreen = Screen.Browser
+                    } else {
+                        // Se l'auto-open non è tra i primi N, lo apriamo esplicitamente
+                        val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
+                        if (favorite != null) {
+                            TabManager.addTab(
+                                url = favorite.url,
+                                title = favorite.name,
+                                faviconUrl = favorite.faviconUrl,
+                                desktopModeOverride = favorite.isDesktopMode,
+                                mobileZoomOverride = favorite.mobileZoom,
+                                desktopZoomOverride = favorite.desktopZoom
+                            )
+                            TabManager.switchTab(TabManager.tabs.lastIndex)
+                            currentScreen = Screen.Browser
+                        } else {
+                            if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
+                            currentScreen = Screen.Dashboard
+                        }
+                    }
+                } else {
+                    // Nessun auto-open: precarica silenziosamente e resta sulla Dashboard
+                    if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
+                    currentScreen = Screen.Dashboard
+                }
+            } else if (autoOpenId != null) {
+                val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
+                if (favorite != null) {
+                    TabManager.addTab(
+                        url = favorite.url,
+                        title = favorite.name,
+                        faviconUrl = favorite.faviconUrl,
+                        desktopModeOverride = favorite.isDesktopMode,
+                        mobileZoomOverride = favorite.mobileZoom,
+                        desktopZoomOverride = favorite.desktopZoom
+                    )
+                    TabManager.switchTab(0)
+                    currentScreen = Screen.Browser
+                } else {
+                    currentScreen = Screen.Dashboard
+                }
             } else {
-                android.util.Log.d("MainScreen", "No auto-open match found (ID: $autoOpenId), going to Dashboard")
                 currentScreen = Screen.Dashboard
             }
         }
@@ -341,6 +384,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                         androidx.compose.runtime.key(tab.id) {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 BrowserScreen(
+                                    tabId = tab.id,
                                     url = tab.url,
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
                                     backTrigger = if (isTabActive) backTrigger else 0,
@@ -376,13 +420,30 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             carInputManager = carInputManager,
                             inputHostView = inputHostView,
                             onSiteSelected = { url, desktop, mobileZoom, desktopZoom ->
-                                val activeTab = TabManager.activeTab
-                                if (activeTab != null && activeTab.url.isEmpty()) {
-                                    TabManager.updateTabUrl(activeTab.id, url)
-                                } else if (activeTab == null) {
-                                    TabManager.addTab(url, desktopModeOverride = desktop, mobileZoomOverride = mobileZoom, desktopZoomOverride = desktopZoom)
+                                // 1. Cerca se esiste già una scheda con questo URL (o stesso dominio)
+                                val targetHost = try { java.net.URI(url).host ?: url } catch (_: Exception) { url }
+                                val existingTabIndex = TabManager.tabs.indexOfFirst { tab ->
+                                    val tabHost = try { java.net.URI(tab.url).host ?: tab.url } catch (_: Exception) { tab.url }
+                                    tab.url == url || (tabHost.isNotEmpty() && tabHost == targetHost)
+                                }
+
+                                if (existingTabIndex != -1) {
+                                    // La scheda è già precaricata: facciamo solo lo switch immediato
+                                    TabManager.switchTab(existingTabIndex)
                                 } else {
-                                    TabManager.updateTabUrl(activeTab.id, url)
+                                    // La scheda non esiste ancora tra quelle aperte
+                                    val activeTab = TabManager.activeTab
+                                    if (activeTab != null && activeTab.url.isEmpty()) {
+                                        TabManager.updateTabUrl(activeTab.id, url)
+                                    } else {
+                                        TabManager.addTab(
+                                            url = url,
+                                            desktopModeOverride = desktop,
+                                            mobileZoomOverride = mobileZoom,
+                                            desktopZoomOverride = desktopZoom
+                                        )
+                                        TabManager.switchTab(TabManager.tabs.lastIndex)
+                                    }
                                 }
                                 currentScreen = Screen.Browser
                             },

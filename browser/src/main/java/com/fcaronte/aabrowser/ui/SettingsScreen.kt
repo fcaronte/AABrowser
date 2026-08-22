@@ -73,6 +73,8 @@ fun SettingsScreen(
     val uiScale by AppSettings.uiScale
     val forceEnglish by AppSettings.forceEnglish
     val persistentNav by AppSettings.persistentNavigation
+    val preloadFavorites by AppSettings.preloadFavorites
+    val preloadFavoritesCount by AppSettings.preloadFavoritesCount
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(true) }
@@ -205,7 +207,6 @@ fun SettingsScreen(
                                         checked = autoOpenFavoriteId != null,
                                         onCheckedChange = { enabled ->
                                             if (enabled) {
-                                                // Se attiviamo e non c'è nulla, mettiamo il primo della lista se esiste
                                                 if (autoOpenFavoriteId == null) {
                                                     AppSettings.setAutoOpenFavoriteId(
                                                         context,
@@ -260,6 +261,41 @@ fun SettingsScreen(
                                                     }
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Precarica schede preferiti all'avvio
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(bottom = if (preloadFavorites) 12.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = "Precarica schede preferiti all'avvio",
+                                        description = "Apre i primi siti preferiti in schede di background all'apertura dell'app",
+                                        checked = preloadFavorites,
+                                        onCheckedChange = { AppSettings.setPreloadFavorites(context, it) }
+                                    )
+
+                                    AnimatedVisibility(visible = preloadFavorites) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Numero di schede da precaricare: $preloadFavoritesCount",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Slider(
+                                                value = preloadFavoritesCount.toFloat(),
+                                                onValueChange = {
+                                                    AppSettings.setPreloadFavoritesCount(context, it.toInt())
+                                                },
+                                                valueRange = 1f..8f,
+                                                steps = 6 // crea 6 punti intermedi discreti per 1, 2, 3, 4, 5, 6, 7, 8
+                                            )
                                         }
                                     }
                                 }

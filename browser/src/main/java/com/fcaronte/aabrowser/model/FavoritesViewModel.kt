@@ -2,13 +2,14 @@ package com.fcaronte.aabrowser.model
 
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
+import java.util.UUID
 
 class FavoritesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = FavoritesRepository(application)
 
-    val favorites: List<FavoriteSite>
-        field = mutableStateListOf<FavoriteSite>()
+    val favorites: SnapshotStateList<FavoriteSite> = mutableStateListOf()
 
     init {
         favorites.addAll(repository.loadFavorites())
@@ -24,14 +25,14 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         desktopZoom: Float? = null
     ) {
         val newSite = FavoriteSite(
-            java.util.UUID.randomUUID().toString(),
-            name,
-            url,
-            color,
-            faviconUrl,
-            isDesktopMode,
-            mobileZoom,
-            desktopZoom
+            id = UUID.randomUUID().toString(),
+            name = name,
+            url = url,
+            color = color,
+            faviconUrl = faviconUrl,
+            isDesktopMode = isDesktopMode,
+            mobileZoom = mobileZoom,
+            desktopZoom = desktopZoom
         )
         favorites.add(newSite)
         repository.saveFavorites(favorites)
@@ -54,24 +55,31 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     ) {
         val index = favorites.indexOfFirst { it.id == site.id }
         if (index != -1) {
-            favorites[index] =
-                site.copy(
-                    name = name,
-                    url = url,
-                    color = color,
-                    faviconUrl = faviconUrl,
-                    isDesktopMode = isDesktopMode,
-                    mobileZoom = mobileZoom,
-                    desktopZoom = desktopZoom
-                )
+            favorites[index] = site.copy(
+                name = name,
+                url = url,
+                color = color,
+                faviconUrl = faviconUrl,
+                isDesktopMode = isDesktopMode,
+                mobileZoom = mobileZoom,
+                desktopZoom = desktopZoom
+            )
             repository.saveFavorites(favorites)
         }
     }
 
-    fun moveFavorite(fromIndex: Int, toIndex: Int) {
-        if (fromIndex in favorites.indices && toIndex in favorites.indices && fromIndex != toIndex) {
-            val item = favorites.removeAt(fromIndex)
-            favorites.add(toIndex, item)
+    fun moveLeft(index: Int) {
+        if (index > 0 && index < favorites.size) {
+            val item = favorites.removeAt(index)
+            favorites.add(index - 1, item)
+            repository.saveFavorites(favorites)
+        }
+    }
+
+    fun moveRight(index: Int) {
+        if (index >= 0 && index < favorites.size - 1) {
+            val item = favorites.removeAt(index)
+            favorites.add(index + 1, item)
             repository.saveFavorites(favorites)
         }
     }
