@@ -245,13 +245,14 @@ fun NavigationOverlay(
                             .then(
                                 if (!showMenu) {
                                     Modifier
-                                        .pointerInput(Unit) {
-                                            detectTapGestures(
-                                                onTap = {
-                                                    onInteraction()
-                                                    onShowMenuChange(true)
-                                                }
-                                            )
+                                        // Sostituiamo detectTapGestures con un .clickable diretto,
+                                        // che è molto più reattivo sui sistemi automotive touch
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            onInteraction()
+                                            onShowMenuChange(true)
                                         }
                                         .pointerInput(baseAlignment, screenWidth, screenHeight) {
                                             detectDragGestures { change, dragAmount ->
@@ -276,7 +277,10 @@ fun NavigationOverlay(
                                             }
                                         }
                                 } else {
-                                    Modifier.clickable {
+                                    Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {
                                         onInteraction()
                                         onShowMenuChange(false)
                                     }

@@ -81,15 +81,20 @@ fun BrowserScreen(
     desktopZoomOverride: Float? = null,
     isTabActive: Boolean = true,
     isGlobalSearchActive: Boolean = false,
+    isAppDarkOverride: Boolean? = null, // <--- Riceve lo stato in tempo reale da MainScreen
     onPageFinished: (String) -> Unit,
     onWebViewCreated: (WebView) -> Unit = {},
     onFullScreenChange: (Boolean) -> Unit = {},
     onInteraction: () -> Unit = {},
 ) {
-    val darkPages by AppSettings.darkPages
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
     val autoplayMedia by AppSettings.autoplayMedia
+    val darkPages by AppSettings.darkPages
+
+    // Valutazione unificata basata sul MainScreen
+    val isAppDark = isAppDarkOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
+    val activeDarkPages = isAppDark && darkPages
 
     val actualDesktopMode = desktopModeOverride ?: isDesktopMode
     val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
@@ -149,7 +154,7 @@ fun BrowserScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(if (isAppDark) Color.Black else Color.White)) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
@@ -193,8 +198,40 @@ fun BrowserScreen(
                     CookieManager.getInstance().setAcceptCookie(true)
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
 
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darkPages)
+                    // Sfondo di base per evitare flash bianchi durante il caricamento
+                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+
+                    // Configurazione Tema Scuro (Nativo + Forza Dark)
+                    val isNight = isAppDark
+                    android.util.Log.d("##BrowserScreen", "Theme Factory: isNight=$isNight, darkPages=$darkPages")
+                    
+                    setBackgroundColor(if (isNight) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+
+                    if (isNight) {
+                        // Per far sì che 'prefers-color-scheme: dark' funzioni, su molte versioni 
+                        // di WebView è necessario impostre FORCE_DARK_ON.
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
+                        }
+                        
+                        // Poi usiamo ALGORITHMIC_DARKENING per decidere se vogliamo il filtro forzato
+                        // o se vogliamo solo che il sito usi il suo tema scuro nativo.
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darkPages)
+                        }
+                        
+                        // Strategia: preferisci sempre il tema del sito se disponibile
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+                            WebSettingsCompat.setForceDarkStrategy(settings, WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING)
+                        }
+                    } else {
+                        // Forza tema chiaro
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)
+                        }
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_OFF)
+                        }
                     }
 
                     if (actualDesktopMode || isDesktopRequired(url)) {
@@ -333,6 +370,27 @@ fun BrowserScreen(
                         override fun onPermissionRequest(request: PermissionRequest?) {
                             request?.grant(request.resources)
                         }
+
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            if (newProgress > 10) {
+                                val mode = if (isAppDark) "dark" else "light"
+                                val themeScript = """
+                                    (function() {
+                                        var apply = function() {
+                                            if (document.documentElement) {
+                                                document.documentElement.style.colorScheme = '$mode';
+                                                document.documentElement.setAttribute('data-theme', '$mode');
+                                            }
+                                        };
+                                        apply();
+                                        window.addEventListener('DOMContentLoaded', apply);
+                                        setTimeout(apply, 100);
+                                        setTimeout(apply, 500);
+                                    })();
+                                """.trimIndent()
+                                view?.evaluateJavascript(themeScript, null)
+                            }
+                        }
                     }
 
                     webViewClient = object : WebViewClient() {
@@ -345,6 +403,18 @@ fun BrowserScreen(
                                 view?.settings?.userAgentString = DESKTOP_USER_AGENT
                             } else {
                                 view?.settings?.userAgentString = null
+                            }
+
+                            // Re-applichiamo i settings del tema ad ogni cambio pagina per sicurezza
+                            view?.let {
+                                if (isAppDark) {
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                        WebSettingsCompat.setForceDark(it.settings, WebSettingsCompat.FORCE_DARK_ON)
+                                    }
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(it.settings, darkPages)
+                                    }
+                                }
                             }
                         }
 
@@ -397,6 +467,14 @@ fun BrowserScreen(
                             if (url != null) {
                                 onPageFinished(url)
                                 android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
+
+                                // Forza il color-scheme via JS per assicurarsi che il sito risponda al tema
+                                val themeScript = if (isAppDark) {
+                                    "(function() { document.documentElement.style.colorScheme = 'dark'; document.documentElement.setAttribute('data-theme', 'dark'); })();"
+                                } else {
+                                    "(function() { document.documentElement.style.colorScheme = 'light'; document.documentElement.setAttribute('data-theme', 'light'); })();"
+                                }
+                                view?.evaluateJavascript(themeScript, null)
 
                                 if (!autoplayMedia) {
                                     // Blocca qualsiasi riproduzione partita in automatico e silenzia l'audio
@@ -451,6 +529,28 @@ fun BrowserScreen(
                     val needsDesktop = actualDesktopMode || isDesktopRequired(it.url)
                     val targetScale = if (needsDesktop) actualDesktopScale else actualDisplayScale
                     it.setInitialScale(if (targetScale == 1.0f) 0 else (targetScale * 100).toInt())
+
+                    it.setBackgroundColor(if (isAppDark) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+
+                    // Aggiornamento reattivo al cambio di tema (tasto N o spunta darkPages)
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                        val forceMode = if (isAppDark) WebSettingsCompat.FORCE_DARK_ON else WebSettingsCompat.FORCE_DARK_OFF
+                        WebSettingsCompat.setForceDark(it.settings, forceMode)
+                    }
+
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(it.settings, activeDarkPages)
+                    }
+
+                    // Forzatura CSS immediata per evitare qualsiasi flash bianco in corsa
+                    val mode = if (isAppDark) "dark" else "light"
+                    it.evaluateJavascript(
+                        "(function() { " +
+                                "document.documentElement.style.colorScheme = '$mode';" +
+                                "document.documentElement.setAttribute('data-theme', '$mode');" +
+                                "})();",
+                        null
+                    )
                 }
             },
         )

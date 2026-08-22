@@ -32,10 +32,13 @@ enum class SearchEngine(val baseUrl: String) {
 object AppSettings {
     private const val PREFS_NAME = "aa_browser_settings"
 
+    // Se false segue il sistema, se true forza la modalità manuale (ThemeMode)
+    private val _forceTheme = mutableStateOf(false)
+    val forceTheme: State<Boolean> = _forceTheme
+
     private val _themeMode = mutableStateOf(ThemeMode.AMOLED)
     val themeMode: State<ThemeMode> = _themeMode
 
-    // NUOVO: Toggle per il Material You (Dynamic Color)
     private val _dynamicColor = mutableStateOf(true)
     val dynamicColor: State<Boolean> = _dynamicColor
 
@@ -86,8 +89,15 @@ object AppSettings {
     private val _forceEnglish = mutableStateOf(false)
     val forceEnglish: State<Boolean> = _forceEnglish
 
+    // Se false usa Google di default, se true usa il provider personalizzato scelto in searchEngine
+    private val _customSearchEngine = mutableStateOf(false)
+    val customSearchEngine: State<Boolean> = _customSearchEngine
+
     private val _searchEngine = mutableStateOf(SearchEngine.GOOGLE)
     val searchEngine: State<SearchEngine> = _searchEngine
+
+    val effectiveSearchEngine: SearchEngine
+        get() = if (_customSearchEngine.value) _searchEngine.value else SearchEngine.GOOGLE
 
     private val _uiScale = mutableFloatStateOf(1.0f)
     val uiScale: State<Float> = _uiScale
@@ -100,10 +110,11 @@ object AppSettings {
 
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        _forceTheme.value = prefs.getBoolean("force_theme", false)
         _themeMode.value = ThemeMode.valueOf(
             prefs.getString("theme_mode", ThemeMode.AMOLED.name) ?: ThemeMode.AMOLED.name
         )
-        _dynamicColor.value = prefs.getBoolean("dynamic_color", true) // Default attivo
+        _dynamicColor.value = prefs.getBoolean("dynamic_color", true)
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
@@ -125,6 +136,7 @@ object AppSettings {
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
         _dashboardThreeColumns.value = prefs.getBoolean("dashboard_three_columns", false)
         _forceEnglish.value = prefs.getBoolean("force_english", false)
+        _customSearchEngine.value = prefs.getBoolean("custom_search_engine", false)
         _searchEngine.value = SearchEngine.valueOf(
             prefs.getString("search_engine", SearchEngine.GOOGLE.name) ?: SearchEngine.GOOGLE.name
         )
@@ -135,12 +147,16 @@ object AppSettings {
         updateLocale()
     }
 
+    fun setForceTheme(context: Context, enabled: Boolean) {
+        _forceTheme.value = enabled
+        saveBoolean(context, "force_theme", enabled)
+    }
+
     fun setThemeMode(context: Context, mode: ThemeMode) {
         _themeMode.value = mode
         saveString(context, "theme_mode", mode.name)
     }
 
-    // NUOVO: Setter per il Dynamic Color
     fun setDynamicColor(context: Context, enabled: Boolean) {
         _dynamicColor.value = enabled
         saveBoolean(context, "dynamic_color", enabled)
@@ -203,6 +219,11 @@ object AppSettings {
         updateLocale()
     }
 
+    fun setCustomSearchEngine(context: Context, enabled: Boolean) {
+        _customSearchEngine.value = enabled
+        saveBoolean(context, "custom_search_engine", enabled)
+    }
+
     fun setSearchEngine(context: Context, engine: SearchEngine) {
         _searchEngine.value = engine
         saveString(context, "search_engine", engine.name)
@@ -222,23 +243,50 @@ object AppSettings {
         _persistentNavigation.value = enabled
         saveBoolean(context, "persistent_navigation", enabled)
     }
-
-    fun clearBrowserData(context: Context) {
-        clearCache(context)
-        clearCookies()
-    }
-
     fun clearCache(context: Context) {
         try {
-            WebStorage.getInstance().deleteAllData()
+            // 1. Pulizia standard API WebView: rimuove file HTML/immagini temporanei
+            // NON tocca cookie, localStorage o IndexedDB se non diversamente specificato
             val webView = WebView(context)
             webView.clearCache(true)
             webView.destroy()
+
+            // 2. Pulizia manuale sicura delle sole cartelle di cache di Chromium
+            val appDir = java.io.File(context.applicationInfo.dataDir)
+            val webViewDir = java.io.File(appDir, "app_webview")
+
+            if (webViewDir.exists()) {
+                // Elenchiamo solo le cartelle di cache pura, escludendo database e cookie
+                val pureCacheDirs = listOf(
+                    "Cache/Cache_Data",
+                    "Code Cache",
+                    "GPUCache",
+                    "ShaderCache"
+                )
+
+                for (subDir in pureCacheDirs) {
+                    val target = java.io.File(webViewDir, subDir)
+                    if (target.exists()) {
+                        target.deleteRecursively()
+                    }
+                }
+            }
+
+            // 3. Pulisce la cache standard di Android dell'app
+            context.cacheDir?.let { cache ->
+                if (cache.exists()) {
+                    cache.listFiles()?.forEach { it.deleteRecursively() }
+                }
+            }
         } catch (e: Exception) {
             android.util.Log.e("AppSettings", "Error clearing cache", e)
         }
     }
 
+    fun clearBrowserData(context: Context) {
+        clearCache(context)
+        clearCookies()
+    }
     fun clearCookies() {
         try {
             CookieManager.getInstance().removeAllCookies(null)

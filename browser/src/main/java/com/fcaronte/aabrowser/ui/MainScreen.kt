@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,8 +47,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
@@ -57,6 +58,7 @@ import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.settings.ThemeMode
 import kotlinx.coroutines.delay
 import java.net.URLEncoder
 import kotlin.time.Duration.Companion.milliseconds
@@ -73,14 +75,23 @@ sealed class Screen {
 fun calculateCacheSize(context: android.content.Context): String {
     return try {
         var size: Long = 0
+
+        // 1. Cache standard Android
         context.cacheDir?.let { size += getDirSize(it) }
         context.externalCacheDir?.let { size += getDirSize(it) }
 
-        // Approssimazione per WebView data (molto variabile)
-        val webViewDir = android.util.Log.getStackTraceString(Exception()).let {
-             // Dummy access to ensure context is used if needed
+        // 2. Cache specifica di Chromium (escludendo i database di login/dati)
+        val webViewDir = java.io.File(context.applicationInfo.dataDir, "app_webview")
+        if (webViewDir.exists()) {
+            // Conta solo le sottocartelle che sono effettivamente cache
+            val cachePaths = listOf("Cache/Cache_Data", "Code Cache", "GPUCache")
+            for (path in cachePaths) {
+                val dir = java.io.File(webViewDir, path)
+                if (dir.exists()) size += getDirSize(dir)
+            }
         }
 
+        // Formattazione (rimane invariata)
         if (size <= 0) "0 B"
         else if (size < 1024) "$size B"
         else if (size < 1024 * 1024) "${size / 1024} KB"
@@ -112,6 +123,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     val favoriteAddedMsg = stringResource(R.string.favorite_added)
     val favoriteUpdatedMsg = stringResource(R.string.favorite_updated)
 
+    var previousScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
     var currentScreen by remember {
         mutableStateOf<Screen>(
             if (AppSettings.autoOpenFavoriteId.value != null) Screen.Splash else Screen.Dashboard
@@ -137,7 +149,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
     // Polling per rilevare lo stato della tastiera car se lo State non si aggiorna
     LaunchedEffect(Unit) {
-        while(true) {
+        while (true) {
             val active = carInputManager?.isInputActive == true
             if (isKeyboardActiveManual != active) {
                 isKeyboardActiveManual = active
@@ -162,8 +174,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     var inputHostView by remember { mutableStateOf<android.view.View?>(null) }
 
     var feedbackMessage by remember { mutableStateOf<String?>(null) }
-    var showDashboardSearch by remember { mutableStateOf(value = false) }
-    var showBrowserSearch by remember { mutableStateOf(value = false) }
+    var showDashboardSearch by remember { mutableStateOf(false) }
+    var showBrowserSearch by remember { mutableStateOf(false) }
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
 
     val mediaSessionManager = remember { MediaSessionManager(context) }
@@ -253,8 +265,16 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     }
 
     val themeMode by AppSettings.themeMode
+    val forceTheme by AppSettings.forceTheme
     val forceEnglish by AppSettings.forceEnglish
     val uiScale by AppSettings.uiScale
+
+    // Calcoliamo se l'app è in modalità scura (seguendo l'auto/sistema o il forzato)
+    val systemIsDark = isSystemInDarkTheme()
+    val isAppDark = when {
+        forceTheme -> themeMode == ThemeMode.DARK || themeMode == ThemeMode.AMOLED
+        else -> systemIsDark
+    }
 
     // Calcoliamo la densità personalizzata per la scala UI
     val currentDensity = LocalDensity.current
@@ -265,15 +285,21 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         )
     }
 
-    // Creiamo un contesto localizzato per forzare la lingua nel display dell'auto
-    val localizedContext = remember(context, forceEnglish, configuration) {
-        if (forceEnglish) {
-            val config = android.content.res.Configuration(configuration)
-            config.setLocale(java.util.Locale.ENGLISH)
-            context.createConfigurationContext(config)
+    // Creiamo un contesto configurato (lingua e tema) per la WebView e i componenti nativi
+    val localizedContext = remember(context, forceEnglish, configuration, isAppDark) {
+        val config = android.content.res.Configuration(configuration)
+        
+        val uiMode = if (isAppDark) {
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
         } else {
-            context
+            android.content.res.Configuration.UI_MODE_NIGHT_NO
         }
+        config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or uiMode
+        
+        val localized = context.createConfigurationContext(config)
+        // Forza l'applicazione del tema corretto al nuovo contesto
+        localized.setTheme(R.style.AppTheme)
+        localized
     }
 
     CompositionLocalProvider(
@@ -381,7 +407,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     val sortedTabs = TabManager.tabs.sortedBy { it.id == activeTab?.id }
                     sortedTabs.forEach { tab ->
                         val isTabActive = activeTab?.id == tab.id
-                        androidx.compose.runtime.key(tab.id) {
+                        androidx.compose.runtime.key(tab.id) { // Se qui forzo il ricaricamneto immediato della pagina web al cambio giorno notte si blocca la musica in riproduzione
                             Box(modifier = Modifier.fillMaxSize()) {
                                 BrowserScreen(
                                     tabId = tab.id,
@@ -396,6 +422,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                     desktopZoomOverride = tab.desktopZoomOverride,
                                     isTabActive = isTabActive,
                                     isGlobalSearchActive = isGlobalSearchActive,
+                                    isAppDarkOverride = isAppDark, // <--- Passato correttamente alla WebView
                                     onPageFinished = { newUrl ->
                                         TabManager.updateTabUrl(tab.id, newUrl)
                                         if (isTabActive) AppSettings.setLastUrl(context, newUrl)
@@ -420,35 +447,16 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             carInputManager = carInputManager,
                             inputHostView = inputHostView,
                             onSiteSelected = { url, desktop, mobileZoom, desktopZoom ->
-                                // 1. Cerca se esiste già una scheda con questo URL (o stesso dominio)
-                                val targetHost = try { java.net.URI(url).host ?: url } catch (_: Exception) { url }
-                                val existingTabIndex = TabManager.tabs.indexOfFirst { tab ->
-                                    val tabHost = try { java.net.URI(tab.url).host ?: tab.url } catch (_: Exception) { tab.url }
-                                    tab.url == url || (tabHost.isNotEmpty() && tabHost == targetHost)
-                                }
-
-                                if (existingTabIndex != -1) {
-                                    // La scheda è già precaricata: facciamo solo lo switch immediato
-                                    TabManager.switchTab(existingTabIndex)
-                                } else {
-                                    // La scheda non esiste ancora tra quelle aperte
-                                    val activeTab = TabManager.activeTab
-                                    if (activeTab != null && activeTab.url.isEmpty()) {
-                                        TabManager.updateTabUrl(activeTab.id, url)
-                                    } else {
-                                        TabManager.addTab(
-                                            url = url,
-                                            desktopModeOverride = desktop,
-                                            mobileZoomOverride = mobileZoom,
-                                            desktopZoomOverride = desktopZoom
-                                        )
-                                        TabManager.switchTab(TabManager.tabs.lastIndex)
-                                    }
-                                }
                                 currentScreen = Screen.Browser
                             },
-                            onOpenTabManager = { currentScreen = Screen.TabManager },
-                            onOpenSettings = { currentScreen = Screen.Settings },
+                            onOpenTabManager = {
+                                previousScreen = Screen.Dashboard
+                                currentScreen = Screen.TabManager
+                            },
+                            onOpenSettings = {
+                                previousScreen = Screen.Dashboard
+                                currentScreen = Screen.Settings
+                            },
                             onOpenSearch = { showDashboardSearch = true },
                             onShowFeedback = { feedbackMessage = it }
                         )
@@ -457,12 +465,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             SearchOverlay(
                                 onSearch = { query ->
                                     val searchUrl = searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
-                                    val activeTab = TabManager.activeTab
-                                    if (activeTab != null && activeTab.url.isEmpty()) {
-                                        TabManager.updateTabUrl(activeTab.id, searchUrl)
-                                    } else {
-                                        TabManager.addTab(searchUrl)
-                                    }
+                                    TabManager.openOrSwitchTo(searchUrl)
                                     currentScreen = Screen.Browser
                                     showDashboardSearch = false
                                 },
@@ -480,11 +483,17 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                 onGoBack = { backTrigger++ },
                                 onGoHome = { currentScreen = Screen.Dashboard },
                                 onReload = { reloadTrigger++ },
-                                onOpenSettings = { currentScreen = Screen.Settings },
-                                onOpenTabManager = { currentScreen = Screen.TabManager },
+                                onOpenSettings = {
+                                    previousScreen = Screen.Browser
+                                    currentScreen = Screen.Settings
+                                },
+                                onOpenTabManager = {
+                                    previousScreen = Screen.Browser
+                                    currentScreen = Screen.TabManager
+                                },
                                 onSearch = { query ->
                                     val searchUrl = searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
-                                    TabManager.addTab(searchUrl)
+                                    TabManager.openOrSwitchTo(searchUrl)
                                     currentScreen = Screen.Browser
                                 },
                                 onAddToFavorites = {
@@ -523,17 +532,25 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     is Screen.Settings -> {
                         SettingsScreen(
                             favoritesViewModel = favoritesViewModel,
-                            onBack = { currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard },
+                            onBack = { currentScreen = previousScreen },
                             onShowFeedback = { feedbackMessage = it }
                         )
                     }
 
                     is Screen.TabManager -> {
                         TabManagerScreen(
-                            onTabSelected = { index -> TabManager.switchTab(index); currentScreen = Screen.Browser },
+                            onTabSelected = { index ->
+                                TabManager.switchTab(index)
+                                currentScreen = Screen.Browser
+                            },
                             onCloseTab = { index -> TabManager.closeTab(index) },
-                            onAddTab = { TabManager.addTab(""); currentScreen = Screen.Dashboard },
-                            onBack = { currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard },
+                            onAddTab = {
+                                TabManager.addTab("")
+                                currentScreen = Screen.Dashboard
+                            },
+                            onBack = {
+                                currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen
+                            },
                         )
                     }
                 }
@@ -562,7 +579,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                 // Tasto Emergenza Globale (permette di chiudere la tastiera AA forzatamente)
                 if (isKeyboardActiveManual) {
                     FloatingActionButton(
-                        onClick = { 
+                        onClick = {
                             carInputManager?.stopInput()
                             activeWebView?.evaluateJavascript("(function(){ if(document.activeElement) document.activeElement.blur(); })();", null)
                         },
@@ -578,4 +595,3 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         }
     }
 }
-

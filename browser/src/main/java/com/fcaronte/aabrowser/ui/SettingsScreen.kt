@@ -67,8 +67,10 @@ fun SettingsScreen(
     val isAdBlockEnabled by AdBlockSettings.isEnabled
     val isYouTubeAdBlockEnabled by AdBlockSettings.isYouTubeEnabled
     val isDarkPagesEnabled by AppSettings.darkPages
+    val forceTheme by AppSettings.forceTheme
     val themeMode by AppSettings.themeMode
     val useThreeColumns by AppSettings.dashboardThreeColumns
+    val customSearchEngine by AppSettings.customSearchEngine
     val searchEngine by AppSettings.searchEngine
     val uiScale by AppSettings.uiScale
     val forceEnglish by AppSettings.forceEnglish
@@ -132,50 +134,52 @@ fun SettingsScreen(
                 item {
                     AnimatedVisibility(visible = expandedAppSection) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            // Tema
+                            // Tema personalizzato / di sistema
                             SettingsCard {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.theme_mode_label),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
+                                Column(modifier = Modifier.padding(bottom = if (forceTheme) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = "Forza modalità tema",
+                                        description = if (forceTheme) "Modalità manuale attiva" else "Segue automaticamente il tema del dispositivo",
+                                        checked = forceTheme,
+                                        onCheckedChange = { AppSettings.setForceTheme(context, it) }
                                     )
-                                    Text(
-                                        text = stringResource(R.string.theme_mode_desc),
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        fontSize = 12.sp,
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        ThemeMode.entries.forEach { mode ->
-                                            val isSelected = themeMode == mode
-                                            Button(
-                                                onClick = {
-                                                    AppSettings.setThemeMode(
-                                                        context,
-                                                        mode
-                                                    )
-                                                },
-                                                modifier = Modifier.weight(1f),
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary
-                                                    else MaterialTheme.colorScheme.surfaceVariant,
-                                                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                ),
+
+                                    AnimatedVisibility(visible = forceTheme) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = "Seleziona tema:",
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                             ) {
-                                                Text(
-                                                    text = mode.name,
-                                                    fontSize = 11.sp,
-                                                    maxLines = 1
-                                                )
+                                                ThemeMode.entries.forEach { mode ->
+                                                    val isSelected = themeMode == mode
+                                                    Button(
+                                                        onClick = { AppSettings.setThemeMode(context, mode) },
+                                                        modifier = Modifier.weight(1f),
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary
+                                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        ),
+                                                    ) {
+                                                        Text(
+                                                            text = mode.name,
+                                                            fontSize = 11.sp,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -305,7 +309,7 @@ fun SettingsScreen(
                                                     AppSettings.setPreloadFavoritesCount(context, it.toInt())
                                                 },
                                                 valueRange = 1f..8f,
-                                                steps = 6 // crea 6 punti intermedi discreti per 1, 2, 3, 4, 5, 6, 7, 8
+                                                steps = 6
                                             )
                                         }
                                     }
@@ -361,56 +365,63 @@ fun SettingsScreen(
                                             )
                                         },
                                         valueRange = 0.5f..1.5f,
-                                        steps = 19, // 0.05 steps: 0.5, 0.55, ..., 1.0, ..., 1.5
+                                        steps = 19,
                                     )
                                 }
                             }
 
                             // Motore di Ricerca
                             SettingsCard {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.search_engine_label),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
+                                Column(modifier = Modifier.padding(bottom = if (customSearchEngine) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.search_engine_label),
+                                        description = if (customSearchEngine) "Motore personalizzato attivo" else "Predefinito: Google",
+                                        checked = customSearchEngine,
+                                        onCheckedChange = { AppSettings.setCustomSearchEngine(context, it) }
                                     )
-                                    Text(
-                                        text = stringResource(R.string.search_engine_desc),
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        fontSize = 12.sp,
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        SearchEngine.entries.forEach { engine ->
-                                            val isSelected = searchEngine == engine
-                                            Button(
-                                                onClick = {
-                                                    AppSettings.setSearchEngine(
-                                                        context,
-                                                        engine
-                                                    )
-                                                },
-                                                modifier = Modifier.weight(1f),
-                                                contentPadding = PaddingValues(horizontal = 4.dp),
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary
-                                                    else MaterialTheme.colorScheme.surfaceVariant,
-                                                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                ),
+
+                                    AnimatedVisibility(visible = customSearchEngine) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = "Seleziona motore:",
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
                                             ) {
-                                                Text(
-                                                    text = engine.name,
-                                                    fontSize = 9.sp,
-                                                    maxLines = 1
-                                                )
+                                                SearchEngine.entries.forEach { engine ->
+                                                    val isSelected = searchEngine == engine
+                                                    Button(
+                                                        onClick = {
+                                                            AppSettings.setSearchEngine(
+                                                                context,
+                                                                engine
+                                                            )
+                                                        },
+                                                        modifier = Modifier.weight(1f),
+                                                        contentPadding = PaddingValues(horizontal = 4.dp),
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary
+                                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        ),
+                                                    ) {
+                                                        Text(
+                                                            text = engine.name,
+                                                            fontSize = 9.sp,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -496,7 +507,7 @@ fun SettingsScreen(
                                                 )
                                             },
                                             valueRange = 0.25f..1.5f,
-                                            steps = 24, // 0.05 steps: 0.25, 0.30, ..., 1.0, ..., 1.5
+                                            steps = 24,
                                         )
                                     } else {
                                         Text(
@@ -516,7 +527,7 @@ fun SettingsScreen(
                                                 )
                                             },
                                             valueRange = 0.25f..1.5f,
-                                            steps = 24, // 0.05 steps
+                                            steps = 24,
                                         )
                                     }
                                 }
@@ -577,7 +588,6 @@ fun SettingsScreen(
                                             )
                                         }
 
-                                        // Tasto refresh manuale dimensione cache
                                         IconButton(onClick = {
                                             cacheSize = calculateCacheSize(context)
                                         }) {
@@ -676,7 +686,13 @@ fun SettingsSectionHeader(title: String, isExpanded: Boolean, onClick: () -> Uni
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        ),
         content = content
     )
 }
