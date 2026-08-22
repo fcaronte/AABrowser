@@ -103,6 +103,7 @@ fun BrowserScreen(
     val actualDesktopScale = desktopZoomOverride ?: globalDesktopScale
     val isYouTubeAdBlockEnabled by com.fcaronte.aabrowser.settings.AdBlockSettings.isYouTubeEnabled
     val context = LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val voicePrompt = stringResource(R.string.voice_prompt)
 
     var webViewReference by remember { mutableStateOf<WebView?>(null) }
@@ -132,6 +133,28 @@ fun BrowserScreen(
     LaunchedEffect(isTabActive) {
         if (isTabActive) {
             webViewReference?.let { onWebViewCreated(it) }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, webViewReference) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            when (event) {
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
+                    webViewReference?.let {
+                        it.onResume()
+                        // Forza il ridisegno dell'immagine se era congelata
+                        it.invalidate()
+                    }
+                }
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> {
+                    // Non chiamiamo webView.onPause() qui perché vogliamo il background play
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -202,6 +225,10 @@ fun BrowserScreen(
                     }
                     override fun onWindowVisibilityChanged(visibility: Int) {
                         super.onWindowVisibilityChanged(VISIBLE)
+                        if (visibility == VISIBLE) {
+                            // Forza l'aggiornamento grafico al ritorno in primo piano
+                            invalidate()
+                        }
                     }
                 }.apply {
                     isFocusable = true

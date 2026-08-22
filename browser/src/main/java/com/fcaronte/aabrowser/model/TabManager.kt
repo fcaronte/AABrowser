@@ -109,17 +109,31 @@ object TabManager {
     fun findTabIndexByUrlOrHost(targetUrl: String): Int {
         if (targetUrl.isBlank()) return -1
         val targetHost = extractHost(targetUrl)
+        if (targetHost.isEmpty()) return -1
+        
         return tabs.indexOfFirst { tab ->
-            tab.url == targetUrl || (targetHost.isNotEmpty() && extractHost(tab.url) == targetHost)
+            tab.url == targetUrl || (extractHost(tab.url) == targetHost)
         }
     }
 
     private fun extractHost(urlStr: String): String {
         return try {
             val uri = URI(urlStr)
-            uri.host ?: urlStr
+            var host = uri.host ?: ""
+            if (host.isEmpty() && urlStr.contains("://")) {
+                // Fallback per URL malformati ma con schema
+                host = urlStr.substringAfter("://").substringBefore("/")
+            } else if (host.isEmpty()) {
+                host = urlStr.substringBefore("/")
+            }
+            
+            // Normalizzazione: rimuove www. e m. (mobile) per il matching intelligente
+            host.lowercase()
+                .removePrefix("www.")
+                .removePrefix("m.")
+                .removePrefix("mobile.")
         } catch (_: Exception) {
-            urlStr
+            urlStr.lowercase().removePrefix("www.").removePrefix("m.")
         }
     }
 
