@@ -283,10 +283,9 @@ object AppSettings {
             if (webViewDir.exists()) {
                 // Elenchiamo solo le cartelle di cache pura, escludendo database e cookie
                 val pureCacheDirs = listOf(
-                    "Cache/Cache_Data",
-                    "Code Cache",
-                    "GPUCache",
-                    "ShaderCache"
+                    "Cache", "Code Cache", "GPUCache", "ShaderCache", "GrShaderCache",
+                    "Default/Cache", "Default/Code Cache", "Default/GPUCache", "Default/Service Worker/CacheStorage",
+                    "blob_storage"
                 )
 
                 for (subDir in pureCacheDirs) {
@@ -299,6 +298,16 @@ object AppSettings {
 
             // 3. Pulisce la cache standard di Android dell'app
             context.cacheDir?.let { cache ->
+                if (cache.exists()) {
+                    cache.listFiles()?.forEach { it.deleteRecursively() }
+                }
+            }
+            context.externalCacheDir?.let { cache ->
+                if (cache.exists()) {
+                    cache.listFiles()?.forEach { it.deleteRecursively() }
+                }
+            }
+            context.codeCacheDir?.let { cache ->
                 if (cache.exists()) {
                     cache.listFiles()?.forEach { it.deleteRecursively() }
                 }

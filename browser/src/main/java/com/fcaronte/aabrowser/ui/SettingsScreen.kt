@@ -707,8 +707,15 @@ fun SettingsScreen(
 
                                     Button(
                                         onClick = {
-                                            if (clearCache) AppSettings.clearCache(context)
-                                            if (clearCookies) AppSettings.clearCookies()
+                                            if (clearCache) {
+                                                AppSettings.clearCache(context)
+                                                cacheSize = calculateCacheSize(context)
+                                                clearCache = false
+                                            }
+                                            if (clearCookies) {
+                                                AppSettings.clearCookies()
+                                                clearCookies = false
+                                            }
                                             onShowFeedback(dataClearedMsg)
                                         },
                                         enabled = clearCache || clearCookies,
