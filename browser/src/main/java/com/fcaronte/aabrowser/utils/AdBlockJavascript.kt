@@ -1,4 +1,4 @@
-package com.fcaronte.aabrowser
+package com.fcaronte.aabrowser.utils
 
 object AdBlockJavascript {
 

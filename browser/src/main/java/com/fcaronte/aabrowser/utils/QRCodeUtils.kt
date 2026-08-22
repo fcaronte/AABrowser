@@ -1,4 +1,4 @@
-package com.fcaronte.aabrowser.ui
+package com.fcaronte.aabrowser.utils
 
 import android.graphics.Bitmap
 import android.graphics.Color

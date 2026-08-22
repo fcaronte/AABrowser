@@ -1,4 +1,4 @@
-package com.fcaronte.aabrowser
+package com.fcaronte.aabrowser.utils
 
 import android.content.Context
 import com.fcaronte.aabrowser.settings.AdBlockSettings

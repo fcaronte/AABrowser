@@ -43,14 +43,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import com.fcaronte.aabrowser.AdBlockHost
-import com.fcaronte.aabrowser.AdBlockJavascript
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockJavascript
+import com.fcaronte.aabrowser.utils.InactivityTracker
 import java.io.ByteArrayInputStream
 
 private const val DESKTOP_USER_AGENT =
@@ -64,7 +65,7 @@ private fun isDesktopRequired(url: String?): Boolean {
             lowUrl.contains("web.skype.com")
 }
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
 fun BrowserScreen(
     url: String,
@@ -81,6 +82,7 @@ fun BrowserScreen(
     onPageFinished: (String) -> Unit,
     onWebViewCreated: (WebView) -> Unit = {},
     onFullScreenChange: (Boolean) -> Unit = {},
+    onInteraction: () -> Unit = {},
 ) {
     val darkPages by AppSettings.darkPages
     val globalDisplayScale by AppSettings.displayScale
@@ -163,6 +165,13 @@ fun BrowserScreen(
                     isFocusable = true
                     isFocusableInTouchMode = true
                     setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+
+                    // Notifica l'interazione continua durante swipe/scroll senza bloccare la WebView
+                    setOnTouchListener { _, _ ->
+                        onInteraction()
+                        InactivityTracker.notifyInteraction(5000L, AppSettings.persistentNavigation.value)
+                        false
+                    }
 
                     settings.apply {
                         javaScriptEnabled = true

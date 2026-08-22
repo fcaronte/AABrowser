@@ -426,9 +426,6 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                     TabManager.addTab(searchUrl)
                                     currentScreen = Screen.Browser
                                 },
-                                onSearchClick = { showBrowserSearch = true },
-                                onSearchOverlayDismiss = { showBrowserSearch = false },
-                                showSearchDialogOverride = showBrowserSearch,
                                 onAddToFavorites = {
                                     TabManager.activeTab?.let { activeTab ->
                                         favoritesViewModel.addFavorite(
@@ -446,8 +443,11 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                 webView = activeWebView ?: (inputHostView as? WebView),
                                 isVisible = isNavVisible,
                                 showMenu = isNavMenuOpen,
-                                onShowMenuChange = { isNavMenuOpen = it },
-                                onInteraction = { onInteraction() },
+                                onShowMenuChange = {
+                                    isNavMenuOpen = it
+                                    com.fcaronte.aabrowser.utils.InactivityTracker.isMenuOpen = it
+                                },
+                                onInteraction = { onInteraction(fromPage = false) },
                                 onExit = {
                                     try {
                                         val activity = context as? Activity

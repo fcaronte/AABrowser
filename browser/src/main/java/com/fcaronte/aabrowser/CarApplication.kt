@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.google.android.material.color.DynamicColors
 
 class CarApplication : Application() {
