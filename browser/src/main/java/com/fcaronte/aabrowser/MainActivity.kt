@@ -2,13 +2,13 @@ package com.fcaronte.aabrowser
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.fcaronte.aabrowser.ui.MainScreen
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
 
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
         if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
             @SuppressLint("BatteryLife")
             val intent = Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:$packageName")
+                data = "package:$packageName".toUri()
             }
             startActivityForResult(intent, 1001)
         }

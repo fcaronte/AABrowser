@@ -308,20 +308,24 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
     // Creiamo un contesto configurato (lingua e tema) per la WebView e i componenti nativi
     val localizedContext = remember(context, forceEnglish, configuration, isAppDark) {
         val config = android.content.res.Configuration(configuration)
-        
+
+        // 1. Gestione Tema (Dark/Light)
         val uiMode = if (isAppDark) {
             android.content.res.Configuration.UI_MODE_NIGHT_YES
         } else {
             android.content.res.Configuration.UI_MODE_NIGHT_NO
         }
         config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or uiMode
-        
+
+        // 2. Gestione Lingua (Forza inglese se attivo, altrimenti lascia la configurazione originale)
+        if (forceEnglish) {
+            config.setLocale(java.util.Locale.ENGLISH)
+        }
+
         val localized = context.createConfigurationContext(config)
-        // Forza l'applicazione del tema corretto al nuovo contesto
         localized.setTheme(R.style.AppTheme)
         localized
     }
-
     CompositionLocalProvider(
         LocalContext provides localizedContext,
         LocalDensity provides customDensity
