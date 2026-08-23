@@ -14,7 +14,7 @@ different worlds:
 I loved the interface of the new one, but I needed the functionality of the old one. So, I took the
 old, ugly, and obsolete base and forced it to become a modern app, blending the best of both worlds.
 
-![AABrowser Demo](browser/src/main/assets/demo.gif)
+![AABrowser Demo](assets/demo.gif)
 
 ## ⚠️ SAFETY WARNING
 
@@ -72,7 +72,7 @@ Mi piaceva l'interfaccia di quello nuovo, ma avevo bisogno della funzionalità d
 Così, ho preso la base vecchia, brutta e obsoleta e l'ho trasformata in un'app moderna, unendo il
 meglio dei due mondi.
 
-![AABrowser Demo](browser/src/main/assets/demo.gif)
+![AABrowser Demo](assets/demo.gif)
 
 ## ⚠️ AVVERTENZA DI SICUREZZA
 
