@@ -9,10 +9,12 @@ different worlds:
 
 * The modern and sleek [AABrowser by kododake](https://github.com/kododake/AABrowser).
 * The ancient but functional [AABrowser by slashmax](https://github.com/slashmax/AABrowser), which
-  relies on "old-school" Android Auto tricks to actually work while the car is in motion.
+  relies on "old-school" Android Auto tricks to actually work while the car is in motion.
 
 I loved the interface of the new one, but I needed the functionality of the old one. So, I took the
 old, ugly, and obsolete base and forced it to become a modern app, blending the best of both worlds.
+
+![AABrowser Demo](browser/src/main/assets/demo.gif)
 
 ## ⚠️ SAFETY WARNING
 
@@ -64,11 +66,13 @@ aver scoperto due mondi diversi:
 
 * Il moderno ed esteticamente curato [AABrowser di kododake](https://github.com/kododake/AABrowser).
 * Il vecchio [AABrowser di slashmax](https://github.com/slashmax/AABrowser), che utilizza i "vecchi
-  trucchi" di Android Auto per funzionare anche con l'auto in movimento.
+  trucchi" di Android Auto per funzionare anche con l'auto in movimento.
 
 Mi piaceva l'interfaccia di quello nuovo, ma avevo bisogno della funzionalità di quello vecchio.
 Così, ho preso la base vecchia, brutta e obsoleta e l'ho trasformata in un'app moderna, unendo il
 meglio dei due mondi.
+
+![AABrowser Demo](browser/src/main/assets/demo.gif)
 
 ## ⚠️ AVVERTENZA DI SICUREZZA
 
