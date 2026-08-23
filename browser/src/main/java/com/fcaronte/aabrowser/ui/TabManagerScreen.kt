@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -197,7 +196,7 @@ fun TabCard(
                     if (isLoaded) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Caricata",
+                            contentDescription = stringResource(R.string.status_loaded),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )

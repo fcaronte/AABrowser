@@ -244,7 +244,7 @@ fun SearchOverlay(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
-                            contentDescription = "Voice Search",
+                            contentDescription = stringResource(R.string.voice_search),
                             tint = if (isListening) Color.Red else MaterialTheme.colorScheme.primary,
                         )
                     }

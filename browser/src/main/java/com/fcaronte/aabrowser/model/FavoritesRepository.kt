@@ -36,10 +36,10 @@ class FavoritesRepository(private val context: Context) {
         // If empty, provide defaults
         if (list.isEmpty()) {
             val defaults = listOf(
-                FavoriteSite("0", "Google", context.getString(R.string.default_fav_google_url), 0xFF4285F4),
-                FavoriteSite("1", "YouTube", context.getString(R.string.default_fav_youtube_url), 0xFFFF0000),
-                FavoriteSite("2", "YouTube Music", context.getString(R.string.default_fav_ytmusic_url), 0xFFFF0000),
-                FavoriteSite("3", "WhatsApp", context.getString(R.string.default_fav_whatsapp_url), 0xFF34A853)
+                FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF4285F4),
+                FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFFF0000),
+                FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFFFF0000),
+                FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF34A853)
             )
             saveFavorites(defaults)
             return defaults

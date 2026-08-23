@@ -43,11 +43,20 @@
     <string name="back_button">Indietro</string>
     <string name="theme_mode_label">Modalità Tema App</string>
     <string name="theme_mode_desc">Forza lo stile chiaro o scuro sul display dell\'auto</string>
+    <string name="theme_force_label">Forza modalità tema</string>
+    <string name="theme_force_desc_on">Modalità manuale attiva</string>
+    <string name="theme_force_desc_off">Segue automaticamente il tema del dispositivo</string>
+    <string name="theme_selection_label">Seleziona tema:</string>
     <string name="dashboard_columns_label">Dashboard a tre colonne</string>
     <string name="dashboard_columns_desc">Abilita 3 colonne invece di 2 nella home</string>
     <string name="auto_open_favorite_label">Usa Preferito come pagina iniziale</string>
     <string name="auto_open_favorite_desc">Carica automaticamente un preferito specifico invece della dashboard</string>
     <string name="auto_open_none">Nessuno (Apri Dashboard)</string>
+    <string name="autoplay_label">Riproduzione automatica media</string>
+    <string name="autoplay_desc">Consente l\'avvio immediato di audio e video all\'apertura delle schede</string>
+    <string name="preload_favorites_label">Precarica schede preferiti all\'avvio</string>
+    <string name="preload_favorites_desc">Apre i primi siti preferiti in schede di background all\'apertura dell\'app</string>
+    <string name="preload_favorites_count_label">Numero di schede da precaricare: %d</string>
     <string name="persistent_nav_label">Tasto navigazione persistente</string>
     <string name="persistent_nav_desc">Mantieni il tasto di navigazione sempre visibile (disabilita auto-nascondi)</string>
     <string name="tab_bar_mode_label">Visibilità barra schede</string>
@@ -73,10 +82,15 @@
     <string name="force_english_desc">Usa sempre l\'inglese indipendentemente dalla lingua di sistema</string>
     <string name="search_engine_label">Motore di ricerca predefinito</string>
     <string name="search_engine_desc">Scegli il motore per la ricerca rapida</string>
+    <string name="search_engine_custom_on">Motore personalizzato attivo</string>
+    <string name="search_engine_custom_off">Predefinito: Google</string>
+    <string name="search_engine_selection_label">Seleziona motore:</string>
     <string name="ui_scale_label">Scala UI (DPI)</string>
     <string name="ui_scale_desc">Regola la dimensione globale dell\'interfaccia</string>
     <string name="clear_data_label">Cancella Dati Navigazione</string>
     <string name="clear_data_desc">Seleziona i dati da rimuovere dal dispositivo</string>
+    <string name="cache_label">Cache (%s)</string>
+    <string name="cookies_label">Cookies</string>
     <string name="data_cleared">Dati selezionati cancellati</string>
 
     <!-- Tab Manager -->
@@ -94,17 +108,22 @@
     <string name="search_button">Ricerca</string>
     <string name="share_button">Condividi tramite QR Code</string>
     <string name="qr_code_title">Condividi pagina</string>
+    <string name="qr_code_label">QR Code</string>
     <string name="close_button">Chiudi</string>
 
     <!-- Browser -->
     <string name="voice_prompt">Dì qualcosa…</string>
     <string name="voice_listening">In ascolto…</string>
+    <string name="voice_search">Ricerca vocale</string>
 
     <!-- Media -->
     <string name="media_session_channel_name">AABrowser</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio dal Browser</string>
     <string name="media_browser_subtitle">Riproduci l\'audio corrente</string>
+
+    <!-- Status -->
+    <string name="status_loaded">Caricata</string>
 
     <!-- Update -->
     <string name="update_available">Nuovo aggiornamento disponibile: %s</string>
@@ -113,5 +132,7 @@
     <string name="download_button">Scarica</string>
 
     <string name="settings_footer_github">Progetto GitHub</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">Aggiorna dimensione cache</string>
     <string name="settings_footer_donation">Se ti piace il progetto, puoi offrirmi un caffè per supportare le ore di sonno perse a scrivere questo codice a litigare con Gemini 😂</string>
 </resources>

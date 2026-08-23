@@ -2,13 +2,13 @@ package com.fcaronte.aabrowser.settings
 
 import android.content.Context
 import android.webkit.CookieManager
-import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
+import com.fcaronte.aabrowser.R
 
 enum class ThemeMode {
     LIGHT, DARK, AMOLED
@@ -26,11 +26,11 @@ enum class TabBarMode {
     OFF, AUTO_HIDE, ALWAYS_ON
 }
 
-enum class SearchEngine(val baseUrl: String, val homeUrl: String) {
-    GOOGLE("https://www.google.com/search?q=", "https://www.google.com"),
-    DUCKDUCKGO("https://duckduckgo.com/?q=", "https://duckduckgo.com"),
-    BING("https://www.bing.com/search?q=", "https://www.bing.com"),
-    YAHOO("https://search.yahoo.com/search?p=", "https://search.yahoo.com")
+enum class SearchEngine(val baseUrlRes: Int, val homeUrlRes: Int) {
+    GOOGLE(R.string.google_base_url, R.string.google_home_url),
+    DUCKDUCKGO(R.string.duckduckgo_base_url, R.string.duckduckgo_home_url),
+    BING(R.string.bing_base_url, R.string.bing_home_url),
+    YAHOO(R.string.yahoo_base_url, R.string.yahoo_home_url)
 }
 
 object AppSettings {

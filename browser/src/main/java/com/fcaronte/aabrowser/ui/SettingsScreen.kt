@@ -160,8 +160,8 @@ fun SettingsScreen(
                             SettingsCard {
                                 Column(modifier = Modifier.padding(bottom = if (forceTheme) 16.dp else 0.dp)) {
                                     SettingsSwitchItem(
-                                        label = "Forza modalità tema",
-                                        description = if (forceTheme) "Modalità manuale attiva" else "Segue automaticamente il tema del dispositivo",
+                                        label = stringResource(R.string.theme_force_label),
+                                        description = if (forceTheme) stringResource(R.string.theme_force_desc_on) else stringResource(R.string.theme_force_desc_off),
                                         checked = forceTheme,
                                         onCheckedChange = { AppSettings.setForceTheme(context, it) }
                                     )
@@ -174,7 +174,7 @@ fun SettingsScreen(
                                             verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Text(
-                                                text = "Seleziona tema:",
+                                                text = stringResource(R.string.theme_selection_label),
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.SemiBold
@@ -296,8 +296,8 @@ fun SettingsScreen(
                             // Autoplay
                             SettingsCard {
                                 SettingsSwitchItem(
-                                    label = "Riproduzione automatica media",
-                                    description = "Consente l'avvio immediato di audio e video all'apertura delle schede",
+                                    label = stringResource(R.string.autoplay_label),
+                                    description = stringResource(R.string.autoplay_desc),
                                     checked = autoplayMedia,
                                     onCheckedChange = { AppSettings.setAutoplayMedia(context, it) }
                                 )
@@ -307,8 +307,8 @@ fun SettingsScreen(
                             SettingsCard {
                                 Column(modifier = Modifier.padding(bottom = if (preloadFavorites) 12.dp else 0.dp)) {
                                     SettingsSwitchItem(
-                                        label = "Precarica schede preferiti all'avvio",
-                                        description = "Apre i primi siti preferiti in schede di background all'apertura dell'app",
+                                        label = stringResource(R.string.preload_favorites_label),
+                                        description = stringResource(R.string.preload_favorites_desc),
                                         checked = preloadFavorites,
                                         onCheckedChange = { AppSettings.setPreloadFavorites(context, it) }
                                     )
@@ -320,7 +320,7 @@ fun SettingsScreen(
                                                 .padding(horizontal = 16.dp, vertical = 4.dp)
                                         ) {
                                             Text(
-                                                text = "Numero di schede da precaricare: $preloadFavoritesCount",
+                                                text = stringResource(R.string.preload_favorites_count_label, preloadFavoritesCount),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontWeight = FontWeight.SemiBold
@@ -460,7 +460,7 @@ fun SettingsScreen(
                                 Column(modifier = Modifier.padding(bottom = if (customSearchEngine) 16.dp else 0.dp)) {
                                     SettingsSwitchItem(
                                         label = stringResource(R.string.search_engine_label),
-                                        description = if (customSearchEngine) "Motore personalizzato attivo" else "Predefinito: Google",
+                                        description = if (customSearchEngine) stringResource(R.string.search_engine_custom_on) else stringResource(R.string.search_engine_custom_off),
                                         checked = customSearchEngine,
                                         onCheckedChange = { AppSettings.setCustomSearchEngine(context, it) }
                                     )
@@ -473,7 +473,7 @@ fun SettingsScreen(
                                             verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Text(
-                                                text = "Seleziona motore:",
+                                                text = stringResource(R.string.search_engine_selection_label),
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.SemiBold
@@ -674,7 +674,7 @@ fun SettingsScreen(
                                         }) {
                                             Icon(
                                                 Icons.Default.Refresh,
-                                                contentDescription = "Refresh cache size",
+                                                contentDescription = stringResource(R.string.refresh_cache),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -688,7 +688,7 @@ fun SettingsScreen(
                                             onCheckedChange = { clearCache = it }
                                         )
                                         Text(
-                                            text = "Cache ($cacheSize)",
+                                            text = stringResource(R.string.cache_label, cacheSize),
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }
@@ -698,7 +698,7 @@ fun SettingsScreen(
                                             onCheckedChange = { clearCookies = it }
                                         )
                                         Text(
-                                            text = "Cookies",
+                                            text = stringResource(R.string.cookies_label),
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }
@@ -765,7 +765,7 @@ fun SettingsScreen(
                             ) {
                                 AsyncImage(
                                     model = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-                                    contentDescription = "GitHub",
+                                    contentDescription = stringResource(R.string.github_label),
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }
@@ -807,7 +807,7 @@ fun SettingsScreen(
                                 modifier = Modifier.height(34.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                             ) {
-                                Text("PayPal.me", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.paypal_button), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

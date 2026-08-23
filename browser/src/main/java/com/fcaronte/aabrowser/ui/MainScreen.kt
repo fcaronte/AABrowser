@@ -494,11 +494,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                         )
 
                         if (showDashboardSearch) {
+                            val baseUrl = stringResource(searchEngine.baseUrlRes)
                             SearchOverlay(
                                 onSearch = { query ->
-                                    val searchUrl =
-                                        searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
-
+                                    val searchUrl = baseUrl + URLEncoder.encode(query, "UTF-8")
                                     // Usa addTab invece di openOrSwitchTo per garantire una ricerca fresca ogni volta
                                     TabManager.addTab(
                                         url = searchUrl,
@@ -518,6 +517,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
                     is Screen.Browser -> {
                         Box(modifier = Modifier.fillMaxSize().zIndex(10f)) {
+                            val homeUrlRes = stringResource(AppSettings.effectiveSearchEngine.homeUrlRes)
+                            val baseUrlRes = stringResource(AppSettings.effectiveSearchEngine.baseUrlRes)
                             if (isTabBarVisible) {
                                 PersistentTabBar(
                                     modifier = Modifier.align(Alignment.TopCenter),
@@ -533,7 +534,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                         onInteraction()
                                     },
                                     onAddTab = {
-                                        TabManager.addTab(AppSettings.effectiveSearchEngine.homeUrl)
+                                        TabManager.addTab(homeUrlRes)
                                         onInteraction()
                                     },
                                     onGoBack = {
@@ -576,7 +577,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                     onInteraction()
                                 },
                                 onSearch = { query ->
-                                    val searchUrl = searchEngine.baseUrl + URLEncoder.encode(query, "UTF-8")
+                                    val searchUrl = baseUrlRes + URLEncoder.encode(query, "UTF-8")
                                     TabManager.openOrSwitchTo(searchUrl)
                                     currentScreen = Screen.Browser
                                     onInteraction()
@@ -625,6 +626,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     }
 
                     is Screen.TabManager -> {
+                        val homeUrlRes = stringResource(AppSettings.effectiveSearchEngine.homeUrlRes)
                         TabManagerScreen(
                             onTabSelected = { index ->
                                 TabManager.switchTab(index)
@@ -632,7 +634,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             },
                             onCloseTab = { index -> TabManager.closeTab(index) },
                             onAddTab = {
-                                TabManager.addTab(AppSettings.effectiveSearchEngine.homeUrl)
+                                TabManager.addTab(homeUrlRes)
                                 currentScreen = Screen.Browser
                             },
                             onBack = {

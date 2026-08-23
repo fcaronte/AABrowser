@@ -1,8 +1,6 @@
 package com.fcaronte.aabrowser.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -20,13 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.model.TabState
 import java.net.URI
@@ -89,7 +86,7 @@ fun PersistentTabBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "New Tab",
+                            contentDescription = stringResource(R.string.new_tab),
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -116,7 +113,7 @@ fun PersistentTabBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.back_button),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -127,7 +124,7 @@ fun PersistentTabBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Forward",
+                        contentDescription = stringResource(R.string.forward_button),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -181,7 +178,7 @@ fun TabItem(
             )
 
             Text(
-                text = tab.title.ifBlank { "New Tab" },
+                text = tab.title.ifBlank { stringResource(R.string.new_tab) },
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -196,7 +193,7 @@ fun TabItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close_button),
                     modifier = Modifier.size(14.dp),
                     tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) 
                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)

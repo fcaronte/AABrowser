@@ -43,11 +43,20 @@
     <string name="back_button">Back</string>
     <string name="theme_mode_label">App Theme Mode</string>
     <string name="theme_mode_desc">Force dark or light style on AA display</string>
+    <string name="theme_force_label">Force theme mode</string>
+    <string name="theme_force_desc_on">Manual mode active</string>
+    <string name="theme_force_desc_off">Follow system theme automatically</string>
+    <string name="theme_selection_label">Select theme:</string>
     <string name="dashboard_columns_label">Three Columns Dashboard</string>
     <string name="dashboard_columns_desc">Enable 3 columns instead of 2 on home screen</string>
     <string name="auto_open_favorite_label">Use Favorite as Startup Page</string>
     <string name="auto_open_favorite_desc">Automatically load a specific favorite instead of the dashboard</string>
     <string name="auto_open_none">None (Open Dashboard)</string>
+    <string name="autoplay_label">Autoplay media</string>
+    <string name="autoplay_desc">Allow audio and video to start immediately when opening tabs</string>
+    <string name="preload_favorites_label">Preload favorites on startup</string>
+    <string name="preload_favorites_desc">Open top favorites in background tabs when the app starts</string>
+    <string name="preload_favorites_count_label">Number of tabs to preload: %d</string>
     <string name="persistent_nav_label">Persistent Navigation Button</string>
     <string name="persistent_nav_desc">Keep navigation button always visible (disable auto-hide)</string>
     <string name="tab_bar_mode_label">Tab Bar Visibility</string>
@@ -73,10 +82,15 @@
     <string name="force_english_desc">Always use English regardless of system language</string>
     <string name="search_engine_label">Default Search Engine</string>
     <string name="search_engine_desc">Choose engine for quick search</string>
+    <string name="search_engine_custom_on">Custom engine active</string>
+    <string name="search_engine_custom_off">Default: Google</string>
+    <string name="search_engine_selection_label">Select engine:</string>
     <string name="ui_scale_label">UI Scale (DPI)</string>
     <string name="ui_scale_desc">Adjust the overall size of the app interface</string>
     <string name="clear_data_label">Clear Browser Data</string>
     <string name="clear_data_desc">Select data to remove from your device</string>
+    <string name="cache_label">Cache (%s)</string>
+    <string name="cookies_label">Cookies</string>
     <string name="data_cleared">Selected data cleared</string>
 
     <!-- Tab Manager -->
@@ -94,17 +108,22 @@
     <string name="search_button">Quick Search</string>
     <string name="share_button">Share via QR Code</string>
     <string name="qr_code_title">Share Page</string>
+    <string name="qr_code_label">QR Code</string>
     <string name="close_button">Close</string>
 
     <!-- Browser -->
     <string name="voice_prompt">Say something…</string>
     <string name="voice_listening">Listening…</string>
+    <string name="voice_search">Voice Search</string>
 
     <!-- Media -->
     <string name="media_session_channel_name">AABrowser</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio from Browser</string>
     <string name="media_browser_subtitle">Play current audio</string>
+
+    <!-- Status -->
+    <string name="status_loaded">Loaded</string>
 
     <!-- Update -->
     <string name="update_available">New update available: %s</string>
@@ -113,13 +132,32 @@
     <string name="download_button">Download</string>
 
     <string name="settings_footer_github">GitHub Project</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">Refresh cache size</string>
+    <string name="paypal_button">PayPal.me</string>
     <string name="settings_footer_donation">If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂</string>
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
     <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte</string>
-    <string name="default_fav_google_url" translatable="false">https://www.google.com</string>
-    <string name="default_fav_youtube_url" translatable="false">https://www.youtube.com</string>
-    <string name="default_fav_ytmusic_url" translatable="false">https://music.youtube.com</string>
-    <string name="default_fav_whatsapp_url" translatable="false">https://web.whatsapp.com</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
 </resources>

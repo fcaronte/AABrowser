@@ -78,7 +78,7 @@ fun QRCodeOverlay(
                 if (qrBitmap != null) {
                     Image(
                         bitmap = qrBitmap.asImageBitmap(),
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.qr_code_label),
                         modifier = Modifier.size(180.dp),
                     )
                 }

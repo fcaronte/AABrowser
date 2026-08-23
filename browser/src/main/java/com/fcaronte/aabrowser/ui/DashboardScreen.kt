@@ -195,7 +195,7 @@ fun DashboardScreen(
                         IconButton(onClick = onOpenSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
+                                contentDescription = stringResource(R.string.search_button),
                                 tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             )
                         }
