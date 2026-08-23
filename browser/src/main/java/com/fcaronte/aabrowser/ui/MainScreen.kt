@@ -578,7 +578,12 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                 },
                                 onSearch = { query ->
                                     val searchUrl = baseUrlRes + URLEncoder.encode(query, "UTF-8")
-                                    TabManager.openOrSwitchTo(searchUrl)
+                                    // Usa addTab per garantire che la ricerca apra sempre una nuova scheda dedicata
+                                    TabManager.addTab(
+                                        url = searchUrl,
+                                        title = query,
+                                        setActive = true
+                                    )
                                     currentScreen = Screen.Browser
                                     onInteraction()
                                 },
