@@ -124,7 +124,7 @@ internal class CarMediaNotificationManager {
                 )
         )
 
-        builder.setSmallIcon(R.mipmap.ic_launcher)
+        builder.setSmallIcon(R.drawable.ic_notification_car)
             .setContentTitle(description.title)
             .setContentText(description.subtitle)
             .setContentIntent(createContentIntent())

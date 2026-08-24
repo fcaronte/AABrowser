@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.ui
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -28,8 +29,8 @@ private val AmoledColorScheme = darkColorScheme(
     onBackground = Color.White,
     onSurface = Color.White,
     onSurfaceVariant = Color(0xFFCAC4D0),
-    outline = Color(0xFF333333),                  // Bordo visibile ma elegante sul nero
-    outlineVariant = Color(0xFF262626)
+    outline = Color(0xFF938F99),          // Grigio chiaro (ripreso dallo standard M3 Dark) per far risaltare il pallino spento
+    outlineVariant = Color(0xFF49454F)   // Leggermente più chiaro per dare stacco ai bordi delle card
 )
 
 private val DarkColorScheme = darkColorScheme(

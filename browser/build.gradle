@@ -3,12 +3,12 @@ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
     namespace "com.fcaronte.aabrowser"
-    compileSdk 37
+    compileSdk = 37
 
     defaultConfig {
         applicationId "com.fcaronte.aabrowser"
         minSdk 29
-        targetSdk 34
+        targetSdk 37
         versionCode 5
         versionName "1.4"
     }

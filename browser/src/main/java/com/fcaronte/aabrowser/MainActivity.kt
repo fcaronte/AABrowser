@@ -7,6 +7,7 @@ import android.os.PowerManager
 import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import com.fcaronte.aabrowser.ui.MainScreen
 import androidx.core.net.toUri
 
@@ -15,6 +16,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
 
         ForegroundService.startForegroundService(this)
 
