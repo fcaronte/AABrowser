@@ -243,6 +243,74 @@ object BrowserJavascript {
         """.trimIndent()
     }
 
+    fun getDesktopSpoofScript(chromeVersion: String): String {
+        val majorVersion = chromeVersion.split(".").firstOrNull() ?: "152"
+        val uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"
+        return """
+        (function() {
+            try {
+                const defineProp = (obj, prop, val) => {
+                    try {
+                        Object.defineProperty(obj, prop, {
+                            get: function() { return val; },
+                            configurable: true
+                        });
+                    } catch(e) {}
+                };
+
+                defineProp(navigator, 'platform', 'Win32');
+                defineProp(navigator, 'vendor', 'Google Inc.');
+                defineProp(navigator, 'appVersion', '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36');
+                defineProp(navigator, 'userAgent', '$uaString');
+                defineProp(navigator, 'oscpu', 'Windows NT 10.0; Win64; x64');
+                
+                if (!window.chrome) {
+                    window.chrome = {
+                        app: { isInstalled: false },
+                        runtime: { connect: function() {}, sendMessage: function() {} },
+                        loadTimes: function() { return {}; },
+                        csi: function() { return {}; }
+                    };
+                }
+
+                if (navigator.userAgentData) {
+                    Object.defineProperty(navigator, 'userAgentData', {
+                        get: function() {
+                            return {
+                                brands: [
+                                    { brand: 'Not(A:Brand', version: '$majorVersion' },
+                                    { brand: 'Google Chrome', version: '$majorVersion' },
+                                    { brand: 'Chromium', version: '$majorVersion' }
+                                ],
+                                mobile: false,
+                                platform: 'Windows',
+                                getHighEntropyValues: function(hints) {
+                                    return Promise.resolve({
+                                        architecture: 'x86',
+                                        bitness: '64',
+                                        brands: [
+                                            { brand: 'Not(A:Brand', version: '$majorVersion' },
+                                            { brand: 'Google Chrome', version: '$majorVersion' },
+                                            { brand: 'Chromium', version: '$majorVersion' }
+                                        ],
+                                        mobile: false,
+                                        model: '',
+                                        platform: 'Windows',
+                                        platformVersion: '10.0.0',
+                                        uaFullVersion: '$chromeVersion',
+                                        windowsVersion: '10'
+                                    });
+                                }
+                            };
+                        },
+                        configurable: true
+                    });
+                }
+            } catch(e) {}
+        })();
+        """.trimIndent()
+    }
+
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;

@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
@@ -56,12 +58,50 @@ import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.InactivityTracker
 import java.io.ByteArrayInputStream
 
-private const val DESKTOP_USER_AGENT =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+object ChromeVersionFetcher {
+    private var cachedVersion: String = "152.0.0.0"
+
+    init {
+        fetchLatestVersion()
+    }
+
+    fun getLatestVersion(): String = cachedVersion
+
+    private fun fetchLatestVersion() {
+        Thread {
+            try {
+                val url = java.net.URL("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions")
+                val conn = url.openConnection() as java.net.HttpURLConnection
+                conn.connectTimeout = 3000
+                conn.readTimeout = 3000
+                if (conn.responseCode == 200) {
+                    val json = conn.inputStream.bufferedReader().use { it.readText() }
+                    val versionRegex = Regex("\"version\"\\s*:\\s*\"([0-9.]+)\"")
+                    val match = versionRegex.find(json)
+                    if (match != null) {
+                        val ver = match.groups[1]?.value
+                        if (!ver.isNullOrEmpty()) {
+                            cachedVersion = ver
+                            android.util.Log.d("ChromeVersionFetcher", "Latest Windows Chrome version fetched: $cachedVersion")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ChromeVersionFetcher", "Failed to fetch latest version", e)
+            }
+        }.start()
+    }
+}
+
+private fun getDynamicDesktopUserAgent(): String {
+    val version = ChromeVersionFetcher.getLatestVersion()
+    return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
+}
 
 private fun isDesktopRequired(url: String?): Boolean {
     val lowUrl = url?.lowercase() ?: ""
     return lowUrl.contains("whatsapp.com") ||
+            lowUrl.contains("whatsapp.net") ||
             lowUrl.contains("messenger.com") ||
             lowUrl.contains("web.telegram.org") ||
             lowUrl.contains("web.skype.com")
@@ -309,8 +349,21 @@ fun BrowserScreen(
                         }
                     }
 
-                    if (actualDesktopMode || isDesktopRequired(url)) {
-                        settings.userAgentString = DESKTOP_USER_AGENT
+                    val needsDesktop = actualDesktopMode || isDesktopRequired(url)
+                    if (needsDesktop) {
+                        settings.userAgentString = getDynamicDesktopUserAgent()
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                            val ua = getDynamicDesktopUserAgent()
+                            val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
+                            val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                BrowserJavascript.getDesktopSpoofScript(chromeVersion),
+                                setOf("*")
+                            )
+                        }
+                    } else {
+                        settings.userAgentString = null
                     }
 
                     // Implementazione robusta per il controllo dei media
@@ -465,7 +518,11 @@ fun BrowserScreen(
                             favicon: android.graphics.Bitmap?
                         ) {
                             if (actualDesktopMode || isDesktopRequired(url)) {
-                                view?.settings?.userAgentString = DESKTOP_USER_AGENT
+                                val ua = getDynamicDesktopUserAgent()
+                                view?.settings?.userAgentString = ua
+                                val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
+                                val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
+                                view?.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
                             } else {
                                 view?.settings?.userAgentString = null
                             }
@@ -511,13 +568,15 @@ fun BrowserScreen(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
-                            if (AdBlockHost.shouldBlock(request?.url?.toString() ?: "")) {
+                            val urlString = request?.url?.toString() ?: ""
+                            if (AdBlockHost.shouldBlock(urlString)) {
                                 return WebResourceResponse(
                                     "text/plain",
                                     "utf-8",
                                     ByteArrayInputStream("".toByteArray())
                                 )
                             }
+
                             return super.shouldInterceptRequest(view, request)
                         }
 
@@ -559,6 +618,16 @@ fun BrowserScreen(
                                     null
                                 )
 
+                                if (needsDesktop) {
+                                    val ua = getDynamicDesktopUserAgent()
+                                    val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
+                                    val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "134.0.0.0"
+                                    view?.evaluateJavascript(
+                                        BrowserJavascript.getDesktopSpoofScript(chromeVersion),
+                                        null
+                                    )
+                                }
+
                                 view?.evaluateJavascript(
                                     BrowserJavascript.getLifecycleAndMetadataScript(),
                                     null
@@ -586,6 +655,11 @@ fun BrowserScreen(
                         it.tag = reloadTrigger
                     }
                     val needsDesktop = actualDesktopMode || isDesktopRequired(it.url)
+                    if (needsDesktop) {
+                        it.settings.userAgentString = getDynamicDesktopUserAgent()
+                    } else {
+                        it.settings.userAgentString = null
+                    }
                     val targetScale = if (needsDesktop) actualDesktopScale else actualDisplayScale
                     it.setInitialScale(if (targetScale == 1.0f) 0 else (targetScale * 100).toInt())
 

@@ -204,9 +204,16 @@ class CarInputConnection internal constructor(
         }
 
         // Backup: ENTER key handling
-        if (textStr == "\n") {
+        if (textStr.contains("\n") || textStr == "\n") {
             m_InputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
             m_InputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+            val targetView = m_CarInputManager?.getTargetView()
+            if (targetView is android.webkit.WebView) {
+                targetView.post {
+                    targetView.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+                    targetView.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+                }
+            }
         }
         return result
     }
@@ -228,6 +235,13 @@ class CarInputConnection internal constructor(
 
     override fun performEditorAction(editorAction: Int): Boolean {
         val result = m_InputConnection.performEditorAction(editorAction)
+        val targetView = m_CarInputManager?.getTargetView()
+        if (targetView is android.webkit.WebView) {
+            targetView.post {
+                targetView.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+                targetView.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+            }
+        }
         if (m_CarInputManager != null) m_CarInputManager.stopInput()
         return result
     }
