@@ -7,7 +7,7 @@
     <uses
         name="projection"
         tools:ignore="InvalidUsesTagAttribute" />
-    <uses name="notification" />
+
     <uses name="media" />
 
 </automotiveApp>

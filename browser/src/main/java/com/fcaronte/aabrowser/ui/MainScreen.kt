@@ -230,14 +230,14 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                 TabManager.preloadFavorites(favoritesViewModel.favorites, preloadLimit)
 
                 if (autoOpenId != null) {
-                    val targetIndex = TabManager.tabs.indexOfFirst { it.id == autoOpenId }
-                    if (targetIndex != -1) {
-                        TabManager.switchTab(targetIndex)
-                        currentScreen = Screen.Browser
-                    } else {
-                        // Se l'auto-open non è tra i primi N, lo apriamo esplicitamente
-                        val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
-                        if (favorite != null) {
+                    val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
+                    if (favorite != null) {
+                        val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
+                        if (targetIndex != -1) {
+                            TabManager.switchTab(targetIndex)
+                            currentScreen = Screen.Browser
+                        } else {
+                            // Se l'auto-open non è tra i precaricati, lo apriamo esplicitamente
                             TabManager.addTab(
                                 url = favorite.url,
                                 title = favorite.name,
@@ -248,10 +248,10 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             )
                             TabManager.switchTab(TabManager.tabs.lastIndex)
                             currentScreen = Screen.Browser
-                        } else {
-                            if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
-                            currentScreen = Screen.Dashboard
                         }
+                    } else {
+                        if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
+                        currentScreen = Screen.Dashboard
                     }
                 } else {
                     // Nessun auto-open: precarica silenziosamente e resta sulla Dashboard
@@ -261,16 +261,22 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
             } else if (autoOpenId != null) {
                 val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
                 if (favorite != null) {
-                    TabManager.addTab(
-                        url = favorite.url,
-                        title = favorite.name,
-                        faviconUrl = favorite.faviconUrl,
-                        desktopModeOverride = favorite.isDesktopMode,
-                        mobileZoomOverride = favorite.mobileZoom,
-                        desktopZoomOverride = favorite.desktopZoom
-                    )
-                    TabManager.switchTab(0)
-                    currentScreen = Screen.Browser
+                    val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
+                    if (targetIndex != -1) {
+                        TabManager.switchTab(targetIndex)
+                        currentScreen = Screen.Browser
+                    } else {
+                        TabManager.addTab(
+                            url = favorite.url,
+                            title = favorite.name,
+                            faviconUrl = favorite.faviconUrl,
+                            desktopModeOverride = favorite.isDesktopMode,
+                            mobileZoomOverride = favorite.mobileZoom,
+                            desktopZoomOverride = favorite.desktopZoom
+                        )
+                        TabManager.switchTab(0)
+                        currentScreen = Screen.Browser
+                    }
                 } else {
                     currentScreen = Screen.Dashboard
                 }
