@@ -49,7 +49,7 @@
     <string name="theme_selection_label">Seleziona tema:</string>
     <string name="dashboard_columns_label">Dashboard a tre colonne</string>
     <string name="dashboard_columns_desc">Abilita 3 colonne invece di 2 nella home</string>
-    <string name="open_dashboard_on_new_tab_label">Apri Dashboard a nuova scheda</string>
+    <string name="open_dashboard_on_new_tab_label">Usa Dashboard come nuova scheda</string>
     <string name="open_dashboard_on_new_tab_desc">Apre la dashboard invece della pagina di ricerca quando si clicca il tasto nuova scheda</string>
     <string name="auto_open_favorite_label">Usa Preferito come pagina iniziale</string>
     <string name="auto_open_favorite_desc">Carica automaticamente un preferito specifico invece della dashboard</string>
