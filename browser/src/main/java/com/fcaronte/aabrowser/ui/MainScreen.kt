@@ -139,9 +139,7 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
 
     var previousScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
     var currentScreen by remember {
-        mutableStateOf<Screen>(
-            if (AppSettings.autoOpenFavoriteId.value != null) Screen.Splash else Screen.Dashboard
-        )
+        mutableStateOf<Screen>(Screen.Dashboard)
     }
 
     var reloadTrigger by remember { mutableIntStateOf(0) }
@@ -224,65 +222,38 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
         val isPreloadEnabled = AppSettings.preloadFavorites.value
         val preloadLimit = AppSettings.preloadFavoritesCount.value
 
-        if (TabManager.tabs.isEmpty()) {
-            if (isPreloadEnabled && favoritesViewModel.favorites.isNotEmpty()) {
-                // Precarica i preferiti passando subito nome e icona
-                TabManager.preloadFavorites(favoritesViewModel.favorites, preloadLimit)
+        // 1. Se il precaricamento è attivo e non ci sono tab, precarichiamo i preferiti
+        if (TabManager.tabs.isEmpty() && isPreloadEnabled && favoritesViewModel.favorites.isNotEmpty()) {
+            TabManager.preloadFavorites(favoritesViewModel.favorites, preloadLimit)
+        }
 
-                if (autoOpenId != null) {
-                    val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
-                    if (favorite != null) {
-                        val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
-                        if (targetIndex != -1) {
-                            TabManager.switchTab(targetIndex)
-                            currentScreen = Screen.Browser
-                        } else {
-                            // Se l'auto-open non è tra i precaricati, lo apriamo esplicitamente
-                            TabManager.addTab(
-                                url = favorite.url,
-                                title = favorite.name,
-                                faviconUrl = favorite.faviconUrl,
-                                desktopModeOverride = favorite.isDesktopMode,
-                                mobileZoomOverride = favorite.mobileZoom,
-                                desktopZoomOverride = favorite.desktopZoom
-                            )
-                            TabManager.switchTab(TabManager.tabs.lastIndex)
-                            currentScreen = Screen.Browser
-                        }
-                    } else {
-                        if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
-                        currentScreen = Screen.Dashboard
-                    }
+        // 2. Se è impostato un preferito come pagina iniziale, ci assicuriamo che sia aperto e attivo
+        if (autoOpenId != null && favoritesViewModel.favorites.isNotEmpty()) {
+            val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
+            if (favorite != null) {
+                val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
+                if (targetIndex != -1) {
+                    TabManager.switchTab(targetIndex)
                 } else {
-                    // Nessun auto-open: precarica silenziosamente e resta sulla Dashboard
-                    if (TabManager.tabs.isNotEmpty()) TabManager.switchTab(0)
-                    currentScreen = Screen.Dashboard
+                    // Se non era tra i precaricati, lo aggiungiamo e lo attiviamo
+                    TabManager.addTab(
+                        url = favorite.url,
+                        title = favorite.name,
+                        faviconUrl = favorite.faviconUrl,
+                        desktopModeOverride = favorite.isDesktopMode,
+                        mobileZoomOverride = favorite.mobileZoom,
+                        desktopZoomOverride = favorite.desktopZoom
+                    )
+                    TabManager.switchTab(TabManager.tabs.lastIndex)
                 }
-            } else if (autoOpenId != null) {
-                val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
-                if (favorite != null) {
-                    val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
-                    if (targetIndex != -1) {
-                        TabManager.switchTab(targetIndex)
-                        currentScreen = Screen.Browser
-                    } else {
-                        TabManager.addTab(
-                            url = favorite.url,
-                            title = favorite.name,
-                            faviconUrl = favorite.faviconUrl,
-                            desktopModeOverride = favorite.isDesktopMode,
-                            mobileZoomOverride = favorite.mobileZoom,
-                            desktopZoomOverride = favorite.desktopZoom
-                        )
-                        TabManager.switchTab(0)
-                        currentScreen = Screen.Browser
-                    }
-                } else {
-                    currentScreen = Screen.Dashboard
-                }
+                currentScreen = Screen.Browser
             } else {
-                currentScreen = Screen.Dashboard
+                currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
             }
+        } else if (TabManager.tabs.isNotEmpty()) {
+            currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
+        } else {
+            currentScreen = Screen.Dashboard
         }
     }
 
