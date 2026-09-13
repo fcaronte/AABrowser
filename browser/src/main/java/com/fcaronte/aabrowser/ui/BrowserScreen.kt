@@ -3,29 +3,40 @@ package com.fcaronte.aabrowser.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Message
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
+import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,7 +115,8 @@ private fun isDesktopRequired(url: String?): Boolean {
             lowUrl.contains("whatsapp.net") ||
             lowUrl.contains("messenger.com") ||
             lowUrl.contains("web.telegram.org") ||
-            lowUrl.contains("web.skype.com")
+            lowUrl.contains("web.skype.com") ||
+            lowUrl.contains("dazn.com")
 }
 
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
@@ -153,6 +165,7 @@ fun BrowserScreen(
     var isListening by remember { mutableStateOf(value = false) }
     var customView by remember { mutableStateOf<android.view.View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
+    var popupWebView by remember { mutableStateOf<WebView?>(null) }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
@@ -307,6 +320,8 @@ fun BrowserScreen(
                         allowContentAccess = true
                         allowFileAccess = true
                         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                        setSupportMultipleWindows(true)
+                        javaScriptCanOpenWindowsAutomatically = true
                     }
 
                     // Abilita i cookie in modo persistente
@@ -474,11 +489,80 @@ fun BrowserScreen(
                                     )
                                 }
                             }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun openInNewTab(url: String) {
+                                post {
+                                    Log.d("##BrowserScreen", "openInNewTab requested: $url")
+                                    TabManager.openOrSwitchTo(url = url)
+                                }
+                            }
                         },
                         "AndroidBridge",
                     )
 
                     webChromeClient = object : WebChromeClient() {
+                        override fun onCreateWindow(
+                            view: WebView?,
+                            isDialog: Boolean,
+                            isUserGesture: Boolean,
+                            resultMsg: Message?
+                        ): Boolean {
+                            val context = view?.context ?: return false
+                            val popup = WebView(context).apply {
+                                isFocusable = true
+                                isFocusableInTouchMode = true
+                                settings.apply {
+                                    javaScriptEnabled = true
+                                    domStorageEnabled = true
+                                    @Suppress("DEPRECATION")
+                                    databaseEnabled = true
+                                    loadWithOverviewMode = true
+                                    useWideViewPort = true
+                                    mediaPlaybackRequiresUserGesture = false
+                                    setSupportZoom(true)
+                                    builtInZoomControls = true
+                                    displayZoomControls = false
+                                    allowContentAccess = true
+                                    allowFileAccess = true
+                                    mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                                    userAgentString = view.settings.userAgentString
+                                }
+                                CookieManager.getInstance().setAcceptCookie(true)
+                                CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+
+                                webViewClient = object : WebViewClient() {
+                                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                        val url = request?.url?.toString() ?: return false
+                                        val mainUrl = webViewReference?.url ?: ""
+                                        val mainHost = Uri.parse(mainUrl).host ?: ""
+                                        val requestUri = Uri.parse(url)
+                                        val requestHost = requestUri.host ?: ""
+
+                                        if (url.contains("code=") || url.contains("token=") || (requestHost.isNotEmpty() && requestHost == mainHost)) {
+                                            popupWebView = null
+                                            webViewReference?.loadUrl(url)
+                                            return true
+                                        }
+                                        return false
+                                    }
+                                }
+                                webChromeClient = object : WebChromeClient() {
+                                    override fun onCloseWindow(window: WebView?) {
+                                        popupWebView = null
+                                    }
+                                }
+                            }
+                            val transport = resultMsg?.obj as? WebView.WebViewTransport
+                            if (transport != null) {
+                                transport.webView = popup
+                                resultMsg.sendToTarget()
+                            }
+                            popupWebView = popup
+                            return true
+                        }
+
                         override fun onShowCustomView(
                             view: android.view.View?,
                             callback: CustomViewCallback?
@@ -592,6 +676,8 @@ fun BrowserScreen(
                                 onPageFinished(url)
                                 android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
 
+                                view?.evaluateJavascript(BrowserJavascript.getLongPressLinkScript(), null)
+
                                 if (!autoplayMedia) {
                                     // Blocca qualsiasi riproduzione partita in automatico e silenzia l'audio
                                     view?.evaluateJavascript(
@@ -688,6 +774,47 @@ fun BrowserScreen(
                     .fillMaxSize()
                     .background(Color.Black)
             )
+        }
+
+        popupWebView?.let { popup ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(0.95f)
+                        .background(Color.White, shape = RoundedCornerShape(12.dp))
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.DarkGray)
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Accesso in corso...", color = Color.White)
+                            Button(
+                                onClick = { popupWebView = null }
+                            ) {
+                                Text(text = "Chiudi")
+                            }
+                        }
+                        AndroidView(
+                            factory = {
+                                (popup.parent as? ViewGroup)?.removeView(popup)
+                                popup
+                            },
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                        )
+                    }
+                }
+            }
         }
 
         val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }

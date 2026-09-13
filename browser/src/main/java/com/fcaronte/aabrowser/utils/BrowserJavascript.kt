@@ -364,4 +364,69 @@ object BrowserJavascript {
         })();
         """.trimIndent()
     }
+
+    fun getLongPressLinkScript(): String {
+        return """
+        (function() {
+            if (window.aabLongPressInitialized) return;
+            window.aabLongPressInitialized = true;
+            
+            let pressTimer = null;
+            let targetUrl = null;
+            
+            function getLinkUrl(element) {
+                let el = element;
+                while (el && el !== document.body) {
+                    if (el.tagName === 'A' && el.href) return el.href;
+                    if (el.getAttribute && el.getAttribute('data-href')) return el.getAttribute('data-href');
+                    if (el.getAttribute && el.getAttribute('data-url')) return el.getAttribute('data-url');
+                    el = el.parentElement;
+                }
+                return null;
+            }
+            
+            document.addEventListener('touchstart', function(e) {
+                let url = getLinkUrl(e.target);
+                if (url) {
+                    targetUrl = url;
+                    if (pressTimer) clearTimeout(pressTimer);
+                    pressTimer = setTimeout(function() {
+                        if (targetUrl && window.AndroidBridge && window.AndroidBridge.openInNewTab) {
+                            AndroidBridge.openInNewTab(targetUrl);
+                            targetUrl = null;
+                        }
+                    }, 600);
+                } else {
+                    targetUrl = null;
+                }
+            }, {passive: true});
+            
+            document.addEventListener('touchmove', function(e) {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                    targetUrl = null;
+                }
+            }, {passive: true});
+            
+            document.addEventListener('touchend', function(e) {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                    targetUrl = null;
+                }
+            }, {passive: true});
+            
+            document.addEventListener('contextmenu', function(e) {
+                let url = getLinkUrl(e.target);
+                if (url) {
+                    e.preventDefault();
+                    if (window.AndroidBridge && window.AndroidBridge.openInNewTab) {
+                        AndroidBridge.openInNewTab(url);
+                    }
+                }
+            });
+        })();
+        """.trimIndent()
+    }
 }
