@@ -53,6 +53,7 @@
     <string name="open_dashboard_on_new_tab_desc">Apre la dashboard invece della pagina di ricerca quando si clicca il tasto nuova scheda</string>
     <string name="auto_open_favorite_label">Usa Preferito come pagina iniziale</string>
     <string name="auto_open_favorite_desc">Carica automaticamente un preferito specifico invece della dashboard</string>
+    <string name="selected_favorite_label">Preferito selezionato</string>
     <string name="auto_open_none">Nessuno (Apri Dashboard)</string>
     <string name="autoplay_label">Riproduzione automatica media</string>
     <string name="autoplay_desc">Consente l\'avvio immediato di audio e video all\'apertura delle schede</string>

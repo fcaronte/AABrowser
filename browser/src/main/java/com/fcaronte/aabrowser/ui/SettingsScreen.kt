@@ -247,8 +247,9 @@ fun SettingsScreen(
                             // Auto-Open Favorite
                             val autoOpenFavoriteId by AppSettings.autoOpenFavoriteId
                             val favorites = favoritesViewModel.favorites
+                            var expandedAutoOpenFavorite by remember { mutableStateOf(false) }
                             SettingsCard {
-                                Column(modifier = Modifier.padding(bottom = if (autoOpenFavoriteId != null) 16.dp else 0.dp)) {
+                                Column(modifier = Modifier.padding(bottom = if (autoOpenFavoriteId != null && expandedAutoOpenFavorite) 16.dp else 0.dp)) {
                                     SettingsSwitchItem(
                                         label = stringResource(R.string.auto_open_favorite_label),
                                         description = stringResource(R.string.auto_open_favorite_desc),
@@ -261,51 +262,102 @@ fun SettingsScreen(
                                                         favorites.firstOrNull()?.id
                                                     )
                                                 }
+                                                expandedAutoOpenFavorite = true
                                             } else {
                                                 AppSettings.setAutoOpenFavoriteId(context, null)
+                                                expandedAutoOpenFavorite = false
                                             }
                                         }
                                     )
 
                                     if (autoOpenFavoriteId != null && favorites.isNotEmpty()) {
-                                        Column(
-                                            modifier = Modifier.padding(horizontal = 16.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        val selectedFavorite = favorites.find { it.id == autoOpenFavoriteId } ?: favorites.firstOrNull()
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
                                         ) {
-                                            favorites.forEach { favorite ->
-                                                val isSelected = autoOpenFavoriteId == favorite.id
-                                                Card(
-                                                    onClick = {
-                                                        AppSettings.setAutoOpenFavoriteId(
-                                                            context,
-                                                            favorite.id
-                                                        )
-                                                    },
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = if (isSelected)
-                                                            MaterialTheme.colorScheme.primaryContainer
-                                                        else MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                            alpha = 0.5f
-                                                        )
-                                                    ),
-                                                    shape = RoundedCornerShape(12.dp)
+                                            Card(
+                                                onClick = { expandedAutoOpenFavorite = !expandedAutoOpenFavorite },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                                                ),
+                                                shape = RoundedCornerShape(12.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(12.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    Row(
-                                                        modifier = Modifier.padding(12.dp),
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-                                                        RadioButton(
-                                                            selected = isSelected,
-                                                            onClick = null
+                                                    Column(modifier = Modifier.weight(1f)) {
+                                                        Text(
+                                                            text = stringResource(R.string.selected_favorite_label),
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                                         )
                                                         Text(
-                                                            favorite.name,
-                                                            modifier = Modifier.padding(start = 12.dp),
+                                                            text = selectedFavorite?.name ?: "",
                                                             style = MaterialTheme.typography.bodyLarge,
+                                                            fontWeight = FontWeight.Medium,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             maxLines = 1,
                                                             overflow = TextOverflow.Ellipsis
                                                         )
+                                                    }
+                                                    Icon(
+                                                        imageVector = if (expandedAutoOpenFavorite) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        AnimatedVisibility(visible = expandedAutoOpenFavorite) {
+                                            Column(
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                favorites.forEach { favorite ->
+                                                    val isSelected = autoOpenFavoriteId == favorite.id
+                                                    Card(
+                                                        onClick = {
+                                                            AppSettings.setAutoOpenFavoriteId(
+                                                                context,
+                                                                favorite.id
+                                                            )
+                                                            expandedAutoOpenFavorite = false
+                                                        },
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        colors = CardDefaults.cardColors(
+                                                            containerColor = if (isSelected)
+                                                                MaterialTheme.colorScheme.primaryContainer
+                                                            else MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                                alpha = 0.5f
+                                                            )
+                                                        ),
+                                                        shape = RoundedCornerShape(12.dp)
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier.padding(12.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            RadioButton(
+                                                                selected = isSelected,
+                                                                onClick = null
+                                                            )
+                                                            Text(
+                                                                favorite.name,
+                                                                modifier = Modifier.padding(start = 12.dp),
+                                                                style = MaterialTheme.typography.bodyLarge,
+                                                                maxLines = 1,
+                                                                overflow = TextOverflow.Ellipsis
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }

@@ -53,6 +53,7 @@
     <string name="open_dashboard_on_new_tab_desc">Open dashboard instead of search page when clicking the new tab button</string>
     <string name="auto_open_favorite_label">Use Favorite as Startup Page</string>
     <string name="auto_open_favorite_desc">Automatically load a specific favorite instead of the dashboard</string>
+    <string name="selected_favorite_label">Selected Favorite</string>
     <string name="auto_open_none">None (Open Dashboard)</string>
     <string name="autoplay_label">Autoplay media</string>
     <string name="autoplay_desc">Allow audio and video to start immediately when opening tabs</string>
