@@ -68,6 +68,7 @@ import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.InactivityTracker
 import java.io.ByteArrayInputStream
+import androidx.core.net.toUri
 
 object ChromeVersionFetcher {
     private var cachedVersion: String = "152.0.0.0"
@@ -532,12 +533,13 @@ fun BrowserScreen(
                                 CookieManager.getInstance().setAcceptCookie(true)
                                 CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
 
-                                webViewClient = object : WebViewClient() {
+                                webViewClient = @SuppressLint("MissingOnRenderProcessGone")
+                                object : WebViewClient() {
                                     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                                         val url = request?.url?.toString() ?: return false
                                         val mainUrl = webViewReference?.url ?: ""
-                                        val mainHost = Uri.parse(mainUrl).host ?: ""
-                                        val requestUri = Uri.parse(url)
+                                        val mainHost = mainUrl.toUri().host ?: ""
+                                        val requestUri = url.toUri()
                                         val requestHost = requestUri.host ?: ""
 
                                         if (url.contains("code=") || url.contains("token=") || (requestHost.isNotEmpty() && requestHost == mainHost)) {
@@ -595,7 +597,8 @@ fun BrowserScreen(
                         }
                     }
 
-                    webViewClient = object : WebViewClient() {
+                    webViewClient = @SuppressLint("MissingOnRenderProcessGone")
+                    object : WebViewClient() {
                         override fun onPageStarted(
                             view: WebView?,
                             url: String?,

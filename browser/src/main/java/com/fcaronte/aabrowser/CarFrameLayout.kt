@@ -23,7 +23,7 @@ class CarFrameLayout : FrameLayout {
 
     override fun dispatchVisibilityChanged(changedView: View, visibility: Int) {
         if (visibility != VISIBLE) return
-        super.dispatchVisibilityChanged(changedView!!, visibility)
+        super.dispatchVisibilityChanged(changedView, visibility)
     }
 
     companion object {

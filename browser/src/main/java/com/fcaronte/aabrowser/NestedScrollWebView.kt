@@ -11,8 +11,8 @@ import androidx.core.view.NestedScrollingChildHelper
 import androidx.core.view.ViewCompat
 
 open class NestedScrollWebView : WebView, NestedScrollingChild2 {
-    private var m_NestedScrollingChildHelper: NestedScrollingChildHelper? = null
-    private var m_LastMotionY = 0
+    private var mNestedscrollingchildhelper: NestedScrollingChildHelper? = null
+    private var mLastmotiony = 0
 
     constructor(context: Context) : super(context) {
         init()
@@ -34,12 +34,12 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                m_LastMotionY = event.y.toInt()
+                mLastmotiony = event.y.toInt()
                 startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL)
             }
 
             MotionEvent.ACTION_MOVE -> {
-                var deltaY = m_LastMotionY - event.y.toInt()
+                var deltaY = mLastmotiony - event.y.toInt()
                 if (deltaY != 0) {
                     val scrollConsumed = IntArray(2)
                     val scrollOffset = IntArray(2)
@@ -53,7 +53,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
 
                     if (deltaY != 0) {
                         dispatchNestedScroll(0, deltaY, 0, 0, scrollOffset)
-                        m_LastMotionY -= deltaY
+                        mLastmotiony -= deltaY
                     }
                 }
             }
@@ -65,40 +65,40 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
     }
 
     private fun init() {
-        m_NestedScrollingChildHelper = NestedScrollingChildHelper(this)
+        mNestedscrollingchildhelper = NestedScrollingChildHelper(this)
         isNestedScrollingEnabled = true
     }
 
     override fun setNestedScrollingEnabled(enabled: Boolean) {
-        m_NestedScrollingChildHelper!!.setNestedScrollingEnabled(enabled)
+        mNestedscrollingchildhelper!!.setNestedScrollingEnabled(enabled)
     }
 
     override fun isNestedScrollingEnabled(): Boolean {
-        return m_NestedScrollingChildHelper!!.isNestedScrollingEnabled
+        return mNestedscrollingchildhelper!!.isNestedScrollingEnabled
     }
 
     override fun hasNestedScrollingParent(): Boolean {
-        return m_NestedScrollingChildHelper!!.hasNestedScrollingParent()
+        return mNestedscrollingchildhelper!!.hasNestedScrollingParent()
     }
 
     override fun hasNestedScrollingParent(type: Int): Boolean {
-        return m_NestedScrollingChildHelper!!.hasNestedScrollingParent(type)
+        return mNestedscrollingchildhelper!!.hasNestedScrollingParent(type)
     }
 
     override fun startNestedScroll(axes: Int): Boolean {
-        return m_NestedScrollingChildHelper!!.startNestedScroll(axes)
+        return mNestedscrollingchildhelper!!.startNestedScroll(axes)
     }
 
     override fun startNestedScroll(axes: Int, type: Int): Boolean {
-        return m_NestedScrollingChildHelper!!.startNestedScroll(axes, type)
+        return mNestedscrollingchildhelper!!.startNestedScroll(axes, type)
     }
 
     override fun stopNestedScroll() {
-        m_NestedScrollingChildHelper!!.stopNestedScroll()
+        mNestedscrollingchildhelper!!.stopNestedScroll()
     }
 
     override fun stopNestedScroll(type: Int) {
-        m_NestedScrollingChildHelper!!.stopNestedScroll(type)
+        mNestedscrollingchildhelper!!.stopNestedScroll(type)
     }
 
     override fun dispatchNestedScroll(
@@ -108,7 +108,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
         dyUnconsumed: Int,
         offsetInWindow: IntArray?
     ): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedScroll(
+        return mNestedscrollingchildhelper!!.dispatchNestedScroll(
             dxConsumed,
             dyConsumed,
             dxUnconsumed,
@@ -125,7 +125,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
         offsetInWindow: IntArray?,
         type: Int
     ): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedScroll(
+        return mNestedscrollingchildhelper!!.dispatchNestedScroll(
             dxConsumed,
             dyConsumed,
             dxUnconsumed,
@@ -141,7 +141,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
         consumed: IntArray?,
         offsetInWindow: IntArray?
     ): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedPreScroll(
+        return mNestedscrollingchildhelper!!.dispatchNestedPreScroll(
             dx,
             dy,
             consumed,
@@ -156,7 +156,7 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
         offsetInWindow: IntArray?,
         type: Int
     ): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedPreScroll(
+        return mNestedscrollingchildhelper!!.dispatchNestedPreScroll(
             dx,
             dy,
             consumed,
@@ -170,20 +170,20 @@ open class NestedScrollWebView : WebView, NestedScrollingChild2 {
         velocityY: Float,
         consumed: Boolean
     ): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedFling(velocityX, velocityY, consumed)
+        return mNestedscrollingchildhelper!!.dispatchNestedFling(velocityX, velocityY, consumed)
     }
 
     override fun dispatchNestedPreFling(velocityX: Float, velocityY: Float): Boolean {
-        return m_NestedScrollingChildHelper!!.dispatchNestedPreFling(velocityX, velocityY)
+        return mNestedscrollingchildhelper!!.dispatchNestedPreFling(velocityX, velocityY)
     }
 
     public override fun onDetachedFromWindow() {
-        m_NestedScrollingChildHelper!!.onDetachedFromWindow()
+        mNestedscrollingchildhelper!!.onDetachedFromWindow()
         super.onDetachedFromWindow()
     }
 
     override fun onStopNestedScroll(child: View) {
-        m_NestedScrollingChildHelper!!.onStopNestedScroll(child)
+        mNestedscrollingchildhelper!!.onStopNestedScroll(child)
     }
 
     companion object {

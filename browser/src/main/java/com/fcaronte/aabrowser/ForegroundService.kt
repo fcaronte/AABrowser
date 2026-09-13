@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -31,6 +32,7 @@ class ForegroundService : Service() {
         return null
     }
 
+    @SuppressLint("LaunchActivityFromNotification")
     private fun startNotification() {
         try {
             val notificationManager =
@@ -74,7 +76,7 @@ class ForegroundService : Service() {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
             )
         } catch (e: Exception) {
-            Log.d(TAG, "startNotification exception : " + e.toString())
+            Log.d(TAG, "startNotification exception : $e")
         }
     }
 
@@ -82,7 +84,7 @@ class ForegroundService : Service() {
         try {
             stopForeground(true)
         } catch (e: Exception) {
-            Log.d(TAG, "stopNotification exception : " + e.toString())
+            Log.d(TAG, "stopNotification exception : $e")
         }
     }
 

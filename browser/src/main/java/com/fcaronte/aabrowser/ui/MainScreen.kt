@@ -515,7 +515,11 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                                         onInteraction()
                                     },
                                     onAddTab = {
-                                        TabManager.addTab(homeUrlRes)
+                                        if (AppSettings.openDashboardOnNewTab.value) {
+                                            currentScreen = Screen.Dashboard
+                                        } else {
+                                            TabManager.addTab(homeUrlRes)
+                                        }
                                         onInteraction()
                                     },
                                     onGoBack = {
@@ -620,8 +624,12 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                             },
                             onCloseTab = { index -> TabManager.closeTab(index) },
                             onAddTab = {
-                                TabManager.addTab(homeUrlRes)
-                                currentScreen = Screen.Browser
+                                if (AppSettings.openDashboardOnNewTab.value) {
+                                    currentScreen = Screen.Dashboard
+                                } else {
+                                    TabManager.addTab(homeUrlRes)
+                                    currentScreen = Screen.Browser
+                                }
                             },
                             onBack = {
                                 currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen

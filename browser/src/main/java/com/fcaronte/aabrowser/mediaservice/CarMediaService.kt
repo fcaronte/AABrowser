@@ -15,7 +15,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.weather.fetchWeather
+import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

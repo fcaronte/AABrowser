@@ -49,6 +49,8 @@
     <string name="theme_selection_label">Select theme:</string>
     <string name="dashboard_columns_label">Three Columns Dashboard</string>
     <string name="dashboard_columns_desc">Enable 3 columns instead of 2 on home screen</string>
+    <string name="open_dashboard_on_new_tab_label">Open Dashboard on New Tab</string>
+    <string name="open_dashboard_on_new_tab_desc">Open dashboard instead of search page when clicking the new tab button</string>
     <string name="auto_open_favorite_label">Use Favorite as Startup Page</string>
     <string name="auto_open_favorite_desc">Automatically load a specific favorite instead of the dashboard</string>
     <string name="auto_open_none">None (Open Dashboard)</string>

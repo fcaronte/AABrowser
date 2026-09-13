@@ -90,6 +90,9 @@ object AppSettings {
     private val _dashboardThreeColumns = mutableStateOf(false)
     val dashboardThreeColumns: State<Boolean> = _dashboardThreeColumns
 
+    private val _openDashboardOnNewTab = mutableStateOf(false)
+    val openDashboardOnNewTab: State<Boolean> = _openDashboardOnNewTab
+
     private val _forceEnglish = mutableStateOf(false)
     val forceEnglish: State<Boolean> = _forceEnglish
 
@@ -148,6 +151,7 @@ object AppSettings {
         _desktopScale.floatValue = prefs.getFloat("desktop_scale", 1.0f)
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
         _dashboardThreeColumns.value = prefs.getBoolean("dashboard_three_columns", false)
+        _openDashboardOnNewTab.value = prefs.getBoolean("open_dashboard_on_new_tab", false)
         _forceEnglish.value = prefs.getBoolean("force_english", false)
         _customSearchEngine.value = prefs.getBoolean("custom_search_engine", false)
         _searchEngine.value = SearchEngine.valueOf(
@@ -234,6 +238,11 @@ object AppSettings {
     fun setDashboardThreeColumns(context: Context, enabled: Boolean) {
         _dashboardThreeColumns.value = enabled
         saveBoolean(context, "dashboard_three_columns", enabled)
+    }
+
+    fun setOpenDashboardOnNewTab(context: Context, enabled: Boolean) {
+        _openDashboardOnNewTab.value = enabled
+        saveBoolean(context, "open_dashboard_on_new_tab", enabled)
     }
 
     fun setForceEnglish(context: Context, enabled: Boolean) {

@@ -228,6 +228,22 @@ fun SettingsScreen(
                                 )
                             }
 
+                            // Apri Dashboard a nuova scheda
+                            val openDashboardOnNewTab by AppSettings.openDashboardOnNewTab
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.open_dashboard_on_new_tab_label),
+                                    description = stringResource(R.string.open_dashboard_on_new_tab_desc),
+                                    checked = openDashboardOnNewTab,
+                                    onCheckedChange = {
+                                        AppSettings.setOpenDashboardOnNewTab(
+                                            context,
+                                            it
+                                        )
+                                    }
+                                )
+                            }
+
                             // Auto-Open Favorite
                             val autoOpenFavoriteId by AppSettings.autoOpenFavoriteId
                             val favorites = favoritesViewModel.favorites

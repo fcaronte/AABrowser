@@ -9,26 +9,26 @@ import com.google.android.gms.car.input.CarEditable
 import com.google.android.gms.car.input.CarEditableListener
 import com.google.android.gms.car.input.InputManager
 
-class CarInputManager internal constructor(private val m_InputManager: InputManager?) :
+class CarInputManager internal constructor(private val mInputmanager: InputManager?) :
     CarEditable {
-    private var m_TargetView: View? = null
+    private var mTargetview: View? = null
 
     private val _isInputActiveState = mutableStateOf(false)
     val isInputActiveState: State<Boolean> = _isInputActiveState
 
-    private var m_ManualStop = false
+    private var mManualstop = false
 
     fun isCurrentCarEditable(carEditable: CarEditable?): Boolean {
-        return m_InputManager != null && m_InputManager.isCurrentCarEditable(carEditable)
+        return mInputmanager != null && mInputmanager.isCurrentCarEditable(carEditable)
     }
 
     val isInputActive: Boolean
         get() {
-            if (m_ManualStop) {
+            if (mManualstop) {
                 if (_isInputActiveState.value) _isInputActiveState.value = false
                 return false
             }
-            val active = m_InputManager != null && m_InputManager.isInputActive
+            val active = mInputmanager != null && mInputmanager.isInputActive
             if (_isInputActiveState.value != active) {
                 _isInputActiveState.value = active
             }
@@ -36,25 +36,25 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
         }
 
     val isValid: Boolean
-        get() = m_InputManager != null && m_InputManager.isValid
+        get() = mInputmanager != null && mInputmanager.isValid
 
     fun startInput(TargetView: View?) {
-        if (m_InputManager == null || TargetView == null) return
+        if (mInputmanager == null || TargetView == null) return
 
         // Se stiamo già gestendo la stessa View e l'input è attivo, non facciamo nulla
-        if (m_TargetView == TargetView && m_InputManager.isInputActive) {
+        if (mTargetview == TargetView && mInputmanager.isInputActive) {
             android.util.Log.d("CarInputManager", "Input already active for this view")
             return
         }
 
-        m_ManualStop = false
-        m_TargetView = TargetView
+        mManualstop = false
+        mTargetview = TargetView
 
         android.util.Log.d("CarInputManager", "Requesting startInput for view: $TargetView")
         try {
             // Se l'input è già attivo su un'altra view, facciamo stop pulito
-            if (m_InputManager.isInputActive && m_TargetView != TargetView) {
-                m_InputManager.stopInput()
+            if (mInputmanager.isInputActive && mTargetview != TargetView) {
+                mInputmanager.stopInput()
             }
 
             // Forza il focus sulla view prima di iniziare
@@ -66,11 +66,11 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
             // abbia processato il focus HTML prima di agganciare la tastiera car.
             if (TargetView is android.webkit.WebView) {
                 TargetView.post {
-                    m_InputManager.startInput(this)
+                    mInputmanager.startInput(this)
                     updateActiveState()
                 }
             } else {
-                m_InputManager.startInput(this)
+                mInputmanager.startInput(this)
                 updateActiveState()
             }
         } catch (e: Exception) {
@@ -79,53 +79,53 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
     }
 
     fun stopInput() {
-        m_ManualStop = true
-        if (m_InputManager != null) {
+        mManualstop = true
+        if (mInputmanager != null) {
             try {
-                m_InputManager.stopInput()
+                mInputmanager.stopInput()
                 _isInputActiveState.value = false
             } catch (e: Exception) {
                 android.util.Log.e("CarInputManager", "Error stopping input", e)
             }
-            m_TargetView = null
+            mTargetview = null
         }
     }
 
     private fun updateActiveState() {
-        if (m_ManualStop) {
+        if (mManualstop) {
             _isInputActiveState.value = false
             return
         }
-        val active = m_InputManager != null && m_InputManager.isInputActive
+        val active = mInputmanager != null && mInputmanager.isInputActive
         if (_isInputActiveState.value != active) {
             _isInputActiveState.value = active
         }
     }
 
-    fun getTargetView(): View? = m_TargetView
+    fun getTargetView(): View? = mTargetview
 
     override fun onCreateInputConnection(editorInfo: EditorInfo?): InputConnection? {
-        if (m_TargetView == null) return null
+        if (mTargetview == null) return null
 
         // NON chiamiamo requestFocus() qui perché potrebbe resettare il campo HTML 
         // se chiamato nel thread sbagliato o nel momento sbagliato dell'SDK AA.
-        m_TargetView?.onCheckIsTextEditor()
+        mTargetview?.onCheckIsTextEditor()
 
-        var inputConnection = m_TargetView!!.onCreateInputConnection(editorInfo)
+        var inputConnection = mTargetview!!.onCreateInputConnection(editorInfo)
 
         // Se la WebView non fornisce una connessione, proviamo a forzare il focus e riprovare una volta
-        if (inputConnection == null && m_TargetView is android.webkit.WebView) {
+        if (inputConnection == null && mTargetview is android.webkit.WebView) {
             android.util.Log.w(
                 "CarInputManager",
                 "WebView returned null InputConnection, forcing focus sync"
             )
-            m_TargetView?.requestFocus()
-            inputConnection = m_TargetView!!.onCreateInputConnection(editorInfo)
+            mTargetview?.requestFocus()
+            inputConnection = mTargetview!!.onCreateInputConnection(editorInfo)
         }
 
         if (inputConnection == null) {
             android.util.Log.w("CarInputManager", "Using BaseInputConnection fallback")
-            inputConnection = android.view.inputmethod.BaseInputConnection(m_TargetView!!, true)
+            inputConnection = android.view.inputmethod.BaseInputConnection(mTargetview!!, true)
         }
 
         // Configura editorInfo per massimizzare la compatibilità con la tastiera car
@@ -139,8 +139,8 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
             // Sovrascriviamo la selezione solo se siamo in modalità sincronizzazione manuale (campi nativi)
             // Per le WebView, lasciamo che il sistema usi quanto riportato dalla WebView stessa.
             if (onTextCommitted != null) {
-                initialSelStart = m_SelectionStart
-                initialSelEnd = m_SelectionEnd
+                initialSelStart = mSelectionstart
+                initialSelEnd = mSelectionend
             }
         }
 
@@ -163,21 +163,21 @@ class CarInputManager internal constructor(private val m_InputManager: InputMana
     internal var onSelectionChanged: ((Int, Int) -> Unit)? = null
 
     // Stato del testo corrente per sincronizzazione con la tastiera AA
-    private var m_CurrentText: String = ""
-    private var m_SelectionStart: Int = 0
-    private var m_SelectionEnd: Int = 0
+    private var mCurrenttext: String = ""
+    private var mSelectionstart: Int = 0
+    private var mSelectionend: Int = 0
 
     fun updateState(text: String, selectionStart: Int, selectionEnd: Int) {
-        if (m_CurrentText == text && m_SelectionStart == selectionStart && m_SelectionEnd == selectionEnd) return
+        if (mCurrenttext == text && mSelectionstart == selectionStart && mSelectionend == selectionEnd) return
 
-        m_CurrentText = text
-        m_SelectionStart = selectionStart
-        m_SelectionEnd = selectionEnd
+        mCurrenttext = text
+        mSelectionstart = selectionStart
+        mSelectionend = selectionEnd
     }
 
-    fun getCurrentText(): String = m_CurrentText
-    fun getSelectionStart(): Int = m_SelectionStart
-    fun getSelectionEnd(): Int = m_SelectionEnd
+    fun getCurrentText(): String = mCurrenttext
+    fun getSelectionStart(): Int = mSelectionstart
+    fun getSelectionEnd(): Int = mSelectionend
 
     fun setOnInputEventListener(
         onText: (String) -> Unit,

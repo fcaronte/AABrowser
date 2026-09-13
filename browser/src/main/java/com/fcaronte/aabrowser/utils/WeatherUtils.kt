@@ -1,4 +1,4 @@
-package com.fcaronte.aabrowser.weather
+package com.fcaronte.aabrowser.utils
 
 import android.Manifest
 import android.content.Context
@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -32,6 +34,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
 import kotlin.coroutines.resume
+import kotlin.math.cos
+import kotlin.math.sin
 
 private const val TAG = "WeatherWidget"
 
@@ -78,7 +82,7 @@ fun getWeatherIcon(code: Int): ImageVector {
 
 fun createWeatherBitmap(weatherCode: Int): Bitmap {
     val size = 192
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
 
     val paint = Paint().apply {
@@ -87,33 +91,33 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
     }
 
     // Dark rounded background
-    paint.color = Color.parseColor("#212121")
+    paint.color = "#212121".toColorInt()
     canvas.drawRoundRect(0f, 0f, size.toFloat(), size.toFloat(), 36f, 36f, paint)
 
     paint.color = Color.WHITE
     when (weatherCode) {
         0 -> { // Sun
-            paint.color = Color.parseColor("#FFD700")
+            paint.color = "#FFD700".toColorInt()
             canvas.drawCircle(size / 2f, size / 2f, 42f, paint)
             paint.strokeWidth = 8f
             paint.style = Paint.Style.STROKE
             for (i in 0 until 8) {
                 val angle = i * (Math.PI / 4)
-                val x1 = (size / 2f + 56 * Math.cos(angle)).toFloat()
-                val y1 = (size / 2f + 56 * Math.sin(angle)).toFloat()
-                val x2 = (size / 2f + 72 * Math.cos(angle)).toFloat()
-                val y2 = (size / 2f + 72 * Math.sin(angle)).toFloat()
+                val x1 = (size / 2f + 56 * cos(angle)).toFloat()
+                val y1 = (size / 2f + 56 * sin(angle)).toFloat()
+                val x2 = (size / 2f + 72 * cos(angle)).toFloat()
+                val y2 = (size / 2f + 72 * sin(angle)).toFloat()
                 canvas.drawLine(x1, y1, x2, y2, paint)
             }
         }
         1, 2, 3 -> { // Cloud
-            paint.color = Color.parseColor("#E0E0E0")
+            paint.color = "#E0E0E0".toColorInt()
             canvas.drawCircle(size * 0.4f, size * 0.55f, 36f, paint)
             canvas.drawCircle(size * 0.65f, size * 0.5f, 46f, paint)
             canvas.drawRect(size * 0.35f, size * 0.55f, size * 0.7f, size * 0.76f, paint)
         }
         45, 48 -> { // Fog
-            paint.color = Color.parseColor("#B0BEC5")
+            paint.color = "#B0BEC5".toColorInt()
             paint.strokeWidth = 12f
             paint.strokeCap = Paint.Cap.ROUND
             canvas.drawLine(40f, 60f, 152f, 60f, paint)
@@ -121,13 +125,13 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
             canvas.drawLine(50f, 132f, 142f, 132f, paint)
         }
         51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82 -> { // Rain
-            paint.color = Color.parseColor("#90CAF9")
+            paint.color = "#90CAF9".toColorInt()
             paint.strokeWidth = 10f
             paint.strokeCap = Paint.Cap.ROUND
             canvas.drawLine(60f, 110f, 50f, 145f, paint)
             canvas.drawLine(96f, 110f, 86f, 145f, paint)
             canvas.drawLine(132f, 110f, 122f, 145f, paint)
-            paint.color = Color.parseColor("#CFD8DC")
+            paint.color = "#CFD8DC".toColorInt()
             canvas.drawCircle(96f, 75f, 40f, paint)
         }
         71, 73, 75, 77, 85, 86 -> { // Snow
@@ -135,11 +139,11 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
             canvas.drawCircle(60f, 120f, 10f, paint)
             canvas.drawCircle(96f, 135f, 12f, paint)
             canvas.drawCircle(132f, 120f, 10f, paint)
-            paint.color = Color.parseColor("#CFD8DC")
+            paint.color = "#CFD8DC".toColorInt()
             canvas.drawCircle(96f, 75f, 40f, paint)
         }
         95, 96, 99 -> { // Thunderstorm
-            paint.color = Color.parseColor("#FFEE58")
+            paint.color = "#FFEE58".toColorInt()
             val path = Path().apply {
                 moveTo(100f, 35f)
                 lineTo(68f, 100f)
@@ -152,7 +156,7 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
             canvas.drawPath(path, paint)
         }
         else -> {
-            paint.color = Color.parseColor("#FFD700")
+            paint.color = "#FFD700".toColorInt()
             canvas.drawCircle(size / 2f, size / 2f, 50f, paint)
         }
     }
@@ -186,16 +190,17 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
     if (hasCoarse) {
         try {
             val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-            val currentLocation: Location? = suspendCancellableCoroutine<Location?> { continuation ->
-                fusedClient.getCurrentLocation(
-                    Priority.PRIORITY_LOW_POWER,
-                    CancellationTokenSource().token
-                ).addOnSuccessListener { loc ->
-                    continuation.resume(loc)
-                }.addOnFailureListener {
-                    continuation.resume(null)
+            val currentLocation: Location? =
+                suspendCancellableCoroutine<Location?> { continuation ->
+                    fusedClient.getCurrentLocation(
+                        Priority.PRIORITY_LOW_POWER,
+                        CancellationTokenSource().token
+                    ).addOnSuccessListener { loc ->
+                        continuation.resume(loc)
+                    }.addOnFailureListener {
+                        continuation.resume(null)
+                    }
                 }
-            }
 
             val location = currentLocation ?: suspendCancellableCoroutine<Location?> { continuation ->
                 fusedClient.lastLocation.addOnSuccessListener { loc ->
@@ -253,7 +258,8 @@ suspend fun fetchWeather(context: Context): WeatherData? {
     return withContext(Dispatchers.IO) {
         try {
             val (lat, lon, locationName) = getLocation(context)
-            val urlStr = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code"
+            val urlStr =
+                "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code"
             Log.d(TAG, "Fetching Open-Meteo URL: $urlStr")
             val url = URL(urlStr)
             val conn = url.openConnection() as HttpURLConnection

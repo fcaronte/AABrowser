@@ -22,8 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fcaronte.aabrowser.settings.AppSettings
-import com.fcaronte.aabrowser.weather.WeatherData
-import com.fcaronte.aabrowser.weather.fetchWeather
+import com.fcaronte.aabrowser.utils.WeatherData
+import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.minutes
 
