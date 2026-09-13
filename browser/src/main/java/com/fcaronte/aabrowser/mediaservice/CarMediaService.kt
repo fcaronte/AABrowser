@@ -30,7 +30,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private lateinit var audioManager: AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
-    private val serviceScope = CoroutineScope(Dispatchers.Main)
+    var showingWeather = true
+    var isUserPaused = false
+
+    val serviceScope = CoroutineScope(Dispatchers.Main)
     private var weatherCheckJob: Job? = null
 
     private val audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
@@ -80,20 +83,21 @@ class CarMediaService : MediaBrowserServiceCompat() {
         val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
         val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
         val currentState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
-        val isWeatherMode = currentState == PlaybackStateCompat.STATE_NONE || currentState == PlaybackStateCompat.STATE_STOPPED
+        val isWeatherMode = weatherEnabled && (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
 
-        Log.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, currentState=$currentState, isWeatherMode=$isWeatherMode")
+        Log.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
 
-        if (weatherEnabled && isWeatherMode) {
+        if (isWeatherMode) {
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
                 Log.d(TAG, "Starting background weather fetch for CarMediaService...")
                 val weather = fetchWeather(applicationContext)
                 if (weather != null && mMediasessioncompat != null) {
                     val currentPlayState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
-                    val currentIsWeatherMode = currentPlayState == PlaybackStateCompat.STATE_NONE || currentPlayState == PlaybackStateCompat.STATE_STOPPED
+                    val stillWeatherNode = (showingWeather || currentPlayState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
 
-                    if (currentIsWeatherMode) {
+                    if (stillWeatherNode) {
+                        showingWeather = true
                         val titleStr = "${weather.temperature.toInt()}°C • ${weather.description}"
                         val artistStr = weather.locationName
 
@@ -107,14 +111,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .build()
                         mMediasessioncompat?.setMetadata(metadata)
 
+                        // STATE_PAUSED garantisce che Android Auto mostri la barra del player in auto senza avviare audio
                         val state = PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_STOPPED, 0, 1.0f)
-                            .setActions(PlaybackStateCompat.ACTION_PLAY)
+                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
                             .build()
                         mMediasessioncompat?.setPlaybackState(state)
 
                         updateNotification()
-                        Log.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr")
+                        Log.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
                     }
                 }
             }
@@ -200,7 +205,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             var cancel = false
             if (action == PLAYBACK_STATE_COMPAT) {
                 val playbackStateCompat =
-                    extras.getParcelable<PlaybackStateCompat?>(PLAYBACK_STATE_COMPAT)
+                    extras.getParcelable<PlaybackStateCompat?>("PlaybackStateCompat")
                 if (playbackStateCompat != null) {
                     update = stateChanged(playbackStateCompat)
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
@@ -213,7 +218,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
-                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE || playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
+                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE) {
+                        showingWeather = true
                         checkAndUpdateWeatherMetadata()
                     }
                 }
@@ -245,16 +251,77 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private class MediaSessionCallback(private val service: CarMediaService) :
         MediaSessionCompat.Callback() {
         override fun onPlay() {
+            val currentTitle = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
+            if (currentTitle.contains("°C") || currentTitle.contains("aggiornando")) {
+                Log.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
+                
+                service.showingWeather = true
+                service.isUserPaused = false
+
+                val updatingTitle = "Sto aggiornando..."
+                val artistStr = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: "Meteo"
+                val existingBitmap = service.mMediacontrollercompat?.metadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
+
+                val updatingMetadata = MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, updatingTitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artistStr)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, updatingTitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artistStr)
+                    .apply {
+                        if (existingBitmap != null) {
+                            putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, existingBitmap)
+                            putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, existingBitmap)
+                        }
+                    }
+                    .build()
+                service.mMediasessioncompat?.setMetadata(updatingMetadata)
+                service.updateNotification()
+
+                service.serviceScope.launch {
+                    val weather = fetchWeather(service.applicationContext)
+                    if (weather != null && service.mMediasessioncompat != null) {
+                        service.showingWeather = true
+                        val titleStr = "${weather.temperature.toInt()}°C • ${weather.description}"
+                        val newArtistStr = weather.locationName
+
+                        val metadata = MediaMetadataCompat.Builder()
+                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, titleStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, newArtistStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, titleStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, newArtistStr)
+                            .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, weather.bitmap)
+                            .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, weather.bitmap)
+                            .build()
+                        service.mMediasessioncompat?.setMetadata(metadata)
+
+                        val state = PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
+                            .build()
+                        service.mMediasessioncompat?.setPlaybackState(state)
+                        service.updateNotification()
+                        Log.d(TAG, "Weather refreshed successfully via Play button: $titleStr")
+                    }
+                }
+                return
+            }
+
+            service.showingWeather = false
+            service.isUserPaused = false
             service.requestAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
 
         override fun onPause() {
+            service.showingWeather = false
+            service.isUserPaused = true
             service.abandonAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PAUSE)
         }
 
         override fun onStop() {
+            service.showingWeather = true
+            service.isUserPaused = false
             service.abandonAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_STOP)
         }
