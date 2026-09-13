@@ -1,11 +1,13 @@
 package com.fcaronte.aabrowser.mediaservice
 
 import android.app.Notification
+import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -13,6 +15,11 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.weather.fetchWeather
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 // TODO: Valutare migrazione a Jetpack Media3 in futuro
 @Suppress("DEPRECATION")
@@ -23,25 +30,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private lateinit var audioManager: AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
+    private val serviceScope = CoroutineScope(Dispatchers.Main)
+    private var weatherCheckJob: Job? = null
+
     private val audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS -> {
-                // Perdita definitiva: qui potremmo voler stoppare, ma per ora restiamo conservativi
-                // per evitare stop indesiderati su alcuni sistemi che lo inviano erroneamente.
-                // broadcastPlaybackAction(PlaybackStateCompat.ACTION_PAUSE)
-            }
-
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                // Perdita temporanea (es. Assistente vocale): NON stoppiamo il browser.
-            }
-
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                // L'audio si abbassa ma non deve stopparsi (es. Indicazioni stradali)
-            }
-
-            AudioManager.AUDIOFOCUS_GAIN -> {
-                // Focus riottenuto: potremmo voler riprendere se avevamo pausato
-            }
+            AudioManager.AUDIOFOCUS_LOSS -> {}
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {}
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {}
+            AudioManager.AUDIOFOCUS_GAIN -> {}
         }
     }
 
@@ -75,6 +72,53 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
         mMediacontrollercompat = mMediasessioncompat!!.controller
         sessionToken = mMediasessioncompat!!.sessionToken
+
+        checkAndUpdateWeatherMetadata()
+    }
+
+    fun checkAndUpdateWeatherMetadata() {
+        val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
+        val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
+        val currentState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+        val isWeatherMode = currentState == PlaybackStateCompat.STATE_NONE || currentState == PlaybackStateCompat.STATE_STOPPED
+
+        Log.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, currentState=$currentState, isWeatherMode=$isWeatherMode")
+
+        if (weatherEnabled && isWeatherMode) {
+            weatherCheckJob?.cancel()
+            weatherCheckJob = serviceScope.launch {
+                Log.d(TAG, "Starting background weather fetch for CarMediaService...")
+                val weather = fetchWeather(applicationContext)
+                if (weather != null && mMediasessioncompat != null) {
+                    val currentPlayState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+                    val currentIsWeatherMode = currentPlayState == PlaybackStateCompat.STATE_NONE || currentPlayState == PlaybackStateCompat.STATE_STOPPED
+
+                    if (currentIsWeatherMode) {
+                        val titleStr = "${weather.temperature.toInt()}°C • ${weather.description}"
+                        val artistStr = weather.locationName
+
+                        val metadata = MediaMetadataCompat.Builder()
+                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, titleStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artistStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, titleStr)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artistStr)
+                            .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, weather.bitmap)
+                            .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, weather.bitmap)
+                            .build()
+                        mMediasessioncompat?.setMetadata(metadata)
+
+                        val state = PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_STOPPED, 0, 1.0f)
+                            .setActions(PlaybackStateCompat.ACTION_PLAY)
+                            .build()
+                        mMediasessioncompat?.setPlaybackState(state)
+
+                        updateNotification()
+                        Log.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr")
+                    }
+                }
+            }
+        }
     }
 
     fun requestAudioFocus(): Boolean {
@@ -84,16 +128,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
             .build()
 
         focusRequest =
-            AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) // Prova anche AUDIOFOCUS_GAIN_TRANSIENT se continua a fallire
+            AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(playbackAttributes)
                 .setAcceptsDelayedFocusGain(true)
                 .setOnAudioFocusChangeListener(audioFocusListener)
                 .build()
 
         audioManager.requestAudioFocus(focusRequest!!)
-
-        // FORZIAMO IL RITORNO A TRUE: anche se il sistema ci dà un warning sull'audio focus,
-        // permettiamo comunque al comando Play di raggiungere la WebView.
         return true
     }
 
@@ -104,6 +145,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        weatherCheckJob?.cancel()
         abandonAudioFocus()
         mCarmedianotificationmanager?.onDestroy()
         mCarmedianotificationmanager = null
@@ -133,7 +175,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem?>()
 
         if ("root" == parentMediaId) {
-            val description = android.support.v4.media.MediaDescriptionCompat.Builder()
+            val description = MediaDescriptionCompat.Builder()
                 .setMediaId("current_web_audio")
                 .setTitle(getString(R.string.media_browser_title))
                 .setSubtitle(getString(R.string.media_browser_subtitle))
@@ -163,7 +205,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     update = stateChanged(playbackStateCompat)
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
-                    // Richiede il focus solo se stiamo effettivamente cambiando stato verso PLAYING
                     if (playbackStateCompat.state == PlaybackStateCompat.STATE_PLAYING &&
                         (mMediacontrollercompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)
                     ) {
@@ -171,6 +212,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     }
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
+
+                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE || playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
+                        checkAndUpdateWeatherMetadata()
+                    }
                 }
             }
             if (action == MEDIA_METADATA_COMPAT) {
@@ -200,7 +245,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private class MediaSessionCallback(private val service: CarMediaService) :
         MediaSessionCompat.Callback() {
         override fun onPlay() {
-            // CORRETTO: Richiediamo l'audio focus immediatamente alla ricezione del comando Play
             service.requestAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
@@ -220,7 +264,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
 
         override fun onSkipToNext() {
-            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
         }
 
         override fun onSeekTo(pos: Long) {
@@ -237,7 +281,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             if (mCarmedianotificationmanager == null || mMediacontrollercompat == null) return null
             return mCarmedianotificationmanager!!.getNotification(
                 mMediacontrollercompat!!.metadata,
-                mMediacontrollercompat!!.playbackState,
+                mMediacontrollercompat?.playbackState,
                 sessionToken
             )
         }
@@ -250,7 +294,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 startForeground(
                     600,
                     notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
                 )
             } else {
                 stopForeground(STOP_FOREGROUND_DETACH)
@@ -263,7 +307,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
         if (mMediacontrollercompat?.playbackState == null) return false
         return mMediacontrollercompat!!.playbackState.state != playbackStateCompat.state
     }
-
 
     companion object {
         private const val TAG = "CarMediaService"

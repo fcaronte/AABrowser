@@ -1,8 +1,13 @@
 package com.fcaronte.aabrowser.ui
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -92,6 +97,7 @@ fun SettingsScreen(
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
+    val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -299,6 +305,41 @@ fun SettingsScreen(
                                     description = stringResource(R.string.autoplay_desc),
                                     checked = autoplayMedia,
                                     onCheckedChange = { AppSettings.setAutoplayMedia(context, it) }
+                                )
+                            }
+
+                            val permissionToastMsg = stringResource(R.string.weather_permission_toast)
+
+                            // Widget Meteo nel Player
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.weather_widget_label),
+                                    description = stringResource(R.string.weather_widget_desc),
+                                    checked = weatherWidgetEnabled,
+                                    onCheckedChange = { enabled ->
+                                        AppSettings.setWeatherWidgetEnabled(context, enabled)
+                                        if (enabled) {
+                                            val hasPermission = ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            ) == PackageManager.PERMISSION_GRANTED
+
+                                            if (!hasPermission) {
+                                                if (isCarMode) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        permissionToastMsg,
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                } else {
+                                                    (context as? Activity)?.requestPermissions(
+                                                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                                                        1001
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 )
                             }
 

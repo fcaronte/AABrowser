@@ -54,6 +54,9 @@
     <string name="auto_open_none">None (Open Dashboard)</string>
     <string name="autoplay_label">Autoplay media</string>
     <string name="autoplay_desc">Allow audio and video to start immediately when opening tabs</string>
+    <string name="weather_widget_label">Weather Widget in Player Bar</string>
+    <string name="weather_widget_desc">Show weather and temperature in player bar when playback is inactive</string>
+    <string name="weather_permission_toast">Please enable location permission on your smartphone for accurate weather</string>
     <string name="preload_favorites_label">Preload favorites on startup</string>
     <string name="preload_favorites_desc">Open top favorites in background tabs when the app starts</string>
     <string name="preload_favorites_count_label">Number of tabs to preload: %d</string>

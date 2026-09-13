@@ -54,6 +54,9 @@
     <string name="auto_open_none">Nessuno (Apri Dashboard)</string>
     <string name="autoplay_label">Riproduzione automatica media</string>
     <string name="autoplay_desc">Consente l\'avvio immediato di audio e video all\'apertura delle schede</string>
+    <string name="weather_widget_label">Widget Meteo nella Barra del Player</string>
+    <string name="weather_widget_desc">Mostra meteo e temperatura nella barra del player quando la riproduzione è inattiva</string>
+    <string name="weather_permission_toast">Attiva il permesso di localizzazione sullo smartphone per il meteo accurato</string>
     <string name="preload_favorites_label">Precarica schede preferiti all\'avvio</string>
     <string name="preload_favorites_desc">Apre i primi siti preferiti in schede di background all\'apertura dell\'app</string>
     <string name="preload_favorites_count_label">Numero di schede da precaricare: %d</string>

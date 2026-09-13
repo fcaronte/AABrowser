@@ -1,0 +1,291 @@
+package com.fcaronte.aabrowser.weather
+
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.location.Geocoder
+import android.location.Location
+import android.util.Log
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.WbCloudy
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Locale
+import kotlin.coroutines.resume
+
+private const val TAG = "WeatherWidget"
+
+data class WeatherData(
+    val temperature: Double,
+    val weatherCode: Int,
+    val description: String,
+    val locationName: String,
+    val icon: ImageVector,
+    val bitmap: Bitmap
+)
+
+fun getWeatherDescription(code: Int): String {
+    return when (code) {
+        0 -> "Sereno"
+        1, 2 -> "Parz. nuvoloso"
+        3 -> "Nuvoloso"
+        45, 48 -> "Nebbia"
+        51, 53, 55, 56, 57 -> "Pioviggine"
+        61, 63, 65, 66, 67 -> "Pioggia"
+        71, 73, 75, 77 -> "Neve"
+        80, 81, 82 -> "Rovesci"
+        85, 86 -> "Nevicate"
+        95, 96, 99 -> "Temporale"
+        else -> "Meteo"
+    }
+}
+
+fun getWeatherIcon(code: Int): ImageVector {
+    return when (code) {
+        0 -> Icons.Default.WbSunny
+        1, 2 -> Icons.Default.WbCloudy
+        3 -> Icons.Default.Cloud
+        45, 48 -> Icons.Default.Grain
+        51, 53, 55, 56, 57 -> Icons.Default.WaterDrop
+        61, 63, 65, 66, 67 -> Icons.Default.WaterDrop
+        71, 73, 75, 77 -> Icons.Default.AcUnit
+        80, 81, 82 -> Icons.Default.WaterDrop
+        85, 86 -> Icons.Default.AcUnit
+        95, 96, 99 -> Icons.Default.FlashOn
+        else -> Icons.Default.WbSunny
+    }
+}
+
+fun createWeatherBitmap(weatherCode: Int): Bitmap {
+    val size = 192
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    val paint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.FILL
+    }
+
+    // Dark rounded background
+    paint.color = Color.parseColor("#212121")
+    canvas.drawRoundRect(0f, 0f, size.toFloat(), size.toFloat(), 36f, 36f, paint)
+
+    paint.color = Color.WHITE
+    when (weatherCode) {
+        0 -> { // Sun
+            paint.color = Color.parseColor("#FFD700")
+            canvas.drawCircle(size / 2f, size / 2f, 42f, paint)
+            paint.strokeWidth = 8f
+            paint.style = Paint.Style.STROKE
+            for (i in 0 until 8) {
+                val angle = i * (Math.PI / 4)
+                val x1 = (size / 2f + 56 * Math.cos(angle)).toFloat()
+                val y1 = (size / 2f + 56 * Math.sin(angle)).toFloat()
+                val x2 = (size / 2f + 72 * Math.cos(angle)).toFloat()
+                val y2 = (size / 2f + 72 * Math.sin(angle)).toFloat()
+                canvas.drawLine(x1, y1, x2, y2, paint)
+            }
+        }
+        1, 2, 3 -> { // Cloud
+            paint.color = Color.parseColor("#E0E0E0")
+            canvas.drawCircle(size * 0.4f, size * 0.55f, 36f, paint)
+            canvas.drawCircle(size * 0.65f, size * 0.5f, 46f, paint)
+            canvas.drawRect(size * 0.35f, size * 0.55f, size * 0.7f, size * 0.76f, paint)
+        }
+        45, 48 -> { // Fog
+            paint.color = Color.parseColor("#B0BEC5")
+            paint.strokeWidth = 12f
+            paint.strokeCap = Paint.Cap.ROUND
+            canvas.drawLine(40f, 60f, 152f, 60f, paint)
+            canvas.drawLine(30f, 96f, 162f, 96f, paint)
+            canvas.drawLine(50f, 132f, 142f, 132f, paint)
+        }
+        51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82 -> { // Rain
+            paint.color = Color.parseColor("#90CAF9")
+            paint.strokeWidth = 10f
+            paint.strokeCap = Paint.Cap.ROUND
+            canvas.drawLine(60f, 110f, 50f, 145f, paint)
+            canvas.drawLine(96f, 110f, 86f, 145f, paint)
+            canvas.drawLine(132f, 110f, 122f, 145f, paint)
+            paint.color = Color.parseColor("#CFD8DC")
+            canvas.drawCircle(96f, 75f, 40f, paint)
+        }
+        71, 73, 75, 77, 85, 86 -> { // Snow
+            paint.color = Color.WHITE
+            canvas.drawCircle(60f, 120f, 10f, paint)
+            canvas.drawCircle(96f, 135f, 12f, paint)
+            canvas.drawCircle(132f, 120f, 10f, paint)
+            paint.color = Color.parseColor("#CFD8DC")
+            canvas.drawCircle(96f, 75f, 40f, paint)
+        }
+        95, 96, 99 -> { // Thunderstorm
+            paint.color = Color.parseColor("#FFEE58")
+            val path = Path().apply {
+                moveTo(100f, 35f)
+                lineTo(68f, 100f)
+                lineTo(104f, 100f)
+                lineTo(82f, 155f)
+                lineTo(132f, 88f)
+                lineTo(96f, 88f)
+                close()
+            }
+            canvas.drawPath(path, paint)
+        }
+        else -> {
+            paint.color = Color.parseColor("#FFD700")
+            canvas.drawCircle(size / 2f, size / 2f, 50f, paint)
+        }
+    }
+
+    return bitmap
+}
+
+fun getCityName(context: Context, lat: Double, lon: Double): String {
+    return try {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        @Suppress("DEPRECATION")
+        val addresses = geocoder.getFromLocation(lat, lon, 1)
+        if (!addresses.isNullOrEmpty()) {
+            addresses[0].locality ?: addresses[0].subAdminArea ?: addresses[0].adminArea ?: "Posizione attuale"
+        } else {
+            "Posizione attuale"
+        }
+    } catch (_: Exception) {
+        "Posizione attuale"
+    }
+}
+
+suspend fun getLocation(context: Context): Triple<Double, Double, String> {
+    val hasCoarse = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    Log.d(TAG, "getLocation: ACCESS_COARSE_LOCATION granted = $hasCoarse")
+
+    if (hasCoarse) {
+        try {
+            val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+            val currentLocation: Location? = suspendCancellableCoroutine<Location?> { continuation ->
+                fusedClient.getCurrentLocation(
+                    Priority.PRIORITY_LOW_POWER,
+                    CancellationTokenSource().token
+                ).addOnSuccessListener { loc ->
+                    continuation.resume(loc)
+                }.addOnFailureListener {
+                    continuation.resume(null)
+                }
+            }
+
+            val location = currentLocation ?: suspendCancellableCoroutine<Location?> { continuation ->
+                fusedClient.lastLocation.addOnSuccessListener { loc ->
+                    continuation.resume(loc)
+                }.addOnFailureListener {
+                    continuation.resume(null)
+                }
+            }
+
+            if (location != null) {
+                val lat = location.latitude
+                val lon = location.longitude
+                val cityName = getCityName(context, lat, lon)
+                Log.d(TAG, "Using GPS/Cell location: lat=$lat, lon=$lon, city=$cityName")
+                return Triple(lat, lon, cityName)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting FusedLocation: ${e.message}", e)
+        }
+    }
+
+    // IP Geolocation fallback (no location permissions required)
+    try {
+        Log.d(TAG, "Attempting IP geolocation fallback (ipapi.co)...")
+        val ipResult = withContext(Dispatchers.IO) {
+            val url = URL("https://ipapi.co/json/")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.connectTimeout = 5000
+            conn.readTimeout = 5000
+            if (conn.responseCode == 200) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(response)
+                val lat = json.optDouble("latitude", Double.NaN)
+                val lon = json.optDouble("longitude", Double.NaN)
+                val city = json.optString("city", "")
+                if (!lat.isNaN() && !lon.isNaN()) {
+                    Triple(lat, lon, if (city.isNotBlank()) city else "Posizione IP")
+                } else null
+            } else null
+        }
+        if (ipResult != null) {
+            Log.d(TAG, "Using IP geolocation: lat=${ipResult.first}, lon=${ipResult.second}, city=${ipResult.third}")
+            return ipResult
+        }
+    } catch (e: Exception) {
+        Log.e(TAG, "IP geolocation fallback error: ${e.message}", e)
+    }
+
+    // Default fallback (Rome coordinates)
+    Log.d(TAG, "Using default fallback location (Rome): lat=41.9028, lon=12.4964, city=Roma")
+    return Triple(41.9028, 12.4964, "Roma")
+}
+
+suspend fun fetchWeather(context: Context): WeatherData? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val (lat, lon, locationName) = getLocation(context)
+            val urlStr = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code"
+            Log.d(TAG, "Fetching Open-Meteo URL: $urlStr")
+            val url = URL(urlStr)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.connectTimeout = 5000
+            conn.readTimeout = 5000
+            if (conn.responseCode == 200) {
+                val jsonStr = conn.inputStream.bufferedReader().use { it.readText() }
+                val root = JSONObject(jsonStr)
+                val current = root.optJSONObject("current")
+                if (current != null) {
+                    val temp = current.optDouble("temperature_2m", 0.0)
+                    val code = current.optInt("weather_code", 0)
+                    Log.d(TAG, "Open-Meteo success: temp=$temp, code=$code, location=$locationName")
+                    WeatherData(
+                        temperature = temp,
+                        weatherCode = code,
+                        description = getWeatherDescription(code),
+                        locationName = locationName,
+                        icon = getWeatherIcon(code),
+                        bitmap = createWeatherBitmap(code)
+                    )
+                } else {
+                    Log.w(TAG, "Open-Meteo response missing 'current' object")
+                    null
+                }
+            } else {
+                Log.e(TAG, "Open-Meteo HTTP error code: ${conn.responseCode}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception fetching weather: ${e.message}", e)
+            null
+        }
+    }
+}

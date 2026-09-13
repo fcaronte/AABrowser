@@ -118,6 +118,9 @@ object AppSettings {
     private val _tabBarMode = mutableStateOf(TabBarMode.OFF)
     val tabBarMode: State<TabBarMode> = _tabBarMode
 
+    private val _weatherWidgetEnabled = mutableStateOf(false)
+    val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _forceTheme.value = prefs.getBoolean("force_theme", false)
@@ -157,8 +160,14 @@ object AppSettings {
         _tabBarMode.value = TabBarMode.valueOf(
             prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
         )
+        _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
 
         updateLocale()
+    }
+
+    fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {
+        _weatherWidgetEnabled.value = enabled
+        saveBoolean(context, "weather_widget_enabled", enabled)
     }
 
     fun setForceTheme(context: Context, enabled: Boolean) {

@@ -109,13 +109,20 @@ internal class CarMediaNotificationManager {
         createChannel()
 
         val isPlaying = state.state == PlaybackStateCompat.STATE_PLAYING
+        val hasPrev = (state.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0L
+        val hasNext = (state.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0L
+
+        val actionsList = mutableListOf<Int>()
+        if (hasPrev) actionsList.add(0)
+        actionsList.add(if (hasPrev) 1 else 0)
+        if (hasNext) actionsList.add(actionsList.size)
 
         val builder: NotificationCompat.Builder =
             NotificationCompat.Builder(mCarmediaservice!!, CHANNEL_ID)
         builder.setStyle(
             androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(token)
-                .setShowActionsInCompactView(0, 1, 2)
+                .setShowActionsInCompactView(*actionsList.toIntArray())
                 .setShowCancelButton(true)
                 .setCancelButtonIntent(
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
@@ -136,15 +143,15 @@ internal class CarMediaNotificationManager {
             )
         )
 
-        if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0L) builder.addAction(
-            mPrevaction
-        )
+        if (hasPrev) {
+            builder.addAction(mPrevaction)
+        }
 
         builder.addAction(if (isPlaying) mPauseaction else mPlayaction)
 
-        if ((state.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0L) builder.addAction(
-            mNextaction
-        )
+        if (hasNext) {
+            builder.addAction(mNextaction)
+        }
 
         return builder
     }
