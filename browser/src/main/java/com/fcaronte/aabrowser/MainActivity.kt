@@ -8,8 +8,8 @@ import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.fcaronte.aabrowser.ui.MainScreen
 import androidx.core.net.toUri
+import com.fcaronte.aabrowser.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
 

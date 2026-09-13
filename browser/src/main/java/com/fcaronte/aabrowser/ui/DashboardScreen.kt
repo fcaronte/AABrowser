@@ -57,8 +57,8 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
-import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.utils.UpdateManager
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
