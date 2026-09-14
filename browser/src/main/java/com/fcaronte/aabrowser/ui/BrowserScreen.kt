@@ -9,6 +9,7 @@ import android.os.Message
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -67,8 +68,10 @@ import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.InactivityTracker
+import com.fcaronte.aabrowser.utils.SpotifyManager
 import java.io.ByteArrayInputStream
 import androidx.core.net.toUri
+import org.json.JSONObject
 
 object ChromeVersionFetcher {
     private var cachedVersion: String = "152.0.0.0"
@@ -219,8 +222,16 @@ fun BrowserScreen(
                 webView.loadUrl("about:blank")
                 webView.destroy()
             }
+            mediaSessionManager?.updatePlaybackState(
+                PlaybackStateCompat.STATE_NONE,
+                0L,
+                1.0f
+            )
+            mediaSessionManager?.updateMetadata("", "", null, 0L)
         }
     }
+
+
 
     LaunchedEffect(Unit) {
         mediaSessionManager?.connect()
@@ -278,6 +289,8 @@ fun BrowserScreen(
             lastProcessedReloadTrigger = reloadTrigger
         }
     }
+
+
 
     Box(modifier = Modifier.fillMaxSize().background(if (isAppDark) Color.Black else Color.White)) {
         AndroidView(
@@ -449,6 +462,39 @@ fun BrowserScreen(
                                     albumArtUrl,
                                     (duration * 1000).toLong()
                                 )
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun recMediaStatus(jsonStr: String) {
+                                try {
+                                    val json = JSONObject(jsonStr)
+                                    val title = json.optString("track", "")
+                                    val artist = json.optString("artist", "")
+                                    val position = json.optLong("position", 0L)
+                                    val duration = json.optLong("duration", 0L)
+                                    val isPlaying = json.optBoolean("playing", false)
+                                    
+                                    var coverUrl = json.optString("cover", "")
+                                    // Trucco upscaling: forza la risoluzione alta della cover di Spotify
+                                    coverUrl = coverUrl.replace("00004851", "0000b273")
+
+                                    Log.d("SpotifyDebug", "recMediaStatus -> $title - $artist (Playing: $isPlaying, Cover: $coverUrl)")
+
+                                    val lowerTitle = title.lowercase()
+                                    val ignoredTitles = listOf("buonasera", "buongiorno", "buon pomeriggio", "good evening", "good morning", "spotify", "home", "search", "cerca")
+                                    if (title.isNotEmpty() && !ignoredTitles.any { lowerTitle.contains(it) }) {
+                                        mediaSessionManager?.updateMetadata(title, artist, coverUrl, duration)
+                                        mediaSessionManager?.updatePlaybackState(
+                                            if (isPlaying) PlaybackStateCompat.STATE_PLAYING 
+                                            else PlaybackStateCompat.STATE_PAUSED,
+                                            position,
+                                            1.0f
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("SpotifyBridge", "Error parsing media status", e)
+                                }
                             }
 
                             @android.webkit.JavascriptInterface
@@ -695,6 +741,20 @@ fun BrowserScreen(
                                         null
                                     )
                                     lastInjectedUrl = url
+                                }
+
+                                if (url.contains("whatsapp.com") || url.contains("whatsapp.net") || url.contains("telegram.org")) {
+                                    view?.evaluateJavascript(
+                                        BrowserJavascript.getCenterQrScript(),
+                                        null
+                                    )
+                                }
+
+                                if (url.contains("spotify.com")) {
+                                    view?.evaluateJavascript(
+                                        SpotifyManager.getInjectionScript(),
+                                        null
+                                    )
                                 }
 
                                 CookieManager.getInstance().flush()

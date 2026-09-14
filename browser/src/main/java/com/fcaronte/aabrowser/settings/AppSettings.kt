@@ -124,6 +124,9 @@ object AppSettings {
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
 
+    private val _onboardingCompleted = mutableStateOf(false)
+    val onboardingCompleted: State<Boolean> = _onboardingCompleted
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _forceTheme.value = prefs.getBoolean("force_theme", false)
@@ -165,8 +168,14 @@ object AppSettings {
             prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
         )
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
+        _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
 
         updateLocale()
+    }
+
+    fun setOnboardingCompleted(context: Context, completed: Boolean) {
+        _onboardingCompleted.value = completed
+        saveBoolean(context, "onboarding_completed", completed)
     }
 
     fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {

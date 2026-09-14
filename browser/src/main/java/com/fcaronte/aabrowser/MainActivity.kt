@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.net.toUri
+import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
@@ -21,6 +22,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
+
+        AppSettings.init(applicationContext)
+        if (!AppSettings.onboardingCompleted.value) {
+            startActivity(Intent(this, WelcomeActivity::class.java))
+            finish()
+            return
+        }
 
         enableEdgeToEdge()
 

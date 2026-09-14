@@ -83,4 +83,10 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
             repository.saveFavorites(favorites)
         }
     }
+
+    fun resetToDefaults() {
+        val defaults = repository.resetToDefaults()
+        favorites.clear()
+        favorites.addAll(defaults)
+    }
 }

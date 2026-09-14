@@ -116,13 +116,20 @@ object BrowserJavascript {
             let lastMediaTitle = "";
             let lastDuration = 0;
             function syncMetadata() {
-                const video = document.querySelector('video');
-                if (!video || !window.AndroidBridge) return;
+                console.log("AABrowserPlayback JS: syncMetadata called. Host:", window.location.host);
+                if (!window.AndroidBridge) return;
+
+                const media = document.querySelector('video, audio');
+                const isSpotify = window.location.host.includes('spotify.com');
+
+                if (!media && !isSpotify) {
+                    return;
+                }
 
                 let title = document.title;
                 let artist = "AABrowser Audio";
                 let artUrl = "";
-                let duration = isFinite(video.duration) ? video.duration : 0;
+                let duration = media && isFinite(media.duration) ? media.duration : 0;
 
                 if (window.location.host.includes('youtube.com')) {
                     const ytTitle = document.querySelector('.ytp-title-link')?.innerText || 
@@ -152,48 +159,90 @@ object BrowserJavascript {
                     }
                 }
 
-                if (title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
+                if (window.location.host.includes('spotify.com')) {
+                    // 1. Cerca prima nella barra di riproduzione in basso (Now Playing Bar)
+                    const nowPlayingBar = document.querySelector('[data-testid="now-playing-bar"]');
+                    
+                    if (nowPlayingBar) {
+                        const trackEl = nowPlayingBar.querySelector('[data-testid="track-info-name"] a, [data-testid="context-item-info-title"] a, [data-testid="entity-title"], [data-encore-id="text"]');
+                        const artistEl = nowPlayingBar.querySelector('[data-testid="track-info-artists"] a, [data-testid="context-item-info-subtitle"] a, [data-testid="entity-subtitle"]');
+                        const artEl = nowPlayingBar.querySelector('img[data-testid="cover-art-image"], img[data-testid="entity-image"], img[src*="scdn.co"], img');
+
+                        if (trackEl && (trackEl.textContent || trackEl.innerText)) {
+                            title = (trackEl.textContent || trackEl.innerText).trim();
+                        }
+                        if (artistEl && (artistEl.textContent || artistEl.innerText)) {
+                            artist = (artistEl.textContent || artistEl.innerText).trim();
+                        }
+                        if (artEl && artEl.src) {
+                            artUrl = artEl.src;
+                        }
+                    }
+
+                    // 2. Fallback su mediaSession se la barra in basso non è pronta, filtrando i titoli generici della playlist
+                    if ((!title || title.includes("Top 50") || title.includes("Playlist")) && navigator.mediaSession && navigator.mediaSession.metadata) {
+                        const meta = navigator.mediaSession.metadata;
+                        if (meta.title && !meta.title.includes("Top 50") && !meta.title.includes("Spotify")) {
+                            title = meta.title;
+                        }
+                        if (meta.artist) artist = meta.artist;
+                        if (meta.artwork && meta.artwork.length > 0) {
+                            artUrl = meta.artwork[meta.artwork.length - 1].src;
+                        }
+                    }
+
+                    // Trucco upscaling copertina di Spotify (da bassa a alta risoluzione se presente l'hash)
+                    if (artUrl && artUrl.includes("00004851")) {
+                        artUrl = artUrl.replace("00004851", "0000b273");
+                    }
+                }
+
+                const lowerTitle = (title || "").toLowerCase();
+                const isGeneric = lowerTitle.includes("lettore web") || lowerTitle.includes("musica per tutti") || lowerTitle === "spotify" || lowerTitle === "home" || lowerTitle === "search" || lowerTitle === "cerca" || lowerTitle === "";
+
+                if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
                     lastMediaTitle = title;
                     lastDuration = duration;
+                    console.log("AABrowserPlayback JS: calling AndroidBridge.updateMediaMetadata ->", title, artist, artUrl, duration);
                     AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
                 }
             }
 
-            function setupVideoListeners(video) {
-                if (video.dataset.mediaListenersAdded) return;
-                video.dataset.mediaListenersAdded = 'true';
-                video.lastBridgeUpdate = 0;
+            function setupMediaListeners(media) {
+                if (media.dataset.mediaListenersAdded) return;
+                media.dataset.mediaListenersAdded = 'true';
+                media.lastBridgeUpdate = 0;
 
-                video.addEventListener('play', () => {
+                media.addEventListener('play', () => {
+                    console.log("AABrowserPlayback JS: media element 'play' event triggered");
                     window.isMediaPlaying = true;
-                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, video.currentTime, video.playbackRate);
+                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, media.currentTime, media.playbackRate);
                     syncMetadata();
                 });
-                video.addEventListener('pause', () => {
-                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, video.currentTime, video.playbackRate);
+                media.addEventListener('pause', () => {
+                    console.log("AABrowserPlayback JS: media element 'pause' event triggered");
+                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, media.currentTime, media.playbackRate);
                 });
-                video.addEventListener('timeupdate', () => {
+                media.addEventListener('timeupdate', () => {
                     const now = Date.now();
                     // Pool di aggiornamento: invia dati a Android max ogni 500ms
-                    if (now - video.lastBridgeUpdate > 500) {
-                        if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(video.currentTime, video.playbackRate, !video.paused);
-                        video.lastBridgeUpdate = now;
+                    if (now - media.lastBridgeUpdate > 500) {
+                        if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(media.currentTime, media.playbackRate, !media.paused);
+                        media.lastBridgeUpdate = now;
                     }
                 });
-                video.addEventListener('durationchange', syncMetadata);
+                media.addEventListener('durationchange', syncMetadata);
             }
 
-            const videoObserver = new MutationObserver(() => {
-                const video = document.querySelector('video');
-                if (video) setupVideoListeners(video);
+            const mediaObserver = new MutationObserver(() => {
+                document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
             });
-            videoObserver.observe(document.body, { childList: true, subtree: true });
+            mediaObserver.observe(document.body, { childList: true, subtree: true });
 
-            const video = document.querySelector('video');
-            if (video) {
-                setupVideoListeners(video);
-                setTimeout(syncMetadata, 2000);
-            }
+            document.querySelectorAll('video, audio').forEach(media => {
+                setupMediaListeners(media);
+            });
+            setTimeout(syncMetadata, 2000);
             
             function setupInputListeners() {
                 document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
@@ -207,6 +256,10 @@ object BrowserJavascript {
             const inputObserver = new MutationObserver(setupInputListeners);
             inputObserver.observe(document.body, { childList: true, subtree: true });
             setupInputListeners();
+
+            if (window.location.host.includes('spotify.com')) {
+                setInterval(syncMetadata, 1000);
+            }
         })();
         """.trimIndent()
     }
@@ -314,44 +367,57 @@ object BrowserJavascript {
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;
-            document.querySelectorAll('video').forEach(v => {
+            if (typeof window.aabForceSpotifyPlay === 'function') {
+                window.aabForceSpotifyPlay();
+            }
+            document.querySelectorAll('video, audio').forEach(v => {
                 if (v.paused) v.play().catch(e => console.log("Play failed: ", e));
             });
+            const playBtn = document.querySelector('[data-testid="control-button-play"], [aria-label="Play"], [aria-label="Riproduci"]');
+            if (playBtn) {
+                ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(eventType => {
+                    playBtn.dispatchEvent(new MouseEvent(eventType, { bubbles: true, cancelable: true, view: window }));
+                });
+            }
         })();
     """
 
     const val PAUSE_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
-            document.querySelectorAll('video').forEach(v => v.pause());
+            document.querySelectorAll('video, audio').forEach(v => v.pause());
+            const pauseBtn = document.querySelector('[data-testid="control-button-pause"]');
+            if (pauseBtn) pauseBtn.click();
         })();
     """
 
     const val STOP_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
-            document.querySelectorAll('video').forEach(v => v.pause());
+            document.querySelectorAll('video, audio').forEach(v => v.pause());
+            const pauseBtn = document.querySelector('[data-testid="control-button-pause"]');
+            if (pauseBtn) pauseBtn.click();
         })();
     """
 
     const val NEXT_SCRIPT = """
         (function() {
-            const nextBtn = document.querySelector('.ytp-next-button, ytmusic-player-bar .next-button, [aria-label="Next"], [title="Next"]');
+            const nextBtn = document.querySelector('.ytp-next-button, ytmusic-player-bar .next-button, [data-testid="control-button-skip-forward"], [aria-label="Next"], [title="Next"]');
             if (nextBtn) nextBtn.click();
             else {
-                const video = document.querySelector('video');
-                if (video) video.currentTime += 10;
+                const media = document.querySelector('video, audio');
+                if (media) media.currentTime += 10;
             }
         })();
     """
 
     const val PREVIOUS_SCRIPT = """
         (function() {
-            const prevBtn = document.querySelector('.ytp-prev-button, ytmusic-player-bar .previous-button, [aria-label="Previous"], [title="Previous"]');
+            const prevBtn = document.querySelector('.ytp-prev-button, ytmusic-player-bar .previous-button, [data-testid="control-button-skip-back"], [aria-label="Previous"], [title="Previous"]');
             if (prevBtn) prevBtn.click();
             else {
-                const video = document.querySelector('video');
-                if (video) video.currentTime -= 10;
+                const media = document.querySelector('video, audio');
+                if (media) media.currentTime -= 10;
             }
         })();
     """
@@ -359,8 +425,41 @@ object BrowserJavascript {
     fun getSeekScript(pos: Long): String {
         return """
         (function() {
-            const video = document.querySelector('video');
-            if (video) video.currentTime = ${pos / 1000.0};
+            const media = document.querySelector('video, audio');
+            if (media) media.currentTime = ${pos / 1000.0};
+        })();
+        """.trimIndent()
+    }
+
+    fun getSpotifyOptimizationScript(): String {
+        return """
+        (function() {
+            if (window.aabSpotifyOptimized) return;
+            window.aabSpotifyOptimized = true;
+            
+            const style = document.createElement('style');
+            style.innerHTML = `
+                /* Nascondi la sidebar laterale sinistra per ottimizzare lo schermo dell'auto */
+                nav[aria-label="Main"], [data-testid="left-sidebar"] {
+                    display: none !important;
+                }
+                /* Espandi l'area principale a tutto schermo */
+                .Root__main-view, [data-testid="main-content"] {
+                    width: 100% !important;
+                    grid-column: 1 / -1 !important;
+                    max-width: none !important;
+                }
+                /* Rimuovi banner pubblicitari o inviti a scaricare l'app desktop */
+                [data-testid="banner"], [data-testid="download-desktop-app-button"], header {
+                    display: none !important;
+                }
+                /* Ottimizza la barra di riproduzione in basso */
+                [data-testid="now-playing-bar"] {
+                    background-color: #121212 !important;
+                    border-top: 1px solid #282828;
+                }
+            `;
+            document.head.appendChild(style);
         })();
         """.trimIndent()
     }
@@ -426,6 +525,21 @@ object BrowserJavascript {
                     }
                 }
             });
+        })();
+        """.trimIndent()
+    }
+
+    fun getCenterQrScript(): String {
+        return """
+        (function() {
+            if (window.aabCentered) return;
+            window.aabCentered = true;
+            setTimeout(() => {
+                const maxScrollX = document.documentElement.scrollWidth - window.innerWidth;
+                if (maxScrollX > 0) {
+                    window.scrollTo(maxScrollX / 2, 0);
+                }
+            }, 1200);
         })();
         """.trimIndent()
     }

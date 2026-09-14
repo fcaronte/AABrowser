@@ -6,7 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Environment
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -41,6 +44,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -71,6 +75,9 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.utils.BackupRestoreUtils
+import kotlinx.coroutines.delay
+import java.io.File
 
 @Composable
 fun SettingsScreen(
@@ -79,6 +86,30 @@ fun SettingsScreen(
     onShowFeedback: (String) -> Unit
 ) {
     val context = LocalContext.current
+    var confirmReset by remember { mutableStateOf(false) }
+    LaunchedEffect(confirmReset) {
+        if (confirmReset) {
+            delay(4000)
+            confirmReset = false
+        }
+    }
+
+    var confirmExport by remember { mutableStateOf(false) }
+    LaunchedEffect(confirmExport) {
+        if (confirmExport) {
+            delay(4000)
+            confirmExport = false
+        }
+    }
+
+    var confirmImport by remember { mutableStateOf(false) }
+    LaunchedEffect(confirmImport) {
+        if (confirmImport) {
+            delay(4000)
+            confirmImport = false
+        }
+    }
+
     val isDesktopMode by AppSettings.desktopMode
     val desktopScale by AppSettings.desktopScale
     val displayScale by AppSettings.displayScale
@@ -441,6 +472,96 @@ fun SettingsScreen(
                                                 valueRange = 1f..8f,
                                                 steps = 6
                                             )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Ripristina Preferiti Predefiniti
+                            SettingsCard {
+                                SettingsButtonItem(
+                                    label = stringResource(R.string.reset_favorites_label),
+                                    description = stringResource(R.string.reset_favorites_desc),
+                                    buttonText = if (confirmReset) stringResource(R.string.are_you_sure) else stringResource(R.string.reset_button),
+                                    buttonColor = if (confirmReset) MaterialTheme.colorScheme.errorContainer else ButtonDefaults.buttonColors().containerColor,
+                                    buttonTextColor = if (confirmReset) MaterialTheme.colorScheme.onErrorContainer else ButtonDefaults.buttonColors().contentColor,
+                                    onClick = {
+                                        if (confirmReset) {
+                                            favoritesViewModel.resetToDefaults()
+                                            confirmReset = false
+                                            Toast.makeText(context, "Preferiti ripristinati", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            confirmReset = true
+                                        }
+                                    }
+                                )
+                            }
+
+                            // Esporta e Importa Impostazioni e Preferiti
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.export_settings_label),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.export_settings_desc),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontSize = 12.sp,
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                if (confirmExport) {
+                                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                                    val aaBrowserFolder = File(downloadsDir, "AABrowser")
+                                                    val file = File(aaBrowserFolder, "aabrowser_backup.json")
+                                                    val success = BackupRestoreUtils.exportSettingsAndBookmarksToFile(context, file)
+                                                    val msg = if (success) "Backup salvato in Download/AABrowser/aabrowser_backup.json" else context.getString(R.string.backup_error)
+                                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                                    confirmExport = false
+                                                } else {
+                                                    confirmExport = true
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (confirmExport) MaterialTheme.colorScheme.errorContainer else ButtonDefaults.buttonColors().containerColor,
+                                                contentColor = if (confirmExport) MaterialTheme.colorScheme.onErrorContainer else ButtonDefaults.buttonColors().contentColor
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(if (confirmExport) stringResource(R.string.are_you_sure) else stringResource(R.string.export_button))
+                                        }
+                                        OutlinedButton(
+                                            onClick = {
+                                                if (confirmImport) {
+                                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                                    val aaBrowserFolder = File(downloadsDir, "AABrowser")
+                                                    val file = File(aaBrowserFolder, "aabrowser_backup.json")
+                                                    val success = BackupRestoreUtils.importSettingsAndBookmarksFromFile(context, file)
+                                                    val msg = if (success) context.getString(R.string.import_success) else context.getString(R.string.import_error)
+                                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                                    if (success) {
+                                                        AppSettings.init(context)
+                                                    }
+                                                    confirmImport = false
+                                                } else {
+                                                    confirmImport = true
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (confirmImport) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
+                                                contentColor = if (confirmImport) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(if (confirmImport) stringResource(R.string.are_you_sure) else stringResource(R.string.import_button))
                                         }
                                     }
                                 }
@@ -1030,5 +1151,46 @@ fun SettingsSwitchItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
         )
+    }
+}
+
+@Composable
+fun SettingsButtonItem(
+    label: String,
+    description: String,
+    buttonText: String,
+    buttonColor: Color = ButtonDefaults.buttonColors().containerColor,
+    buttonTextColor: Color = ButtonDefaults.buttonColors().contentColor,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = description,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+            )
+        }
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor,
+                contentColor = buttonTextColor
+            )
+        ) {
+            Text(buttonText)
+        }
     }
 }

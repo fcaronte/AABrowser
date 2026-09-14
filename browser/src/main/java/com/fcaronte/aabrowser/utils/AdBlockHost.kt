@@ -72,7 +72,11 @@ object AdBlockHost {
         "ad.doubleclick.net",
         "googleads.g.doubleclick.net",
         "pagead2.googlesyndication.com",
-        "ade.googlesyndication.com"
+        "ade.googlesyndication.com",
+        "spclient.wg.spotify.com",
+        "audio-ads.spotify.com",
+        "ads-fa.spotify.com",
+        "gads.spotify.com"
     )
 
     fun init(context: Context) {

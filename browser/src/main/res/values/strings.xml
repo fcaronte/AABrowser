@@ -156,6 +156,12 @@
     <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
     <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
     <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -166,4 +172,34 @@
     <string name="bing_home_url" translatable="false">https://www.bing.com</string>
     <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
     <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">Reset Default Favorites</string>
+    <string name="reset_favorites_desc">Restore home screen favorites to original default sites</string>
+    <string name="reset_button">Reset</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="export_settings_label">Export Settings &amp; Bookmarks</string>
+    <string name="export_settings_desc">Save all your bookmarks and settings to a JSON backup file</string>
+    <string name="export_button">Export</string>
+    <string name="import_settings_label">Import Settings &amp; Bookmarks</string>
+    <string name="import_settings_desc">Restore bookmarks and settings from a backup file</string>
+    <string name="import_button">Import</string>
+    <string name="backup_success">Backup completed successfully!</string>
+    <string name="backup_error">Backup failed.</string>
+    <string name="import_success">Restore completed! Please restart the app.</string>
+    <string name="import_error">Restore failed.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Welcome to AABrowser</string>
+    <string name="welcome_subtitle">The complete browser designed for Android Auto. To ensure optimal performance, please grant the following permissions:</string>
+    <string name="perm_mic_title">Microphone</string>
+    <string name="perm_mic_desc">Used for voice dictation and search input inside websites.</string>
+    <string name="perm_location_title">Network Location</string>
+    <string name="perm_location_desc">Used exclusively to display local weather updates on your car display.</string>
+    <string name="perm_notifications_title">Notifications</string>
+    <string name="perm_notifications_desc">Required for background music playback controls, weather widget, and app updates.</string>
+    <string name="perm_background_title">Background Execution &amp; Battery</string>
+    <string name="perm_background_desc">Essential to prevent Android Auto from closing or hiding the app if unused for a while.</string>
+    <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
+    <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
 </resources>

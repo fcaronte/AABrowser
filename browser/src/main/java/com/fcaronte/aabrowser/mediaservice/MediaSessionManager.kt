@@ -60,6 +60,7 @@ class MediaSessionManager(private val context: Context) {
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             if (event == "PlaybackAction") {
                 val action = extras?.getLong("PlaybackAction") ?: 0
+                Log.d("AABrowserPlayback", "Received PlaybackAction: $action")
                 when (action) {
                     PlaybackStateCompat.ACTION_PLAY -> {
                         onPlay?.invoke()
@@ -109,6 +110,7 @@ class MediaSessionManager(private val context: Context) {
     private var lastSpeed: Float = 1.0f
 
     fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
+        Log.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
         // Pool di aggiornamento più conservativo: evita di saturare il sistema
         val positionDiff = kotlin.math.abs(position - lastPosition)
         val isCoherent = state == lastState && speed == lastSpeed && positionDiff < 1000
@@ -150,10 +152,18 @@ class MediaSessionManager(private val context: Context) {
     private var lastDuration: Long = 0
 
     fun updateMetadata(title: String, artist: String?, artUrl: String?, duration: Long = 0) {
-        Log.d(TAG, "updateMetadata: $title - $artist (Art: $artUrl)")
+        Log.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl")
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
             Log.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
+            return
+        }
+
+        if (title.isBlank()) {
+            lastArtUrl = null
+            lastBitmap = null
+            lastDuration = 0
+            sendMetadata("", null, null, 0)
             return
         }
 

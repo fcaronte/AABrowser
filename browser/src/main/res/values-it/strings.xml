@@ -141,4 +141,34 @@
     <string name="github_label">GitHub</string>
     <string name="refresh_cache">Aggiorna dimensione cache</string>
     <string name="settings_footer_donation">Se ti piace il progetto, puoi offrirmi un caffè per supportare le ore di sonno perse a scrivere questo codice a litigare con Gemini 😂</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">Ripristina Preferiti Predefiniti</string>
+    <string name="reset_favorites_desc">Riporta i preferiti della schermata iniziale ai siti predefiniti originali</string>
+    <string name="reset_button">Ripristina</string>
+    <string name="are_you_sure">Sei sicuro?</string>
+    <string name="export_settings_label">Esporta Impostazioni e Preferiti</string>
+    <string name="export_settings_desc">Salva tutti i preferiti e le impostazioni in un file di backup JSON</string>
+    <string name="export_button">Esporta</string>
+    <string name="import_settings_label">Importa Impostazioni e Preferiti</string>
+    <string name="import_settings_desc">Ripristina preferiti e impostazioni da un file di backup</string>
+    <string name="import_button">Importa</string>
+    <string name="backup_success">Backup completato con successo!</string>
+    <string name="backup_error">Errore durante il backup.</string>
+    <string name="import_success">Ripristino completato! Riavvia l\'app.</string>
+    <string name="import_error">Errore durante il ripristino.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Benvenuto in AABrowser</string>
+    <string name="welcome_subtitle">Il browser completo progettato per Android Auto. Per un\'esperienza ottimale, l\'app richiede alcuni permessi essenziali:</string>
+    <string name="perm_mic_title">Microfono</string>
+    <string name="perm_mic_desc">Utilizzato per la dettatura vocale e la ricerca nei siti web.</string>
+    <string name="perm_location_title">Localizzazione di Rete</string>
+    <string name="perm_location_desc">Utilizzato esclusivamente per mostrare il meteo locale sullo schermo dell\'auto.</string>
+    <string name="perm_notifications_title">Notifiche</string>
+    <string name="perm_notifications_desc">Necessarie per il funzionamento del player musicale in background, il widget meteo e gli aggiornamenti.</string>
+    <string name="perm_background_title">Esecuzione in Background &amp; Batteria</string>
+    <string name="perm_background_desc">Fondamentale affinché Android Auto non chiuda o nasconda l\'app se lasciata in secondo piano per un po\'.</string>
+    <string name="grant_permissions_button">Concedi Permessi e Inizia</string>
+    <string name="skip_onboarding_button">So quello che faccio (Salta)</string>
 </resources>

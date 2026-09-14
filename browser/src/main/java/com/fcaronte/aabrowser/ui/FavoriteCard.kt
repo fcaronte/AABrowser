@@ -54,7 +54,14 @@ fun FavoriteCard(
     val domain = remember(site.url) {
         try {
             val uri = URI(site.url)
-            val host = uri.host ?: site.url
+            var host = uri.host ?: site.url
+            val parts = host.split(".")
+            if (parts.size > 2 && (parts[0] == "web" || parts[0] == "music" || parts[0] == "open" || parts[0] == "www")) {
+                host = parts.drop(1).joinToString(".")
+            }
+            if (host.contains("youtubekids")) {
+                host = "youtube.com"
+            }
             if (uri.port != -1) "$host:${uri.port}" else host
         } catch (_: Exception) {
             site.url

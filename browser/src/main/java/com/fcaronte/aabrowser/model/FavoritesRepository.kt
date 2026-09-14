@@ -39,7 +39,10 @@ class FavoritesRepository(private val context: Context) {
                 FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF4285F4),
                 FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFFF0000),
                 FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFFFF0000),
-                FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF34A853)
+                FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF25D366, null, true, null, 0.9f),
+                FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFF1DB954, null, false, null, 1.0f),
+                FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFF0088CC, null, true, null, 0.9f),
+                FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFFFF0000)
             )
             saveFavorites(defaults)
             return defaults
@@ -64,5 +67,19 @@ class FavoritesRepository(private val context: Context) {
             }
             apply()
         }
+    }
+
+    fun resetToDefaults(): List<FavoriteSite> {
+        val defaults = listOf(
+            FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF4285F4),
+            FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFFF0000),
+            FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFFFF0000),
+            FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF25D366, null, true, null, 0.9f),
+            FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFF1DB954, null, false, null, 1.0f),
+            FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFF0088CC, null, true, null, 0.9f),
+            FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFFFF0000)
+        )
+        saveFavorites(defaults)
+        return defaults
     }
 }
