@@ -218,8 +218,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
-                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE) {
+                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
+                        playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
                         showingWeather = true
+                        isUserPaused = false
                         checkAndUpdateWeatherMetadata()
                     }
                 }
@@ -228,8 +230,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 val mediaMetadataCompat =
                     extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
                 if (mediaMetadataCompat != null) {
-                    mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
-                    update = true
+                    val title = mediaMetadataCompat.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                    if (title.isNullOrBlank()) {
+                        showingWeather = true
+                        isUserPaused = false
+                        checkAndUpdateWeatherMetadata()
+                    } else {
+                        showingWeather = false
+                        mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
+                        update = true
+                    }
                 }
             }
             if (cancel && mCarmedianotificationmanager != null) {

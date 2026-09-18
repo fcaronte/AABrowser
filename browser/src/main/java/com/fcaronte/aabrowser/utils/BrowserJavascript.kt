@@ -123,6 +123,14 @@ object BrowserJavascript {
                 const isSpotify = window.location.host.includes('spotify.com');
 
                 if (!media && !isSpotify) {
+                    if (lastMediaTitle !== "") {
+                        lastMediaTitle = "";
+                        lastDuration = 0;
+                        if (window.AndroidBridge) {
+                            AndroidBridge.updateMediaMetadata("", "", "", 0);
+                            AndroidBridge.onMediaStatusChanged(false, 0, 1.0);
+                        }
+                    }
                     return;
                 }
 
@@ -258,7 +266,11 @@ object BrowserJavascript {
             setupInputListeners();
 
             if (window.location.host.includes('spotify.com')) {
-                setInterval(syncMetadata, 1000);
+                setInterval(() => {
+                    if (window.location.host.includes('spotify.com')) {
+                        syncMetadata();
+                    }
+                }, 1000);
             }
         })();
         """.trimIndent()

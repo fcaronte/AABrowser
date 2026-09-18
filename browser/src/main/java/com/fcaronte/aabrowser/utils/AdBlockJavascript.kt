@@ -17,6 +17,7 @@ object AdBlockJavascript {
         };
 
         const mainLoop = setInterval(() => {
+            if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be')) return;
             const video = document.querySelector('video');
             if (!video) return;
 
@@ -115,6 +116,7 @@ object AdBlockJavascript {
         window.aabIntervals.push(mainLoop);
 
         const slowLoop = setInterval(() => {
+            if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be')) return;
             const video = document.querySelector('video');
             if (video && !window.aabIsAdPlaying) {
                 const isMusic = window.location.host.includes('music.youtube.com') || document.title.toLowerCase().includes('official music video');

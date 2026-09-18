@@ -19,6 +19,7 @@ object SpotifyManager {
         (function() {
             if (window.aabSpotifyInitialized) return;
             window.aabSpotifyInitialized = true;
+            window.aabSpotifyIntervals = window.aabSpotifyIntervals || [];
 
             console.log("AABrowser: Spotify Ultimate Track & Cover Observer Active");
 
@@ -34,6 +35,8 @@ object SpotifyManager {
 
             // 2. Anti-Promo Premium automatico
             const removeBanners = setInterval(() => {
+                if (!window.location.host.includes('spotify.com')) return;
+
                 const upgradeModal = document.querySelector('[data-testid="upgrade-modal"]');
                 if (upgradeModal) upgradeModal.remove();
 
@@ -45,10 +48,13 @@ object SpotifyManager {
                     }
                 });
             }, 1000);
+            window.aabSpotifyIntervals.push(removeBanners);
 
             // 3. Poller definitivo (Cheap Path a[href*="/track/"] per titolo/artista + MediaSession/DOM per copertina HD)
             let lastTitle = "";
-            setInterval(() => {
+            const pollMedia = setInterval(() => {
+                if (!window.location.host.includes('spotify.com')) return;
+
                 let title = "";
                 let artist = "";
                 let cover = "";
@@ -135,6 +141,7 @@ object SpotifyManager {
                     }
                 }
             }, 1000);
+            window.aabSpotifyIntervals.push(pollMedia);
 
         })();
         """.trimIndent()

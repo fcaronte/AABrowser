@@ -69,6 +69,7 @@ import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.InactivityTracker
 import com.fcaronte.aabrowser.utils.SpotifyManager
+import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import java.io.ByteArrayInputStream
 import androidx.core.net.toUri
 import org.json.JSONObject
@@ -108,20 +109,9 @@ object ChromeVersionFetcher {
     }
 }
 
-private fun getDynamicDesktopUserAgent(): String {
-    val version = ChromeVersionFetcher.getLatestVersion()
-    return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
-}
+private fun getDynamicDesktopUserAgent(): String = WebViewScriptRouter.getDynamicDesktopUserAgent()
 
-private fun isDesktopRequired(url: String?): Boolean {
-    val lowUrl = url?.lowercase() ?: ""
-    return lowUrl.contains("whatsapp.com") ||
-            lowUrl.contains("whatsapp.net") ||
-            lowUrl.contains("messenger.com") ||
-            lowUrl.contains("web.telegram.org") ||
-            lowUrl.contains("web.skype.com") ||
-            lowUrl.contains("dazn.com")
-}
+private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDesktopRequired(url)
 
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
@@ -245,7 +235,7 @@ fun BrowserScreen(
                 it.loadUrl(url)
             } else if (currentUrl.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != currentUrl) {
                 android.util.Log.d("##BrowserScreen", "Injecting AdBlock from LaunchedEffect (URL changed)")
-                it.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(it, currentUrl, isYouTubeAdBlockEnabled, isTabActive)
                 lastInjectedUrl = currentUrl
             }
         }
@@ -511,9 +501,8 @@ fun BrowserScreen(
                             fun onStartAdBlock() {
                                 post {
                                     android.util.Log.d("##BrowserScreen", "AdBlock request, YouTube enabled: $isYouTubeAdBlockEnabled")
-                                    if (isYouTubeAdBlockEnabled) {
-                                        webViewReference?.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
-                                    }
+                                    val currentUrl = webViewReference?.url ?: ""
+                                    WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(webViewReference, currentUrl, isYouTubeAdBlockEnabled, isTabActive)
                                 }
                             }
 
@@ -725,62 +714,18 @@ fun BrowserScreen(
                                 onPageFinished(url)
                                 android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
 
-                                view?.evaluateJavascript(BrowserJavascript.getLongPressLinkScript(), null)
-
-                                if (!autoplayMedia) {
-                                    // Blocca qualsiasi riproduzione partita in automatico e silenzia l'audio
-                                    view?.evaluateJavascript(
-                                        "(function() { document.querySelectorAll('video, audio').forEach(el => el.pause()); })();",
-                                        null
+                                view?.let { webView ->
+                                    WebViewScriptRouter.routeAndInject(
+                                        webView = webView,
+                                        urlString = url,
+                                        isYouTubeAdBlockEnabled = isYouTubeAdBlockEnabled,
+                                        autoplayMedia = autoplayMedia,
+                                        displayScale = actualDisplayScale,
+                                        desktopScale = actualDesktopScale,
+                                        isDesktopMode = actualDesktopMode,
+                                        isTabActive = isTabActive
                                     )
                                 }
-
-                                if (url.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != url) {
-                                    view?.evaluateJavascript(
-                                        AdBlockJavascript.getYouTubeAdBlockScript(),
-                                        null
-                                    )
-                                    lastInjectedUrl = url
-                                }
-
-                                if (url.contains("whatsapp.com") || url.contains("whatsapp.net") || url.contains("telegram.org")) {
-                                    view?.evaluateJavascript(
-                                        BrowserJavascript.getCenterQrScript(),
-                                        null
-                                    )
-                                }
-
-                                if (url.contains("spotify.com")) {
-                                    view?.evaluateJavascript(
-                                        SpotifyManager.getInjectionScript(),
-                                        null
-                                    )
-                                }
-
-                                CookieManager.getInstance().flush()
-
-                                val needsDesktop = actualDesktopMode || isDesktopRequired(url)
-                                val targetScale =
-                                    if (needsDesktop) actualDesktopScale else actualDisplayScale
-                                view?.evaluateJavascript(
-                                    BrowserJavascript.getViewportScript(targetScale, needsDesktop),
-                                    null
-                                )
-
-                                if (needsDesktop) {
-                                    val ua = getDynamicDesktopUserAgent()
-                                    val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
-                                    val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "134.0.0.0"
-                                    view?.evaluateJavascript(
-                                        BrowserJavascript.getDesktopSpoofScript(chromeVersion),
-                                        null
-                                    )
-                                }
-
-                                view?.evaluateJavascript(
-                                    BrowserJavascript.getLifecycleAndMetadataScript(),
-                                    null
-                                )
                             }
                         }
                     }
