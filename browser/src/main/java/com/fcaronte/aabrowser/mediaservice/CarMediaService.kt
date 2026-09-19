@@ -341,7 +341,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
 
         override fun onSkipToNext() {
-            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+            service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
         }
 
         override fun onSeekTo(pos: Long) {

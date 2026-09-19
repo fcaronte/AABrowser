@@ -379,17 +379,46 @@ object BrowserJavascript {
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;
-            if (typeof window.aabForceSpotifyPlay === 'function') {
-                window.aabForceSpotifyPlay();
+
+            function smartClick(el) {
+                if (!el) return false;
+                try { el.click(); } catch(e) {}
+                try {
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                    });
+                } catch(e) {}
+                return true;
             }
+
             document.querySelectorAll('video, audio').forEach(v => {
-                if (v.paused) v.play().catch(e => console.log("Play failed: ", e));
+                if (v.paused) v.play().catch(() => {});
             });
-            const playBtn = document.querySelector('[data-testid="control-button-play"], [aria-label="Play"], [aria-label="Riproduci"]');
-            if (playBtn) {
-                ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(eventType => {
-                    playBtn.dispatchEvent(new MouseEvent(eventType, { bubbles: true, cancelable: true, view: window }));
-                });
+
+            const playSelectors = [
+                '[data-testid="control-button-play"]',
+                '[data-testid="control-button-playpause"]',
+                '[data-testid="play-button"]',
+                '.ytp-play-button',
+                'ytmusic-player-bar .play-pause-button',
+                '#play-pause-button',
+                'button[aria-label*="Play" i]',
+                'button[aria-label*="Riproduci" i]',
+                'button[aria-label*="Suona" i]',
+                'button[aria-label*="Ascolta" i]',
+                'button[title*="Play" i]',
+                'button[title*="Riproduci" i]',
+                '[aria-label="Play"]',
+                '[aria-label="Riproduci"]'
+            ];
+
+            for (const sel of playSelectors) {
+                const btn = document.querySelector(sel);
+                if (btn) {
+                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
+                    if (label.includes('pause') || label.includes('pausa')) return;
+                    if (smartClick(btn)) break;
+                }
             }
         })();
     """
@@ -397,26 +426,126 @@ object BrowserJavascript {
     const val PAUSE_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
-            document.querySelectorAll('video, audio').forEach(v => v.pause());
-            const pauseBtn = document.querySelector('[data-testid="control-button-pause"]');
-            if (pauseBtn) pauseBtn.click();
+
+            function smartClick(el) {
+                if (!el) return false;
+                try { el.click(); } catch(e) {}
+                try {
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                    });
+                } catch(e) {}
+                return true;
+            }
+
+            document.querySelectorAll('video, audio').forEach(v => {
+                try { v.pause(); } catch(e) {}
+            });
+
+            const pauseSelectors = [
+                '[data-testid="control-button-pause"]',
+                '[data-testid="control-button-playpause"]',
+                '.ytp-play-button',
+                'ytmusic-player-bar .play-pause-button',
+                '#play-pause-button',
+                'button[aria-label*="Pause" i]',
+                'button[aria-label*="Pausa" i]',
+                'button[aria-label*="In pausa" i]',
+                'button[title*="Pause" i]',
+                'button[title*="Pausa" i]',
+                '[aria-label="Pause"]',
+                '[aria-label="Pausa"]'
+            ];
+
+            for (const sel of pauseSelectors) {
+                const btn = document.querySelector(sel);
+                if (btn) {
+                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
+                    if (label.includes('play') || label.includes('riproduci')) return;
+                    if (smartClick(btn)) break;
+                }
+            }
         })();
     """
 
     const val STOP_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
-            document.querySelectorAll('video, audio').forEach(v => v.pause());
-            const pauseBtn = document.querySelector('[data-testid="control-button-pause"]');
-            if (pauseBtn) pauseBtn.click();
+
+            function smartClick(el) {
+                if (!el) return false;
+                try { el.click(); } catch(e) {}
+                try {
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                    });
+                } catch(e) {}
+                return true;
+            }
+
+            document.querySelectorAll('video, audio').forEach(v => {
+                try { v.pause(); } catch(e) {}
+            });
+
+            const pauseSelectors = [
+                '[data-testid="control-button-pause"]',
+                '[data-testid="control-button-playpause"]',
+                '.ytp-play-button',
+                'ytmusic-player-bar .play-pause-button',
+                'button[aria-label*="Pause" i]',
+                'button[aria-label*="Pausa" i]'
+            ];
+
+            for (const sel of pauseSelectors) {
+                const btn = document.querySelector(sel);
+                if (btn) {
+                    if (smartClick(btn)) break;
+                }
+            }
         })();
     """
 
     const val NEXT_SCRIPT = """
         (function() {
-            const nextBtn = document.querySelector('.ytp-next-button, ytmusic-player-bar .next-button, [data-testid="control-button-skip-forward"], [aria-label="Next"], [title="Next"]');
-            if (nextBtn) nextBtn.click();
-            else {
+            function smartClick(el) {
+                if (!el) return false;
+                try { el.click(); } catch(e) {}
+                try {
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                    });
+                } catch(e) {}
+                return true;
+            }
+
+            const nextSelectors = [
+                '[data-testid="control-button-skip-forward"]',
+                '[data-testid="control-button-skip-right"]',
+                '[data-testid="skip-next-button"]',
+                '.ytp-next-button',
+                'ytmusic-player-bar .next-button',
+                '#next-button',
+                'button[aria-label*="next" i]',
+                'button[aria-label*="successiv" i]',
+                'button[aria-label*="avanti" i]',
+                'button[aria-label*="skip" i]',
+                'button[title*="Next" i]',
+                'button[title*="Successivo" i]',
+                '[aria-label="Next"]',
+                '[aria-label="Successivo"]',
+                '[aria-label="Brano successivo"]'
+            ];
+
+            let clicked = false;
+            for (const sel of nextSelectors) {
+                const btn = document.querySelector(sel);
+                if (btn) {
+                    clicked = smartClick(btn);
+                    if (clicked) break;
+                }
+            }
+
+            if (!clicked) {
                 const media = document.querySelector('video, audio');
                 if (media) media.currentTime += 10;
             }
@@ -425,9 +554,44 @@ object BrowserJavascript {
 
     const val PREVIOUS_SCRIPT = """
         (function() {
-            const prevBtn = document.querySelector('.ytp-prev-button, ytmusic-player-bar .previous-button, [data-testid="control-button-skip-back"], [aria-label="Previous"], [title="Previous"]');
-            if (prevBtn) prevBtn.click();
-            else {
+            function smartClick(el) {
+                if (!el) return false;
+                try { el.click(); } catch(e) {}
+                try {
+                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                    });
+                } catch(e) {}
+                return true;
+            }
+
+            const prevSelectors = [
+                '[data-testid="control-button-skip-back"]',
+                '[data-testid="control-button-skip-left"]',
+                '[data-testid="skip-previous-button"]',
+                '.ytp-prev-button',
+                'ytmusic-player-bar .previous-button',
+                '#previous-button',
+                'button[aria-label*="prev" i]',
+                'button[aria-label*="precedent" i]',
+                'button[aria-label*="indietro" i]',
+                'button[title*="Previous" i]',
+                'button[title*="Precedente" i]',
+                '[aria-label="Previous"]',
+                '[aria-label="Precedente"]',
+                '[aria-label="Brano precedente"]'
+            ];
+
+            let clicked = false;
+            for (const sel of prevSelectors) {
+                const btn = document.querySelector(sel);
+                if (btn) {
+                    clicked = smartClick(btn);
+                    if (clicked) break;
+                }
+            }
+
+            if (!clicked) {
                 const media = document.querySelector('video, audio');
                 if (media) media.currentTime -= 10;
             }

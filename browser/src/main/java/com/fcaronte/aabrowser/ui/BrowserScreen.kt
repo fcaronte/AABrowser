@@ -12,6 +12,7 @@ import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
@@ -629,6 +630,16 @@ fun BrowserScreen(
 
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {
                             // Rimosso forzatura tema via JS per lasciare gestione nativa
+                        }
+
+                        override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                            if (consoleMessage != null) {
+                                val msg = consoleMessage.message()
+                                if (msg.contains("SpotifyDebug", ignoreCase = true) || msg.contains("Spotify", ignoreCase = true)) {
+                                    Log.d("SpotifyDebug", "JS Console: $msg")
+                                }
+                            }
+                            return super.onConsoleMessage(consoleMessage)
                         }
                     }
 
