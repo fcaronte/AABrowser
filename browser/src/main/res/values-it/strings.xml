@@ -134,8 +134,12 @@
     <!-- Update -->
     <string name="update_available">Nuovo aggiornamento disponibile: %s</string>
     <string name="update_available_title">Aggiornamento AABrowser %s</string>
-    <string name="update_available_text">È disponibile una nuova versione da scaricare.</string>
-    <string name="download_button">Scarica</string>
+    <string name="update_available_text">È disponibile una nuova versione. Tocca per scaricare e installare.</string>
+    <string name="download_button">Aggiorna</string>
+    <string name="downloading_update">Download aggiornamento in corso…</string>
+    <string name="update_download_started">Download dell\'aggiornamento avviato</string>
+    <string name="update_download_failed">Impossibile scaricare l\'aggiornamento</string>
+    <string name="kinginstaller_not_found">KingInstaller non trovata! Installazione annullata per mantenere la visibilità su Android Auto.</string>
 
     <string name="settings_footer_github">Progetto GitHub</string>
     <string name="github_label">GitHub</string>

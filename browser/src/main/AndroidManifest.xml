@@ -17,6 +17,10 @@
         android:name="android.permission.READ_PHONE_STATE"
         tools:node="remove" />
 
+    <queries>
+        <package android:name="com.example.kinginstaller" />
+    </queries>
+
     <application
         android:name=".CarApplication"
         android:allowBackup="true"
@@ -95,6 +99,25 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".utils.UpdateDownloadReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+                <action android:name="com.fcaronte.aabrowser.START_UPDATE_DOWNLOAD" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <meta-data
             android:name="com.google.android.gms.car.application"

@@ -275,10 +275,7 @@ fun DashboardScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        UpdateManager.openDownloadPage(
-                                            context,
-                                            info.downloadUrl
-                                        )
+                                        UpdateManager.startDownload(context, info)
                                     },
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
