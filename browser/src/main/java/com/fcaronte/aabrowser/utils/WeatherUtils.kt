@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.WbSunny
@@ -32,6 +33,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Calendar
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.math.cos
@@ -45,12 +47,13 @@ data class WeatherData(
     val description: String,
     val locationName: String,
     val icon: ImageVector,
-    val bitmap: Bitmap
+    val bitmap: Bitmap,
+    val isDay: Boolean = true
 )
 
-fun getWeatherDescription(code: Int): String {
+fun getWeatherDescription(code: Int, isDay: Boolean = true): String {
     return when (code) {
-        0 -> "Sereno"
+        0 -> if (isDay) "Sereno" else "Notte serena"
         1, 2 -> "Parz. nuvoloso"
         3 -> "Nuvoloso"
         45, 48 -> "Nebbia"
@@ -64,10 +67,10 @@ fun getWeatherDescription(code: Int): String {
     }
 }
 
-fun getWeatherIcon(code: Int): ImageVector {
+fun getWeatherIcon(code: Int, isDay: Boolean = true): ImageVector {
     return when (code) {
-        0 -> Icons.Default.WbSunny
-        1, 2 -> Icons.Default.WbCloudy
+        0 -> if (isDay) Icons.Default.WbSunny else Icons.Default.NightsStay
+        1, 2 -> if (isDay) Icons.Default.WbCloudy else Icons.Default.NightsStay
         3 -> Icons.Default.Cloud
         45, 48 -> Icons.Default.Grain
         51, 53, 55, 56, 57 -> Icons.Default.WaterDrop
@@ -76,11 +79,11 @@ fun getWeatherIcon(code: Int): ImageVector {
         80, 81, 82 -> Icons.Default.WaterDrop
         85, 86 -> Icons.Default.AcUnit
         95, 96, 99 -> Icons.Default.FlashOn
-        else -> Icons.Default.WbSunny
+        else -> if (isDay) Icons.Default.WbSunny else Icons.Default.NightsStay
     }
 }
 
-fun createWeatherBitmap(weatherCode: Int): Bitmap {
+fun createWeatherBitmap(weatherCode: Int, isDay: Boolean = true): Bitmap {
     val size = 192
     val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
@@ -96,25 +99,54 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
 
     paint.color = Color.WHITE
     when (weatherCode) {
-        0 -> { // Sun
-            paint.color = "#FFD700".toColorInt()
-            canvas.drawCircle(size / 2f, size / 2f, 42f, paint)
-            paint.strokeWidth = 8f
-            paint.style = Paint.Style.STROKE
-            for (i in 0 until 8) {
-                val angle = i * (Math.PI / 4)
-                val x1 = (size / 2f + 56 * cos(angle)).toFloat()
-                val y1 = (size / 2f + 56 * sin(angle)).toFloat()
-                val x2 = (size / 2f + 72 * cos(angle)).toFloat()
-                val y2 = (size / 2f + 72 * sin(angle)).toFloat()
-                canvas.drawLine(x1, y1, x2, y2, paint)
+        0 -> { // Sun or Moon
+            if (isDay) {
+                paint.color = "#FFD700".toColorInt()
+                canvas.drawCircle(size / 2f, size / 2f, 42f, paint)
+                paint.strokeWidth = 8f
+                paint.style = Paint.Style.STROKE
+                for (i in 0 until 8) {
+                    val angle = i * (Math.PI / 4)
+                    val x1 = (size / 2f + 56 * cos(angle)).toFloat()
+                    val y1 = (size / 2f + 56 * sin(angle)).toFloat()
+                    val x2 = (size / 2f + 72 * cos(angle)).toFloat()
+                    val y2 = (size / 2f + 72 * sin(angle)).toFloat()
+                    canvas.drawLine(x1, y1, x2, y2, paint)
+                }
+            } else {
+                // Moon (crescent)
+                paint.style = Paint.Style.FILL
+                paint.color = "#FFF59D".toColorInt()
+                canvas.drawCircle(size * 0.48f, size * 0.5f, 48f, paint)
+                paint.color = "#212121".toColorInt()
+                canvas.drawCircle(size * 0.62f, size * 0.42f, 42f, paint)
+
+                // Stars
+                paint.color = Color.WHITE
+                canvas.drawCircle(size * 0.28f, size * 0.3f, 4f, paint)
+                canvas.drawCircle(size * 0.35f, size * 0.72f, 3f, paint)
+                canvas.drawCircle(size * 0.78f, size * 0.7f, 4f, paint)
             }
         }
         1, 2, 3 -> { // Cloud
-            paint.color = "#E0E0E0".toColorInt()
-            canvas.drawCircle(size * 0.4f, size * 0.55f, 36f, paint)
-            canvas.drawCircle(size * 0.65f, size * 0.5f, 46f, paint)
-            canvas.drawRect(size * 0.35f, size * 0.55f, size * 0.7f, size * 0.76f, paint)
+            if (weatherCode in 1..2 && !isDay) {
+                // Partly cloudy night: Crescent moon behind cloud
+                paint.style = Paint.Style.FILL
+                paint.color = "#FFF59D".toColorInt()
+                canvas.drawCircle(size * 0.38f, size * 0.4f, 28f, paint)
+                paint.color = "#212121".toColorInt()
+                canvas.drawCircle(size * 0.46f, size * 0.35f, 24f, paint)
+
+                paint.color = "#E0E0E0".toColorInt()
+                canvas.drawCircle(size * 0.4f, size * 0.6f, 32f, paint)
+                canvas.drawCircle(size * 0.65f, size * 0.55f, 40f, paint)
+                canvas.drawRect(size * 0.35f, size * 0.6f, size * 0.7f, size * 0.8f, paint)
+            } else {
+                paint.color = "#E0E0E0".toColorInt()
+                canvas.drawCircle(size * 0.4f, size * 0.55f, 36f, paint)
+                canvas.drawCircle(size * 0.65f, size * 0.5f, 46f, paint)
+                canvas.drawRect(size * 0.35f, size * 0.55f, size * 0.7f, size * 0.76f, paint)
+            }
         }
         45, 48 -> { // Fog
             paint.color = "#B0BEC5".toColorInt()
@@ -156,8 +188,16 @@ fun createWeatherBitmap(weatherCode: Int): Bitmap {
             canvas.drawPath(path, paint)
         }
         else -> {
-            paint.color = "#FFD700".toColorInt()
-            canvas.drawCircle(size / 2f, size / 2f, 50f, paint)
+            if (isDay) {
+                paint.color = "#FFD700".toColorInt()
+                canvas.drawCircle(size / 2f, size / 2f, 50f, paint)
+            } else {
+                paint.style = Paint.Style.FILL
+                paint.color = "#FFF59D".toColorInt()
+                canvas.drawCircle(size * 0.48f, size * 0.5f, 48f, paint)
+                paint.color = "#212121".toColorInt()
+                canvas.drawCircle(size * 0.62f, size * 0.42f, 42f, paint)
+            }
         }
     }
 
@@ -259,7 +299,7 @@ suspend fun fetchWeather(context: Context): WeatherData? {
         try {
             val (lat, lon, locationName) = getLocation(context)
             val urlStr =
-                "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code"
+                "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code,is_day"
             Log.d(TAG, "Fetching Open-Meteo URL: $urlStr")
             val url = URL(urlStr)
             val conn = url.openConnection() as HttpURLConnection
@@ -272,14 +312,17 @@ suspend fun fetchWeather(context: Context): WeatherData? {
                 if (current != null) {
                     val temp = current.optDouble("temperature_2m", 0.0)
                     val code = current.optInt("weather_code", 0)
-                    Log.d(TAG, "Open-Meteo success: temp=$temp, code=$code, location=$locationName")
+                    val isDayRaw = current.optInt("is_day", -1)
+                    val isDay = if (isDayRaw != -1) isDayRaw == 1 else isDaytimeFallback()
+                    Log.d(TAG, "Open-Meteo success: temp=$temp, code=$code, isDay=$isDay, location=$locationName")
                     WeatherData(
                         temperature = temp,
                         weatherCode = code,
-                        description = getWeatherDescription(code),
+                        description = getWeatherDescription(code, isDay),
                         locationName = locationName,
-                        icon = getWeatherIcon(code),
-                        bitmap = createWeatherBitmap(code)
+                        icon = getWeatherIcon(code, isDay),
+                        bitmap = createWeatherBitmap(code, isDay),
+                        isDay = isDay
                     )
                 } else {
                     Log.w(TAG, "Open-Meteo response missing 'current' object")
@@ -294,4 +337,9 @@ suspend fun fetchWeather(context: Context): WeatherData? {
             null
         }
     }
+}
+
+private fun isDaytimeFallback(): Boolean {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return hour in 6..20
 }
