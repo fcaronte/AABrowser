@@ -23,31 +23,49 @@ object SpotifyManager {
 
             console.log("SpotifyDebug: Spotify Precision Inspector Active");
 
-            // 1. Inject CSS to hide banners and upgrade dialogs
-            const style = document.createElement('style');
-            style.textContent = `
-                [data-encore-id="banner"], [data-testid="upgrade-modal"] {
-                    display: none !important;
-                    opacity: 0 !important;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // 2. Anti-Promo Premium automatico
+            // Anti-Promo: Esegue il click sulla "X" del banner promozionale nei primi secondi dall'avvio e poi si spegne definitivamente
+            let promoAttempts = 0;
             const removeBanners = setInterval(() => {
                 if (!window.location.host.includes('spotify.com')) return;
 
-                const upgradeModal = document.querySelector('[data-testid="upgrade-modal"]');
-                if (upgradeModal) upgradeModal.remove();
+                promoAttempts++;
 
-                const buttons = document.querySelectorAll('button');
-                buttons.forEach(btn => {
-                    const text = btn.innerText ? btn.innerText.toLowerCase() : "";
-                    if (text.includes("non ora") || text.includes("not now") || text.includes("no thanks")) {
-                        btn.click();
+                const closeXButtons = document.querySelectorAll(`
+                    [data-testid="upgrade-modal"] button,
+                    [data-testid="premium-upsell-modal"] button,
+                    [data-testid="upsell-overlay"] button,
+                    [data-testid="close-button"],
+                    [data-testid="modal-close-button"],
+                    button[aria-label="Chiudi"],
+                    button[aria-label="Close"],
+                    button[aria-label="Dismiss"],
+                    button[aria-label="chiudi" i],
+                    button[aria-label="close" i]
+                `);
+
+                closeXButtons.forEach(btn => {
+                    const testid = btn.getAttribute('data-testid') || '';
+                    if (testid === 'top-bar-back-button' || testid.includes('minimize') || testid.includes('collapse')) {
+                        return;
                     }
+
+                    const isPlayer = btn.closest('[data-testid="now-playing-widget"], [data-testid="now-playing-bar"], [data-testid="footer-player"], [data-testid="top-bar"]');
+                    if (isPlayer) {
+                        return;
+                    }
+
+                    console.log("SpotifyDebug: Closing startup banner -> " + (btn.outerHTML || '').substring(0, 100));
+                    try {
+                        btn.click();
+                    } catch(e) {}
                 });
-            }, 1000);
+
+                // Spegni definitivamente l'intervallo dopo 8 tentativi (circa 5 secondi dall'avvio)
+                if (promoAttempts >= 8) {
+                    console.log("SpotifyDebug: Startup anti-promo task finished, shutting down interval.");
+                    clearInterval(removeBanners);
+                }
+            }, 600);
             window.aabSpotifyIntervals.push(removeBanners);
 
             // 3. Scanner DOM avanzato e Poller per Spotify
@@ -65,7 +83,7 @@ object SpotifyManager {
                 "buonasera", "buongiorno", "buon pomeriggio", "good evening", "good morning", 
                 "home", "search", "cerca", "libreria", "library", "premium", "spotify",
                 "spotify - web player", "spotify - lettore web", "music for everyone", "musica per tutti",
-                "get app", "your library"
+                "get app", "your library", "prova 3", "try 3", "0€", "0 €", "0€ for 3 months", "for 3 months", "per 3 mesi"
             ];
 
             function scanSpotifyDOM() {

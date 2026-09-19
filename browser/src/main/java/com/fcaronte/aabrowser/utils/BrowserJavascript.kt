@@ -61,18 +61,39 @@ object BrowserJavascript {
                 window.addEventListener(evt, blockEvent, true);
             });
 
-            // Fix per il background play: intercetta le chiamate a pause()
-            const originalPause = HTMLVideoElement.prototype.pause;
-            HTMLVideoElement.prototype.pause = function() {
-                // YouTube mobile spesso forza la pausa quando l'app va in background.
-                // Lo blocchiamo se siamo in uno stato di riproduzione desiderata, 
-                // MA solo se non stiamo interagendo (permettendo pause manuali).
-                if (window.isMediaPlaying === true && !window.aabIsAdPlaying && (document.hidden || document.visibilityState === 'hidden')) {
-                    console.log("AABrowser: Blocked background pause()");
+            // Anti-Pausa automatica: distingue la pausa intenzionale dell'utente dalla pausa forzata da transizioni UI / espansioni player
+            window.aabUserTappedPause = false;
+            window.aabMarkUserPause = function() {
+                window.aabUserTappedPause = true;
+                setTimeout(function() { window.aabUserTappedPause = false; }, 2000);
+            };
+
+            document.addEventListener('click', function(e) {
+                const target = e.target;
+                if (!target) return;
+                const btn = target.closest('button, [role="button"], [data-testid*="pause"], [aria-label*="paus" i]');
+                if (btn) {
+                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
+                    if (label.includes('pause') || label.includes('pausa')) {
+                        if (typeof window.aabMarkUserPause === 'function') window.aabMarkUserPause();
+                    }
+                }
+            }, true);
+
+            const origVideoPause = HTMLVideoElement.prototype.pause;
+            const handleMediaPause = function() {
+                // Se la riproduzione è attiva e l'utente NON ha premuto esplicitamente il tasto Pausa, blocchiamo la pausa automatica scatenata da espansioni o transizioni DOM
+                if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
+                    console.log("AABrowser: Blocked automatic UI/background pause()");
                     return Promise.resolve();
                 }
-                return originalPause.apply(this, arguments);
+                return origVideoPause.apply(this, arguments);
             };
+
+            HTMLVideoElement.prototype.pause = handleMediaPause;
+            if (window.HTMLAudioElement) {
+                HTMLAudioElement.prototype.pause = handleMediaPause;
+            }
 
             function syncPageMetadata() {
                 const getFavicon = () => {
@@ -426,6 +447,7 @@ object BrowserJavascript {
     const val PAUSE_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
+            if (typeof window.aabMarkUserPause === 'function') window.aabMarkUserPause();
 
             function smartClick(el) {
                 if (!el) return false;
@@ -471,6 +493,7 @@ object BrowserJavascript {
     const val STOP_SCRIPT = """
         (function() {
             window.isMediaPlaying = false;
+            if (typeof window.aabMarkUserPause === 'function') window.aabMarkUserPause();
 
             function smartClick(el) {
                 if (!el) return false;
