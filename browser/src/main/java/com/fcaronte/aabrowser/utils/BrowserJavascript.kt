@@ -61,6 +61,18 @@ object BrowserJavascript {
                 window.addEventListener(evt, blockEvent, true);
             });
 
+            // Intercetta e salva i gestori MediaSession nativi della WebApp (Spotify / YouTube Music)
+            if (navigator.mediaSession && !navigator.mediaSession.aabWrapped) {
+                navigator.mediaSession.aabWrapped = true;
+                window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
+                const origSetAction = navigator.mediaSession.setActionHandler;
+                navigator.mediaSession.setActionHandler = function(action, handler) {
+                    window.aabMediaSessionHandlers[action] = handler;
+                    console.log("AABrowser: Captured MediaSession handler for action:", action);
+                    return origSetAction.apply(this, arguments);
+                };
+            }
+
             // Anti-Pausa automatica: distingue la pausa intenzionale dell'utente dalla pausa forzata da transizioni UI / espansioni player
             window.aabUserTappedPause = false;
             window.aabMarkUserPause = function() {
@@ -400,16 +412,18 @@ object BrowserJavascript {
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;
+            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['play'] === 'function') {
+                try { window.aabMediaSessionHandlers['play'](); return; } catch(e) {}
+            }
 
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); } catch(e) {}
-                try {
-                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-                    });
-                } catch(e) {}
-                return true;
+                try { el.click(); return true; } catch(e) {
+                    try {
+                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                        return true;
+                    } catch(err) { return false; }
+                }
             }
 
             document.querySelectorAll('video, audio').forEach(v => {
@@ -436,8 +450,8 @@ object BrowserJavascript {
             for (const sel of playSelectors) {
                 const btn = document.querySelector(sel);
                 if (btn) {
-                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
-                    if (label.includes('pause') || label.includes('pausa')) return;
+                    const aria = (btn.getAttribute('aria-label') || btn.getAttribute('title') || '').toLowerCase();
+                    if (aria.includes('pause') || aria.includes('pausa')) return;
                     if (smartClick(btn)) break;
                 }
             }
@@ -449,15 +463,18 @@ object BrowserJavascript {
             window.isMediaPlaying = false;
             if (typeof window.aabMarkUserPause === 'function') window.aabMarkUserPause();
 
+            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['pause'] === 'function') {
+                try { window.aabMediaSessionHandlers['pause'](); return; } catch(e) {}
+            }
+
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); } catch(e) {}
-                try {
-                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-                    });
-                } catch(e) {}
-                return true;
+                try { el.click(); return true; } catch(e) {
+                    try {
+                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                        return true;
+                    } catch(err) { return false; }
+                }
             }
 
             document.querySelectorAll('video, audio').forEach(v => {
@@ -482,8 +499,8 @@ object BrowserJavascript {
             for (const sel of pauseSelectors) {
                 const btn = document.querySelector(sel);
                 if (btn) {
-                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
-                    if (label.includes('play') || label.includes('riproduci')) return;
+                    const aria = (btn.getAttribute('aria-label') || btn.getAttribute('title') || '').toLowerCase();
+                    if (aria.includes('play') || aria.includes('riproduci')) return;
                     if (smartClick(btn)) break;
                 }
             }
@@ -497,13 +514,12 @@ object BrowserJavascript {
 
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); } catch(e) {}
-                try {
-                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-                    });
-                } catch(e) {}
-                return true;
+                try { el.click(); return true; } catch(e) {
+                    try {
+                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                        return true;
+                    } catch(err) { return false; }
+                }
             }
 
             document.querySelectorAll('video, audio').forEach(v => {
@@ -530,33 +546,41 @@ object BrowserJavascript {
 
     const val NEXT_SCRIPT = """
         (function() {
+            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['nexttrack'] === 'function') {
+                try {
+                    console.log("AABrowser: Invoking MediaSession nexttrack handler");
+                    window.aabMediaSessionHandlers['nexttrack']();
+                    return;
+                } catch(e) {}
+            }
+
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); } catch(e) {}
-                try {
-                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-                    });
-                } catch(e) {}
-                return true;
+                try { el.click(); return true; } catch(e) {
+                    try {
+                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                        return true;
+                    } catch(err) { return false; }
+                }
             }
 
             const nextSelectors = [
                 '[data-testid="control-button-skip-forward"]',
                 '[data-testid="control-button-skip-right"]',
                 '[data-testid="skip-next-button"]',
+                '[data-testid*="skip-forward"]',
+                '[data-testid*="skip-next"]',
                 '.ytp-next-button',
                 'ytmusic-player-bar .next-button',
                 '#next-button',
                 'button[aria-label*="next" i]',
                 'button[aria-label*="successiv" i]',
                 'button[aria-label*="avanti" i]',
+                'button[aria-label*="prossim" i]',
                 'button[aria-label*="skip" i]',
+                'button[aria-label*="brano successivo" i]',
                 'button[title*="Next" i]',
-                'button[title*="Successivo" i]',
-                '[aria-label="Next"]',
-                '[aria-label="Successivo"]',
-                '[aria-label="Brano successivo"]'
+                'button[title*="Successivo" i]'
             ];
 
             let clicked = false;
@@ -569,6 +593,9 @@ object BrowserJavascript {
             }
 
             if (!clicked) {
+                try {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'MediaTrackNext', code: 'MediaTrackNext', bubbles: true }));
+                } catch(e) {}
                 const media = document.querySelector('video, audio');
                 if (media) media.currentTime += 10;
             }
@@ -577,32 +604,39 @@ object BrowserJavascript {
 
     const val PREVIOUS_SCRIPT = """
         (function() {
+            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
+                try {
+                    console.log("AABrowser: Invoking MediaSession previoustrack handler");
+                    window.aabMediaSessionHandlers['previoustrack']();
+                    return;
+                } catch(e) {}
+            }
+
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); } catch(e) {}
-                try {
-                    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-                        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-                    });
-                } catch(e) {}
-                return true;
+                try { el.click(); return true; } catch(e) {
+                    try {
+                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                        return true;
+                    } catch(err) { return false; }
+                }
             }
 
             const prevSelectors = [
                 '[data-testid="control-button-skip-back"]',
                 '[data-testid="control-button-skip-left"]',
                 '[data-testid="skip-previous-button"]',
+                '[data-testid*="skip-back"]',
+                '[data-testid*="skip-prev"]',
                 '.ytp-prev-button',
                 'ytmusic-player-bar .previous-button',
                 '#previous-button',
                 'button[aria-label*="prev" i]',
                 'button[aria-label*="precedent" i]',
                 'button[aria-label*="indietro" i]',
+                'button[aria-label*="brano precedente" i]',
                 'button[title*="Previous" i]',
-                'button[title*="Precedente" i]',
-                '[aria-label="Previous"]',
-                '[aria-label="Precedente"]',
-                '[aria-label="Brano precedente"]'
+                'button[title*="Precedente" i]'
             ];
 
             let clicked = false;
@@ -615,6 +649,9 @@ object BrowserJavascript {
             }
 
             if (!clicked) {
+                try {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'MediaTrackPrevious', code: 'MediaTrackPrevious', bubbles: true }));
+                } catch(e) {}
                 const media = document.querySelector('video, audio');
                 if (media) media.currentTime -= 10;
             }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
+import kotlin.math.abs
 
 class MediaSessionManager(private val context: Context) {
 
@@ -27,6 +28,7 @@ class MediaSessionManager(private val context: Context) {
     var onSkipToNext: (() -> Unit)? = null
     var onSkipToPrevious: (() -> Unit)? = null
     var onSeekTo: ((Long) -> Unit)? = null
+    var onHeartTapped: (() -> Unit)? = null
 
     private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
@@ -81,6 +83,11 @@ class MediaSessionManager(private val context: Context) {
                         onSeekTo?.invoke(pos)
                     }
                 }
+            } else if (event == "CUSTOM_ACTION") {
+                val actionStr = extras?.getString("CUSTOM_ACTION")
+                if (actionStr == "ACTION_SPOTIFY_HEART") {
+                    onHeartTapped?.invoke()
+                }
             }
         }
     }
@@ -111,8 +118,7 @@ class MediaSessionManager(private val context: Context) {
 
     fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
         Log.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
-        // Pool di aggiornamento più conservativo: evita di saturare il sistema
-        val positionDiff = kotlin.math.abs(position - lastPosition)
+        val positionDiff = abs(position - lastPosition)
         val isCoherent = state == lastState && speed == lastSpeed && positionDiff < 1000
                          
         if (isCoherent) return

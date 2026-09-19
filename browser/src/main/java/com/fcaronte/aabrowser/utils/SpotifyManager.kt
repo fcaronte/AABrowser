@@ -1,18 +1,5 @@
 package com.fcaronte.aabrowser.utils
 
-import android.webkit.JavascriptInterface
-
-class SpotifyWebBridge(
-    private val onMediaStatusChanged: (String) -> Unit
-) {
-    @JavascriptInterface
-    fun recMediaStatus(jsonStr: String) {
-        if (jsonStr.isNotEmpty()) {
-            onMediaStatusChanged(jsonStr)
-        }
-    }
-}
-
 object SpotifyManager {
     fun getInjectionScript(): String {
         return """
@@ -60,7 +47,6 @@ object SpotifyManager {
                     } catch(e) {}
                 });
 
-                // Spegni definitivamente l'intervallo dopo 8 tentativi (circa 5 secondi dall'avvio)
                 if (promoAttempts >= 8) {
                     console.log("SpotifyDebug: Startup anti-promo task finished, shutting down interval.");
                     clearInterval(removeBanners);
@@ -68,8 +54,71 @@ object SpotifyManager {
             }, 600);
             window.aabSpotifyIntervals.push(removeBanners);
 
+            // Parser del tempo ("1:23" -> ms)
+            function parseTimeToMs(timeStr) {
+                if (!timeStr) return 0;
+                const parts = timeStr.trim().split(':');
+                if (parts.length === 2) {
+                    const min = parseInt(parts[0], 10) || 0;
+                    const sec = parseInt(parts[1], 10) || 0;
+                    return (min * 60 + sec) * 1000;
+                } else if (parts.length === 3) {
+                    const hr = parseInt(parts[0], 10) || 0;
+                    const min = parseInt(parts[1], 10) || 0;
+                    const sec = parseInt(parts[2], 10) || 0;
+                    return (hr * 3600 + min * 60 + sec) * 1000;
+                }
+                return 0;
+            }
+
+            function getSpotifyTimeState() {
+                if (window.aabMediaPosition && window.aabMediaPosition.duration > 0) {
+                    return window.aabMediaPosition;
+                }
+
+                const posEl = document.querySelector('[data-testid="playback-position"]');
+                const durEl = document.querySelector('[data-testid="playback-duration"]');
+                if (posEl && durEl) {
+                    const p = parseTimeToMs(posEl.innerText || posEl.textContent);
+                    const d = parseTimeToMs(durEl.innerText || durEl.textContent);
+                    if (d > 0) return { position: p, duration: d };
+                }
+
+                const timeSpans = Array.from(document.querySelectorAll('span, div')).filter(el => {
+                    const txt = (el.innerText || el.textContent || '').trim();
+                    return /^\d{1,2}:\d{2}$/.test(txt);
+                });
+
+                if (timeSpans.length >= 2) {
+                    const p = parseTimeToMs(timeSpans[0].innerText || timeSpans[0].textContent);
+                    const d = parseTimeToMs(timeSpans[timeSpans.length - 1].innerText || timeSpans[timeSpans.length - 1].textContent);
+                    if (d > 0) return { position: p, duration: d };
+                }
+
+                const pBar = document.querySelector('[role="progressbar"], [data-testid="playback-progressbar"]');
+                if (pBar) {
+                    const now = parseFloat(pBar.getAttribute('aria-valuenow'));
+                    const max = parseFloat(pBar.getAttribute('aria-valuemax'));
+                    if (!isNaN(now) && !isNaN(max) && max > 0) {
+                        if (max > 10) {
+                            return { position: Math.floor(now * 1000), duration: Math.floor(max * 1000) };
+                        }
+                    }
+                }
+
+                const media = document.querySelector('audio, video');
+                if (media && isFinite(media.duration) && media.duration > 0) {
+                    return { position: Math.floor(media.currentTime * 1000), duration: Math.floor(media.duration * 1000) };
+                }
+
+                return { position: 0, duration: 0 };
+            }
+
             // 3. Scanner DOM avanzato e Poller per Spotify
             let lastTitle = "";
+            let lastArtist = "";
+            let lastPlaying = null;
+            let lastPosition = -1;
             let scanCounter = 0;
 
             const ignoredWords = [
@@ -158,8 +207,8 @@ object SpotifyManager {
 
                 if (nowPlaying) {
                     // Estrazione diretta mirata da selettori specifici del player (Mini-Player ed Espanso)
-                    const titleEl = nowPlaying.querySelector('[data-testid="context-item-info-title"], [data-testid="track-info-name"], [data-testid="entity-title"], a[href*="/track/"]');
-                    const artistEl = nowPlaying.querySelector('[data-testid="context-item-info-subtitle"], [data-testid="track-info-artists"], [data-testid="entity-subtitle"], a[href*="/artist/"]');
+                    const titleEl = nowPlaying.querySelector('[data-testid="context-item-info-title"], [data-testid="track-info-name"], [data-testid="entity-title"]');
+                    const artistEl = nowPlaying.querySelector('[data-testid="context-item-info-subtitle"], [data-testid="track-info-artists"], [data-testid="entity-subtitle"]');
                     const imgEl = nowPlaying.querySelector('img[data-testid="cover-art-image"], img[data-testid="entity-image"], img[src*="scdn.co"], img[src*="spotifycdn.com"], img');
 
                     if (titleEl && titleEl.innerText && titleEl.innerText.trim()) {
@@ -205,36 +254,7 @@ object SpotifyManager {
                     }));
                 }
 
-                // Global Fallback per Link e Immagini se non trovati dentro la bar
-                if (trackLinks.length === 0) {
-                    trackLinks = Array.from(document.querySelectorAll('a[href*="/track/"]')).map(a => ({
-                        text: (a.innerText || a.textContent || "").trim(),
-                        href: a.href
-                    })).filter(t => t.text.length > 0);
-                }
-                if (artistLinks.length === 0) {
-                    artistLinks = Array.from(document.querySelectorAll('a[href*="/artist/"]')).map(a => ({
-                        text: (a.innerText || a.textContent || "").trim(),
-                        href: a.href
-                    })).filter(a => a.text.length > 0);
-                }
-                if (coverImgs.length === 0) {
-                    coverImgs = Array.from(document.querySelectorAll('img[data-testid="cover-art-image"], img[src*="scdn.co"], img[src*="spotifycdn.com"]')).map(img => ({
-                        src: img.src,
-                        alt: img.alt,
-                        testid: img.getAttribute('data-testid') || ''
-                    })).filter(i => i.src && !i.src.includes('data:image'));
-                }
-
-                // Fallback se title o artist non trovati dai selettori diretti
-                if (!title) {
-                    title = (msTitle && !ignoredWords.some(w => msTitle.toLowerCase().includes(w)) ? msTitle : "") || (trackLinks.length > 0 ? trackLinks[0].text : "");
-                }
-                if (!artist) {
-                    artist = msArtist;
-                }
-
-                // Estrazione sequenziale ordinata dal player bar per titolo e artista
+                // 1. Estrazione PRIORITARIA dai testi foglia della barra del player (nowPlaying)
                 if (allLeafTexts.length > 0) {
                     const validPlayerTexts = allLeafTexts.map(t => t.text).filter(txt => {
                         const txtLow = txt.toLowerCase().trim();
@@ -252,9 +272,21 @@ object SpotifyManager {
                     }
                 }
 
-                // Fallback su artistLinks se l'artista è ancora vuoto
-                if (!artist && artistLinks.length > 0) {
-                    artist = artistLinks[0].text;
+                // Se il titolo contiene righe multiple (es. "Mediterranea\nIrama"), dividi pulito
+                if (title && title.includes('\n')) {
+                    const titleLines = title.split('\n').map(s => s.trim()).filter(Boolean);
+                    title = titleLines[0];
+                    if (!artist && titleLines.length > 1) {
+                        artist = titleLines[1];
+                    }
+                }
+
+                // Fallback MediaSession / Document Title se il player bar è privo di dati
+                if (!title) {
+                    title = (msTitle && !ignoredWords.some(w => msTitle.toLowerCase().includes(w)) ? msTitle : "");
+                }
+                if (!artist) {
+                    artist = msArtist;
                 }
 
                 // Parse da document.title se presente e in formato "Canzone - Artista | Spotify"
@@ -275,6 +307,14 @@ object SpotifyManager {
                     }
                 }
 
+                // Mantieni l'ultimo artista valido per evitare oscillazioni se il DOM si ricarica per 1 frame
+                if (!artist && lastArtist && title === lastTitle) {
+                    artist = lastArtist;
+                }
+                if (artist) {
+                    lastArtist = artist;
+                }
+
                 // Filtro finale di sicurezza: azzera il titolo se è una parola generica da ignorare
                 if (title) {
                     const tLow = title.toLowerCase().trim();
@@ -284,52 +324,52 @@ object SpotifyManager {
                 }
 
                 if (!cover) {
-                    cover = msArt || (coverImgs.length > 0 ? coverImgs[0].src : "");
+                    cover = msArt || (coverImgs.length > 0 ? (coverImgs[0].src || coverImgs[0]) : "");
                 }
 
                 const media = document.querySelector('audio, video');
-                const mediaState = media ? {
-                    paused: media.paused,
-                    currentTime: media.currentTime,
-                    duration: media.duration,
-                    src: media.src
-                } : null;
 
                 // Rilevamento dello stato di riproduzione (Play / Pausa)
-                const pauseBtn = document.querySelector('[data-testid="control-button-pause"], [data-testid*="pause" i], [aria-label*="paus" i], [title*="paus" i]');
-                const playBtn = document.querySelector('[data-testid="control-button-play"], [data-testid*="play" i], [aria-label*="play" i], [aria-label*="riproduci" i], [title*="play" i], [title*="riproduci" i]');
+                const pauseBtn = document.querySelector('[data-testid="control-button-pause"], button[aria-label*="paus" i], button[aria-label*="pause" i]');
+                const playBtn = document.querySelector('[data-testid="control-button-play"], button[aria-label*="riproduci" i], button[aria-label*="play" i]');
 
-                let isPlayingState = false;
-                if (pauseBtn) {
-                    isPlayingState = true;
+                let isPlaying = false;
+                if (pauseBtn && !playBtn) {
+                    isPlaying = true;
                 } else if (playBtn) {
-                    isPlayingState = false;
+                    isPlaying = false;
                 } else if (media) {
-                    isPlayingState = !media.paused;
-                } else if (title && title.length > 0) {
-                    // Fallback: se un brano valido è caricato nel player di Spotify e non c'è un tasto Play esplicito in viste di pausa, assumiamo che stia riproducendo
-                    isPlayingState = true;
+                    isPlaying = !media.paused;
+                } else {
+                    const playPauseBtn = document.querySelector('[data-testid="control-button-playpause"]');
+                    if (playPauseBtn) {
+                        const aria = (playPauseBtn.getAttribute('aria-label') || '').toLowerCase();
+                        if (aria.includes('paus')) {
+                            isPlaying = true;
+                        } else if (aria.includes('play') || aria.includes('riproduci')) {
+                            isPlaying = false;
+                        }
+                    } else if (title && title.length > 0) {
+                        isPlaying = true;
+                    }
                 }
-
-                let isPlaying = isPlayingState;
-                let position = media ? Math.floor(media.currentTime * 1000) : 0;
-                let duration = media ? Math.floor(media.duration * 1000) : 0;
 
                 if (cover && cover.includes("00004851")) {
-                    cover = cover.replace("00004851", "0000b273");
+                    cover = cover.replace("0000b273", "0000b273");
                 }
+
+                // Estrazione posizione e durata (timeline)
+                const timeState = getSpotifyTimeState();
+                let position = timeState.position;
+                let duration = timeState.duration;
 
                 // Stampa di ispezione profonda nei log
                 console.log("SpotifyDebug: ==== INSPECTOR SCAN #" + scanCounter + " ====");
                 console.log("SpotifyDebug: Document Title -> " + document.title);
                 console.log("SpotifyDebug: Player Bar Found -> " + (!!nowPlaying));
                 console.log("SpotifyDebug: MediaSession -> Title: '" + msTitle + "', Artist: '" + msArtist + "', Art: '" + msArt + "'");
-                console.log("SpotifyDebug: Player Leaf Texts -> " + JSON.stringify(allLeafTexts));
-                console.log("SpotifyDebug: Track Links -> " + JSON.stringify(trackLinks));
-                console.log("SpotifyDebug: Artist Links -> " + JSON.stringify(artistLinks));
-                console.log("SpotifyDebug: Cover Images -> " + JSON.stringify(coverImgs));
                 console.log("SpotifyDebug: Controls -> PlayBtn: " + (!!playBtn) + ", PauseBtn: " + (!!pauseBtn) + ", Playing: " + isPlaying);
-                console.log("SpotifyDebug: HTML5 Media -> " + JSON.stringify(mediaState));
+                console.log("SpotifyDebug: Timeline -> Position: " + position + "ms, Duration: " + duration + "ms");
                 console.log("SpotifyDebug: RESOLVED PAIR -> Title: '" + title + "', Artist: '" + artist + "', Cover: '" + cover + "', Playing: " + isPlaying);
                 console.log("SpotifyDebug: ==========================================");
 
@@ -355,8 +395,13 @@ object SpotifyManager {
                 const lowerTitle = (title || "").toLowerCase();
                 const shouldIgnore = !title || ignoredWords.some(ig => lowerTitle === ig || lowerTitle.includes("company") || lowerTitle.includes("copyright"));
 
-                if (title && !shouldIgnore && (title !== lastTitle || scanCounter % 3 === 0)) {
+                const positionChanged = Math.abs(position - lastPosition) > 800;
+
+                if (title && !shouldIgnore && (title !== lastTitle || artist !== lastArtist || isPlaying !== lastPlaying || positionChanged)) {
                     lastTitle = title;
+                    lastArtist = artist;
+                    lastPlaying = isPlaying;
+                    lastPosition = position;
                     const payload = {
                         track: title,
                         artist: artist,
@@ -371,7 +416,7 @@ object SpotifyManager {
                         window.AndroidBridge.recMediaStatus(JSON.stringify(payload));
                     }
                 }
-            }, 1000);
+            }, 500);
             window.aabSpotifyIntervals.push(pollMedia);
 
         })();

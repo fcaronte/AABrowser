@@ -210,12 +210,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     update = stateChanged(playbackStateCompat)
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
-                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_PLAYING &&
-                        (mMediacontrollercompat?.playbackState?.state != PlaybackStateCompat.STATE_PLAYING)
-                    ) {
-                        requestAudioFocus()
-                    }
-
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
                     if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||

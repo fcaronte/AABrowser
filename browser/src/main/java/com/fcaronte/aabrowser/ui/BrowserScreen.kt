@@ -369,6 +369,14 @@ fun BrowserScreen(
                         }
                     }
 
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            BrowserJavascript.getLifecycleAndMetadataScript(),
+                            setOf("*")
+                        )
+                    }
+
                     val needsDesktop = actualDesktopMode || isDesktopRequired(url)
                     if (needsDesktop) {
                         settings.userAgentString = getDynamicDesktopUserAgent()
