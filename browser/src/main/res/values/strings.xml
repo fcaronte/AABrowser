@@ -166,6 +166,10 @@
     <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
     <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
     <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
