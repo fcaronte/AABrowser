@@ -566,6 +566,13 @@ object BrowserJavascript {
                 window.aabUserTappedPause = false;
                 window.aabMarkUserPause = () => { window.aabUserTappedPause = true; window.isMediaPlaying = false; };
                 window.aabMarkUserPlay = () => { window.aabUserTappedPause = false; window.isMediaPlaying = true; };
+                
+                // Track user interaction to allow legitimate pause() calls
+                window.aabLastInteraction = 0;
+                ['mousedown', 'touchstart', 'keydown'].forEach(evt => {
+                    document.addEventListener(evt, () => { window.aabLastInteraction = Date.now(); }, true);
+                });
+
                 document.aabMocked = true;
             } catch (e) {}
         };
@@ -583,7 +590,11 @@ object BrowserJavascript {
         });
         const origVideoPause = HTMLVideoElement.prototype.pause;
         const handleMediaPause = function() {
-            if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
+            const timeSinceInteraction = Date.now() - (window.aabLastInteraction || 0);
+            const isUserAction = timeSinceInteraction < 1000;
+            
+            if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause && !isUserAction) {
+                console.log("AABrowser: Blocked automatic background pause()");
                 return Promise.resolve();
             }
             return origVideoPause.apply(this, arguments);
@@ -608,6 +619,14 @@ object BrowserJavascript {
             }
         }
         
+        // Force redraw on visibility change to fix frozen video image
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                window.dispatchEvent(new Event('resize'));
+                setTimeout(() => { document.body.style.display = 'none'; document.body.offsetHeight; document.body.style.display = ''; }, 50);
+            }
+        });
+
         let lastHref = window.location.href;
         let lastTitle = document.title;
         const observer = new MutationObserver(() => {
