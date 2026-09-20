@@ -186,7 +186,15 @@
     <!-- Reset Favorites -->
     <string name="reset_favorites_label">Reset Default Favorites</string>
     <string name="reset_favorites_desc">Restore home screen favorites to original default sites</string>
+    <string name="add_missing_favorites_label">Load New Favorites</string>
+    <string name="add_missing_favorites_desc">Add missing default sites to your current list without resetting it</string>
     <string name="reset_button">Reset</string>
+    <string name="add_button">Add</string>
+    <plurals name="favorites_added_count">
+        <item quantity="one">1 favorite added</item>
+        <item quantity="other">%d favorites added</item>
+    </plurals>
+    <string name="no_new_favorites">Your list is already up to date</string>
     <string name="are_you_sure">Are you sure?</string>
     <string name="export_settings_label">Export Settings &amp; Bookmarks</string>
     <string name="export_settings_desc">Save all your bookmarks and settings to a JSON backup file</string>

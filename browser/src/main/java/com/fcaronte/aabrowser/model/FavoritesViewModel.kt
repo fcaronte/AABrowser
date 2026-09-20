@@ -89,4 +89,30 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         favorites.clear()
         favorites.addAll(defaults)
     }
+
+    fun addMissingDefaults(): Int {
+        val currentUrls = favorites.map { normalizeUrl(it.url) }
+        val defaults = repository.getDefaultFavorites()
+        var addedCount = 0
+        defaults.forEach { default ->
+            val normalizedDefaultUrl = normalizeUrl(default.url)
+            if (!currentUrls.contains(normalizedDefaultUrl)) {
+                // Genera un nuovo ID unico per evitare conflitti con quelli esistenti
+                favorites.add(default.copy(id = UUID.randomUUID().toString()))
+                addedCount++
+            }
+        }
+        if (addedCount > 0) {
+            repository.saveFavorites(favorites)
+        }
+        return addedCount
+    }
+
+    private fun normalizeUrl(url: String): String {
+        return url.lowercase()
+            .replace("https://", "")
+            .replace("http://", "")
+            .replace("www.", "")
+            .trimEnd('/')
+    }
 }

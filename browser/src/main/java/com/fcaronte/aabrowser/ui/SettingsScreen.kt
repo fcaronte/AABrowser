@@ -478,24 +478,63 @@ fun SettingsScreen(
                                 }
                             }
 
-                            // Ripristina Preferiti Predefiniti
+                            // Ripristina e Aggiorna Preferiti
                             SettingsCard {
-                                SettingsButtonItem(
-                                    label = stringResource(R.string.reset_favorites_label),
-                                    description = stringResource(R.string.reset_favorites_desc),
-                                    buttonText = if (confirmReset) stringResource(R.string.are_you_sure) else stringResource(R.string.reset_button),
-                                    buttonColor = if (confirmReset) MaterialTheme.colorScheme.errorContainer else ButtonDefaults.buttonColors().containerColor,
-                                    buttonTextColor = if (confirmReset) MaterialTheme.colorScheme.onErrorContainer else ButtonDefaults.buttonColors().contentColor,
-                                    onClick = {
-                                        if (confirmReset) {
-                                            favoritesViewModel.resetToDefaults()
-                                            confirmReset = false
-                                            Toast.makeText(context, "Preferiti ripristinati", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            confirmReset = true
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.reset_favorites_label),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.add_missing_favorites_desc),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontSize = 12.sp,
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                if (confirmReset) {
+                                                    favoritesViewModel.resetToDefaults()
+                                                    confirmReset = false
+                                                    onShowFeedback(context.getString(R.string.status_loaded)) // O un messaggio più specifico
+                                                } else {
+                                                    confirmReset = true
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (confirmReset) MaterialTheme.colorScheme.errorContainer else ButtonDefaults.buttonColors().containerColor,
+                                                contentColor = if (confirmReset) MaterialTheme.colorScheme.onErrorContainer else ButtonDefaults.buttonColors().contentColor
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(if (confirmReset) stringResource(R.string.are_you_sure) else stringResource(R.string.reset_button))
+                                        }
+
+                                        OutlinedButton(
+                                            onClick = {
+                                                val added = favoritesViewModel.addMissingDefaults()
+                                                val msg = if (added > 0) {
+                                                    context.resources.getQuantityString(R.plurals.favorites_added_count, added, added)
+                                                } else {
+                                                    context.getString(R.string.no_new_favorites)
+                                                }
+                                                onShowFeedback(msg)
+                                            },
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                contentColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(stringResource(R.string.add_button))
                                         }
                                     }
-                                )
+                                }
                             }
 
                             // Esporta e Importa Impostazioni e Preferiti

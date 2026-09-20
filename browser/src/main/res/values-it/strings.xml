@@ -151,7 +151,15 @@
     <!-- Reset Favorites -->
     <string name="reset_favorites_label">Ripristina Preferiti Predefiniti</string>
     <string name="reset_favorites_desc">Riporta i preferiti della schermata iniziale ai siti predefiniti originali</string>
+    <string name="add_missing_favorites_label">Carica Nuovi Preferiti</string>
+    <string name="add_missing_favorites_desc">Aggiungi i siti predefiniti mancanti alla tua lista attuale senza resettarla</string>
     <string name="reset_button">Ripristina</string>
+    <string name="add_button">Aggiungi</string>
+    <plurals name="favorites_added_count">
+        <item quantity="one">1 preferito aggiunto</item>
+        <item quantity="other">%d preferiti aggiunti</item>
+    </plurals>
+    <string name="no_new_favorites">La tua lista è già aggiornata</string>
     <string name="are_you_sure">Sei sicuro?</string>
     <string name="export_settings_label">Esporta Impostazioni e Preferiti</string>
     <string name="export_settings_desc">Salva tutti i preferiti e le impostazioni in un file di backup JSON</string>
