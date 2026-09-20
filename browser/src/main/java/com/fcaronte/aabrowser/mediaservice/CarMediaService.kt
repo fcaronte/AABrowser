@@ -88,6 +88,14 @@ class CarMediaService : MediaBrowserServiceCompat() {
         Log.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
 
         if (isWeatherMode) {
+            // Mostra subito uno stato di caricamento per dare feedback all'utente
+            val loadingTitle = "Meteo: recupero posizione..."
+            val loadingMetadata = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, loadingTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "AABrowser")
+                .build()
+            mMediasessioncompat?.setMetadata(loadingMetadata)
+
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
                 Log.d(TAG, "Starting background weather fetch for CarMediaService...")

@@ -10,6 +10,8 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.location.Geocoder
 import android.location.Location
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
@@ -230,25 +232,47 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
     if (hasCoarse) {
         try {
             val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-            val currentLocation: Location? =
-                suspendCancellableCoroutine<Location?> { continuation ->
-                    fusedClient.getCurrentLocation(
-                        Priority.PRIORITY_LOW_POWER,
-                        CancellationTokenSource().token
-                    ).addOnSuccessListener { loc ->
-                        continuation.resume(loc)
-                    }.addOnFailureListener {
-                        continuation.resume(null)
-                    }
-                }
-
-            val location = currentLocation ?: suspendCancellableCoroutine<Location?> { continuation ->
+            
+            // Prova prima la lastLocation che è istantanea
+            val lastLoc: Location? = suspendCancellableCoroutine { continuation ->
                 fusedClient.lastLocation.addOnSuccessListener { loc ->
                     continuation.resume(loc)
                 }.addOnFailureListener {
                     continuation.resume(null)
                 }
             }
+            
+            // Se lastLoc è recente (es. < 1 ora), usala subito per la massima velocità all'avvio
+            if (lastLoc != null && (System.currentTimeMillis() - lastLoc.time) < 3600000) {
+                val lat = lastLoc.latitude
+                val lon = lastLoc.longitude
+                val cityName = getCityName(context, lat, lon)
+                Log.d(TAG, "Using fast lastLocation: lat=$lat, lon=$lon, city=$cityName")
+                return Triple(lat, lon, cityName)
+            }
+
+            // Altrimenti chiedi una posizione fresca ma con timeout breve
+            val currentLocation: Location? =
+                suspendCancellableCoroutine<Location?> { continuation ->
+                    val cts = CancellationTokenSource()
+                    fusedClient.getCurrentLocation(
+                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        cts.token
+                    ).addOnSuccessListener { loc ->
+                        continuation.resume(loc)
+                    }.addOnFailureListener {
+                        continuation.resume(null)
+                    }
+                    // Timeout di sicurezza di 3 secondi per non bloccare l'avvio
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (continuation.isActive) {
+                            cts.cancel()
+                            continuation.resume(null)
+                        }
+                    }, 3000)
+                }
+
+            val location = currentLocation ?: lastLoc
 
             if (location != null) {
                 val lat = location.latitude
