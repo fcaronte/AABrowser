@@ -115,6 +115,7 @@ class MediaSessionManager(private val context: Context) {
     private var lastState: Int = PlaybackStateCompat.STATE_NONE
     private var lastPosition: Long = -1
     private var lastSpeed: Float = 1.0f
+    private var isLiveStream: Boolean = false
 
     fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
         Log.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
@@ -133,17 +134,21 @@ class MediaSessionManager(private val context: Context) {
             return
         }
 
+        var actions = PlaybackStateCompat.ACTION_PLAY or
+                PlaybackStateCompat.ACTION_PAUSE or
+                PlaybackStateCompat.ACTION_STOP or
+                PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                PlaybackStateCompat.ACTION_PLAY_PAUSE
+
+        // Aggiungi SEEK_TO solo se non è un flusso live (durata > 0)
+        if (!isLiveStream) {
+            actions = actions or PlaybackStateCompat.ACTION_SEEK_TO
+        }
+
         val playbackState = PlaybackStateCompat.Builder()
             .setState(state, position, speed)
-            .setActions(
-                PlaybackStateCompat.ACTION_PLAY or
-                        PlaybackStateCompat.ACTION_PAUSE or
-                        PlaybackStateCompat.ACTION_STOP or
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                        PlaybackStateCompat.ACTION_SEEK_TO
-            )
+            .setActions(actions)
             .build()
 
         val bundle = Bundle().apply {
@@ -158,7 +163,7 @@ class MediaSessionManager(private val context: Context) {
     private var lastDuration: Long = 0
 
     fun updateMetadata(title: String, artist: String?, artUrl: String?, duration: Long = 0) {
-        Log.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl")
+        Log.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl, duration=$duration")
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
             Log.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
@@ -169,11 +174,20 @@ class MediaSessionManager(private val context: Context) {
             lastArtUrl = null
             lastBitmap = null
             lastDuration = 0
+            isLiveStream = false
             sendMetadata("", null, null, 0)
             return
         }
 
+        val wasLive = isLiveStream
+        isLiveStream = duration <= 0
         lastDuration = duration
+
+        // Se passiamo da live a non-live o viceversa, forziamo l'aggiornamento dello stato di riproduzione
+        // per aggiornare le azioni disponibili (es. mostrare/nascondere la seekbar)
+        if (wasLive != isLiveStream) {
+            updatePlaybackState(lastState, lastPosition, lastSpeed)
+        }
 
         // Se l'URL è lo stesso, usa l'ultimo bitmap per evitare che l'icona sparisca
         if (!artUrl.isNullOrBlank() && artUrl == lastArtUrl && lastBitmap != null) {
@@ -214,7 +228,11 @@ class MediaSessionManager(private val context: Context) {
         val metadataBuilder = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+        
+        // Se la durata è <= 0, non la impostiamo per segnalare al sistema che si tratta di un contenuto Live
+        if (duration > 0) {
+            metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+        }
 
         icon?.let {
             metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)

@@ -17,7 +17,7 @@ object AdBlockJavascript {
         };
 
         const mainLoop = setInterval(() => {
-            if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be')) return;
+            if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be') && !window.location.host.includes('youtubekids.com')) return;
             const video = document.querySelector('video');
             if (!video) return;
 

@@ -1,5 +1,9 @@
 package com.fcaronte.aabrowser.utils
 
+/**
+ * Central repository for all JavaScript snippets injected into the WebView.
+ * Refactored to be modular and lightweight.
+ */
 object BrowserJavascript {
 
     fun getViewportScript(scale: Float, isDesktop: Boolean): String {
@@ -26,365 +30,32 @@ object BrowserJavascript {
     fun getLifecycleAndMetadataScript(): String {
         return """
         (function() {
-            // Shield anti-pausa e visibilità sempre attiva
-            const mockVisibility = () => {
-                try {
-                    if (document.aabMocked) return;
-                    
-                    const defineProp = (obj, prop, val) => {
-                        Object.defineProperty(obj, prop, {
-                            get: () => val,
-                            set: () => {},
-                            configurable: true
-                        });
-                    };
-
-                    defineProp(document, 'hidden', false);
-                    defineProp(document, 'visibilityState', 'visible');
-                    defineProp(document, 'webkitVisibilityState', 'visible');
-                    defineProp(document, 'webkitHidden', false);
-                    
-                    document.hasFocus = () => true;
-                    document.aabMocked = true;
-                } catch (e) {}
-            };
-            // Determina se il sito corrente necessita dell'anti-pausa aggressivo (es. background playback di YouTube o Spotify)
+            $VISIBILITY_MOCK_JS
+            
             const host = window.location.host.toLowerCase();
-            const needsAntiPause = host.includes('youtube.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps');
+            const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps');
 
             if (needsAntiPause) {
                 mockVisibility();
-                
-                // Definizione locale di blockEvent solo dove serve
-                const blockEvent = (e) => { 
-                    if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
-                        e.stopImmediatePropagation(); 
-                    }
-                };
-
-                ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave', 'pagehide'].forEach(evt => {
-                    document.addEventListener(evt, blockEvent, true);
-                    window.addEventListener(evt, blockEvent, true);
-                });
-
-                const origVideoPause = HTMLVideoElement.prototype.pause;
-                const handleMediaPause = function() {
-                    if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
-                        console.log("AABrowser: Blocked automatic UI/background pause()");
-                        return Promise.resolve();
-                    }
-                    return origVideoPause.apply(this, arguments);
-                };
-
-                HTMLVideoElement.prototype.pause = handleMediaPause;
-                if (window.HTMLAudioElement) {
-                    HTMLAudioElement.prototype.pause = handleMediaPause;
-                }
+                $ANTI_PAUSE_JS
             }
 
-            function syncPageMetadata() {
-                const getFavicon = () => {
-                    const icon = document.querySelector('link[rel="apple-touch-icon"]') || 
-                                 document.querySelector('link[rel="icon"][sizes="192x192"]') ||
-                                 document.querySelector('link[rel="icon"]') ||
-                                 document.querySelector('link[rel="shortcut icon"]');
-                    return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
-                };
-                if (window.AndroidBridge) {
-                    AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
-                }
-            }
+            $METADATA_SYNC_CORE_JS
             
-            let lastHref = window.location.href;
-            let lastTitle = document.title;
-            const observer = new MutationObserver(() => {
-                if (window.location.href !== lastHref) {
-                    lastHref = window.location.href;
-                    syncPageMetadata();
-                    if (window.location.host.includes('youtube.com') && window.AndroidBridge) {
-                        AndroidBridge.onStartAdBlock();
-                    }
-                } else if (document.title !== lastTitle) {
-                    lastTitle = document.title;
-                    syncPageMetadata();
-                }
-            });
-            observer.observe(document.querySelector('title') || document.documentElement, { subtree: true, characterData: true, childList: true });
-
-            const handleNavFinish = () => {
-                syncPageMetadata();
-                if (window.AndroidBridge) AndroidBridge.onStartAdBlock();
-            };
-            window.addEventListener('yt-navigate-finish', handleNavFinish);
-            window.addEventListener('ytmusic-navigate-finish', handleNavFinish);
+            // Site-specific metadata extraction
+            ${YouTubeManager.getMetadataScript()}
             
-            setTimeout(syncPageMetadata, 1500);
-
-            // Monitoraggio Metadati Media
-            let lastMediaTitle = "";
-            let lastDuration = 0;
-            function syncMetadata() {
-                console.log("AABrowserPlayback JS: syncMetadata called. Host:", window.location.host);
-                if (!window.AndroidBridge) return;
-
-                const media = document.querySelector('video, audio');
-                const isSpotify = window.location.host.includes('spotify.com');
-
-                if (!media && !isSpotify) {
-                    if (lastMediaTitle !== "") {
-                        lastMediaTitle = "";
-                        lastDuration = 0;
-                        if (window.AndroidBridge) {
-                            AndroidBridge.updateMediaMetadata("", "", "", 0);
-                            AndroidBridge.onMediaStatusChanged(false, 0, 1.0);
-                        }
-                    }
-                    return;
-                }
-
-                let title = document.title;
-                let artist = "AABrowser Audio";
-                let artUrl = "";
-                let duration = media && isFinite(media.duration) ? media.duration : 0;
-
-                if (window.location.host.includes('youtube.com')) {
-                    const ytTitle = document.querySelector('.ytp-title-link')?.innerText || 
-                                     document.querySelector('ytmusic-player-bar .title')?.textContent ||
-                                     document.querySelector('.ytmusic-player-bar .title')?.textContent;
-                    const ytArtist = document.querySelector('.ytp-ce-channel-title')?.innerText || 
-                                     document.querySelector('#upload-info #channel-name')?.innerText ||
-                                     document.querySelector('ytmusic-player-bar .byline')?.textContent;
-                    
-                    if (ytTitle) title = ytTitle.trim();
-                    if (ytArtist) artist = ytArtist.trim();
-                    
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const v = urlParams.get('v');
-                    if (v) {
-                        // HQ Thumbnail for YouTube
-                        artUrl = 'https://img.youtube.com/vi/' + v + '/hqdefault.jpg';
-                    }
-                    
-                    if (window.location.host.includes('music.youtube.com')) {
-                        let musicArt = document.querySelector('ytmusic-player-bar img')?.src || 
-                                         document.querySelector('.ytmusic-player-bar img')?.src;
-                        if (musicArt) {
-                            // Richiedi versione ad alta risoluzione (es. 512x512)
-                            artUrl = musicArt.replace(/=w\d+-h\d+/, '=w512-h512');
-                        }
-                    }
-                }
-
-                if (window.location.host.includes('spotify.com')) {
-                    // 1. Cerca prima nella barra di riproduzione in basso (Now Playing Bar)
-                    const nowPlayingBar = document.querySelector('[data-testid="now-playing-bar"]');
-                    
-                    if (nowPlayingBar) {
-                        const trackEl = nowPlayingBar.querySelector('[data-testid="track-info-name"] a, [data-testid="context-item-info-title"] a, [data-testid="entity-title"], [data-encore-id="text"]');
-                        const artistEl = nowPlayingBar.querySelector('[data-testid="track-info-artists"] a, [data-testid="context-item-info-subtitle"] a, [data-testid="entity-subtitle"]');
-                        const artEl = nowPlayingBar.querySelector('img[data-testid="cover-art-image"], img[data-testid="entity-image"], img[src*="scdn.co"], img');
-
-                        if (trackEl && (trackEl.textContent || trackEl.innerText)) {
-                            title = (trackEl.textContent || trackEl.innerText).trim();
-                        }
-                        if (artistEl && (artistEl.textContent || artistEl.innerText)) {
-                            artist = (artistEl.textContent || artistEl.innerText).trim();
-                        }
-                        if (artEl && artEl.src) {
-                            artUrl = artEl.src;
-                        }
-                    }
-
-                    // 2. Fallback su mediaSession se la barra in basso non è pronta, filtrando i titoli generici della playlist
-                    if ((!title || title.includes("Top 50") || title.includes("Playlist")) && navigator.mediaSession && navigator.mediaSession.metadata) {
-                        const meta = navigator.mediaSession.metadata;
-                        if (meta.title && !meta.title.includes("Top 50") && !meta.title.includes("Spotify")) {
-                            title = meta.title;
-                        }
-                        if (meta.artist) artist = meta.artist;
-                        if (meta.artwork && meta.artwork.length > 0) {
-                            artUrl = meta.artwork[meta.artwork.length - 1].src;
-                        }
-                    }
-
-                    // Trucco upscaling copertina di Spotify (da bassa a alta risoluzione se presente l'hash)
-                    if (artUrl && artUrl.includes("00004851")) {
-                        artUrl = artUrl.replace("00004851", "0000b273");
-                    }
-                }
-
-                if (window.location.host.includes('zappr.stream') || window.location.host.includes('zapps')) {
-                    const zapprTitle = document.querySelector('.player-channel-name, .channel-title, .stream-title, .title, h1, h2, [class*="channel-name"], [class*="stream-name"]')?.innerText || document.title;
-                    if (zapprTitle && !zapprTitle.toLowerCase().includes('zappr')) {
-                        title = zapprTitle.trim();
-                        artist = "Zappr Stream Live";
-                    } else if (zapprTitle) {
-                        title = zapprTitle.trim();
-                        artist = "Live Stream";
-                    }
-                    const zapprLogo = document.querySelector('.player-channel-logo img, .channel-logo img, .stream-logo, .logo img, img[src*="logo"], img[src*="station"], img[src*="thumb"]')?.src;
-                    if (zapprLogo) {
-                        artUrl = zapprLogo;
-                    }
-                }
-
-                const lowerTitle = (title || "").toLowerCase();
-                const isGeneric = lowerTitle.includes("lettore web") || lowerTitle.includes("musica per tutti") || lowerTitle === "spotify" || lowerTitle === "home" || lowerTitle === "search" || lowerTitle === "cerca" || lowerTitle === "";
-
-                if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
-                    lastMediaTitle = title;
-                    lastDuration = duration;
-                    console.log("AABrowserPlayback JS: calling AndroidBridge.updateMediaMetadata ->", title, artist, artUrl, duration);
-                    AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
-                }
+            if (window.location.host.includes('spotify.com')) {
+                $SPOTIFY_METADATA_JS
             }
 
-            function setupMediaListeners(media) {
-                if (media.dataset.mediaListenersAdded) return;
-                media.dataset.mediaListenersAdded = 'true';
-                media.lastBridgeUpdate = 0;
+            ${ZapprManager.getMetadataScript()}
 
-                media.addEventListener('play', () => {
-                    console.log("AABrowserPlayback JS: media element 'play' event triggered");
-                    window.isMediaPlaying = true;
-                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, media.currentTime, media.playbackRate);
-                    syncMetadata();
-                });
-                media.addEventListener('pause', () => {
-                    console.log("AABrowserPlayback JS: media element 'pause' event triggered");
-                    if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, media.currentTime, media.playbackRate);
-                });
-                media.addEventListener('timeupdate', () => {
-                    const now = Date.now();
-                    // Pool di aggiornamento: invia dati a Android max ogni 500ms
-                    if (now - media.lastBridgeUpdate > 500) {
-                        if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(media.currentTime, media.playbackRate, !media.paused);
-                        media.lastBridgeUpdate = now;
-                    }
-                });
-                media.addEventListener('durationchange', syncMetadata);
-            }
+            $METADATA_SYNC_FINISH_JS
 
-            const mediaObserver = new MutationObserver(() => {
-                document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
-            });
-            mediaObserver.observe(document.body, { childList: true, subtree: true });
-
-            document.querySelectorAll('video, audio').forEach(media => {
-                setupMediaListeners(media);
-            });
-            setTimeout(syncMetadata, 2000);
-            
-            function setupInputListeners() {
-                document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
-                    if (!el.dataset.listenerAdded) {
-                        el.addEventListener('focus', () => window.AndroidBridge && AndroidBridge.onStartInput());
-                        el.addEventListener('click', () => window.AndroidBridge && AndroidBridge.onStartInput());
-                        el.dataset.listenerAdded = 'true';
-                    }
-                });
-            }
-            const inputObserver = new MutationObserver(setupInputListeners);
-            inputObserver.observe(document.body, { childList: true, subtree: true });
-            setupInputListeners();
-
-            // Polyfill universale per i menu a tendina (<select>) su Android Auto
-            // Evita che la WebView tenti di aprire popup nativi del sistema operativo che non sono supportati dallo schermo dell'auto
-            document.addEventListener('click', function(e) {
-                var select = e.target.closest('select');
-                if (!select) return;
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                var existing = document.getElementById('aab-custom-dropdown');
-                if (existing) existing.remove();
-                
-                var options = select.options;
-                if (!options || options.length === 0) return;
-                
-                var dropdown = document.createElement('div');
-                dropdown.id = 'aab-custom-dropdown';
-                dropdown.style.position = 'fixed';
-                dropdown.style.zIndex = '2147483647';
-                dropdown.style.left = '5%';
-                dropdown.style.top = '5%';
-                dropdown.style.width = '90%';
-                dropdown.style.maxHeight = '90%';
-                dropdown.style.overflowY = 'auto';
-                dropdown.style.backgroundColor = '#1a1a1a';
-                dropdown.style.color = '#ffffff';
-                dropdown.style.border = '2px solid #555';
-                dropdown.style.borderRadius = '12px';
-                dropdown.style.boxShadow = '0px 10px 30px rgba(0,0,0,0.9)';
-                dropdown.style.padding = '10px';
-                dropdown.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-                
-                var header = document.createElement('div');
-                header.style.padding = '12px 15px';
-                header.style.fontWeight = 'bold';
-                header.style.fontSize = '18px';
-                header.style.borderBottom = '1px solid #333';
-                header.style.display = 'flex';
-                header.style.justifyContent = 'space-between';
-                header.style.alignItems = 'center';
-                header.style.color = '#aaa';
-                header.innerText = 'Seleziona un\'opzione:';
-                
-                var closeBtn = document.createElement('button');
-                closeBtn.innerText = '✕';
-                closeBtn.style.backgroundColor = 'transparent';
-                closeBtn.style.color = '#ff5252';
-                closeBtn.style.border = 'none';
-                closeBtn.style.fontSize = '22px';
-                closeBtn.style.padding = '0 5px';
-                closeBtn.style.cursor = 'pointer';
-                closeBtn.onclick = function(ev) { ev.stopPropagation(); dropdown.remove(); };
-                
-                header.appendChild(closeBtn);
-                dropdown.appendChild(header);
-                
-                var container = document.createElement('div');
-                container.style.display = 'flex';
-                container.style.flexDirection = 'column';
-                
-                for (var i = 0; i < options.length; i++) {
-                    (function(index) {
-                        var opt = options[index];
-                        if (opt.disabled) return;
-                        
-                        var item = document.createElement('div');
-                        item.style.padding = '18px 15px';
-                        item.style.borderBottom = '1px solid #2a2a2a';
-                        item.style.cursor = 'pointer';
-                        item.style.fontSize = '18px';
-                        item.style.borderRadius = '6px';
-                        item.style.margin = '2px 0';
-                        
-                        if (opt.selected || select.selectedIndex === index) {
-                            item.style.backgroundColor = '#2196F3';
-                            item.style.color = '#ffffff';
-                            item.style.fontWeight = 'bold';
-                        } else {
-                            item.style.backgroundColor = 'transparent';
-                        }
-                        
-                        item.onclick = function(ev) {
-                            ev.stopPropagation();
-                            select.selectedIndex = index;
-                            select.dispatchEvent(new Event('input', { bubbles: true }));
-                            select.dispatchEvent(new Event('change', { bubbles: true }));
-                            dropdown.remove();
-                        };
-                        container.appendChild(item);
-                        // innerText per sicurezza
-                        item.innerText = opt.text;
-                    })(i);
-                }
-                
-                dropdown.appendChild(container);
-                document.body.appendChild(dropdown);
-            }, true);
+            $MEDIA_LISTENERS_JS
+            $INPUT_LISTENERS_JS
+            $SELECT_POLYFILL_JS
 
             if (window.location.host.includes('spotify.com') || window.location.host.includes('zappr.stream') || window.location.host.includes('zapps')) {
                 setInterval(() => {
@@ -404,7 +75,6 @@ object BrowserJavascript {
         (function() {
             var el = document.activeElement;
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.contentEditable === 'true')) {
-                // Debouncing JS per evitare inserimenti multipli dallo smartphone
                 var now = Date.now();
                 if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === "$sanitized") {
                     return;
@@ -418,7 +88,7 @@ object BrowserJavascript {
                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     el.value = val.substring(0, start) + "$sanitized" + val.substring(end);
                     el.selectionStart = el.selectionEnd = start + "$sanitized".length;
-                    el.focus(); // Assicura che rimanga focused
+                    el.focus();
                 } else {
                     el.innerText = val.substring(0, start) + "$sanitized" + val.substring(end);
                     el.focus();
@@ -501,28 +171,45 @@ object BrowserJavascript {
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;
+            if (typeof window.aabMarkUserPlay === 'function') window.aabMarkUserPlay();
+            
             if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['play'] === 'function') {
                 try { window.aabMediaSessionHandlers['play'](); return; } catch(e) {}
             }
 
             function smartClick(el) {
                 if (!el) return false;
-                try { el.click(); return true; } catch(e) {
+                try { 
+                    el.focus();
+                    el.click(); 
+                    return true; 
+                } catch(e) {
                     try {
+                        el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                        el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
                         el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
                         return true;
                     } catch(err) { return false; }
                 }
             }
 
-            document.querySelectorAll('video, audio').forEach(v => {
-                if (v.paused) {
-                    v.play().catch(() => {
-                        // In case of error, some live streams need re-loading or specific methods
-                        if (v.load) try { v.load(); v.play(); } catch(e) {}
+            function tryPlayAll(win) {
+                try {
+                    win.document.querySelectorAll('video, audio').forEach(v => {
+                        if (v.paused) {
+                            if (v.readyState === 0 && v.load) v.load();
+                            v.play().catch(err => {
+                                if (v.load) { try { v.load(); v.play(); } catch(e) {} }
+                            });
+                        }
                     });
-                }
-            });
+                    for (let i = 0; i < win.frames.length; i++) {
+                        tryPlayAll(win.frames[i]);
+                    }
+                } catch(e) {}
+            }
+
+            tryPlayAll(window);
 
             const playSelectors = [
                 '[data-testid="control-button-play"]',
@@ -532,9 +219,12 @@ object BrowserJavascript {
                 'ytmusic-player-bar .play-pause-button',
                 '#play-pause-button',
                 '.vjs-play-control',
+                '.vjs-big-play-button',
                 '.play-btn',
                 '.play-button',
                 '.play-icon',
+                '.jw-display-icon-container',
+                '.vjs-paused .vjs-play-control',
                 'button[aria-label*="Play" i]',
                 'button[aria-label*="Riproduci" i]',
                 'button[aria-label*="Suona" i]',
@@ -575,9 +265,18 @@ object BrowserJavascript {
                 }
             }
 
-            document.querySelectorAll('video, audio').forEach(v => {
-                try { v.pause(); } catch(e) {}
-            });
+            function tryPauseAll(win) {
+                try {
+                    win.document.querySelectorAll('video, audio').forEach(v => {
+                        try { v.pause(); } catch(e) {}
+                    });
+                    for (let i = 0; i < win.frames.length; i++) {
+                        tryPauseAll(win.frames[i]);
+                    }
+                } catch(e) {}
+            }
+
+            tryPauseAll(window);
 
             const pauseSelectors = [
                 '[data-testid="control-button-pause"]',
@@ -588,6 +287,7 @@ object BrowserJavascript {
                 '.vjs-play-control',
                 '.pause-btn',
                 '.pause-button',
+                '.pause-icon',
                 'button[aria-label*="Pause" i]',
                 'button[aria-label*="Pausa" i]',
                 'button[aria-label*="In pausa" i]',
@@ -649,7 +349,6 @@ object BrowserJavascript {
         (function() {
             if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['nexttrack'] === 'function') {
                 try {
-                    console.log("AABrowser: Invoking MediaSession nexttrack handler");
                     window.aabMediaSessionHandlers['nexttrack']();
                     return;
                 } catch(e) {}
@@ -707,7 +406,6 @@ object BrowserJavascript {
         (function() {
             if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
                 try {
-                    console.log("AABrowser: Invoking MediaSession previoustrack handler");
                     window.aabMediaSessionHandlers['previoustrack']();
                     return;
                 } catch(e) {}
@@ -764,39 +462,6 @@ object BrowserJavascript {
         (function() {
             const media = document.querySelector('video, audio');
             if (media) media.currentTime = ${pos / 1000.0};
-        })();
-        """.trimIndent()
-    }
-
-    fun getSpotifyOptimizationScript(): String {
-        return """
-        (function() {
-            if (window.aabSpotifyOptimized) return;
-            window.aabSpotifyOptimized = true;
-            
-            const style = document.createElement('style');
-            style.innerHTML = `
-                /* Nascondi la sidebar laterale sinistra per ottimizzare lo schermo dell'auto */
-                nav[aria-label="Main"], [data-testid="left-sidebar"] {
-                    display: none !important;
-                }
-                /* Espandi l'area principale a tutto schermo */
-                .Root__main-view, [data-testid="main-content"] {
-                    width: 100% !important;
-                    grid-column: 1 / -1 !important;
-                    max-width: none !important;
-                }
-                /* Rimuovi banner pubblicitari o inviti a scaricare l'app desktop */
-                [data-testid="banner"], [data-testid="download-desktop-app-button"], header {
-                    display: none !important;
-                }
-                /* Ottimizza la barra di riproduzione in basso */
-                [data-testid="now-playing-bar"] {
-                    background-color: #121212 !important;
-                    border-top: 1px solid #282828;
-                }
-            `;
-            document.head.appendChild(style);
         })();
         """.trimIndent()
     }
@@ -880,4 +545,230 @@ object BrowserJavascript {
         })();
         """.trimIndent()
     }
+
+    // --- INTERNAL JAVASCRIPT BLOCKS ---
+
+    private const val VISIBILITY_MOCK_JS = """
+        const mockVisibility = () => {
+            try {
+                if (document.aabMocked) return;
+                const defineProp = (obj, prop, val) => {
+                    Object.defineProperty(obj, prop, {
+                        get: () => val,
+                        set: () => {},
+                        configurable: true
+                    });
+                };
+                defineProp(document, 'hidden', false);
+                defineProp(document, 'visibilityState', 'visible');
+                defineProp(document, 'webkitVisibilityState', 'visible');
+                defineProp(document, 'webkitHidden', false);
+                document.hasFocus = () => true;
+                window.aabUserTappedPause = false;
+                window.aabMarkUserPause = () => { window.aabUserTappedPause = true; window.isMediaPlaying = false; };
+                window.aabMarkUserPlay = () => { window.aabUserTappedPause = false; window.isMediaPlaying = true; };
+                document.aabMocked = true;
+            } catch (e) {}
+        };
+    """
+
+    private const val ANTI_PAUSE_JS = """
+        const blockEvent = (e) => { 
+            if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
+                e.stopImmediatePropagation(); 
+            }
+        };
+        ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave', 'pagehide'].forEach(evt => {
+            document.addEventListener(evt, blockEvent, true);
+            window.addEventListener(evt, blockEvent, true);
+        });
+        const origVideoPause = HTMLVideoElement.prototype.pause;
+        const handleMediaPause = function() {
+            if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
+                return Promise.resolve();
+            }
+            return origVideoPause.apply(this, arguments);
+        };
+        HTMLVideoElement.prototype.pause = handleMediaPause;
+        if (window.HTMLAudioElement) {
+            HTMLAudioElement.prototype.pause = handleMediaPause;
+        }
+    """
+
+    private const val METADATA_SYNC_CORE_JS = """
+        function syncPageMetadata() {
+            const getFavicon = () => {
+                const icon = document.querySelector('link[rel="apple-touch-icon"]') || 
+                             document.querySelector('link[rel="icon"][sizes="192x192"]') ||
+                             document.querySelector('link[rel="icon"]') ||
+                             document.querySelector('link[rel="shortcut icon"]');
+                return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
+            };
+            if (window.AndroidBridge) {
+                AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
+            }
+        }
+        
+        let lastHref = window.location.href;
+        let lastTitle = document.title;
+        const observer = new MutationObserver(() => {
+            if (window.location.href !== lastHref) {
+                lastHref = window.location.href;
+                syncPageMetadata();
+                if (window.location.host.includes('youtube.com') && window.AndroidBridge) {
+                    AndroidBridge.onStartAdBlock();
+                }
+            } else if (document.title !== lastTitle) {
+                lastTitle = document.title;
+                syncPageMetadata();
+            }
+        });
+        observer.observe(document.querySelector('title') || document.documentElement, { subtree: true, characterData: true, childList: true });
+        window.addEventListener('yt-navigate-finish', syncPageMetadata);
+        window.addEventListener('ytmusic-navigate-finish', syncPageMetadata);
+        setTimeout(syncPageMetadata, 1500);
+
+        let lastMediaTitle = "";
+        let lastDuration = 0;
+        function syncMetadata() {
+            if (!window.AndroidBridge) return;
+            const media = document.querySelector('video, audio');
+            const isSpotify = window.location.host.includes('spotify.com');
+            if (!media && !isSpotify) {
+                if (lastMediaTitle !== "") {
+                    lastMediaTitle = "";
+                    lastDuration = 0;
+                    AndroidBridge.updateMediaMetadata("", "", "", 0);
+                    AndroidBridge.onMediaStatusChanged(false, 0, 1.0);
+                }
+                return;
+            }
+            let title = document.title;
+            let artist = "AABrowser Audio";
+            let artUrl = "";
+            let duration = media && isFinite(media.duration) ? media.duration : 0;
+    """
+
+    private const val SPOTIFY_METADATA_JS = """
+        const nowPlayingBar = document.querySelector('[data-testid="now-playing-bar"]');
+        if (nowPlayingBar) {
+            const trackEl = nowPlayingBar.querySelector('[data-testid="track-info-name"] a, [data-testid="context-item-info-title"] a, [data-testid="entity-title"]');
+            const artistEl = nowPlayingBar.querySelector('[data-testid="track-info-artists"] a, [data-testid="context-item-info-subtitle"] a, [data-testid="entity-subtitle"]');
+            const artEl = nowPlayingBar.querySelector('img[data-testid="cover-art-image"], img[data-testid="entity-image"], img[src*="scdn.co"]');
+            if (trackEl) title = (trackEl.textContent || trackEl.innerText).trim();
+            if (artistEl) artist = (artistEl.textContent || artistEl.innerText).trim();
+            if (artEl && artEl.src) artUrl = artEl.src;
+        }
+        if ((!title || title.includes("Top 50")) && navigator.mediaSession && navigator.mediaSession.metadata) {
+            const meta = navigator.mediaSession.metadata;
+            if (meta.title && !meta.title.includes("Spotify")) title = meta.title;
+            if (meta.artist) artist = meta.artist;
+            if (meta.artwork && meta.artwork.length > 0) artUrl = meta.artwork[meta.artwork.length - 1].src;
+        }
+        if (artUrl && artUrl.includes("00004851")) artUrl = artUrl.replace("00004851", "0000b273");
+    """
+
+    private const val METADATA_SYNC_FINISH_JS = """
+            const lowerTitle = (title || "").toLowerCase();
+            const isGeneric = lowerTitle.includes("lettore web") || lowerTitle.includes("musica per tutti") || lowerTitle === "spotify" || lowerTitle === "home" || lowerTitle === "search" || lowerTitle === "cerca" || lowerTitle === "";
+
+            if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
+                lastMediaTitle = title;
+                lastDuration = duration;
+                AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
+            }
+        }
+    """
+
+    private const val MEDIA_LISTENERS_JS = """
+        function setupMediaListeners(media) {
+            if (media.dataset.mediaListenersAdded) return;
+            media.dataset.mediaListenersAdded = 'true';
+            media.lastBridgeUpdate = 0;
+            media.addEventListener('play', () => {
+                window.isMediaPlaying = true;
+                if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, media.currentTime, media.playbackRate);
+                syncMetadata();
+            });
+            media.addEventListener('pause', () => {
+                if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, media.currentTime, media.playbackRate);
+            });
+            media.addEventListener('timeupdate', () => {
+                const now = Date.now();
+                if (now - media.lastBridgeUpdate > 500) {
+                    if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(media.currentTime, media.playbackRate, !media.paused);
+                    media.lastBridgeUpdate = now;
+                }
+            });
+            media.addEventListener('durationchange', syncMetadata);
+        }
+        const mediaObserver = new MutationObserver(() => {
+            document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
+        });
+        mediaObserver.observe(document.body, { childList: true, subtree: true });
+        document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
+    """
+
+    private const val INPUT_LISTENERS_JS = """
+        function setupInputListeners() {
+            document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
+                if (!el.dataset.listenerAdded) {
+                    el.addEventListener('focus', () => window.AndroidBridge && AndroidBridge.onStartInput());
+                    el.addEventListener('click', () => window.AndroidBridge && AndroidBridge.onStartInput());
+                    el.dataset.listenerAdded = 'true';
+                }
+            });
+        }
+        const inputObserver = new MutationObserver(setupInputListeners);
+        inputObserver.observe(document.body, { childList: true, subtree: true });
+        setupInputListeners();
+    """
+
+    private const val SELECT_POLYFILL_JS = """
+        document.addEventListener('click', function(e) {
+            var select = e.target.closest('select');
+            if (!select) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var existing = document.getElementById('aab-custom-dropdown');
+            if (existing) existing.remove();
+            var options = select.options;
+            if (!options || options.length === 0) return;
+            var dropdown = document.createElement('div');
+            dropdown.id = 'aab-custom-dropdown';
+            dropdown.style = 'position:fixed;z-index:2147483647;left:5%;top:5%;width:90%;max-height:90%;overflow-y:auto;background:#1a1a1a;color:#fff;border:2px solid #555;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.9);padding:10px;font-family:sans-serif;';
+            var header = document.createElement('div');
+            header.style = 'padding:12px 15px;font-weight:bold;font-size:18px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;color:#aaa;';
+            header.innerText = 'Seleziona:';
+            var closeBtn = document.createElement('button');
+            closeBtn.innerText = '✕';
+            closeBtn.style = 'background:transparent;color:#ff5252;border:none;font-size:22px;cursor:pointer;';
+            closeBtn.onclick = () => dropdown.remove();
+            header.appendChild(closeBtn);
+            dropdown.appendChild(header);
+            var container = document.createElement('div');
+            container.style = 'display:flex;flex-direction:column;';
+            for (var i = 0; i < options.length; i++) {
+                (function(index) {
+                    var opt = options[index];
+                    if (opt.disabled) return;
+                    var item = document.createElement('div');
+                    item.style = 'padding:18px 15px;border-bottom:1px solid #2a2a2a;cursor:pointer;font-size:18px;border-radius:6px;';
+                    if (opt.selected || select.selectedIndex === index) {
+                        item.style.backgroundColor = '#2196F3';
+                    }
+                    item.onclick = () => {
+                        select.selectedIndex = index;
+                        select.dispatchEvent(new Event('input', { bubbles: true }));
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        dropdown.remove();
+                    };
+                    item.innerText = opt.text;
+                    container.appendChild(item);
+                })(i);
+            }
+            dropdown.appendChild(container);
+            document.body.appendChild(dropdown);
+        }, true);
+    """
 }

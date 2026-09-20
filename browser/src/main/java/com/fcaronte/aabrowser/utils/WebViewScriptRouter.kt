@@ -35,7 +35,7 @@ object WebViewScriptRouter {
         return """
         (function() {
             var host = (window.location.host || '').toLowerCase();
-            var isYT = host.includes('youtube.com') || host.includes('youtu.be');
+            var isYT = host.includes('youtube.com') || host.includes('youtu.be') || host.includes('youtubekids.com');
             var isSpot = host.includes('spotify.com');
 
             if (!isYT && window.aabIntervals && Array.isArray(window.aabIntervals)) {
@@ -70,7 +70,7 @@ object WebViewScriptRouter {
     ) {
         val lowUrl = urlString.lowercase()
         val isSpotify = lowUrl.contains("spotify.com")
-        val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be")
+        val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
         val isChatApp = lowUrl.contains("whatsapp.com") || lowUrl.contains("whatsapp.net") || lowUrl.contains("telegram.org")
 
         Log.d("ScriptRouter", "Routing scripts for URL: $urlString (Spotify: $isSpotify, YouTube: $isYouTube, Chat: $isChatApp, ActiveTab: $isTabActive)")
@@ -179,7 +179,7 @@ object WebViewScriptRouter {
         if (webView == null || urlString.isNullOrBlank() || !isYouTubeAdBlockEnabled) return
 
         val lowUrl = urlString.lowercase()
-        val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be")
+        val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
 
         if (isYouTube) {
             Log.d("ScriptRouter", "Injecting YouTube AdBlock script for $urlString")
