@@ -73,6 +73,8 @@ import com.fcaronte.aabrowser.utils.SpotifyManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import java.io.ByteArrayInputStream
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import org.json.JSONObject
 
 object ChromeVersionFetcher {
@@ -187,13 +189,32 @@ fun BrowserScreen(
         }
     }
 
+    var isFullscreenPending by remember { mutableStateOf(false) }
+
     DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
+                Lifecycle.Event.ON_RESUME -> {
                     webViewReference?.let {
                         it.onResume()
                         it.invalidate()
+                    }
+                    if (isFullscreenPending) {
+                        Log.d("##BrowserScreen", "Resuming fullscreen")
+                        webViewReference?.evaluateJavascript(
+                            "document.querySelector('video')?.requestFullscreen().catch(() => {})",
+                            null
+                        )
+                        isFullscreenPending = false
+                    }
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    if (customView != null) {
+                        Log.d("##BrowserScreen", "App paused, exiting fullscreen and marking as pending")
+                        isFullscreenPending = true
+                        customViewCallback?.onCustomViewHidden()
+                        customView = null
+                        customViewCallback = null
                     }
                 }
                 else -> {}
