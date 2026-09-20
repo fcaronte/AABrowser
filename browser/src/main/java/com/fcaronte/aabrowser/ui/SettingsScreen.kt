@@ -129,6 +129,7 @@ fun SettingsScreen(
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
+    val multiWindow by AppSettings.multiWindow
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -869,6 +870,16 @@ fun SettingsScreen(
                                         }
                                     )
                                 }
+                            }
+
+                            // Multiple Windows (Popups)
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.multi_window_label),
+                                    description = stringResource(R.string.multi_window_desc),
+                                    checked = multiWindow,
+                                    onCheckedChange = { AppSettings.setMultiWindow(context, it) }
+                                )
                             }
 
                             // Clear Data

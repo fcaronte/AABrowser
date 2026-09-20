@@ -50,7 +50,7 @@ object BrowserJavascript {
             };
             // Determina se il sito corrente necessita dell'anti-pausa aggressivo (es. background playback di YouTube o Spotify)
             const host = window.location.host.toLowerCase();
-            const needsAntiPause = host.includes('youtube.com') || host.includes('spotify.com') || host.includes('twitch.tv');
+            const needsAntiPause = host.includes('youtube.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps');
 
             if (needsAntiPause) {
                 mockVisibility();
@@ -213,6 +213,21 @@ object BrowserJavascript {
                     }
                 }
 
+                if (window.location.host.includes('zappr.stream') || window.location.host.includes('zapps')) {
+                    const zapprTitle = document.querySelector('.player-channel-name, .channel-title, .stream-title, .title, h1, h2, [class*="channel-name"], [class*="stream-name"]')?.innerText || document.title;
+                    if (zapprTitle && !zapprTitle.toLowerCase().includes('zappr')) {
+                        title = zapprTitle.trim();
+                        artist = "Zappr Stream Live";
+                    } else if (zapprTitle) {
+                        title = zapprTitle.trim();
+                        artist = "Live Stream";
+                    }
+                    const zapprLogo = document.querySelector('.player-channel-logo img, .channel-logo img, .stream-logo, .logo img, img[src*="logo"], img[src*="station"], img[src*="thumb"]')?.src;
+                    if (zapprLogo) {
+                        artUrl = zapprLogo;
+                    }
+                }
+
                 const lowerTitle = (title || "").toLowerCase();
                 const isGeneric = lowerTitle.includes("lettore web") || lowerTitle.includes("musica per tutti") || lowerTitle === "spotify" || lowerTitle === "home" || lowerTitle === "search" || lowerTitle === "cerca" || lowerTitle === "";
 
@@ -371,9 +386,10 @@ object BrowserJavascript {
                 document.body.appendChild(dropdown);
             }, true);
 
-            if (window.location.host.includes('spotify.com')) {
+            if (window.location.host.includes('spotify.com') || window.location.host.includes('zappr.stream') || window.location.host.includes('zapps')) {
                 setInterval(() => {
-                    if (window.location.host.includes('spotify.com')) {
+                    const host = window.location.host.toLowerCase();
+                    if (host.includes('spotify.com') || host.includes('zappr.stream') || host.includes('zapps')) {
                         syncMetadata();
                     }
                 }, 1000);
@@ -500,7 +516,12 @@ object BrowserJavascript {
             }
 
             document.querySelectorAll('video, audio').forEach(v => {
-                if (v.paused) v.play().catch(() => {});
+                if (v.paused) {
+                    v.play().catch(() => {
+                        // In case of error, some live streams need re-loading or specific methods
+                        if (v.load) try { v.load(); v.play(); } catch(e) {}
+                    });
+                }
             });
 
             const playSelectors = [
@@ -510,6 +531,10 @@ object BrowserJavascript {
                 '.ytp-play-button',
                 'ytmusic-player-bar .play-pause-button',
                 '#play-pause-button',
+                '.vjs-play-control',
+                '.play-btn',
+                '.play-button',
+                '.play-icon',
                 'button[aria-label*="Play" i]',
                 'button[aria-label*="Riproduci" i]',
                 'button[aria-label*="Suona" i]',
@@ -560,6 +585,9 @@ object BrowserJavascript {
                 '.ytp-play-button',
                 'ytmusic-player-bar .play-pause-button',
                 '#play-pause-button',
+                '.vjs-play-control',
+                '.pause-btn',
+                '.pause-button',
                 'button[aria-label*="Pause" i]',
                 'button[aria-label*="Pausa" i]',
                 'button[aria-label*="In pausa" i]',

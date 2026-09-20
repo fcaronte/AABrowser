@@ -84,6 +84,8 @@
     <string name="adblock_desc">Block intrusive ads and trackers</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Auto-skip YouTube ads (Beta: may stop working at any time)</string>
+    <string name="multi_window_label">Multiple Windows (Popups)</string>
+    <string name="multi_window_desc">Allow websites to open new tabs or popup windows (e.g., login pages)</string>
     <string name="force_english_label">Force English Language</string>
     <string name="force_english_desc">Always use English regardless of system language</string>
     <string name="search_engine_label">Default Search Engine</string>

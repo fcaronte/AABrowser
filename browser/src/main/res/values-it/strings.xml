@@ -84,6 +84,8 @@
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Salta pubblicità YouTube (Beta: può smettere di funzionare da un momento all\'altro)</string>
+    <string name="multi_window_label">Finestre Multiple (Popup)</string>
+    <string name="multi_window_desc">Consente ai siti web di aprire nuove schede o finestre popup (es. per il login)</string>
     <string name="force_english_label">Forza lingua inglese</string>
     <string name="force_english_desc">Usa sempre l\'inglese indipendentemente dalla lingua di sistema</string>
     <string name="search_engine_label">Motore di ricerca predefinito</string>

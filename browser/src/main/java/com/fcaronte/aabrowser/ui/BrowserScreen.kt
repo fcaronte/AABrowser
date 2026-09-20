@@ -140,6 +140,7 @@ fun BrowserScreen(
     val globalDesktopScale by AppSettings.desktopScale
     val autoplayMedia by AppSettings.autoplayMedia
     val darkPages by AppSettings.darkPages
+    val multiWindowEnabled by AppSettings.multiWindow
 
     // Valutazione unificata basata sul MainScreen
     val isAppDark = isAppDarkOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
@@ -325,8 +326,8 @@ fun BrowserScreen(
                         allowContentAccess = true
                         allowFileAccess = true
                         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-                        setSupportMultipleWindows(false)
-                        javaScriptCanOpenWindowsAutomatically = true
+                        setSupportMultipleWindows(multiWindowEnabled)
+                        javaScriptCanOpenWindowsAutomatically = multiWindowEnabled
                     }
 
                     // Abilita i cookie in modo persistente
