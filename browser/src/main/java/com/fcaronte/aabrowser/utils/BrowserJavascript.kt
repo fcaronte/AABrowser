@@ -48,63 +48,38 @@ object BrowserJavascript {
                     document.aabMocked = true;
                 } catch (e) {}
             };
-            mockVisibility();
-            
-            // Blocca gli eventi di cambio visibilità e focus che causano pause
-            const blockEvent = (e) => { 
-                if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
-                    e.stopImmediatePropagation(); 
-                }
-            };
-            ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave', 'pagehide'].forEach(evt => {
-                document.addEventListener(evt, blockEvent, true);
-                window.addEventListener(evt, blockEvent, true);
-            });
+            // Determina se il sito corrente necessita dell'anti-pausa aggressivo (es. background playback di YouTube o Spotify)
+            const host = window.location.host.toLowerCase();
+            const needsAntiPause = host.includes('youtube.com') || host.includes('spotify.com') || host.includes('twitch.tv');
 
-            // Intercetta e salva i gestori MediaSession nativi della WebApp (Spotify / YouTube Music)
-            if (navigator.mediaSession && !navigator.mediaSession.aabWrapped) {
-                navigator.mediaSession.aabWrapped = true;
-                window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
-                const origSetAction = navigator.mediaSession.setActionHandler;
-                navigator.mediaSession.setActionHandler = function(action, handler) {
-                    window.aabMediaSessionHandlers[action] = handler;
-                    console.log("AABrowser: Captured MediaSession handler for action:", action);
-                    return origSetAction.apply(this, arguments);
-                };
-            }
-
-            // Anti-Pausa automatica: distingue la pausa intenzionale dell'utente dalla pausa forzata da transizioni UI / espansioni player
-            window.aabUserTappedPause = false;
-            window.aabMarkUserPause = function() {
-                window.aabUserTappedPause = true;
-                setTimeout(function() { window.aabUserTappedPause = false; }, 2000);
-            };
-
-            document.addEventListener('click', function(e) {
-                const target = e.target;
-                if (!target) return;
-                const btn = target.closest('button, [role="button"], [data-testid*="pause"], [aria-label*="paus" i]');
-                if (btn) {
-                    const label = (btn.getAttribute('aria-label') || btn.getAttribute('data-testid') || '').toLowerCase();
-                    if (label.includes('pause') || label.includes('pausa')) {
-                        if (typeof window.aabMarkUserPause === 'function') window.aabMarkUserPause();
+            if (needsAntiPause) {
+                mockVisibility();
+                
+                // Definizione locale di blockEvent solo dove serve
+                const blockEvent = (e) => { 
+                    if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
+                        e.stopImmediatePropagation(); 
                     }
-                }
-            }, true);
+                };
 
-            const origVideoPause = HTMLVideoElement.prototype.pause;
-            const handleMediaPause = function() {
-                // Se la riproduzione è attiva e l'utente NON ha premuto esplicitamente il tasto Pausa, blocchiamo la pausa automatica scatenata da espansioni o transizioni DOM
-                if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
-                    console.log("AABrowser: Blocked automatic UI/background pause()");
-                    return Promise.resolve();
-                }
-                return origVideoPause.apply(this, arguments);
-            };
+                ['visibilitychange', 'webkitvisibilitychange', 'blur', 'mouseleave', 'pagehide'].forEach(evt => {
+                    document.addEventListener(evt, blockEvent, true);
+                    window.addEventListener(evt, blockEvent, true);
+                });
 
-            HTMLVideoElement.prototype.pause = handleMediaPause;
-            if (window.HTMLAudioElement) {
-                HTMLAudioElement.prototype.pause = handleMediaPause;
+                const origVideoPause = HTMLVideoElement.prototype.pause;
+                const handleMediaPause = function() {
+                    if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause) {
+                        console.log("AABrowser: Blocked automatic UI/background pause()");
+                        return Promise.resolve();
+                    }
+                    return origVideoPause.apply(this, arguments);
+                };
+
+                HTMLVideoElement.prototype.pause = handleMediaPause;
+                if (window.HTMLAudioElement) {
+                    HTMLAudioElement.prototype.pause = handleMediaPause;
+                }
             }
 
             function syncPageMetadata() {
@@ -297,6 +272,104 @@ object BrowserJavascript {
             const inputObserver = new MutationObserver(setupInputListeners);
             inputObserver.observe(document.body, { childList: true, subtree: true });
             setupInputListeners();
+
+            // Polyfill universale per i menu a tendina (<select>) su Android Auto
+            // Evita che la WebView tenti di aprire popup nativi del sistema operativo che non sono supportati dallo schermo dell'auto
+            document.addEventListener('click', function(e) {
+                var select = e.target.closest('select');
+                if (!select) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var existing = document.getElementById('aab-custom-dropdown');
+                if (existing) existing.remove();
+                
+                var options = select.options;
+                if (!options || options.length === 0) return;
+                
+                var dropdown = document.createElement('div');
+                dropdown.id = 'aab-custom-dropdown';
+                dropdown.style.position = 'fixed';
+                dropdown.style.zIndex = '2147483647';
+                dropdown.style.left = '5%';
+                dropdown.style.top = '5%';
+                dropdown.style.width = '90%';
+                dropdown.style.maxHeight = '90%';
+                dropdown.style.overflowY = 'auto';
+                dropdown.style.backgroundColor = '#1a1a1a';
+                dropdown.style.color = '#ffffff';
+                dropdown.style.border = '2px solid #555';
+                dropdown.style.borderRadius = '12px';
+                dropdown.style.boxShadow = '0px 10px 30px rgba(0,0,0,0.9)';
+                dropdown.style.padding = '10px';
+                dropdown.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                
+                var header = document.createElement('div');
+                header.style.padding = '12px 15px';
+                header.style.fontWeight = 'bold';
+                header.style.fontSize = '18px';
+                header.style.borderBottom = '1px solid #333';
+                header.style.display = 'flex';
+                header.style.justifyContent = 'space-between';
+                header.style.alignItems = 'center';
+                header.style.color = '#aaa';
+                header.innerText = 'Seleziona un\'opzione:';
+                
+                var closeBtn = document.createElement('button');
+                closeBtn.innerText = '✕';
+                closeBtn.style.backgroundColor = 'transparent';
+                closeBtn.style.color = '#ff5252';
+                closeBtn.style.border = 'none';
+                closeBtn.style.fontSize = '22px';
+                closeBtn.style.padding = '0 5px';
+                closeBtn.style.cursor = 'pointer';
+                closeBtn.onclick = function(ev) { ev.stopPropagation(); dropdown.remove(); };
+                
+                header.appendChild(closeBtn);
+                dropdown.appendChild(header);
+                
+                var container = document.createElement('div');
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                
+                for (var i = 0; i < options.length; i++) {
+                    (function(index) {
+                        var opt = options[index];
+                        if (opt.disabled) return;
+                        
+                        var item = document.createElement('div');
+                        item.style.padding = '18px 15px';
+                        item.style.borderBottom = '1px solid #2a2a2a';
+                        item.style.cursor = 'pointer';
+                        item.style.fontSize = '18px';
+                        item.style.borderRadius = '6px';
+                        item.style.margin = '2px 0';
+                        
+                        if (opt.selected || select.selectedIndex === index) {
+                            item.style.backgroundColor = '#2196F3';
+                            item.style.color = '#ffffff';
+                            item.style.fontWeight = 'bold';
+                        } else {
+                            item.style.backgroundColor = 'transparent';
+                        }
+                        
+                        item.onclick = function(ev) {
+                            ev.stopPropagation();
+                            select.selectedIndex = index;
+                            select.dispatchEvent(new Event('input', { bubbles: true }));
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            dropdown.remove();
+                        };
+                        container.appendChild(item);
+                        // innerText per sicurezza
+                        item.innerText = opt.text;
+                    })(i);
+                }
+                
+                dropdown.appendChild(container);
+                document.body.appendChild(dropdown);
+            }, true);
 
             if (window.location.host.includes('spotify.com')) {
                 setInterval(() => {

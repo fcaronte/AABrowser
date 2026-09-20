@@ -325,7 +325,7 @@ fun BrowserScreen(
                         allowContentAccess = true
                         allowFileAccess = true
                         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-                        setSupportMultipleWindows(true)
+                        setSupportMultipleWindows(false)
                         javaScriptCanOpenWindowsAutomatically = true
                     }
 
@@ -633,7 +633,16 @@ fun BrowserScreen(
                         }
 
                         override fun onPermissionRequest(request: PermissionRequest?) {
-                            request?.grant(request.resources)
+                            val resources = request?.resources ?: return
+                            for (res in resources) {
+                                if (res == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID ||
+                                    res == PermissionRequest.RESOURCE_VIDEO_CAPTURE ||
+                                    res == PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
+                                    request.grant(arrayOf(res))
+                                    return
+                                }
+                            }
+                            request.grant(resources)
                         }
 
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {
