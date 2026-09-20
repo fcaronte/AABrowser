@@ -2,7 +2,6 @@ package com.fcaronte.aabrowser.utils
 
 /**
  * Central repository for all JavaScript snippets injected into the WebView.
- * Refactored to be modular and lightweight.
  */
 object BrowserJavascript {
 
@@ -32,8 +31,8 @@ object BrowserJavascript {
         (function() {
             $VISIBILITY_MOCK_JS
             
-            const host = window.location.host.toLowerCase();
-            const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps');
+            const host = window.location.hostname.toLowerCase();
+            const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
 
             if (needsAntiPause) {
                 mockVisibility();
@@ -42,14 +41,14 @@ object BrowserJavascript {
 
             $METADATA_SYNC_CORE_JS
             
-            // Site-specific metadata extraction
-            ${YouTubeManager.getMetadataScript()}
-            
-            if (window.location.host.includes('spotify.com')) {
+            // Mutually exclusive site-specific metadata extraction
+            if (host.includes('youtube.com') || host.includes('youtubekids.com')) {
+                ${YouTubeManager.getMetadataScript()}
+            } else if (host.includes('spotify.com')) {
                 $SPOTIFY_METADATA_JS
+            } else if (host.includes('zappr.stream') || host.includes('zapps.stream')) {
+                ${ZapprManager.getMetadataScript()}
             }
-
-            ${ZapprManager.getMetadataScript()}
 
             $METADATA_SYNC_FINISH_JS
 
@@ -57,10 +56,10 @@ object BrowserJavascript {
             $INPUT_LISTENERS_JS
             $SELECT_POLYFILL_JS
 
-            if (window.location.host.includes('spotify.com') || window.location.host.includes('zappr.stream') || window.location.host.includes('zapps')) {
+            if (host.includes('spotify.com') || host.includes('zappr.stream') || host.includes('zapps.stream')) {
                 setInterval(() => {
-                    const host = window.location.host.toLowerCase();
-                    if (host.includes('spotify.com') || host.includes('zappr.stream') || host.includes('zapps')) {
+                    const h = window.location.hostname.toLowerCase();
+                    if (h.includes('spotify.com') || h.includes('zappr.stream') || h.includes('zapps.stream')) {
                         syncMetadata();
                     }
                 }, 1000);
