@@ -1,13 +1,7 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:9.4.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.10"
-        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.4.20"
-    }
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
 }
 
 tasks.register('clean', Delete) {

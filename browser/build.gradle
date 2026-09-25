@@ -1,5 +1,7 @@
-apply plugin: 'com.android.application'
-apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+}
 
 android {
     namespace "com.fcaronte.aabrowser"
@@ -71,27 +73,26 @@ dependencies {
     implementation fileTree(dir: 'libs/v4', include: ['*.jar', '*.aar'])
     implementation fileTree(dir: 'libs/v5', include: ['*.jar', '*.aar'], exclude: ['android-support-car.aar', 'gearhead-sdk.aar', 'gearhead-sdk-ui.aar'])
 
-    implementation 'androidx.appcompat:appcompat:1.8.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
-    implementation 'androidx.media:media:1.8.0'
-    implementation 'com.google.android.material:material:1.14.0'
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.media
+    implementation libs.material
 
     // Compose
-    def composeBom = platform('androidx.compose:compose-bom:2026.09.00')
-    implementation composeBom
-    implementation 'androidx.compose.ui:ui'
-    implementation 'androidx.compose.ui:ui-graphics'
-    implementation 'androidx.compose.ui:ui-tooling-preview'
-    implementation 'androidx.compose.material3:material3'
-    implementation 'androidx.compose.material:material-icons-extended'
-    implementation 'androidx.activity:activity-compose:1.13.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.11.0'
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.tooling.preview
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
 
-    implementation 'io.coil-kt:coil-compose:2.7.0'
-    implementation 'androidx.webkit:webkit:1.17.0'
-    implementation 'com.google.zxing:core:3.5.4'
-    implementation 'com.google.android.gms:play-services-location:21.4.0'
+    implementation libs.coil.compose
+    implementation libs.androidx.webkit
+    implementation libs.zxing.core
+    implementation libs.play.services.location
 
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.4.20'
+    implementation libs.kotlin.stdlib
 }
