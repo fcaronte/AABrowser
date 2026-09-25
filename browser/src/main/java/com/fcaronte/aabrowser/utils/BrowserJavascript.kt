@@ -30,6 +30,7 @@ object BrowserJavascript {
         return """
         (function() {
             $VISIBILITY_MOCK_JS
+            $DRM_L3_ENFORCER_JS
             
             const host = window.location.hostname.toLowerCase();
             const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
@@ -546,6 +547,88 @@ object BrowserJavascript {
     }
 
     // --- INTERNAL JAVASCRIPT BLOCKS ---
+
+    /**
+     * DRM L3 Enforcer script.
+     * Patches navigator.requestMediaKeySystemAccess to enforce SW_SECURE_DECODE (DRM L3)
+     * for Widevine compatibility on streaming platforms.
+     * Credits/Inspired by: https://github.com/kododake/AABrowser/
+     */
+    private const val DRM_L3_ENFORCER_JS = """
+        (function() {
+            try {
+                const host = window.location.hostname;
+                if (host && (
+                    host === 'youtube.com' || host.endsWith('.youtube.com') ||
+                    host === 'googlevideo.com' || host.endsWith('.googlevideo.com') ||
+                    host === 'youtube-nocookie.com' || host.endsWith('.youtube-nocookie.com')
+                )) {
+                    return;
+                }
+            } catch (_) {}
+
+            if (typeof navigator === 'undefined' || !navigator.requestMediaKeySystemAccess) {
+                return;
+            }
+
+            const patchKey = typeof Symbol !== 'undefined' && Symbol.for ? Symbol.for('__aab_drm_l3_enforced__') : '__aab_drm_l3_enforced__';
+            if (navigator[patchKey]) return;
+
+            const originalRequest = navigator.requestMediaKeySystemAccess;
+            const patchedRequest = function requestMediaKeySystemAccess(keySystem, configs) {
+                if (keySystem === 'com.widevine.alpha' && configs) {
+                    try {
+                        const newConfigs = Array.from(configs).map(config => {
+                            const newConfig = Object.assign({}, config);
+                            if (config.videoCapabilities) {
+                                newConfig.videoCapabilities = Array.from(config.videoCapabilities).map(cap => {
+                                    const newCap = Object.assign({}, cap);
+                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
+                                        newCap.robustness = 'SW_SECURE_DECODE';
+                                    }
+                                    return newCap;
+                                });
+                            }
+                            if (config.audioCapabilities) {
+                                newConfig.audioCapabilities = Array.from(config.audioCapabilities).map(cap => {
+                                    const newCap = Object.assign({}, cap);
+                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
+                                        newCap.robustness = 'SW_SECURE_DECODE';
+                                    }
+                                    return newCap;
+                                });
+                            }
+                            return newConfig;
+                        });
+                        return originalRequest.call(navigator, keySystem, newConfigs).catch(function() {
+                            return originalRequest.call(navigator, keySystem, configs);
+                        });
+                    } catch (_) {
+                        return originalRequest.call(navigator, keySystem, configs);
+                    }
+                }
+                return originalRequest.call(navigator, keySystem, configs);
+            };
+
+            try {
+                Object.defineProperty(patchedRequest, 'name', { value: 'requestMediaKeySystemAccess' });
+                patchedRequest.toString = function() {
+                    return 'function requestMediaKeySystemAccess() { [native code] }';
+                };
+            } catch (_) {}
+
+            try {
+                Object.defineProperty(navigator, patchKey, { value: true, enumerable: false, configurable: false });
+                Object.defineProperty(navigator, 'requestMediaKeySystemAccess', {
+                    value: patchedRequest,
+                    writable: true,
+                    configurable: true
+                });
+            } catch (_) {
+                navigator.requestMediaKeySystemAccess = patchedRequest;
+            }
+        })();
+    """
 
     private const val VISIBILITY_MOCK_JS = """
         const mockVisibility = () => {
