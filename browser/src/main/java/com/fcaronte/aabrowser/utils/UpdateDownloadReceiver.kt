@@ -1,15 +1,15 @@
 package com.fcaronte.aabrowser.utils
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 
 class UpdateDownloadReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
-        Log.d(TAG, "onReceive action: $action")
+        AppLog.d(TAG, "onReceive action: $action")
 
         when (action) {
             UpdateManager.ACTION_START_UPDATE_DOWNLOAD -> {

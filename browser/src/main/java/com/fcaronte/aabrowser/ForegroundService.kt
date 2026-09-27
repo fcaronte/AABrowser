@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 
 class ForegroundService : Service() {
@@ -76,7 +76,7 @@ class ForegroundService : Service() {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
             )
         } catch (e: Exception) {
-            Log.d(TAG, "startNotification exception : $e")
+            AppLog.d(TAG, "startNotification exception : $e")
         }
     }
 
@@ -84,7 +84,7 @@ class ForegroundService : Service() {
         try {
             stopForeground(true)
         } catch (e: Exception) {
-            Log.d(TAG, "stopNotification exception : $e")
+            AppLog.d(TAG, "stopNotification exception : $e")
         }
     }
 

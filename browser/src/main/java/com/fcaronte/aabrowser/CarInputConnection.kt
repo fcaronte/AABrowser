@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.os.Bundle
 import android.os.Handler
 import android.view.KeyEvent
@@ -71,7 +72,7 @@ class CarInputConnection internal constructor(
     }
 
     override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
-        android.util.Log.d(TAG, "deleteSurroundingText: $beforeLength, $afterLength")
+        AppLog.d(TAG, "deleteSurroundingText: $beforeLength, $afterLength")
 
         if (mCarinputmanager?.onTextCommitted != null) {
             mCarinputmanager.onDeleteRequested?.invoke(beforeLength)
@@ -129,7 +130,7 @@ class CarInputConnection internal constructor(
         mLastcommittime = currentTime
         mLastcommittedtext = textStr
 
-        android.util.Log.d(TAG, "commitText: '$textStr'")
+        AppLog.d(TAG, "commitText: '$textStr'")
 
         if (mCarinputmanager?.onTextCommitted != null) {
             val currentText = mCarinputmanager.getCurrentText()
@@ -227,7 +228,7 @@ class CarInputConnection internal constructor(
     }
 
     override fun setSelection(start: Int, end: Int): Boolean {
-        android.util.Log.d(TAG, "setSelection: $start-$end")
+        AppLog.d(TAG, "setSelection: $start-$end")
         mCarinputmanager?.onSelectionChanged?.invoke(start, end)
         mCarinputmanager?.updateState(mCarinputmanager.getCurrentText(), start, end)
         return mInputconnection.setSelection(start, end)

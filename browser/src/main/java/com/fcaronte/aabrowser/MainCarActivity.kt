@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
@@ -42,7 +43,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
 
         // Controlla permessi critici
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            android.util.Log.w("MainCarActivity", "RECORD_AUDIO permission not granted!")
+            AppLog.w("MainCarActivity", "RECORD_AUDIO permission not granted!")
         }
 
         // Avvia il servizio in primo piano per evitare che il sistema lo killi in background

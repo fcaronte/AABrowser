@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.utils
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.Manifest
 import android.app.DownloadManager
 import android.app.NotificationChannel
@@ -12,7 +13,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
@@ -88,7 +88,7 @@ object UpdateManager {
                     UpdateInfo(false, "", "")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error checking for updates: ${e.message}")
+                AppLog.e(TAG, "Error checking for updates: ${e.message}")
                 UpdateInfo(false, "", "")
             }
         }
@@ -123,7 +123,7 @@ object UpdateManager {
 
     fun startDownload(context: Context, info: UpdateInfo) {
         if (info.downloadUrl.isBlank()) {
-            Log.e(TAG, "Cannot start download: downloadUrl is blank")
+            AppLog.e(TAG, "Cannot start download: downloadUrl is blank")
             return
         }
 
@@ -139,7 +139,7 @@ object UpdateManager {
                 try {
                     downloadManager.remove(oldDownloadId)
                 } catch (e: Exception) {
-                    Log.w(TAG, "Impossibile rimuovere vecchio download ID $oldDownloadId: ${e.message}")
+                    AppLog.w(TAG, "Impossibile rimuovere vecchio download ID $oldDownloadId: ${e.message}")
                 }
             }
 
@@ -153,7 +153,7 @@ object UpdateManager {
                         try {
                             file.delete()
                         } catch (e: Exception) {
-                            Log.w(TAG, "Impossibile eliminare vecchio file APK: ${file.name}")
+                            AppLog.w(TAG, "Impossibile eliminare vecchio file APK: ${file.name}")
                         }
                     }
                 }
@@ -185,9 +185,9 @@ object UpdateManager {
                 Toast.LENGTH_SHORT
             ).show()
 
-            Log.d(TAG, "Enqueued download ID: $downloadId for file $fileName at ${destinationFile.absolutePath}")
+            AppLog.d(TAG, "Enqueued download ID: $downloadId for file $fileName at ${destinationFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start download: ${e.message}", e)
+            AppLog.e(TAG, "Failed to start download: ${e.message}", e)
             Toast.makeText(
                 context,
                 context.getString(R.string.update_download_failed),
@@ -201,7 +201,7 @@ object UpdateManager {
         val pendingId = prefs.getLong(KEY_PENDING_DOWNLOAD_ID, -2L)
 
         if (downloadId != pendingId) {
-            Log.d(TAG, "Completed download $downloadId does not match pending update $pendingId")
+            AppLog.d(TAG, "Completed download $downloadId does not match pending update $pendingId")
             return
         }
 
@@ -226,7 +226,7 @@ object UpdateManager {
                             apkFile
                         )
                     } catch (e: Exception) {
-                        Log.e(TAG, "FileProvider URI error: ${e.message}", e)
+                        AppLog.e(TAG, "FileProvider URI error: ${e.message}", e)
                         downloadManager.getUriForDownloadedFile(downloadId)
                     }
                 } else {
@@ -236,10 +236,10 @@ object UpdateManager {
                 if (apkUri != null) {
                     launchKingInstaller(context, apkUri)
                 } else {
-                    Log.e(TAG, "Failed to generate Uri for downloaded APK")
+                    AppLog.e(TAG, "Failed to generate Uri for downloaded APK")
                 }
             } else {
-                Log.e(TAG, "Download finished but status was not successful")
+                AppLog.e(TAG, "Download finished but status was not successful")
             }
             cursor.close()
         }
@@ -253,10 +253,10 @@ object UpdateManager {
         }
 
         try {
-            Log.d(TAG, "Opening KingInstaller ($KING_INSTALLER_PACKAGE.MainActivity) for URI: $apkUri")
+            AppLog.d(TAG, "Opening KingInstaller ($KING_INSTALLER_PACKAGE.MainActivity) for URI: $apkUri")
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            Log.w(TAG, "MainActivity component not found, trying general package intent...")
+            AppLog.w(TAG, "MainActivity component not found, trying general package intent...")
             val genericIntent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(apkUri, "application/vnd.android.package-archive")
                 setPackage(KING_INSTALLER_PACKAGE)
@@ -265,7 +265,7 @@ object UpdateManager {
             try {
                 context.startActivity(genericIntent)
             } catch (ex: Exception) {
-                Log.e(TAG, "KingInstaller ($KING_INSTALLER_PACKAGE) not installed", ex)
+                AppLog.e(TAG, "KingInstaller ($KING_INSTALLER_PACKAGE) not installed", ex)
                 Toast.makeText(
                     context,
                     context.getString(R.string.kinginstaller_not_found),
@@ -273,7 +273,7 @@ object UpdateManager {
                 ).show()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error opening KingInstaller: ${e.message}", e)
+            AppLog.e(TAG, "Error opening KingInstaller: ${e.message}", e)
         }
     }
 
@@ -286,7 +286,7 @@ object UpdateManager {
         // Verifica permesso su Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                Log.w(TAG, "Missing POST_NOTIFICATIONS permission")
+                AppLog.w(TAG, "Missing POST_NOTIFICATIONS permission")
                 return
             }
         }

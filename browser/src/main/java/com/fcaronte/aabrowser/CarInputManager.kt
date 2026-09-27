@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
@@ -43,14 +44,14 @@ class CarInputManager internal constructor(private val mInputmanager: InputManag
 
         // Se stiamo già gestendo la stessa View e l'input è attivo, non facciamo nulla
         if (mTargetview == TargetView && mInputmanager.isInputActive) {
-            android.util.Log.d("CarInputManager", "Input already active for this view")
+            AppLog.d("CarInputManager", "Input already active for this view")
             return
         }
 
         mManualstop = false
         mTargetview = TargetView
 
-        android.util.Log.d("CarInputManager", "Requesting startInput for view: $TargetView")
+        AppLog.d("CarInputManager", "Requesting startInput for view: $TargetView")
         try {
             // Se l'input è già attivo su un'altra view, facciamo stop pulito
             if (mInputmanager.isInputActive && mTargetview != TargetView) {
@@ -74,7 +75,7 @@ class CarInputManager internal constructor(private val mInputmanager: InputManag
                 updateActiveState()
             }
         } catch (e: Exception) {
-            android.util.Log.e("CarInputManager", "Error starting input", e)
+            AppLog.e("CarInputManager", "Error starting input", e)
         }
     }
 
@@ -85,7 +86,7 @@ class CarInputManager internal constructor(private val mInputmanager: InputManag
                 mInputmanager.stopInput()
                 _isInputActiveState.value = false
             } catch (e: Exception) {
-                android.util.Log.e("CarInputManager", "Error stopping input", e)
+                AppLog.e("CarInputManager", "Error stopping input", e)
             }
             mTargetview = null
         }
@@ -115,7 +116,7 @@ class CarInputManager internal constructor(private val mInputmanager: InputManag
 
         // Se la WebView non fornisce una connessione, proviamo a forzare il focus e riprovare una volta
         if (inputConnection == null && mTargetview is android.webkit.WebView) {
-            android.util.Log.w(
+            AppLog.w(
                 "CarInputManager",
                 "WebView returned null InputConnection, forcing focus sync"
             )
@@ -124,7 +125,7 @@ class CarInputManager internal constructor(private val mInputmanager: InputManag
         }
 
         if (inputConnection == null) {
-            android.util.Log.w("CarInputManager", "Using BaseInputConnection fallback")
+            AppLog.w("CarInputManager", "Using BaseInputConnection fallback")
             inputConnection = android.view.inputmethod.BaseInputConnection(mTargetview!!, true)
         }
 

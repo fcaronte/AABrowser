@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.settings
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +32,7 @@ object AdBlockSettings {
     }
 
     fun setYouTubeEnabled(context: Context?, enabled: Boolean) {
-        android.util.Log.d("AdBlockSettings", "Setting YouTube AdBlock to: $enabled")
+        AppLog.d("AdBlockSettings", "Setting YouTube AdBlock to: $enabled")
         _isYouTubeEnabled.value = enabled
         context?.let {
             val prefs = it.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

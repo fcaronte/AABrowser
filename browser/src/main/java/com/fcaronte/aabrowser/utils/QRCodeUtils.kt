@@ -1,8 +1,8 @@
 package com.fcaronte.aabrowser.utils
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.util.Log
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
@@ -24,7 +24,7 @@ object QRCodeUtils {
             }
             Bitmap.createBitmap(pixels, width, height, Bitmap.Config.RGB_565)
         } catch (e: Exception) {
-            Log.e("QRCodeUtils", "Error generating QR Code", e)
+            AppLog.e("QRCodeUtils", "Error generating QR Code", e)
             null
         }
     }

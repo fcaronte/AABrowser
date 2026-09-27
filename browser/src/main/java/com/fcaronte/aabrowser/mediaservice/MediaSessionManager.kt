@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.mediaservice
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
@@ -9,7 +10,6 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,22 +38,22 @@ class MediaSessionManager(private val context: Context) {
                         mediaController = MediaControllerCompat(context, it.sessionToken).apply {
                             registerCallback(controllerCallback)
                         }
-                        Log.d(TAG, "MediaBrowser connesso e MediaController inizializzato.")
+                        AppLog.d(TAG, "MediaBrowser connesso e MediaController inizializzato.")
                     } catch (e: Exception) {
-                        Log.e(TAG, "Errore durante l'inizializzazione del MediaController", e)
+                        AppLog.e(TAG, "Errore durante l'inizializzazione del MediaController", e)
                     }
                 }
             }
         }
 
         override fun onConnectionSuspended() {
-            Log.w(TAG, "Connessione al MediaBrowser sospesa.")
+            AppLog.w(TAG, "Connessione al MediaBrowser sospesa.")
             mediaController?.unregisterCallback(controllerCallback)
             mediaController = null
         }
 
         override fun onConnectionFailed() {
-            Log.e(TAG, "Connessione al MediaBrowser fallita.")
+            AppLog.e(TAG, "Connessione al MediaBrowser fallita.")
             mediaController = null
         }
     }
@@ -62,7 +62,7 @@ class MediaSessionManager(private val context: Context) {
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             if (event == "PlaybackAction") {
                 val action = extras?.getLong("PlaybackAction") ?: 0
-                Log.d("AABrowserPlayback", "Received PlaybackAction: $action")
+                AppLog.d("AABrowserPlayback", "Received PlaybackAction: $action")
                 when (action) {
                     PlaybackStateCompat.ACTION_PLAY -> {
                         onPlay?.invoke()
@@ -118,7 +118,7 @@ class MediaSessionManager(private val context: Context) {
     private var isLiveStream: Boolean = false
 
     fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
-        Log.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
+        AppLog.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
         val positionDiff = abs(position - lastPosition)
         val isCoherent = state == lastState && speed == lastSpeed && positionDiff < 1000
                          
@@ -130,7 +130,7 @@ class MediaSessionManager(private val context: Context) {
 
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
-            Log.w(TAG, "Impossibile aggiornare lo stato: MediaBrowser non connesso.")
+            AppLog.w(TAG, "Impossibile aggiornare lo stato: MediaBrowser non connesso.")
             return
         }
 
@@ -163,10 +163,10 @@ class MediaSessionManager(private val context: Context) {
     private var lastDuration: Long = 0
 
     fun updateMetadata(title: String, artist: String?, artUrl: String?, duration: Long = 0) {
-        Log.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl, duration=$duration")
+        AppLog.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl, duration=$duration")
         val browser = mediaBrowser
         if (browser == null || !browser.isConnected) {
-            Log.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
+            AppLog.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
             return
         }
 
@@ -214,7 +214,7 @@ class MediaSessionManager(private val context: Context) {
                         sendMetadata(title, artist, bitmap, lastDuration)
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Errore download artwork: ${e.message}")
+                    AppLog.e(TAG, "Errore download artwork: ${e.message}")
                 }
             }
         } else if (artUrl.isNullOrBlank()) {

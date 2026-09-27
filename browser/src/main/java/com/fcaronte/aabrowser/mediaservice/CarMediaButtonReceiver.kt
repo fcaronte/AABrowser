@@ -1,8 +1,8 @@
 package com.fcaronte.aabrowser.mediaservice
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.media.session.MediaButtonReceiver
 
 class CarMediaButtonReceiver : MediaButtonReceiver() {
@@ -10,7 +10,7 @@ class CarMediaButtonReceiver : MediaButtonReceiver() {
         try {
             super.onReceive(context, intent)
         } catch (e: Exception) {
-            Log.d(TAG, "onReceive exception : $e")
+            AppLog.d(TAG, "onReceive exception : $e")
         }
     }
 

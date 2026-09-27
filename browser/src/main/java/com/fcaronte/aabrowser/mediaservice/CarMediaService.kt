@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.mediaservice
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.app.Notification
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
@@ -12,7 +13,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.fetchWeather
@@ -85,7 +85,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         val currentState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
         val isWeatherMode = weatherEnabled && (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
 
-        Log.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
+        AppLog.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
 
         if (isWeatherMode) {
             // Mostra subito uno stato di caricamento per dare feedback all'utente
@@ -98,7 +98,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
-                Log.d(TAG, "Starting background weather fetch for CarMediaService...")
+                AppLog.d(TAG, "Starting background weather fetch for CarMediaService...")
                 val weather = fetchWeather(applicationContext)
                 if (weather != null && mMediasessioncompat != null) {
                     val currentPlayState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
@@ -127,7 +127,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                         mMediasessioncompat?.setPlaybackState(state)
 
                         updateNotification()
-                        Log.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
+                        AppLog.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
                     }
                 }
             }
@@ -206,7 +206,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     }
 
     override fun onCustomAction(action: String, extras: Bundle?, result: Result<Bundle?>) {
-        Log.d(TAG, "onCustomAction: $action")
+        AppLog.d(TAG, "onCustomAction: $action")
         if (mMediasessioncompat != null && extras != null) {
             extras.classLoader = PlaybackStateCompat::class.java.classLoader
             var update = false
@@ -265,7 +265,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         override fun onPlay() {
             val currentTitle = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
             if (currentTitle.contains("°C") || currentTitle.contains("aggiornando")) {
-                Log.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
+                AppLog.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
                 
                 service.showingWeather = true
                 service.isUserPaused = false
@@ -312,7 +312,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .build()
                         service.mMediasessioncompat?.setPlaybackState(state)
                         service.updateNotification()
-                        Log.d(TAG, "Weather refreshed successfully via Play button: $titleStr")
+                        AppLog.d(TAG, "Weather refreshed successfully via Play button: $titleStr")
                     }
                 }
                 return

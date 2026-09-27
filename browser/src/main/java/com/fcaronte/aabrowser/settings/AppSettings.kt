@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.settings
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import android.webkit.CookieManager
 import android.webkit.WebView
@@ -349,7 +350,7 @@ object AppSettings {
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("AppSettings", "Error clearing cache", e)
+            AppLog.e("AppSettings", "Error clearing cache", e)
         }
     }
 
@@ -362,7 +363,7 @@ object AppSettings {
             CookieManager.getInstance().removeAllCookies(null)
             CookieManager.getInstance().flush()
         } catch (e: Exception) {
-            android.util.Log.e("AppSettings", "Error clearing cookies", e)
+            AppLog.e("AppSettings", "Error clearing cookies", e)
         }
     }
 

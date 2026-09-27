@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.utils
 
+import com.fcaronte.aabrowser.utils.AppLog
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -12,7 +13,6 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Cloud
@@ -227,7 +227,7 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
         Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
-    Log.d(TAG, "getLocation: ACCESS_COARSE_LOCATION granted = $hasCoarse")
+    AppLog.d(TAG, "getLocation: ACCESS_COARSE_LOCATION granted = $hasCoarse")
 
     if (hasCoarse) {
         try {
@@ -247,7 +247,7 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
                 val lat = lastLoc.latitude
                 val lon = lastLoc.longitude
                 val cityName = getCityName(context, lat, lon)
-                Log.d(TAG, "Using fast lastLocation: lat=$lat, lon=$lon, city=$cityName")
+                AppLog.d(TAG, "Using fast lastLocation: lat=$lat, lon=$lon, city=$cityName")
                 return Triple(lat, lon, cityName)
             }
 
@@ -278,17 +278,17 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
                 val lat = location.latitude
                 val lon = location.longitude
                 val cityName = getCityName(context, lat, lon)
-                Log.d(TAG, "Using GPS/Cell location: lat=$lat, lon=$lon, city=$cityName")
+                AppLog.d(TAG, "Using GPS/Cell location: lat=$lat, lon=$lon, city=$cityName")
                 return Triple(lat, lon, cityName)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting FusedLocation: ${e.message}", e)
+            AppLog.e(TAG, "Error getting FusedLocation: ${e.message}", e)
         }
     }
 
     // IP Geolocation fallback (no location permissions required)
     try {
-        Log.d(TAG, "Attempting IP geolocation fallback (ipapi.co)...")
+        AppLog.d(TAG, "Attempting IP geolocation fallback (ipapi.co)...")
         val ipResult = withContext(Dispatchers.IO) {
             val url = URL("https://ipapi.co/json/")
             val conn = url.openConnection() as HttpURLConnection
@@ -306,15 +306,15 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
             } else null
         }
         if (ipResult != null) {
-            Log.d(TAG, "Using IP geolocation: lat=${ipResult.first}, lon=${ipResult.second}, city=${ipResult.third}")
+            AppLog.d(TAG, "Using IP geolocation: lat=${ipResult.first}, lon=${ipResult.second}, city=${ipResult.third}")
             return ipResult
         }
     } catch (e: Exception) {
-        Log.e(TAG, "IP geolocation fallback error: ${e.message}", e)
+        AppLog.e(TAG, "IP geolocation fallback error: ${e.message}", e)
     }
 
     // Default fallback (Rome coordinates)
-    Log.d(TAG, "Using default fallback location (Rome): lat=41.9028, lon=12.4964, city=Roma")
+    AppLog.d(TAG, "Using default fallback location (Rome): lat=41.9028, lon=12.4964, city=Roma")
     return Triple(41.9028, 12.4964, "Roma")
 }
 
@@ -324,7 +324,7 @@ suspend fun fetchWeather(context: Context): WeatherData? {
             val (lat, lon, locationName) = getLocation(context)
             val urlStr =
                 "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code,is_day"
-            Log.d(TAG, "Fetching Open-Meteo URL: $urlStr")
+            AppLog.d(TAG, "Fetching Open-Meteo URL: $urlStr")
             val url = URL(urlStr)
             val conn = url.openConnection() as HttpURLConnection
             conn.connectTimeout = 5000
@@ -338,7 +338,7 @@ suspend fun fetchWeather(context: Context): WeatherData? {
                     val code = current.optInt("weather_code", 0)
                     val isDayRaw = current.optInt("is_day", -1)
                     val isDay = if (isDayRaw != -1) isDayRaw == 1 else isDaytimeFallback()
-                    Log.d(TAG, "Open-Meteo success: temp=$temp, code=$code, isDay=$isDay, location=$locationName")
+                    AppLog.d(TAG, "Open-Meteo success: temp=$temp, code=$code, isDay=$isDay, location=$locationName")
                     WeatherData(
                         temperature = temp,
                         weatherCode = code,
@@ -349,15 +349,15 @@ suspend fun fetchWeather(context: Context): WeatherData? {
                         isDay = isDay
                     )
                 } else {
-                    Log.w(TAG, "Open-Meteo response missing 'current' object")
+                    AppLog.w(TAG, "Open-Meteo response missing 'current' object")
                     null
                 }
             } else {
-                Log.e(TAG, "Open-Meteo HTTP error code: ${conn.responseCode}")
+                AppLog.e(TAG, "Open-Meteo HTTP error code: ${conn.responseCode}")
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Exception fetching weather: ${e.message}", e)
+            AppLog.e(TAG, "Exception fetching weather: ${e.message}", e)
             null
         }
     }
