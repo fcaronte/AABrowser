@@ -12,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,8 +62,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1019,6 +1022,7 @@ fun SettingsScreen(
                     // FOOTER: GitHub & Donation
                     val githubUrl = stringResource(R.string.url_github)
                     val paypalUrl = stringResource(R.string.url_paypal)
+                    val buyMeACoffeeUrl = stringResource(R.string.url_buymeacoffee)
                     
                     Row(
                         modifier = Modifier
@@ -1056,11 +1060,11 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                 fontSize = 9.sp,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                         }
 
-                        // PayPal Side (Right, larger)
+                        // Donation Side (Right)
                         Column(
                             modifier = Modifier.weight(0.7f),
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -1070,23 +1074,74 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                                 fontWeight = FontWeight.Medium,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                textAlign = TextAlign.Center,
                                 fontSize = 10.sp,
                                 lineHeight = 13.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Button(
-                                onClick = {
-                                    handleExternalLink(context, paypalUrl, isCarMode) { qrUrlToShow = it }
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF003087),
-                                    contentColor = Color.White
-                                ),
-                                modifier = Modifier.height(34.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(stringResource(R.string.paypal_button), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                // PayPal
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clickable {
+                                                handleExternalLink(context, paypalUrl, isCarMode) { qrUrlToShow = it }
+                                            },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = Color.White,
+                                        shadowElevation = 1.dp
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.ic_paypal),
+                                            contentDescription = stringResource(R.string.paypal_label),
+                                            modifier = Modifier.padding(4.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = stringResource(R.string.paypal_label),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                        fontSize = 8.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+
+                                // Buy Me a Coffee
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clickable {
+                                                handleExternalLink(context, buyMeACoffeeUrl, isCarMode) { qrUrlToShow = it }
+                                            },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = Color.White,
+                                        shadowElevation = 1.dp
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.ic_buymeacoffee),
+                                            contentDescription = stringResource(R.string.buymeacoffee_label),
+                                            modifier = Modifier.padding(4.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = stringResource(R.string.buymeacoffee_label),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                        fontSize = 8.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }

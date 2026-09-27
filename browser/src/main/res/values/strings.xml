@@ -146,12 +146,14 @@
     <string name="settings_footer_github">GitHub Project</string>
     <string name="github_label">GitHub</string>
     <string name="refresh_cache">Refresh cache size</string>
-    <string name="paypal_button">PayPal.me</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
     <string name="settings_footer_donation">If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂</string>
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
-    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->
     <string name="favorite_default_name_0" translatable="false">Google</string>

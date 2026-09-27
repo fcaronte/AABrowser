@@ -45,7 +45,8 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 ## Support the project
 
 If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂:
-[![](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.me/FCaronte)
+* **[Donate via PayPal](https://www.paypal.com/paypalme/FCaronte/2)**
+* **[Buy Me a Coffee](http://buymeacoffee.com/fcaronte)**
 
 ## License
 
@@ -104,7 +105,8 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 ## Supporta il progetto
 
 Se ti piace il progetto, puoi offrirmi un caffè per supportare le ore di sonno perse a scrivere questo codice a litigare con Gemini 😂:
-[![](https://img.shields.io/badge/Dona-PayPal-blue.svg)](https://www.paypal.me/FCaronte)
+* **[Donate via PayPal](https://www.paypal.com/paypalme/FCaronte/2)**
+* **[Buy Me a Coffee](http://buymeacoffee.com/fcaronte)**
 
 ## Licenza
 
