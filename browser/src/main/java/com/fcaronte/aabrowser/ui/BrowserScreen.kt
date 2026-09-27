@@ -1,7 +1,9 @@
 package com.fcaronte.aabrowser.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,13 +12,13 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -67,7 +69,10 @@ import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
+import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.DaznManager
+import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
 import com.fcaronte.aabrowser.utils.SpotifyManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
@@ -75,7 +80,11 @@ import java.io.ByteArrayInputStream
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 object ChromeVersionFetcher {
     private var cachedVersion: String = "152.0.0.0"
@@ -101,12 +110,12 @@ object ChromeVersionFetcher {
                         val ver = match.groups[1]?.value
                         if (!ver.isNullOrEmpty()) {
                             cachedVersion = ver
-                            android.util.Log.d("ChromeVersionFetcher", "Latest Windows Chrome version fetched: $cachedVersion")
+                            AppLog.d("ChromeVersionFetcher", "Latest Windows Chrome version fetched: $cachedVersion")
                         }
                     }
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ChromeVersionFetcher", "Failed to fetch latest version", e)
+                AppLog.e("ChromeVersionFetcher", "Failed to fetch latest version", e)
             }
         }.start()
     }
@@ -115,6 +124,94 @@ object ChromeVersionFetcher {
 private fun getDynamicDesktopUserAgent(): String = WebViewScriptRouter.getDynamicDesktopUserAgent()
 
 private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDesktopRequired(url)
+
+private fun safeUrlForLog(url: String?): String =
+    AppLog.safeUrlForLog(url)
+
+private fun createPopupWebView(
+    context: Context,
+    initialUrl: String? = null,
+    userAgent: String?,
+    onPopupDismiss: () -> Unit
+): WebView {
+    return WebView(context).apply {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            @Suppress("DEPRECATION")
+            databaseEnabled = true
+            loadWithOverviewMode = true
+            useWideViewPort = true
+            mediaPlaybackRequiresUserGesture = false
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
+            allowContentAccess = true
+            allowFileAccess = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) {
+                WebSettingsCompat.setSafeBrowsingEnabled(this, false)
+            }
+            if (!userAgent.isNullOrBlank()) {
+                userAgentString = userAgent
+            }
+        }
+        CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+
+        if (!userAgent.isNullOrBlank() && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            val chromeVersion = Regex("Chrome/([0-9.]+)")
+                .find(userAgent)
+                ?.groups?.get(1)?.value
+            if (chromeVersion != null) {
+                WebViewCompat.addDocumentStartJavaScript(
+                    this,
+                    BrowserJavascript.getDesktopSpoofScript(chromeVersion),
+                    setOf("*")
+                )
+            }
+            WebViewCompat.addDocumentStartJavaScript(
+                this,
+                GoogleLoginManager.getGoogleOauthFixScript(),
+                setOf("*")
+            )
+            WebViewCompat.addDocumentStartJavaScript(
+                this,
+                GoogleLoginManager.getPopupInterceptorScript(),
+                setOf("*")
+            )
+        }
+
+        webViewClient = @SuppressLint("MissingOnRenderProcessGone")
+        object : WebViewClient() {
+            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                AppLog.e("PopupWebView", "Error loading popup page: ${error?.description}")
+            }
+
+            override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+                AppLog.e("PopupWebView", "Popup HTTP error: ${errorResponse?.statusCode}")
+            }
+
+        }
+        webChromeClient = object : WebChromeClient() {
+            override fun onCloseWindow(window: WebView?) {
+                onPopupDismiss()
+            }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                if (consoleMessage != null) {
+                    AppLog.d("PopupConsole", "Console message at line ${consoleMessage.lineNumber()}")
+                }
+                return super.onConsoleMessage(consoleMessage)
+            }
+        }
+        if (!initialUrl.isNullOrEmpty()) {
+            loadUrl(initialUrl)
+        }
+    }
+}
 
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
@@ -149,12 +246,21 @@ fun BrowserScreen(
     val activeDarkPages = isAppDark && darkPages
 
     val actualDesktopMode = desktopModeOverride ?: isDesktopMode
+    var daznDesktopForced by remember(tabId) { mutableStateOf(false) }
     val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
     val actualDesktopScale = desktopZoomOverride ?: globalDesktopScale
     val isYouTubeAdBlockEnabled by com.fcaronte.aabrowser.settings.AdBlockSettings.isYouTubeEnabled
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val voicePrompt = stringResource(R.string.voice_prompt)
+
+    fun needsDesktopForUrl(pageUrl: String?): Boolean =
+        actualDesktopMode ||
+                isDesktopRequired(pageUrl) ||
+                (daznDesktopForced && pageUrl?.contains("dazn.com", ignoreCase = true) == true)
+
+    fun isDaznUrl(pageUrl: String?): Boolean =
+        pageUrl?.contains("dazn.com", ignoreCase = true) == true
 
     val webViewState = remember { mutableStateOf<WebView?>(null) }
     var webViewReference by webViewState
@@ -189,6 +295,24 @@ fun BrowserScreen(
         }
     }
 
+    var previousDesktopMode by remember(tabId) { mutableStateOf(actualDesktopMode) }
+
+    LaunchedEffect(actualDesktopMode) {
+        if (actualDesktopMode != previousDesktopMode) {
+            previousDesktopMode = actualDesktopMode
+            webViewReference?.let { wv ->
+                val needsDesktop = actualDesktopMode || isDesktopRequired(wv.url)
+                if (needsDesktop) {
+                    wv.settings.userAgentString = getDynamicDesktopUserAgent()
+                } else {
+                    wv.settings.userAgentString = null
+                }
+                AppLog.d("BrowserScreen", "Desktop mode toggled (actualDesktopMode: $actualDesktopMode); forcing page reload")
+                wv.reload()
+            }
+        }
+    }
+
     var isFullscreenPending by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
@@ -200,7 +324,7 @@ fun BrowserScreen(
                         it.invalidate()
                     }
                     if (isFullscreenPending) {
-                        Log.d("##BrowserScreen", "Resuming fullscreen")
+                        AppLog.d("##BrowserScreen", "Resuming fullscreen")
                         webViewReference?.evaluateJavascript(
                             "document.querySelector('video')?.requestFullscreen().catch(() => {})",
                             null
@@ -210,7 +334,7 @@ fun BrowserScreen(
                 }
                 Lifecycle.Event.ON_PAUSE -> {
                     if (customView != null) {
-                        Log.d("##BrowserScreen", "App paused, exiting fullscreen and marking as pending")
+                        AppLog.d("##BrowserScreen", "App paused, exiting fullscreen and marking as pending")
                         isFullscreenPending = true
                         customViewCallback?.onCustomViewHidden()
                         customView = null
@@ -230,7 +354,7 @@ fun BrowserScreen(
     DisposableEffect(tabId) {
         onDispose {
             webViewState.value?.let { webView ->
-                android.util.Log.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
+                AppLog.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
                 webView.stopLoading()
                 webView.loadUrl("about:blank")
                 webView.destroy()
@@ -254,10 +378,10 @@ fun BrowserScreen(
         webViewReference?.let {
             val currentUrl = it.url
             if (currentUrl.isNullOrBlank() || (!currentUrl.contains(url) && !url.contains(currentUrl))) {
-                android.util.Log.d("##BrowserScreen", "Loading URL: $url")
+                AppLog.d("##BrowserScreen", "Loading host: ${safeUrlForLog(url)}")
                 it.loadUrl(url)
             } else if (currentUrl.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != currentUrl) {
-                android.util.Log.d("##BrowserScreen", "Injecting AdBlock from LaunchedEffect (URL changed)")
+                AppLog.d("##BrowserScreen", "Injecting AdBlock from LaunchedEffect (URL changed)")
                 WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(it, currentUrl, isYouTubeAdBlockEnabled, isTabActive)
                 lastInjectedUrl = currentUrl
             }
@@ -323,8 +447,8 @@ fun BrowserScreen(
                 }.apply {
                     isFocusable = true
                     isFocusableInTouchMode = true
-                    setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-
+                    isClickable = true
+                    isLongClickable = true
                     // Notifica l'interazione continua durante swipe/scroll senza bloccare la WebView
                     setOnTouchListener { _, _ ->
                         onInteraction()
@@ -340,7 +464,7 @@ fun BrowserScreen(
                         loadWithOverviewMode = true
                         useWideViewPort = true
                         // Se autoplay è disattivato, richiede il tocco dell'utente
-                        mediaPlaybackRequiresUserGesture = !autoplayMedia
+                        mediaPlaybackRequiresUserGesture = !autoplayMedia && !isDaznUrl(url)
                         setSupportZoom(true)
                         builtInZoomControls = true
                         displayZoomControls = false
@@ -360,7 +484,7 @@ fun BrowserScreen(
 
                     // Configurazione Tema Scuro (Nativo + Forza Dark)
                     val isNight = isAppDark
-                    android.util.Log.d("##BrowserScreen", "Theme Factory: isNight=$isNight, darkPages=$darkPages")
+                    AppLog.d("##BrowserScreen", "Theme Factory: isNight=$isNight, darkPages=$darkPages")
 
                     setBackgroundColor(if (isNight) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
 
@@ -395,6 +519,21 @@ fun BrowserScreen(
                         WebViewCompat.addDocumentStartJavaScript(
                             this,
                             BrowserJavascript.getLifecycleAndMetadataScript(),
+                            setOf("*")
+                        )
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            DaznManager.getAuthProxyScript(),
+                            setOf("https://www.dazn.com")
+                        )
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            GoogleLoginManager.getGoogleOauthFixScript(),
+                            setOf("*")
+                        )
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            GoogleLoginManager.getPopupInterceptorScript(),
                             setOf("*")
                         )
                     }
@@ -500,7 +639,7 @@ fun BrowserScreen(
                                     // Trucco upscaling: forza la risoluzione alta della cover di Spotify
                                     coverUrl = coverUrl.replace("00004851", "0000b273")
 
-                                    Log.d("SpotifyDebug", "recMediaStatus -> $title - $artist (Playing: $isPlaying, Cover: $coverUrl)")
+                                    AppLog.d("SpotifyDebug", "recMediaStatus -> $title - $artist (Playing: $isPlaying, Cover: $coverUrl)")
 
                                     val lowerTitle = title.lowercase()
                                     val ignoredTitles = listOf("buonasera", "buongiorno", "buon pomeriggio", "good evening", "good morning", "spotify", "home", "search", "cerca")
@@ -514,7 +653,7 @@ fun BrowserScreen(
                                         )
                                     }
                                 } catch (e: Exception) {
-                                    Log.e("SpotifyBridge", "Error parsing media status", e)
+                                    AppLog.e("SpotifyBridge", "Error parsing media status", e)
                                 }
                             }
 
@@ -523,7 +662,30 @@ fun BrowserScreen(
                             fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {
                                 post {
                                     TabManager.updateTabTitle(tabId, title)
-                                    TabManager.updateTabFavicon(tabId, faviconUrl)
+                                    val isInvalidFavicon = faviconUrl.isBlank() ||
+                                            faviconUrl.contains("google.com", ignoreCase = true) ||
+                                            currentUrl.contains("accounts.google.com", ignoreCase = true)
+                                    if (!isInvalidFavicon) {
+                                        TabManager.updateTabFavicon(tabId, faviconUrl)
+                                    }
+                                }
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun onDaznEventClicked(url: String) {
+                                post {
+                                    val currentWebView = webViewReference
+                                    if (!daznDesktopForced && currentWebView != null) {
+                                        daznDesktopForced = true
+                                        currentWebView.settings.userAgentString = getDynamicDesktopUserAgent()
+                                        AppLog.d("Dazn", "DAZN event click detected; switching to desktop mode and loading: $url")
+                                        if (!url.isNullOrBlank() && url.startsWith("http")) {
+                                            currentWebView.loadUrl(url)
+                                        } else {
+                                            currentWebView.reload()
+                                        }
+                                    }
                                 }
                             }
 
@@ -531,7 +693,7 @@ fun BrowserScreen(
                             @Suppress("unused")
                             fun onStartAdBlock() {
                                 post {
-                                    android.util.Log.d("##BrowserScreen", "AdBlock request, YouTube enabled: $isYouTubeAdBlockEnabled")
+                                    AppLog.d("##BrowserScreen", "AdBlock request, YouTube enabled: $isYouTubeAdBlockEnabled")
                                     val currentUrl = webViewReference?.url ?: ""
                                     WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(webViewReference, currentUrl, isYouTubeAdBlockEnabled, isTabActive)
                                 }
@@ -540,7 +702,7 @@ fun BrowserScreen(
                             @android.webkit.JavascriptInterface
                             @Suppress("unused")
                             fun onStartInput() {
-                                android.util.Log.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
+                                AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
                                 if (isTabActive && !isGlobalSearchActive) {
                                     post { showInputPopup = true }
                                 }
@@ -561,10 +723,146 @@ fun BrowserScreen(
                             @Suppress("unused")
                             fun openInNewTab(url: String) {
                                 post {
-                                    Log.d("##BrowserScreen", "openInNewTab requested: $url")
+                                    AppLog.d("##BrowserScreen", "openInNewTab requested for host=${safeUrlForLog(url)}")
                                     TabManager.openOrSwitchTo(url = url)
                                 }
                             }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun openPopup(url: String) {
+                                post {
+                                    AppLog.d("##BrowserScreen", "openPopup requested for host=${safeUrlForLog(url)}")
+                                    val popup = createPopupWebView(
+                                        context,
+                                        url,
+                                        webViewReference?.settings?.userAgentString
+                                    ) { popupWebView = null }
+                                    popupWebView = popup
+                                }
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun proxyFetch(
+                                urlString: String,
+                                method: String,
+                                headersJson: String,
+                                body: String?,
+                                requestUserAgent: String
+                            ): String {
+                                return runBlocking(Dispatchers.IO) {
+                                    val requestStartedAt = android.os.SystemClock.elapsedRealtime()
+                                    try {
+                                        val url = URL(urlString)
+                                        val userAgent = requestUserAgent.ifBlank {
+                                            WebSettings.getDefaultUserAgent(context)
+                                        }
+                                        val conn = (url.openConnection() as HttpURLConnection).apply {
+                                            requestMethod = if (method.isBlank()) "GET" else method
+                                            connectTimeout = 15000
+                                            readTimeout = 15000
+                                            instanceFollowRedirects = true
+                                            doInput = true
+
+                                            setRequestProperty("User-Agent", userAgent)
+                                            setRequestProperty("Origin", "https://www.dazn.com")
+                                            setRequestProperty("Referer", "https://www.dazn.com/")
+
+                                            val cookieDazn = CookieManager.getInstance().getCookie("https://www.dazn.com") ?: ""
+                                            val cookieIndazn = CookieManager.getInstance().getCookie("https://www.indazn.com") ?: ""
+                                            val cookieTarget = CookieManager.getInstance().getCookie(urlString) ?: ""
+                                            val combinedCookie = listOf(cookieDazn, cookieIndazn, cookieTarget)
+                                                .flatMap { it.split(";") }
+                                                .map { it.trim() }
+                                                .filter { it.isNotEmpty() }
+                                                .distinct()
+                                                .joinToString("; ")
+                                            if (combinedCookie.isNotEmpty()) {
+                                                setRequestProperty("Cookie", combinedCookie)
+                                            }
+
+                                            try {
+                                                val headersObj = JSONObject(headersJson)
+                                                val keys = headersObj.keys()
+                                                val restricted = setOf("user-agent", "content-length", "host", "connection", "accept-encoding", "expect", "if-modified-since")
+                                                while (keys.hasNext()) {
+                                                    val k = keys.next()
+                                                    val lowerK = k.lowercase()
+                                                    if (!lowerK.startsWith("sec-") && !restricted.contains(lowerK)) {
+                                                        if (lowerK == "cookie") {
+                                                            val headerCookie = headersObj.getString(k)
+                                                            val combined = if (combinedCookie.isEmpty()) headerCookie else "$combinedCookie; $headerCookie"
+                                                            setRequestProperty("Cookie", combined)
+                                                        } else {
+                                                            setRequestProperty(k, headersObj.getString(k))
+                                                        }
+                                                    }
+                                                }
+                                            } catch (_: Exception) {}
+
+                                            if ((requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH")) {
+                                                doOutput = true
+                                                if (!body.isNullOrEmpty()) {
+                                                    outputStream.use { os ->
+                                                        os.write(body.toByteArray(Charsets.UTF_8))
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        val statusCode = conn.responseCode
+                                        val statusText = conn.responseMessage ?: "OK"
+
+                                        val responseHeaders = JSONObject()
+                                        try {
+                                            conn.headerFields?.let { headerFields ->
+                                                for ((key, values) in headerFields) {
+                                                    if (key != null) {
+                                                        if (key.equals("Set-Cookie", ignoreCase = true)) {
+                                                            values?.forEach { cookieValue ->
+                                                                if (!cookieValue.isNullOrEmpty()) {
+                                                                    CookieManager.getInstance().setCookie(urlString, cookieValue)
+                                                                }
+                                                            }
+                                                        } else if (!key.equals("Set-Cookie2", ignoreCase = true)) {
+                                                            responseHeaders.put(key, values?.joinToString(",") ?: "")
+                                                        }
+                                                    }
+                                                }
+                                                CookieManager.getInstance().flush()
+                                            }
+                                        } catch (e: Exception) {
+                                            AppLog.e("ProxyFetch", "Error saving cookies", e)
+                                        }
+
+                                        val inputStream = if (statusCode >= 400) conn.errorStream else conn.inputStream
+                                        val resText = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+                                        AppLog.d(
+                                            "ProxyFetch",
+                                            "DAZN API request host=${url.host} path=${url.path} method=$method status=$statusCode responseBytes=${resText.toByteArray(Charsets.UTF_8).size} elapsedMs=${android.os.SystemClock.elapsedRealtime() - requestStartedAt}"
+                                        )
+
+                                        JSONObject().apply {
+                                            put("status", statusCode)
+                                            put("statusText", statusText)
+                                            put("text", resText)
+                                            put("headers", responseHeaders)
+                                        }.toString()
+                                    } catch (e: Exception) {
+                                        AppLog.e(
+                                            "AndroidBridge",
+                                            "proxyFetch failed for host=${safeUrlForLog(urlString)} (${e.javaClass.simpleName}) elapsedMs=${android.os.SystemClock.elapsedRealtime() - requestStartedAt}"
+                                        )
+                                        JSONObject().apply {
+                                            put("status", 500)
+                                            put("statusText", e.message ?: "Error")
+                                            put("text", "")
+                                        }.toString()
+                                    }
+                                }
+                            }
+
                         },
                         "AndroidBridge",
                     )
@@ -577,51 +875,11 @@ fun BrowserScreen(
                             resultMsg: Message?
                         ): Boolean {
                             val context = view?.context ?: return false
-                            val popup = WebView(context).apply {
-                                isFocusable = true
-                                isFocusableInTouchMode = true
-                                settings.apply {
-                                    javaScriptEnabled = true
-                                    domStorageEnabled = true
-                                    @Suppress("DEPRECATION")
-                                    databaseEnabled = true
-                                    loadWithOverviewMode = true
-                                    useWideViewPort = true
-                                    mediaPlaybackRequiresUserGesture = false
-                                    setSupportZoom(true)
-                                    builtInZoomControls = true
-                                    displayZoomControls = false
-                                    allowContentAccess = true
-                                    allowFileAccess = true
-                                    mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-                                    userAgentString = view.settings.userAgentString
-                                }
-                                CookieManager.getInstance().setAcceptCookie(true)
-                                CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-
-                                webViewClient = @SuppressLint("MissingOnRenderProcessGone")
-                                object : WebViewClient() {
-                                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                                        val url = request?.url?.toString() ?: return false
-                                        val mainUrl = webViewReference?.url ?: ""
-                                        val mainHost = mainUrl.toUri().host ?: ""
-                                        val requestUri = url.toUri()
-                                        val requestHost = requestUri.host ?: ""
-
-                                        if (url.contains("code=") || url.contains("token=") || (requestHost.isNotEmpty() && requestHost == mainHost)) {
-                                            popupWebView = null
-                                            webViewReference?.loadUrl(url)
-                                            return true
-                                        }
-                                        return false
-                                    }
-                                }
-                                webChromeClient = object : WebChromeClient() {
-                                    override fun onCloseWindow(window: WebView?) {
-                                        popupWebView = null
-                                    }
-                                }
-                            }
+                            val popup = createPopupWebView(
+                                context,
+                                null,
+                                view?.settings?.userAgentString
+                            ) { popupWebView = null }
                             val transport = resultMsg?.obj as? WebView.WebViewTransport
                             if (transport != null) {
                                 transport.webView = popup
@@ -675,7 +933,7 @@ fun BrowserScreen(
                             if (consoleMessage != null) {
                                 val msg = consoleMessage.message()
                                 if (msg.contains("SpotifyDebug", ignoreCase = true) || msg.contains("Spotify", ignoreCase = true)) {
-                                    Log.d("SpotifyDebug", "JS Console: $msg")
+                                    AppLog.d("SpotifyDebug", "JS Console: $msg")
                                 }
                             }
                             return super.onConsoleMessage(consoleMessage)
@@ -689,7 +947,9 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
-                            if (actualDesktopMode || isDesktopRequired(url)) {
+                            view?.settings?.mediaPlaybackRequiresUserGesture =
+                                !autoplayMedia && !isDaznUrl(url)
+                            if (needsDesktopForUrl(url)) {
                                 val ua = getDynamicDesktopUserAgent()
                                 view?.settings?.userAgentString = ua
                                 val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
@@ -721,16 +981,35 @@ fun BrowserScreen(
                                 try {
                                     val intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
                                     val fallbackUrl = intent.getStringExtra("browser_fallback_url")
-                                    if (!fallbackUrl.isNullOrEmpty()) {
-                                        view?.loadUrl(fallbackUrl)
+                                    val targetUrl = if (!fallbackUrl.isNullOrEmpty()) {
+                                        fallbackUrl
+                                    } else {
+                                        val data = intent.dataString
+                                        if (data != null && data.startsWith("https://")) data else null
+                                    }
+                                    if (!targetUrl.isNullOrEmpty()) {
+                                        if (targetUrl.contains("dazn.com", ignoreCase = true)) {
+                                            daznDesktopForced = true
+                                            view?.settings?.userAgentString = getDynamicDesktopUserAgent()
+                                        }
+                                        view?.loadUrl(targetUrl)
+                                        return true
                                     }
                                 } catch (e: Exception) {
-                                    android.util.Log.e("BrowserScreen", "Intent parse error", e)
+                                    AppLog.e("BrowserScreen", "Intent parse error", e)
                                 }
                                 return true
                             }
+                            if (uri.contains("dazn.com", ignoreCase = true) && (uri.contains("/watch/") || uri.contains("/event/") || uri.contains("/video/"))) {
+                                if (!daznDesktopForced) {
+                                    daznDesktopForced = true
+                                    view?.settings?.userAgentString = getDynamicDesktopUserAgent()
+                                    view?.loadUrl(uri)
+                                    return true
+                                }
+                            }
                             if (uri.startsWith("market://") || uri.contains("play.google.com/store/apps")) {
-                                android.util.Log.d("BrowserScreen", "Blocked store link: $uri")
+                                AppLog.d("BrowserScreen", "Blocked store link: $uri")
                                 return true
                             }
                             return false
@@ -749,6 +1028,27 @@ fun BrowserScreen(
                                 )
                             }
 
+                            // Handling CORS OPTIONS preflight for cross-origin API calls
+                            if (request != null && request.method?.equals("OPTIONS", ignoreCase = true) == true) {
+                                val reqOrigin = request.requestHeaders["Origin"] ?: "https://www.dazn.com"
+                                val reqHeaders = request.requestHeaders["Access-Control-Request-Headers"] ?: "*"
+                                val corsHeaders = mapOf(
+                                    "Access-Control-Allow-Origin" to reqOrigin,
+                                    "Access-Control-Allow-Credentials" to "true",
+                                    "Access-Control-Allow-Methods" to "GET, POST, OPTIONS, PUT, DELETE",
+                                    "Access-Control-Allow-Headers" to reqHeaders,
+                                    "Access-Control-Max-Age" to "86400"
+                                )
+                                return WebResourceResponse(
+                                    "text/plain",
+                                    "UTF-8",
+                                    200,
+                                    "OK",
+                                    corsHeaders,
+                                    ByteArrayInputStream(ByteArray(0))
+                                )
+                            }
+
                             return super.shouldInterceptRequest(view, request)
                         }
 
@@ -762,9 +1062,15 @@ fun BrowserScreen(
                         override fun onPageFinished(view: WebView?, url: String?) {
                             if (url != null) {
                                 onPageFinished(url)
-                                android.util.Log.d("##BrowserScreen", "onPageFinished: $url")
+                                AppLog.d("##BrowserScreen", "onPageFinished: ${safeUrlForLog(url)}")
 
                                 view?.let { webView ->
+                                    if (url.contains("dazn.com", ignoreCase = true)) {
+                                        webView.evaluateJavascript(
+                                            DaznManager.getClickInterceptorScript(),
+                                            null
+                                        )
+                                    }
                                     WebViewScriptRouter.routeAndInject(
                                         webView = webView,
                                         urlString = url,
@@ -772,7 +1078,7 @@ fun BrowserScreen(
                                         autoplayMedia = autoplayMedia,
                                         displayScale = actualDisplayScale,
                                         desktopScale = actualDesktopScale,
-                                        isDesktopMode = actualDesktopMode,
+                                        isDesktopMode = needsDesktopForUrl(url),
                                         isTabActive = isTabActive
                                     )
                                 }
@@ -798,7 +1104,9 @@ fun BrowserScreen(
                         it.reload()
                         it.tag = reloadTrigger
                     }
-                    val needsDesktop = actualDesktopMode || isDesktopRequired(it.url)
+                    val needsDesktop = needsDesktopForUrl(it.url)
+                    it.settings.mediaPlaybackRequiresUserGesture =
+                        !autoplayMedia && !isDaznUrl(it.url)
                     if (needsDesktop) {
                         it.settings.userAgentString = getDynamicDesktopUserAgent()
                     } else {

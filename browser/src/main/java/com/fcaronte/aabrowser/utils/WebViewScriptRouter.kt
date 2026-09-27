@@ -1,6 +1,6 @@
 package com.fcaronte.aabrowser.utils
 
-import android.util.Log
+import com.fcaronte.aabrowser.utils.AppLog
 import android.webkit.CookieManager
 import android.webkit.WebView
 import com.fcaronte.aabrowser.ui.ChromeVersionFetcher
@@ -17,7 +17,12 @@ object WebViewScriptRouter {
                 lowUrl.contains("messenger.com") ||
                 lowUrl.contains("web.telegram.org") ||
                 lowUrl.contains("web.skype.com") ||
-                lowUrl.contains("dazn.com")
+                lowUrl.contains("google.com") ||
+                lowUrl.contains("accounts.google.com") ||
+                lowUrl.contains("login") ||
+                lowUrl.contains("signin") ||
+                lowUrl.contains("auth") ||
+                lowUrl.contains("oauth")
     }
 
     /**
@@ -73,7 +78,8 @@ object WebViewScriptRouter {
         val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
         val isChatApp = lowUrl.contains("whatsapp.com") || lowUrl.contains("whatsapp.net") || lowUrl.contains("telegram.org")
 
-        Log.d("ScriptRouter", "Routing scripts for URL: $urlString (Spotify: $isSpotify, YouTube: $isYouTube, Chat: $isChatApp, ActiveTab: $isTabActive)")
+        val host = android.net.Uri.parse(urlString).host ?: "unknown"
+        AppLog.d("ScriptRouter", "Routing scripts for host=$host (Spotify: $isSpotify, YouTube: $isYouTube, Chat: $isChatApp, ActiveTab: $isTabActive)")
 
         // 1. Script di pulizia per fermare eventuali intervalli JS rimasti da un dominio precedente
         webView.evaluateJavascript(getCleanupScript(), null)
@@ -182,7 +188,7 @@ object WebViewScriptRouter {
         val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
 
         if (isYouTube) {
-            Log.d("ScriptRouter", "Injecting YouTube AdBlock script for $urlString")
+            AppLog.d("ScriptRouter", "Injecting YouTube AdBlock script for host=${android.net.Uri.parse(urlString).host ?: "unknown"}")
             webView.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
         }
     }

@@ -11,8 +11,9 @@ object BrowserJavascript {
             (function() {
                 var meta = document.querySelector('meta[name="viewport"]');
                 if (!meta) { meta = document.createElement('meta'); meta.name = "viewport"; document.head.appendChild(meta); }
-                meta.content = "width=1280, initial-scale=$scale, user-scalable=yes";
-                document.body.style.minWidth = '1280px';
+                meta.content = "width=device-width, initial-scale=$scale, user-scalable=yes";
+                document.body.style.width = '100%';
+                document.body.style.boxSizing = 'border-box';
             })();
             """.trimIndent()
         } else {
@@ -31,7 +32,7 @@ object BrowserJavascript {
         (function() {
             $VISIBILITY_MOCK_JS
             $DRM_L3_ENFORCER_JS
-            
+
             const host = window.location.hostname.toLowerCase();
             const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
 
@@ -695,7 +696,7 @@ object BrowserJavascript {
                              document.querySelector('link[rel="icon"][sizes="192x192"]') ||
                              document.querySelector('link[rel="icon"]') ||
                              document.querySelector('link[rel="shortcut icon"]');
-                return icon ? icon.href : "https://www.google.com/s2/favicons?domain=" + window.location.hostname + "&sz=128";
+                return icon ? icon.href : "";
             };
             if (window.AndroidBridge) {
                 AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
