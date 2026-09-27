@@ -807,23 +807,19 @@ object BrowserJavascript {
         const mediaObserver = new MutationObserver(() => {
             document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
         });
-        mediaObserver.observe(document.body, { childList: true, subtree: true });
+        mediaObserver.observe(document, { childList: true, subtree: true });
         document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
     """
 
     private const val INPUT_LISTENERS_JS = """
-        function setupInputListeners() {
-            document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(el => {
-                if (!el.dataset.listenerAdded) {
-                    el.addEventListener('focus', () => window.AndroidBridge && AndroidBridge.onStartInput());
-                    el.addEventListener('click', () => window.AndroidBridge && AndroidBridge.onStartInput());
-                    el.dataset.listenerAdded = 'true';
-                }
-            });
+        function notifyInputInteraction(event) {
+            const target = event.target;
+            if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) {
+                if (window.AndroidBridge) AndroidBridge.onStartInput();
+            }
         }
-        const inputObserver = new MutationObserver(setupInputListeners);
-        inputObserver.observe(document.body, { childList: true, subtree: true });
-        setupInputListeners();
+        document.addEventListener('focusin', notifyInputInteraction, true);
+        document.addEventListener('click', notifyInputInteraction, true);
     """
 
     private const val SELECT_POLYFILL_JS = """
