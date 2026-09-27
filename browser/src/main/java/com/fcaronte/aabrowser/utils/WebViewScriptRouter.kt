@@ -1,9 +1,15 @@
 package com.fcaronte.aabrowser.utils
 
 import com.fcaronte.aabrowser.utils.AppLog
+import android.content.Context
+import android.os.Build
 import android.webkit.CookieManager
+import android.webkit.WebSettings
 import android.webkit.WebView
-import com.fcaronte.aabrowser.ui.ChromeVersionFetcher
+import androidx.webkit.UserAgentMetadata
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
+import androidx.core.net.toUri
 
 object WebViewScriptRouter {
 
@@ -25,12 +31,97 @@ object WebViewScriptRouter {
                 lowUrl.contains("oauth")
     }
 
-    /**
-     * Generates a dynamic desktop User-Agent string using the latest Chrome version.
-     */
-    fun getDynamicDesktopUserAgent(): String {
-        val version = ChromeVersionFetcher.getLatestVersion()
-        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
+    fun setDesktopUserAgent(webView: WebView, context: Context): String {
+        val defaultUserAgent = WebSettings.getDefaultUserAgent(context)
+        val version = Regex("Chrome/([0-9.]+)").find(defaultUserAgent)?.groupValues?.get(1)
+        if (version == null) {
+            AppLog.e("WebViewIdentity", "Unable to determine installed WebView Chrome version; keeping its default identity")
+            setMobileUserAgent(webView, context)
+            return defaultUserAgent
+        }
+
+        val userAgent =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
+        webView.settings.userAgentString = userAgent
+        setUserAgentMetadata(
+            webView,
+            version = version,
+            platform = "Windows",
+            platformVersion = "10.0.0",
+            architecture = "x86",
+            model = "",
+            mobile = false,
+            bitness = 64
+        )
+        AppLog.d(
+            "WebViewIdentity",
+            "Desktop UA aligned to installed WebView Chrome/$version; UA metadata supported=${WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)}"
+        )
+        return userAgent
+    }
+
+    fun setMobileUserAgent(webView: WebView, context: Context) {
+        webView.settings.userAgentString = null
+        val defaultUserAgent = WebSettings.getDefaultUserAgent(context)
+        val version = Regex("Chrome/([0-9.]+)").find(defaultUserAgent)?.groupValues?.get(1)
+        if (version == null) {
+            AppLog.e("WebViewIdentity", "Unable to determine installed WebView Chrome version for mobile metadata")
+            return
+        }
+        setUserAgentMetadata(
+            webView,
+            version = version,
+            platform = "Android",
+            platformVersion = Build.VERSION.RELEASE,
+            architecture = "",
+            model = Build.MODEL,
+            mobile = true,
+            bitness = UserAgentMetadata.BITNESS_DEFAULT
+        )
+    }
+
+    private fun setUserAgentMetadata(
+        webView: WebView,
+        version: String,
+        platform: String,
+        platformVersion: String,
+        architecture: String,
+        model: String,
+        mobile: Boolean,
+        bitness: Int
+    ) {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) return
+
+        val majorVersion = version.substringBefore('.')
+        val brands = listOf(
+            UserAgentMetadata.BrandVersion.Builder()
+                .setBrand("Not(A:Brand")
+                .setMajorVersion("99")
+                .setFullVersion("99.0.0.0")
+                .build(),
+            UserAgentMetadata.BrandVersion.Builder()
+                .setBrand("Google Chrome")
+                .setMajorVersion(majorVersion)
+                .setFullVersion(version)
+                .build(),
+            UserAgentMetadata.BrandVersion.Builder()
+                .setBrand("Chromium")
+                .setMajorVersion(majorVersion)
+                .setFullVersion(version)
+                .build()
+        )
+        val metadata = UserAgentMetadata.Builder()
+            .setBrandVersionList(brands)
+            .setFullVersion(version)
+            .setPlatform(platform)
+            .setPlatformVersion(platformVersion)
+            .setArchitecture(architecture)
+            .setModel(model)
+            .setMobile(mobile)
+            .setBitness(bitness)
+            .setWow64(false)
+            .build()
+        WebSettingsCompat.setUserAgentMetadata(webView.settings, metadata)
     }
 
     /**
@@ -78,7 +169,7 @@ object WebViewScriptRouter {
         val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
         val isChatApp = lowUrl.contains("whatsapp.com") || lowUrl.contains("whatsapp.net") || lowUrl.contains("telegram.org")
 
-        val host = android.net.Uri.parse(urlString).host ?: "unknown"
+        val host = urlString.toUri().host ?: "unknown"
         AppLog.d("ScriptRouter", "Routing scripts for host=$host (Spotify: $isSpotify, YouTube: $isYouTube, Chat: $isChatApp, ActiveTab: $isTabActive)")
 
         // 1. Script di pulizia per fermare eventuali intervalli JS rimasti da un dominio precedente
@@ -98,7 +189,7 @@ object WebViewScriptRouter {
                 webView.evaluateJavascript(BrowserJavascript.getViewportScript(targetScale, needsDesktop), null)
 
                 if (needsDesktop) {
-                    val ua = getDynamicDesktopUserAgent()
+                    val ua = webView.settings.userAgentString.orEmpty()
                     val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
                     val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
                     webView.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
@@ -122,7 +213,7 @@ object WebViewScriptRouter {
                 webView.evaluateJavascript(BrowserJavascript.getViewportScript(targetScale, needsDesktop), null)
 
                 if (needsDesktop) {
-                    val ua = getDynamicDesktopUserAgent()
+                    val ua = webView.settings.userAgentString.orEmpty()
                     val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
                     val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
                     webView.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
@@ -140,7 +231,7 @@ object WebViewScriptRouter {
                 webView.evaluateJavascript(BrowserJavascript.getViewportScript(targetScale, needsDesktop), null)
 
                 if (needsDesktop) {
-                    val ua = getDynamicDesktopUserAgent()
+                    val ua = webView.settings.userAgentString.orEmpty()
                     val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
                     val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
                     webView.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
@@ -160,7 +251,7 @@ object WebViewScriptRouter {
                 webView.evaluateJavascript(BrowserJavascript.getViewportScript(targetScale, needsDesktop), null)
 
                 if (needsDesktop) {
-                    val ua = getDynamicDesktopUserAgent()
+                    val ua = webView.settings.userAgentString.orEmpty()
                     val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
                     val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
                     webView.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
@@ -188,7 +279,7 @@ object WebViewScriptRouter {
         val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")
 
         if (isYouTube) {
-            AppLog.d("ScriptRouter", "Injecting YouTube AdBlock script for host=${android.net.Uri.parse(urlString).host ?: "unknown"}")
+            AppLog.d("ScriptRouter", "Injecting YouTube AdBlock script for host=${urlString.toUri().host ?: "unknown"}")
             webView.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
         }
     }

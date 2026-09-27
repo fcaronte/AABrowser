@@ -82,46 +82,81 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-object ChromeVersionFetcher {
-    private var cachedVersion: String = "152.0.0.0"
+private fun setDesktopUserAgent(webView: WebView, context: Context): String =
+    WebViewScriptRouter.setDesktopUserAgent(webView, context)
 
-    init {
-        fetchLatestVersion()
-    }
+private fun setMobileUserAgent(webView: WebView, context: Context) =
+    WebViewScriptRouter.setMobileUserAgent(webView, context)
 
-    fun getLatestVersion(): String = cachedVersion
+private fun summarizeDaznErrorBody(body: String): String {
+    val errorFields = setOf(
+        "code", "error_code", "errorcode", "error_description", "message",
+        "description", "reason", "type", "status", "request_id", "requestid",
+        "correlation_id", "correlationid"
+    )
+    val containerFields = setOf("error", "errors", "details", "data", "cause", "metadata")
 
-    private fun fetchLatestVersion() {
-        Thread {
-            try {
-                val url = java.net.URL("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions")
-                val conn = url.openConnection() as java.net.HttpURLConnection
-                conn.connectTimeout = 3000
-                conn.readTimeout = 3000
-                if (conn.responseCode == 200) {
-                    val json = conn.inputStream.bufferedReader().use { it.readText() }
-                    val versionRegex = Regex("\"version\"\\s*:\\s*\"([0-9.]+)\"")
-                    val match = versionRegex.find(json)
-                    if (match != null) {
-                        val ver = match.groups[1]?.value
-                        if (!ver.isNullOrEmpty()) {
-                            cachedVersion = ver
-                            AppLog.d("ChromeVersionFetcher", "Latest Windows Chrome version fetched: $cachedVersion")
-                        }
+    fun sanitizeValue(value: String): String = value
+        .replace(Regex("""(?is)<(script|style)\b[^>]*>.*?</\1>"""), " ")
+        .replace(Regex("""(?s)<!--.*?-->"""), " ")
+        .replace(Regex("""<[^>]*>"""), " ")
+        .replace("&nbsp;", " ", ignoreCase = true)
+        .replace("&quot;", "\"", ignoreCase = true)
+        .replace("&#39;", "'", ignoreCase = true)
+        .replace("&lt;", "<", ignoreCase = true)
+        .replace("&gt;", ">", ignoreCase = true)
+        .replace("&amp;", "&", ignoreCase = true)
+        .replace(
+            Regex("""(?i)(bearer\s+)[A-Za-z0-9._~+/-]+=*"""),
+            "$1[REDACTED]"
+        )
+        .replace(
+            Regex("""(?i)("?(?:access[_-]?token|refresh[_-]?token|id[_-]?token|authorization|cookie|password|secret)"?\s*[:=]\s*"?)[^",}\s]+"""),
+            "$1[REDACTED]"
+        )
+        .replace(Regex("""[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}"""), "[REDACTED_EMAIL]")
+        .replace(Regex("""\s+"""), " ")
+        .take(800)
+
+    fun filter(value: Any?, depth: Int): Any? {
+        if (depth > 6) return null
+        return when (value) {
+            is JSONObject -> JSONObject().apply {
+                val keys = value.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val normalizedKey = key.lowercase()
+                    val child = value.opt(key)
+                    when {
+                        normalizedKey in errorFields && child !is JSONObject && child !is JSONArray ->
+                            put(key, sanitizeValue(child.toString()))
+                        normalizedKey in containerFields ->
+                            filter(child, depth + 1)?.let { put(key, it) }
                     }
                 }
-            } catch (e: Exception) {
-                AppLog.e("ChromeVersionFetcher", "Failed to fetch latest version", e)
             }
-        }.start()
+            is JSONArray -> JSONArray().apply {
+                for (index in 0 until minOf(value.length(), 10)) {
+                    filter(value.opt(index), depth + 1)?.let { put(it) }
+                }
+            }
+            else -> null
+        }
+    }
+
+    return try {
+        val filtered = filter(JSONObject(body), 0)?.toString().orEmpty()
+        filtered.ifBlank { "No allowlisted error fields" }.take(1000)
+    } catch (_: JSONException) {
+        sanitizeValue(body).ifBlank { "Empty error body" }
     }
 }
-
-private fun getDynamicDesktopUserAgent(): String = WebViewScriptRouter.getDynamicDesktopUserAgent()
 
 private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDesktopRequired(url)
 
@@ -303,9 +338,9 @@ fun BrowserScreen(
             webViewReference?.let { wv ->
                 val needsDesktop = actualDesktopMode || isDesktopRequired(wv.url)
                 if (needsDesktop) {
-                    wv.settings.userAgentString = getDynamicDesktopUserAgent()
+                    setDesktopUserAgent(wv, context)
                 } else {
-                    wv.settings.userAgentString = null
+                    setMobileUserAgent(wv, context)
                 }
                 AppLog.d("BrowserScreen", "Desktop mode toggled (actualDesktopMode: $actualDesktopMode); forcing page reload")
                 wv.reload()
@@ -540,9 +575,8 @@ fun BrowserScreen(
 
                     val needsDesktop = actualDesktopMode || isDesktopRequired(url)
                     if (needsDesktop) {
-                        settings.userAgentString = getDynamicDesktopUserAgent()
+                        val ua = setDesktopUserAgent(this, context)
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-                            val ua = getDynamicDesktopUserAgent()
                             val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
                             val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
                             WebViewCompat.addDocumentStartJavaScript(
@@ -552,7 +586,7 @@ fun BrowserScreen(
                             )
                         }
                     } else {
-                        settings.userAgentString = null
+                        setMobileUserAgent(this, context)
                     }
 
                     // Implementazione robusta per il controllo dei media
@@ -678,7 +712,7 @@ fun BrowserScreen(
                                     val currentWebView = webViewReference
                                     if (!daznDesktopForced && currentWebView != null) {
                                         daznDesktopForced = true
-                                        currentWebView.settings.userAgentString = getDynamicDesktopUserAgent()
+                                        setDesktopUserAgent(currentWebView, context)
                                         AppLog.d("Dazn", "DAZN event click detected; switching to desktop mode and loading: $url")
                                         if (!url.isNullOrBlank() && url.startsWith("http")) {
                                             currentWebView.loadUrl(url)
@@ -758,6 +792,8 @@ fun BrowserScreen(
                                         val userAgent = requestUserAgent.ifBlank {
                                             WebSettings.getDefaultUserAgent(context)
                                         }
+                                        var hasAuthorizationHeader = false
+                                        var hasCookieHeader = false
                                         val conn = (url.openConnection() as HttpURLConnection).apply {
                                             requestMethod = if (method.isBlank()) "GET" else method
                                             connectTimeout = 15000
@@ -779,6 +815,7 @@ fun BrowserScreen(
                                                 .distinct()
                                                 .joinToString("; ")
                                             if (combinedCookie.isNotEmpty()) {
+                                                hasCookieHeader = true
                                                 setRequestProperty("Cookie", combinedCookie)
                                             }
 
@@ -790,8 +827,12 @@ fun BrowserScreen(
                                                     val k = keys.next()
                                                     val lowerK = k.lowercase()
                                                     if (!lowerK.startsWith("sec-") && !restricted.contains(lowerK)) {
+                                                        if (lowerK == "authorization") {
+                                                            hasAuthorizationHeader = headersObj.optString(k).isNotBlank()
+                                                        }
                                                         if (lowerK == "cookie") {
                                                             val headerCookie = headersObj.getString(k)
+                                                            hasCookieHeader = hasCookieHeader || headerCookie.isNotBlank()
                                                             val combined = if (combinedCookie.isEmpty()) headerCookie else "$combinedCookie; $headerCookie"
                                                             setRequestProperty("Cookie", combined)
                                                         } else {
@@ -838,6 +879,40 @@ fun BrowserScreen(
 
                                         val inputStream = if (statusCode >= 400) conn.errorStream else conn.inputStream
                                         val resText = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+                                        if (
+                                            statusCode >= 400 &&
+                                            url.host.equals("api.playback.indazn.com", ignoreCase = true) &&
+                                            url.path.equals("/v5/Playback", ignoreCase = true)
+                                        ) {
+                                            val diagnosticHeaders = JSONObject()
+                                            val safeHeaderNames = setOf(
+                                                "content-type", "server", "via", "x-cache",
+                                                "x-request-id", "x-correlation-id", "traceparent",
+                                                "x-amz-cf-id", "x-amz-cf-pop", "x-amz-cf-error",
+                                                "x-amz-cf-error-code"
+                                            )
+                                            val headerKeys = responseHeaders.keys()
+                                            while (headerKeys.hasNext()) {
+                                                val key = headerKeys.next()
+                                                if (key.lowercase() in safeHeaderNames) {
+                                                    diagnosticHeaders.put(key, responseHeaders.opt(key))
+                                                }
+                                            }
+                                            val requestHeaderNames = JSONObject(headersJson).keys().asSequence()
+                                                .map { it.lowercase() }
+                                                .sorted()
+                                                .joinToString(",")
+                                            AppLog.e(
+                                                "DaznPlayback",
+                                                "Playback HTTP failure status=$statusCode " +
+                                                        "authorizationPresent=$hasAuthorizationHeader " +
+                                                        "cookiePresent=$hasCookieHeader " +
+                                                        "desktopUserAgent=${userAgent.contains("Windows NT", ignoreCase = true)} " +
+                                                        "requestHeaderNames=$requestHeaderNames " +
+                                                        "responseHeaders=$diagnosticHeaders " +
+                                                        "error=${summarizeDaznErrorBody(resText)}"
+                                            )
+                                        }
                                         AppLog.d(
                                             "ProxyFetch",
                                             "DAZN API request host=${url.host} path=${url.path} method=$method status=$statusCode responseBytes=${resText.toByteArray(Charsets.UTF_8).size} elapsedMs=${android.os.SystemClock.elapsedRealtime() - requestStartedAt}"
@@ -935,6 +1010,9 @@ fun BrowserScreen(
                                 if (msg.contains("SpotifyDebug", ignoreCase = true) || msg.contains("Spotify", ignoreCase = true)) {
                                     AppLog.d("SpotifyDebug", "JS Console: $msg")
                                 }
+                                if (Regex("""(?i)(65[_-]?000[_-]?403|COR-\d+)""").containsMatchIn(msg)) {
+                                    AppLog.e("DaznPlayback", "Player error: ${msg.take(300)}")
+                                }
                             }
                             return super.onConsoleMessage(consoleMessage)
                         }
@@ -950,13 +1028,14 @@ fun BrowserScreen(
                             view?.settings?.mediaPlaybackRequiresUserGesture =
                                 !autoplayMedia && !isDaznUrl(url)
                             if (needsDesktopForUrl(url)) {
-                                val ua = getDynamicDesktopUserAgent()
-                                view?.settings?.userAgentString = ua
-                                val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
-                                val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
-                                view?.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
+                                view?.let { webView ->
+                                    val ua = setDesktopUserAgent(webView, context)
+                                    val chromeVersionRegex = Regex("Chrome/([0-9.]+)")
+                                    val chromeVersion = chromeVersionRegex.find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
+                                    webView.evaluateJavascript(BrowserJavascript.getDesktopSpoofScript(chromeVersion), null)
+                                }
                             } else {
-                                view?.settings?.userAgentString = null
+                                view?.let { setMobileUserAgent(it, context) }
                             }
 
                             // Re-applichiamo i settings del tema ad ogni cambio pagina per sicurezza
@@ -990,7 +1069,7 @@ fun BrowserScreen(
                                     if (!targetUrl.isNullOrEmpty()) {
                                         if (targetUrl.contains("dazn.com", ignoreCase = true)) {
                                             daznDesktopForced = true
-                                            view?.settings?.userAgentString = getDynamicDesktopUserAgent()
+                                            view?.let { setDesktopUserAgent(it, context) }
                                         }
                                         view?.loadUrl(targetUrl)
                                         return true
@@ -1003,7 +1082,7 @@ fun BrowserScreen(
                             if (uri.contains("dazn.com", ignoreCase = true) && (uri.contains("/watch/") || uri.contains("/event/") || uri.contains("/video/"))) {
                                 if (!daznDesktopForced) {
                                     daznDesktopForced = true
-                                    view?.settings?.userAgentString = getDynamicDesktopUserAgent()
+                                    view?.let { setDesktopUserAgent(it, context) }
                                     view?.loadUrl(uri)
                                     return true
                                 }
@@ -1020,6 +1099,7 @@ fun BrowserScreen(
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
                             val urlString = request?.url?.toString() ?: ""
+                            val requestUrl = request?.url
                             if (AdBlockHost.shouldBlock(urlString)) {
                                 return WebResourceResponse(
                                     "text/plain",
@@ -1030,6 +1110,13 @@ fun BrowserScreen(
 
                             // Handling CORS OPTIONS preflight for cross-origin API calls
                             if (request != null && request.method?.equals("OPTIONS", ignoreCase = true) == true) {
+                                val isDaznPlaybackPreflight =
+                                    requestUrl?.host.equals("api.playback.indazn.com", ignoreCase = true) &&
+                                            requestUrl?.path.equals("/v5/Playback", ignoreCase = true)
+                                if (isDaznPlaybackPreflight) {
+                                    AppLog.d("DaznPlayback", "Passing playback CORS preflight to WebView network stack")
+                                    return super.shouldInterceptRequest(view, request)
+                                }
                                 val reqOrigin = request.requestHeaders["Origin"] ?: "https://www.dazn.com"
                                 val reqHeaders = request.requestHeaders["Access-Control-Request-Headers"] ?: "*"
                                 val corsHeaders = mapOf(
@@ -1050,6 +1137,32 @@ fun BrowserScreen(
                             }
 
                             return super.shouldInterceptRequest(view, request)
+                        }
+
+                        override fun onReceivedHttpError(
+                            view: WebView?,
+                            request: WebResourceRequest?,
+                            errorResponse: WebResourceResponse?
+                        ) {
+                            val requestUrl = request?.url ?: return
+                            if (
+                                requestUrl.host.equals("api.playback.indazn.com", ignoreCase = true) &&
+                                requestUrl.path.equals("/v5/Playback", ignoreCase = true)
+                            ) {
+                                val safeHeaders = errorResponse?.responseHeaders.orEmpty()
+                                    .filterKeys { key ->
+                                        key.equals("Server", ignoreCase = true) ||
+                                                key.equals("X-Cache", ignoreCase = true) ||
+                                                key.equals("X-Amz-Cf-Pop", ignoreCase = true) ||
+                                                key.equals("X-Amz-Cf-Id", ignoreCase = true)
+                                    }
+                                AppLog.e(
+                                    "DaznPlayback",
+                                    "WebView playback HTTP error status=${errorResponse?.statusCode} " +
+                                            "headers=${JSONObject(safeHeaders).toString()}"
+                                )
+                            }
+                            super.onReceivedHttpError(view, request, errorResponse)
                         }
 
                         override fun onRenderProcessGone(
@@ -1108,9 +1221,9 @@ fun BrowserScreen(
                     it.settings.mediaPlaybackRequiresUserGesture =
                         !autoplayMedia && !isDaznUrl(it.url)
                     if (needsDesktop) {
-                        it.settings.userAgentString = getDynamicDesktopUserAgent()
+                        setDesktopUserAgent(it, context)
                     } else {
-                        it.settings.userAgentString = null
+                        setMobileUserAgent(it, context)
                     }
                     val targetScale = if (needsDesktop) actualDesktopScale else actualDisplayScale
                     it.setInitialScale(if (targetScale == 1.0f) 0 else (targetScale * 100).toInt())

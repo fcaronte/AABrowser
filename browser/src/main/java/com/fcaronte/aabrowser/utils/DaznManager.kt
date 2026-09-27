@@ -23,10 +23,7 @@ object DaznManager {
                         path.includes('getpartneruserdetails') ||
                         path.includes('authentication') ||
                         path.includes('auth');
-                    const isPlaybackApiRequest =
-                        host.includes('indazn.com') &&
-                        (path.includes('playback') || path.includes('token') || path.includes('session'));
-                    return isAuthenticationRequest || isPlaybackApiRequest;
+                    return isAuthenticationRequest;
                 } catch (e) {
                     return false;
                 }
