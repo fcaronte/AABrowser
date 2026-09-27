@@ -764,6 +764,20 @@ fun BrowserScreen(
 
                             @JavascriptInterface
                             @Suppress("unused")
+                            fun openLinkInNewTab(url: String) {
+                                post {
+                                    val uri = android.net.Uri.parse(url)
+                                    if ((uri.scheme == "http" || uri.scheme == "https") && !uri.host.isNullOrBlank()) {
+                                        AppLog.d("##BrowserScreen", "Long-pressed link opened in new tab: ${safeUrlForLog(url)}")
+                                        TabManager.addTab(url = uri.toString())
+                                    } else {
+                                        AppLog.w("##BrowserScreen", "Ignoring invalid URL for new tab: ${safeUrlForLog(url)}")
+                                    }
+                                }
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
                             fun openPopup(url: String) {
                                 post {
                                     AppLog.d("##BrowserScreen", "openPopup requested for host=${safeUrlForLog(url)}")

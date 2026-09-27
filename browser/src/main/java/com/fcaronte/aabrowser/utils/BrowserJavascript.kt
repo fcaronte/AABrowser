@@ -32,6 +32,7 @@ object BrowserJavascript {
         (function() {
             $VISIBILITY_MOCK_JS
             $DRM_L3_ENFORCER_JS
+            ${getLongPressLinkScript()}
 
             const host = window.location.hostname.toLowerCase();
             const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
@@ -472,62 +473,99 @@ object BrowserJavascript {
         (function() {
             if (window.aabLongPressInitialized) return;
             window.aabLongPressInitialized = true;
-            
+
             let pressTimer = null;
+            let activePointerId = null;
+            let startX = 0;
+            let startY = 0;
             let targetUrl = null;
-            
-            function getLinkUrl(element) {
-                let el = element;
-                while (el && el !== document.body) {
-                    if (el.tagName === 'A' && el.href) return el.href;
-                    if (el.getAttribute && el.getAttribute('data-href')) return el.getAttribute('data-href');
-                    if (el.getAttribute && el.getAttribute('data-url')) return el.getAttribute('data-url');
-                    el = el.parentElement;
+            let suppressNextClickUrl = null;
+            let suppressClickUntil = 0;
+            let lastOpenedUrl = null;
+            let lastOpenedAt = 0;
+
+            function getLinkUrl(event) {
+                const path = typeof event.composedPath === 'function' ? event.composedPath() : [event.target];
+                for (const node of path) {
+                    if (!(node instanceof Element)) continue;
+                    const link = node.closest('a[href], [data-href], [data-url]');
+                    if (!link) continue;
+                    const rawUrl = link.href || link.getAttribute('data-href') || link.getAttribute('data-url');
+                    if (!rawUrl) continue;
+                    try {
+                        const url = new URL(rawUrl, document.baseURI);
+                        if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+                    } catch (_) {}
                 }
                 return null;
             }
-            
-            document.addEventListener('touchstart', function(e) {
-                let url = getLinkUrl(e.target);
-                if (url) {
-                    targetUrl = url;
-                    if (pressTimer) clearTimeout(pressTimer);
-                    pressTimer = setTimeout(function() {
-                        if (targetUrl && window.AndroidBridge && window.AndroidBridge.openInNewTab) {
-                            AndroidBridge.openInNewTab(targetUrl);
-                            targetUrl = null;
-                        }
-                    }, 600);
-                } else {
-                    targetUrl = null;
+
+            function clearPress() {
+                if (pressTimer !== null) clearTimeout(pressTimer);
+                pressTimer = null;
+                activePointerId = null;
+                targetUrl = null;
+            }
+
+            function openLinkInNewTab(url) {
+                if (url === lastOpenedUrl && Date.now() - lastOpenedAt < 1000) return;
+                if (window.AndroidBridge && window.AndroidBridge.openLinkInNewTab) {
+                    AndroidBridge.openLinkInNewTab(url);
+                    lastOpenedUrl = url;
+                    lastOpenedAt = Date.now();
+                    suppressNextClickUrl = url;
+                    suppressClickUntil = lastOpenedAt + 1000;
                 }
-            }, {passive: true});
-            
-            document.addEventListener('touchmove', function(e) {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                    targetUrl = null;
+            }
+
+            window.addEventListener('pointerdown', function(event) {
+                if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+                clearPress();
+                const url = getLinkUrl(event);
+                if (!url) return;
+                activePointerId = event.pointerId;
+                startX = event.clientX;
+                startY = event.clientY;
+                targetUrl = url;
+                pressTimer = setTimeout(function() {
+                    const urlToOpen = targetUrl;
+                    clearPress();
+                    if (urlToOpen) openLinkInNewTab(urlToOpen);
+                }, 600);
+            }, true);
+
+            window.addEventListener('pointermove', function(event) {
+                if (event.pointerId !== activePointerId || pressTimer === null) return;
+                if (Math.hypot(event.clientX - startX, event.clientY - startY) > 18) clearPress();
+            }, true);
+
+            window.addEventListener('pointerup', function(event) {
+                if (event.pointerId === activePointerId) clearPress();
+            }, true);
+            window.addEventListener('pointercancel', function(event) {
+                if (event.pointerId === activePointerId) clearPress();
+            }, true);
+
+            window.addEventListener('click', function(event) {
+                const clickedUrl = getLinkUrl(event);
+                if (!suppressNextClickUrl) return;
+                if (Date.now() > suppressClickUntil) {
+                    suppressNextClickUrl = null;
+                    return;
                 }
-            }, {passive: true});
-            
-            document.addEventListener('touchend', function(e) {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                    targetUrl = null;
-                }
-            }, {passive: true});
-            
-            document.addEventListener('contextmenu', function(e) {
-                let url = getLinkUrl(e.target);
-                if (url) {
-                    e.preventDefault();
-                    if (window.AndroidBridge && window.AndroidBridge.openInNewTab) {
-                        AndroidBridge.openInNewTab(url);
-                    }
-                }
-            });
+                if (clickedUrl !== suppressNextClickUrl) return;
+                suppressNextClickUrl = null;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }, true);
+
+            window.addEventListener('contextmenu', function(event) {
+                const url = getLinkUrl(event);
+                if (!url) return;
+                event.preventDefault();
+                clearPress();
+                openLinkInNewTab(url);
+            }, true);
         })();
         """.trimIndent()
     }
