@@ -2,6 +2,7 @@ package com.fcaronte.aabrowser.mediaservice
 
 import com.fcaronte.aabrowser.utils.AppLog
 import android.app.Notification
+import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -35,6 +36,14 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     val serviceScope = CoroutineScope(Dispatchers.Main)
     private var weatherCheckJob: Job? = null
+    private val settingsPreferences by lazy {
+        getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
+    }
+    private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "weather_widget_enabled" && settingsPreferences.getBoolean(key, false)) {
+            serviceScope.launch { checkAndUpdateWeatherMetadata() }
+        }
+    }
 
     private val audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
@@ -76,6 +85,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         mMediacontrollercompat = mMediasessioncompat!!.controller
         sessionToken = mMediasessioncompat!!.sessionToken
 
+        settingsPreferences.registerOnSharedPreferenceChangeListener(settingsListener)
         checkAndUpdateWeatherMetadata()
     }
 
@@ -158,6 +168,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        settingsPreferences.unregisterOnSharedPreferenceChangeListener(settingsListener)
         weatherCheckJob?.cancel()
         abandonAudioFocus()
         mCarmedianotificationmanager?.onDestroy()

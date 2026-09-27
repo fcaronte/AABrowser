@@ -1,17 +1,13 @@
 package com.fcaronte.aabrowser
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.net.toUri
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 
@@ -32,15 +28,16 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        ForegroundService.startForegroundService(this)
-
         setContent {
             MainScreen()
         }
 
-        // Richieste all'avvio
-        requestIgnoreBatteryOptimizations()
         checkAndRequestAppPermissions()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AppSettings.enableWeatherByDefaultIfLocationGranted(this)
     }
 
     private fun checkAndRequestAppPermissions() {
@@ -69,19 +66,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun requestIgnoreBatteryOptimizations() {
-        val pm = getSystemService(POWER_SERVICE) as? PowerManager
-        if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
-            @SuppressLint("BatteryLife")
-            val intent = Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = "package:$packageName".toUri()
-            }
-            startActivityForResult(intent, 1001)
-        }
-    }
-
-    override fun onDestroy() {
-        ForegroundService.stopForegroundService(this)
-        super.onDestroy()
-    }
 }

@@ -17,6 +17,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.input.InputManager
@@ -109,6 +110,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     override fun onResume() {
         super.onResume()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        AppSettings.enableWeatherByDefaultIfLocationGranted(this)
         updateSystemUi(true)
     }
 

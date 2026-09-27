@@ -1,16 +1,12 @@
 package com.fcaronte.aabrowser
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.net.toUri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,13 +62,11 @@ class WelcomeActivity : ComponentActivity() {
         var micGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.RECORD_AUDIO)) }
         var locGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) }
         var notifGranted by remember { mutableStateOf(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS) else true) }
-        var batteryIgnored by remember { mutableStateOf(isBatteryIgnored()) }
 
         WelcomeScreen(
             micGranted = micGranted,
             locGranted = locGranted,
             notifGranted = notifGranted,
-            batteryIgnored = batteryIgnored,
             onMicClick = {
                 requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1001)
             },
@@ -83,9 +77,6 @@ class WelcomeActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1003)
                 }
-            },
-            onBatteryClick = {
-                requestIgnoreBatteryOptimizations()
             },
             onStartClicked = {
                 AppSettings.setOnboardingCompleted(this, true)
@@ -111,23 +102,6 @@ class WelcomeActivity : ComponentActivity() {
         return mic && loc && notif
     }
 
-    private fun isBatteryIgnored(): Boolean {
-        val pm = getSystemService(POWER_SERVICE) as? PowerManager
-        return pm?.isIgnoringBatteryOptimizations(packageName) ?: true
-    }
-
-    private fun requestIgnoreBatteryOptimizations() {
-        val pm = getSystemService(POWER_SERVICE) as? PowerManager
-        if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
-            @SuppressLint("BatteryLife")
-            val intent = Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = "package:$packageName".toUri()
-            }
-            try {
-                startActivity(intent)
-            } catch (_: Exception) {}
-        }
-    }
 }
 
 @Composable
@@ -135,11 +109,9 @@ fun WelcomeScreen(
     micGranted: Boolean,
     locGranted: Boolean,
     notifGranted: Boolean,
-    batteryIgnored: Boolean,
     onMicClick: () -> Unit,
     onLocClick: () -> Unit,
     onNotifClick: () -> Unit,
-    onBatteryClick: () -> Unit,
     onStartClicked: () -> Unit,
     onSkipClicked: () -> Unit
 ) {
@@ -196,15 +168,6 @@ fun WelcomeScreen(
                     description = stringResource(R.string.perm_notifications_desc),
                     isGranted = notifGranted,
                     onClick = onNotifClick
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                PermissionExplanationItem(
-                    icon = Icons.Default.BatteryChargingFull,
-                    title = stringResource(R.string.perm_background_title),
-                    description = stringResource(R.string.perm_background_desc),
-                    isGranted = batteryIgnored,
-                    onClick = onBatteryClick
                 )
             }
 

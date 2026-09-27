@@ -1,7 +1,9 @@
 package com.fcaronte.aabrowser.settings
 
 import com.fcaronte.aabrowser.utils.AppLog
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.compose.runtime.State
@@ -175,7 +177,19 @@ object AppSettings {
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
 
+        enableWeatherByDefaultIfLocationGranted(context)
         updateLocale()
+    }
+
+    fun enableWeatherByDefaultIfLocationGranted(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (
+            !prefs.contains("weather_widget_enabled") &&
+            context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            _weatherWidgetEnabled.value = true
+            saveBoolean(context, "weather_widget_enabled", true)
+        }
     }
 
     fun setOnboardingCompleted(context: Context, completed: Boolean) {

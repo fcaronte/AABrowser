@@ -220,8 +220,6 @@
     <string name="perm_location_desc">Used exclusively to display local weather updates on your car display.</string>
     <string name="perm_notifications_title">Notifications</string>
     <string name="perm_notifications_desc">Required for background music playback controls, weather widget, and app updates.</string>
-    <string name="perm_background_title">Background Execution &amp; Battery</string>
-    <string name="perm_background_desc">Essential to prevent Android Auto from closing or hiding the app if unused for a while.</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
 </resources>
