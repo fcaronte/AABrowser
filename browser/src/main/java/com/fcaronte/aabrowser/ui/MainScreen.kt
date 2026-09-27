@@ -315,11 +315,13 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                     .fillMaxSize()
                     .statusBarsPadding()     // Stacca dalla status bar in alto
                     .navigationBarsPadding() // Stacca dalla gesture bar in basso
-                    .pointerInput(Unit) {
+                    .pointerInput(isNavMenuOpen) {
                         awaitPointerEventScope {
                             while (true) {
                                 awaitPointerEvent(PointerEventPass.Initial)
-                                onInteraction(fromPage = true)
+                                if (!isNavMenuOpen) {
+                                    onInteraction(fromPage = true)
+                                }
                             }
                         }
                     }
