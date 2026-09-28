@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
+import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.R
 
 enum class ThemeMode {
@@ -384,7 +385,7 @@ object AppSettings {
     private fun updateLocale() {
         val languageCode = if (_forceEnglish.value) "en" else null
         val localeList = if (languageCode != null) {
-            androidx.core.os.LocaleListCompat.forLanguageTags(languageCode)
+            LocaleListCompat.forLanguageTags(languageCode)
         } else {
             androidx.core.os.LocaleListCompat.getEmptyLocaleList()
         }

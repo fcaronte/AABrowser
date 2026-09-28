@@ -167,7 +167,7 @@
     <string name="import_settings_label">Importa Impostazioni e Preferiti</string>
     <string name="import_settings_desc">Ripristina preferiti e impostazioni da un file di backup</string>
     <string name="import_button">Importa</string>
-    <string name="backup_success">Backup completato con successo!</string>
+    <string name="backup_success">Backup salvato in Download/AABrowser/aabrowser_backup.json</string>
     <string name="backup_error">Errore durante il backup.</string>
     <string name="import_success">Ripristino completato! Riavvia l\'app.</string>
     <string name="import_error">Errore durante il ripristino.</string>

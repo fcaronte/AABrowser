@@ -1,0 +1,229 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">إشعار Android Auto Browser</string>
+    <string name="notification_title">AABrowser قيد التشغيل</string>
+    <string name="notification_text">انقر للإيقاف</string>
+
+    <string name="settings_name">الإعدادات</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">تشغيل</string>
+    <string name="label_pause">إيقاف مؤقت</string>
+    <string name="label_previous">المقطع السابق</string>
+    <string name="label_next">المقطع التالي</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">وصول سريع للمواقع التي تستخدمها كثيراً</string>
+    <string name="edit_mode_toggle">تبديل وضع التعديل</string>
+    <string name="resume_button">استئناف</string>
+    <string name="tabs_button">علامات التبويب</string>
+    <string name="settings_button">الإعدادات</string>
+    <string name="add_favorite_title">إضافة مفضلة</string>
+    <string name="edit_favorite_title">تعديل المفضلة</string>
+    <string name="favorite_added">تمت إضافة المفضلة إلى الرئيسية</string>
+    <string name="favorite_updated">تم تحديث المفضلة</string>
+    <string name="field_name">الاسم</string>
+    <string name="field_url">رابط URL</string>
+    <string name="field_favicon">رابط الأيقونة (اختياري)</string>
+    <string name="field_color">اللون</string>
+    <string name="site_info_title">معلومات الموقع</string>
+    <string name="display_settings_title">إعدادات العرض</string>
+    <string name="desktop_mode_desc_site">استخدام وضع سطح المكتب لهذا الموقع</string>
+    <string name="confirm_button">تأكيد</string>
+    <string name="cancel_button">إلغاء</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">مظهر التطبيق</string>
+    <string name="settings_category_web">صفحات الويب</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="back_button">رجوع</string>
+    <string name="theme_mode_label">وضع سمة التطبيق</string>
+    <string name="theme_mode_desc">فرض النمط الفاتح أو الداكن على شاشة السيارة</string>
+    <string name="theme_force_label">فرض وضع السمة</string>
+    <string name="theme_force_desc_on">الوضع اليدوي نشط</string>
+    <string name="theme_force_desc_off">اتباع سمة النظام تلقائياً</string>
+    <string name="theme_selection_label">اختر السمة:</string>
+    <string name="dashboard_columns_label">لوحة تحكم بثلاثة أعمدة</string>
+    <string name="dashboard_columns_desc">تمكين 3 أعمدة بدلاً من 2 على الشاشة الرئيسية</string>
+    <string name="open_dashboard_on_new_tab_label">استخدام لوحة التحكم كعلامة تبويب جديدة</string>
+    <string name="open_dashboard_on_new_tab_desc">فتح لوحة التحكم بدلاً من صفحة البحث عند النقر فوق زر علامة التبويب الجديدة</string>
+    <string name="auto_open_favorite_label">استخدام المفضلة كصفحة بدء</string>
+    <string name="auto_open_favorite_desc">تحميل مفضلة محددة تلقائياً بدلاً من لوحة التحكم</string>
+    <string name="selected_favorite_label">المفضلة المحددة</string>
+    <string name="auto_open_none">بلا (فتح لوحة التحكم)</string>
+    <string name="autoplay_label">تشغيل الوسائط تلقائياً</string>
+    <string name="autoplay_desc">السماح بتشغيل الصوت والفيديو فوراً عند فتح علامات التبويب</string>
+    <string name="weather_widget_label">أداة الطقس في شريط المشغل</string>
+    <string name="weather_widget_desc">عرض الطقس ودرجة الحرارة في شريط المشغل عندما يكون التشغيل متوقفاً</string>
+    <string name="weather_permission_toast">يرجى تمكين إذن الموقع على هاتفك الذكي لمعرفة الطقس بدقة</string>
+    <string name="preload_favorites_label">تحميل المفضلة مسبقاً عند البدء</string>
+    <string name="preload_favorites_desc">فتح أفضل المفضلة في علامات تبويب في الخلفية عند بدء تشغيل التطبيق</string>
+    <string name="preload_favorites_count_label">عدد علامات التبويب المراد تحميلها مسبقاً: %d</string>
+    <string name="persistent_nav_label">زر التنقل الدائم</string>
+    <string name="persistent_nav_desc">إبقاء زر التنقل مرئياً دائماً (تعطيل الإخفاء التلقائي)</string>
+    <string name="tab_bar_mode_label">رؤية شريط علامات التبويب</string>
+    <string name="tab_bar_mode_off">إيقاف</string>
+    <string name="tab_bar_mode_auto">إخفاء تلقائي</string>
+    <string name="tab_bar_mode_always">دائم التشغيل</string>
+    <string name="tab_bar_mode_desc">اختر ما إذا كان شريط علامات التبويب الأفقي مخفياً أو مثبتاً</string>
+    <string name="tab_bar_enable_label">شريط علامات التبويب</string>
+    <string name="tab_bar_enable_desc">تمكين شريط أفقي لعلامات التبويب المفتوحة مباشرة فوق المتصفح</string>
+    <string name="forward_button">إمام</string>
+    <string name="dark_pages_label">صفحات الويب الداكنة</string>
+    <string name="dark_pages_desc">فرض الوضع الداكن على مواقع الويب</string>
+    <string name="desktop_mode_label">وضع سطح المكتب</string>
+    <string name="desktop_mode_desc">طلب إصدار سطح المكتب لمواقع الويب</string>
+    <string name="desktop_zoom_label">تكبير سطح المكتب: %d%%</string>
+    <string name="mobile_zoom_label">تكبير الهاتف: %d%%</string>
+    <string name="mobile_zoom_desc">ضبط تكبير صفحات الويب في وضع الهواتف</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">حظر الإعلانات المزعجة والمتعقبات</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">تخطي إعلانات يوتيوب تلقائياً (تجريبي: قد يتوقف عن العمل في أي وقت)</string>
+    <string name="multi_window_label">النوافذ المتعددة (النوافذ المنبثقة)</string>
+    <string name="multi_window_desc">السماح لمواقع الويب بفتح علامات تبويب جديدة أو نوافذ منبثقة (مثل صفحات تسجيل الدخول)</string>
+    <string name="force_english_label">فرض اللغة الإنجليزية</string>
+    <string name="force_english_desc">استخدام اللغة الإنجليزية دائماً بغض النظر عن لغة النظام</string>
+    <string name="search_engine_label">محرك البحث الافتراضي</string>
+    <string name="search_engine_desc">اختر محرك البحث السريع</string>
+    <string name="search_engine_custom_on">المحرك المخصص نشط</string>
+    <string name="search_engine_custom_off">الافتراضي: Google</string>
+    <string name="search_engine_selection_label">اختر المحرك:</string>
+    <string name="ui_scale_label">مقياس واجهة المستخدم (DPI)</string>
+    <string name="ui_scale_desc">ضبط الحجم الإجمالي لواجهة التطبيق</string>
+    <string name="clear_data_label">مسح بيانات المتصفح</string>
+    <string name="clear_data_desc">حدد البيانات المراد إزالتها من جهازك</string>
+    <string name="cache_label">ذاكرة التخزين المؤقت (%s)</string>
+    <string name="cookies_label">ملفات تعريف الارتباط</string>
+    <string name="data_cleared">تم مسح البيانات المحددة</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">علامات التبويب</string>
+    <string name="new_tab">علامة تبويب جديدة</string>
+    <string name="close_tab">إغلاق علامة التبويب</string>
+    <string name="close_all_tabs">إغلاق كل علامات التبويب</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">إضافة إلى المفضلة</string>
+    <string name="reload_button">إعادة تحميل</string>
+    <string name="home_button">الرئيسية</string>
+    <string name="exit_button">خروج</string>
+    <string name="menu_button">القائمة</string>
+    <string name="search_button">بحث سريع</string>
+    <string name="share_button">مشاركة عبر رمز QR</string>
+    <string name="qr_code_title">مشاركة الصفحة</string>
+    <string name="qr_code_label">رمز QR</string>
+    <string name="close_button">إغلاق</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">قل شيئاً…</string>
+    <string name="voice_listening">جارٍ الاستماع…</string>
+    <string name="voice_search">البحث الصوتي</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_browser_title">الصوت من المتصفح</string>
+    <string name="media_browser_subtitle">تشغيل الصوت الحالي</string>
+
+    <!-- Status -->
+    <string name="status_loaded">تم التحميل</string>
+
+    <!-- Update -->
+    <string name="update_available">تحديث جديد متوفر: %s</string>
+    <string name="update_available_title">تحديث AABrowser %s</string>
+    <string name="update_available_text">إصدار جديد متوفر. انقر للتنزيل والتثبيت.</string>
+    <string name="download_button">تحديث</string>
+    <string name="downloading_update">جاري تنزيل التحديث…</string>
+    <string name="update_download_started">بدء تنزيل التحديث</string>
+    <string name="update_download_failed">فشل تنزيل التحديث</string>
+    <string name="kinginstaller_not_found">لم يتم العثور على KingInstaller! تم إلغاء التحديث للحفاظ على ظهور التطبيق في Android Auto.</string>
+
+    <string name="settings_footer_github">مشروع GitHub</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">تحديث حجم ذاكرة التخزين المؤقت</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">إذا أعجبك المشروع، يمكنك شراء قهوة لي لدعم ساعات النوم الضائعة في كتابة هذا الكود والجدال مع Gemini 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">إعادة تعيين المفضلة الافتراضية</string>
+    <string name="reset_favorites_desc">استعادة مفضلة الشاشة الرئيسية إلى مواقعها الافتراضية الأصلية</string>
+    <string name="add_missing_favorites_label">تحميل مفضلة جديدة</string>
+    <string name="add_missing_favorites_desc">إضافة المواقع الافتراضية المفقودة إلى قائمتك الحالية دون إعادة تعيينها</string>
+    <string name="reset_button">إعادة تعيين</string>
+    <string name="add_button">إضافة</string>
+    <plurals name="favorites_added_count">
+        <item quantity="zero">لم تتم إضافة أي مفضلة</item>
+        <item quantity="one">تمت إضافة مفضلة واحدة</item>
+        <item quantity="two">تمت إضافة مفضللتين</item>
+        <item quantity="few">تمت إضافة %d مفضلات</item>
+        <item quantity="many">تمت إضافة %d مفضلة</item>
+        <item quantity="other">تمت إضافة %d مفضلة</item>
+    </plurals>
+    <string name="no_new_favorites">قائمتك محدثة بالفعل</string>
+    <string name="are_you_sure">هل أنت متأكد؟</string>
+    <string name="export_settings_label">تصدير الإعدادات والمراشح</string>
+    <string name="export_settings_desc">حفظ جميع الإشارات المرجعية والإعدادات في ملف نسخ احتياطي JSON</string>
+    <string name="export_button">تصدير</string>
+    <string name="import_settings_label">استيراد الإعدادات والمراشح</string>
+    <string name="import_settings_desc">استعادة الإشارات المرجعية والإعدادات من ملف نسخ احتياطي</string>
+    <string name="import_button">استيراد</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">فشل النسخ الاحتياطي.</string>
+    <string name="import_success">اكتملت الاستعادة! يرجى إعادة تشغيل التطبيق.</string>
+    <string name="import_error">فشلت الاستعادة.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">مرحباً بك في AABrowser</string>
+    <string name="welcome_subtitle">المتصفح الكامل المصمم لـ Android Auto. لضمان الأداء الأمثل، يرجى منح الأذونات التالية:</string>
+    <string name="perm_mic_title">الميكروفون</string>
+    <string name="perm_mic_desc">يستخدم للإملاء الصوتي وإدخال البحث داخل مواقع الويب.</string>
+    <string name="perm_location_title">موقع الشبكة</string>
+    <string name="perm_location_desc">يستخدم حصرياً لعرض تحديثات الطقس المحلية على شاشة سيارتك.</string>
+    <string name="perm_notifications_title">الإشعارات</string>
+    <string name="perm_notifications_desc">مطلوبة للتحكم في تشغيل الموسيقى في الخلفية، أداة الطقس، وتحديثات التطبيق.</string>
+    <string name="grant_permissions_button">منح الأذونات والبدء</string>
+    <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
+</resources>

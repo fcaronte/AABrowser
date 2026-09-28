@@ -1,0 +1,225 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Android Auto Browser सूचना</string>
+    <string name="notification_title">AABrowser चल रहा है</string>
+    <string name="notification_text">रोकने के लिए टैップ करें</string>
+
+    <string name="settings_name">सेटिंग्स</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">चलाएं</string>
+    <string name="label_pause">रोकें</string>
+    <string name="label_previous">पिछला ट्रैक</string>
+    <string name="label_next">अगला ट्रैक</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">आपके सबसे अधिक उपयोग किए जाने वाले साइटों तक त्वरित पहुंच</string>
+    <string name="edit_mode_toggle">संपादन मोड टॉगल करें</string>
+    <string name="resume_button">फिर से शुरू करें</string>
+    <string name="tabs_button">टैब</string>
+    <string name="settings_button">सेटिंग्स</string>
+    <string name="add_favorite_title">पसंदीदा जोड़ें</string>
+    <string name="edit_favorite_title">पसंदीदा संपादित करें</string>
+    <string name="favorite_added">पसंदीदा होम में जोड़ा गया</string>
+    <string name="favorite_updated">पसंदीदा अपडेट किया गया</string>
+    <string name="field_name">नाम</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">फ़ेविकॉन URL (वैकल्पिक)</string>
+    <string name="field_color">रंग</string>
+    <string name="site_info_title">साइट जानकारी</string>
+    <string name="display_settings_title">प्रदर्शन सेटिंग्स</string>
+    <string name="desktop_mode_desc_site">इस साइट के लिए डेस्कटॉप मोड का उपयोग करें</string>
+    <string name="confirm_button">पुष्टि करें</string>
+    <string name="cancel_button">रद्द करें</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">ऐप दिखावट</string>
+    <string name="settings_category_web">वेब पेज</string>
+
+    <!-- Settings -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="back_button">पीछे</string>
+    <string name="theme_mode_label">ऐप थीम मोड</string>
+    <string name="theme_mode_desc">कार डिस्प्ले पर हल्की या डार्क शैली लागू करें</string>
+    <string name="theme_force_label">थीम मोड लागू करें</string>
+    <string name="theme_force_desc_on">मैनुअल मोड सक्रिय</string>
+    <string name="theme_force_desc_off">सिस्टम थीम का स्वचालित रूप से पालन करें</string>
+    <string name="theme_selection_label">थीम चुनें:</string>
+    <string name="dashboard_columns_label">तीन कॉलम डैशबोर्ड</string>
+    <string name="dashboard_columns_desc">होम स्क्रीन पर 2 के बजाय 3 कॉलम सक्षम करें</string>
+    <string name="open_dashboard_on_new_tab_label">नए टैब के रूप में डैशबोर्ड का उपयोग करें</string>
+    <string name="open_dashboard_on_new_tab_desc">नया टैब बटन क्लिक करने पर खोज पृष्ठ के बजाय डैशबोर्ड खोलें</string>
+    <string name="auto_open_favorite_label">स्टार्टअप पृष्ठ के रूप में पसंदीदा का उपयोग करें</string>
+    <string name="auto_open_favorite_desc">डैशबोर्ड के बजाय स्वचालित रूप से एक विशिष्ट पसंदीदा लोड करें</string>
+    <string name="selected_favorite_label">चयनित पसंदीदा</string>
+    <string name="auto_open_none">कोई नहीं (डैशबोर्ड खोलें)</string>
+    <string name="autoplay_label">मीडिया स्वतः चलाएं</string>
+    <string name="autoplay_desc">टैब खोलते ही ऑडियो और वीडियो तुरंत शुरू होने दें</string>
+    <string name="weather_widget_label">प्लेयर बार में मौसम विजेट</string>
+    <string name="weather_widget_desc">प्लेबैक निष्क्रिय होने पर प्लेयर बार में मौसम और तापमान दिखाएं</string>
+    <string name="weather_permission_toast">सटीक मौसम के लिए कृपया अपने स्मार्टफोन पर स्थान की अनुमति सक्षम करें</string>
+    <string name="preload_favorites_label">शुरुआत में पसंदीदा प्रीलोड करें</string>
+    <string name="preload_favorites_desc">ऐप शुरू होने पर पृष्ठभूमि टैब में शीर्ष पसंदीदा खोलें</string>
+    <string name="preload_favorites_count_label">प्रीलोड करने के लिए टैब की संख्या: %d</string>
+    <string name="persistent_nav_label">स्थिर नेविगेशन बटन</string>
+    <string name="persistent_nav_desc">नेविगेशन बटन को हमेशा दिखाई देने वाला रखें (ऑटो-छिपाना अक्षम करें)</string>
+    <string name="tab_bar_mode_label">टैब बार दृश्यता</string>
+    <string name="tab_bar_mode_off">बंद</string>
+    <string name="tab_bar_mode_auto">स्वतः-छिपाएं</string>
+    <string name="tab_bar_mode_always">हमेशा चालू</string>
+    <string name="tab_bar_mode_desc">चुनें कि क्षैतिज टैब बार छिपा होना चाहिए या तय</string>
+    <string name="tab_bar_enable_label">टैब बार</string>
+    <string name="tab_bar_enable_desc">ब्राउज़र के ठीक ऊपर खुले टैब के लिए क्षैतिज बार सक्षम करें</string>
+    <string name="forward_button">आगे</string>
+    <string name="dark_pages_label">डार्क वेब पेज</string>
+    <string name="dark_pages_desc">वेबसाइटों पर डार्क मोड लागू करें</string>
+    <string name="desktop_mode_label">डेस्कटॉप मोड</string>
+    <string name="desktop_mode_desc">वेबसाइटों का डेस्कटॉप संस्करण अनुरोध करें</string>
+    <string name="desktop_zoom_label">डेस्कटॉप ज़ूम: %d%%</string>
+    <string name="mobile_zoom_label">मोबाइल ज़ूम: %d%%</string>
+    <string name="mobile_zoom_desc">मोबाइल मोड में वेब पेजों का ज़ूम समायोजित करें</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">घुसपैठिए विज्ञापनों और ट्रैकर्स को ब्लॉक करें</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">YouTube विज्ञापन स्वतः छोड़ें (बीटा: किसी भी समय काम करना बंद कर सकता है)</string>
+    <string name="multi_window_label">एकाधिक खिड़कियां (पॉपअप)</string>
+    <string name="multi_window_desc">वेबसाइटों को नए टैब या पॉपअप विंडो खोलने की अनुमति दें (उदा. लॉगिन पृष्ठ)</string>
+    <string name="force_english_label">अंग्रेजी भाषा लागू करें</string>
+    <string name="force_english_desc">सिस्टम भाषा की परवाह किए बिना हमेशा अंग्रेजी का उपयोग करें</string>
+    <string name="search_engine_label">डिफ़ॉल्ट खोज इंजन</string>
+    <string name="search_engine_desc">त्वरित खोज के लिए इंजन चुनें</string>
+    <string name="search_engine_custom_on">कस्टम इंजन सक्रिय</string>
+    <string name="search_engine_custom_off">डिफ़ॉल्ट: Google</string>
+    <string name="search_engine_selection_label">इंजन चुनें:</string>
+    <string name="ui_scale_label">UI स्केल (DPI)</string>
+    <string name="ui_scale_desc">ऐप इंटरफ़ेस का कुल आकार समायोजित करें</string>
+    <string name="clear_data_label">ब्राउज़र डेटा साफ़ करें</string>
+    <string name="clear_data_desc">अपने डिवाइस से हटाने के लिए डेटा चुनें</string>
+    <string name="cache_label">कैش (%s)</string>
+    <string name="cookies_label">कुकीज़</string>
+    <string name="data_cleared">चयनित डेटा साफ़ किया गया</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">टैब</string>
+    <string name="new_tab">नया टैब</string>
+    <string name="close_tab">टैब बंद करें</string>
+    <string name="close_all_tabs">सभी टैब बंद करें</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">पसंदीदा में जोड़ें</string>
+    <string name="reload_button">पुनः लोड करें</string>
+    <string name="home_button">होम</string>
+    <string name="exit_button">बाहर निकलें</string>
+    <string name="menu_button">मेनू</string>
+    <string name="search_button">त्वरित खोज</string>
+    <string name="share_button">QR कोड के माध्यम से साझा करें</string>
+    <string name="qr_code_title">पृष्ठ साझा करें</string>
+    <string name="qr_code_label">QR कोड</string>
+    <string name="close_button">बंद करें</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">कुछ कहें…</string>
+    <string name="voice_listening">सुन रहा है…</string>
+    <string name="voice_search">वॉयस सर्च</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_browser_title">ब्राउज़र से ऑडियो</string>
+    <string name="media_browser_subtitle">वर्तमान ऑडियो चलाएं</string>
+
+    <!-- Status -->
+    <string name="status_loaded">लोड हो गया</string>
+
+    <!-- Update -->
+    <string name="update_available">नया अपडेट उपलब्ध है: %s</string>
+    <string name="update_available_title">AABrowser अपडेट %s</string>
+    <string name="update_available_text">एक नया संस्करण उपलब्ध है। डाउनलोड और इंस्टॉल करने के लिए टैब करें।</string>
+    <string name="download_button">अपडेट करें</string>
+    <string name="downloading_update">अपडेट डाउनलोड हो रहा है…</string>
+    <string name="update_download_started">अपडेट डाउनलोड शुरू हुआ</string>
+    <string name="update_download_failed">अपडेट डाउनलोड करने में विफल</string>
+    <string name="kinginstaller_not_found">KingInstaller नहीं मिला! एंड्रॉइड ऑटो दृश्यता बनाए रखने के लिए अपडेट रद्द किया गया।</string>
+
+    <string name="settings_footer_github">GitHub प्रोजेक्ट</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">कैश आकार ताज़ा करें</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">यदि आपको प्रोजेक्ट पसंद है, तो आप इस कोड को लिखने और Gemini के साथ बहस करने में खोई हुई नींद के घंटों का समर्थन करने के लिए मुझे एक कॉफी खरीद सकते हैं 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">डिफ़ॉल्ट पसंदीदा रीसेट करें</string>
+    <string name="reset_favorites_desc">होम स्क्रीन पसंदीदा को मूल डिफ़ॉल्ट साइटों पर पुनर्स्थापित करें</string>
+    <string name="add_missing_favorites_label">नए पसंदीदा लोड करें</string>
+    <string name="add_missing_favorites_desc">अपनी वर्तमान सूची को रीसेट किए बिना उसमें छूटी हुई डिफ़ॉल्ट साइटें जोड़ें</string>
+    <string name="reset_button">रीसेट</string>
+    <string name="add_button">जोड़ें</string>
+    <plurals name="favorites_added_count">
+        <item quantity="one">1 पसंदीदा जोड़ा गया</item>
+        <item quantity="other">%d पसंदीदा जोड़े गए</item>
+    </plurals>
+    <string name="no_new_favorites">आपकी सूची पहले से ही अद्यतित है</string>
+    <string name="are_you_sure">क्या आपको यकीन है?</string>
+    <string name="export_settings_label">सेटिंग्स और बुकमार्क निर्यात करें</string>
+    <string name="export_settings_desc">अपने सभी बुकमार्क और सेटिंग्स को JSON बैकअप फ़ाइल में सहेजें</string>
+    <string name="export_button">निर्यात</string>
+    <string name="import_settings_label">सेटिंग्स और बुकमार्क आयात करें</string>
+    <string name="import_settings_desc">बैकअप फ़ाइल से बुकमार्क और सेटिंग्स पुनर्स्थापित करें</string>
+    <string name="import_button">आयात</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">बैकअप विफल।</string>
+    <string name="import_success">पुनस्थापना पूर्ण! कृपया ऐप पुनः आरंभ करें।</string>
+    <string name="import_error">पुनस्थापना विफल।</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">AABrowser में आपका स्वागत है</string>
+    <string name="welcome_subtitle">एंड्रॉइड ऑटो के लिए डिज़ाइन किया गया पूर्ण ब्राउज़र। इष्टतम प्रदर्शन सुनिश्चित करने के लिए, कृपया निम्नलिखित अनुमतियां दें:</string>
+    <string name="perm_mic_title">माइक्रोफ़ोन</string>
+    <string name="perm_mic_desc">वेबसाइटों के भीतर वॉयस डिक्टेशन और खोज इनपुट के लिए उपयोग किया जाता है।</string>
+    <string name="perm_location_title">नेटवर्क स्थान</string>
+    <string name="perm_location_desc">आपकी कार डिस्प्ले पर स्थानीय मौसम अपडेट प्रदर्शित करने के लिए विशेष रूप से उपयोग किया जाता है।</string>
+    <string name="perm_notifications_title">सूचनाएं</string>
+    <string name="perm_notifications_desc">पृष्ठभूमि संगीत प्लेबैक नियंत्रण, मौसम विजेट और ऐप अपडेट के लिए आवश्यक।</string>
+    <string name="grant_permissions_button">अनुमतियां दें और शुरू करें</string>
+    <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>
+</resources>

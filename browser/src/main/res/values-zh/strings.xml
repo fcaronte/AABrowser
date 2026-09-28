@@ -1,0 +1,224 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Android Auto Browser 通知</string>
+    <string name="notification_title">AABrowser 正在运行</string>
+    <string name="notification_text">点击停止</string>
+
+    <string name="settings_name">设置</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">播放</string>
+    <string name="label_pause">暂停</string>
+    <string name="label_previous">上一曲</string>
+    <string name="label_next">下一曲</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">快速访问您最常使用的网站</string>
+    <string name="edit_mode_toggle">切换编辑模式</string>
+    <string name="resume_button">恢复</string>
+    <string name="tabs_button">标签页</string>
+    <string name="settings_button">设置</string>
+    <string name="add_favorite_title">添加收藏</string>
+    <string name="edit_favorite_title">编辑收藏</string>
+    <string name="favorite_added">已添加到主屏幕收藏</string>
+    <string name="favorite_updated">收藏已更新</string>
+    <string name="field_name">名称</string>
+    <string name="field_url">网址 (URL)</string>
+    <string name="field_favicon">图标网址 (可选)</string>
+    <string name="field_color">颜色</string>
+    <string name="site_info_title">网站信息</string>
+    <string name="display_settings_title">显示设置</string>
+    <string name="desktop_mode_desc_site">在此网站使用桌面模式</string>
+    <string name="confirm_button">确定</string>
+    <string name="cancel_button">取消</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">应用外观</string>
+    <string name="settings_category_web">网页</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="back_button">返回</string>
+    <string name="theme_mode_label">应用主题模式</string>
+    <string name="theme_mode_desc">在车载屏幕上强制使用深色或浅色风格</string>
+    <string name="theme_force_label">强制主题模式</string>
+    <string name="theme_force_desc_on">手动模式已启用</string>
+    <string name="theme_force_desc_off">自动跟随系统主题</string>
+    <string name="theme_selection_label">选择主题：</string>
+    <string name="dashboard_columns_label">三列仪表盘</string>
+    <string name="dashboard_columns_desc">在主屏幕上启用 3 列而不是 2 列</string>
+    <string name="open_dashboard_on_new_tab_label">使用仪表盘作为新标签页</string>
+    <string name="open_dashboard_on_new_tab_desc">点击新标签页按钮时打开仪表盘而不是搜索页</string>
+    <string name="auto_open_favorite_label">使用收藏作为启动页</string>
+    <string name="auto_open_favorite_desc">自动加载指定的收藏而不是仪表盘</string>
+    <string name="selected_favorite_label">选定的收藏</string>
+    <string name="auto_open_none">无 (打开仪表盘)</string>
+    <string name="autoplay_label">媒体自动播放</string>
+    <string name="autoplay_desc">允许打开标签页时立即开始播放音视频</string>
+    <string name="weather_widget_label">播放栏天气小部件</string>
+    <string name="weather_widget_desc">在播放不活跃时在播放栏显示天气和温度</string>
+    <string name="weather_permission_toast">请在智能手机上启用定位权限以获取准确的天气信息</string>
+    <string name="preload_favorites_label">启动时预加载收藏</string>
+    <string name="preload_favorites_desc">应用启动时在后台标签页中打开热门收藏</string>
+    <string name="preload_favorites_count_label">预加载标签页数量：%d</string>
+    <string name="persistent_nav_label">常驻导航按钮</string>
+    <string name="persistent_nav_desc">保持导航按钮始终可见（禁用自动隐藏）</string>
+    <string name="tab_bar_mode_label">标签栏可见性</string>
+    <string name="tab_bar_mode_off">关闭</string>
+    <string name="tab_bar_mode_auto">自动隐藏</string>
+    <string name="tab_bar_mode_always">始终显示</string>
+    <string name="tab_bar_mode_desc">选择水平标签栏应隐藏还是固定</string>
+    <string name="tab_bar_enable_label">标签栏</string>
+    <string name="tab_bar_enable_desc">在浏览器正上方启用打开标签页的水平栏</string>
+    <string name="forward_button">前进</string>
+    <string name="dark_pages_label">深色网页</string>
+    <string name="dark_pages_desc">在网站上强制启用深色模式</string>
+    <string name="desktop_mode_label">桌面模式</string>
+    <string name="desktop_mode_desc">请求网站的桌面版本</string>
+    <string name="desktop_zoom_label">桌面缩放：%d%%</string>
+    <string name="mobile_zoom_label">移动端缩放：%d%%</string>
+    <string name="mobile_zoom_desc">调整移动模式下网页的缩放比例</string>
+    <string name="adblock_label">AdBlock 广告拦截</string>
+    <string name="adblock_desc">拦截干扰性广告和追踪器</string>
+    <string name="adblock_youtube_label">YouTube 广告拦截与加速</string>
+    <string name="adblock_youtube_desc">自动跳过 YouTube 广告（Beta：可能随时失效）</string>
+    <string name="multi_window_label">多窗口（弹出窗口）</string>
+    <string name="multi_window_desc">允许网站打开新标签页或弹出窗口（例如登录页面）</string>
+    <string name="force_english_label">强制英语</string>
+    <string name="force_english_desc">无论系统语言如何，始终使用英语</string>
+    <string name="search_engine_label">默认搜索引擎</string>
+    <string name="search_engine_desc">选择快速搜索的引擎</string>
+    <string name="search_engine_custom_on">自定义搜索引擎已启用</string>
+    <string name="search_engine_custom_off">默认：Google</string>
+    <string name="search_engine_selection_label">选择搜索引擎：</string>
+    <string name="ui_scale_label">界面缩放 (DPI)</string>
+    <string name="ui_scale_desc">调整应用界面的整体大小</string>
+    <string name="clear_data_label">清除浏览器数据</string>
+    <string name="clear_data_desc">选择要从设备中删除的数据</string>
+    <string name="cache_label">缓存 (%s)</string>
+    <string name="cookies_label">Cookie</string>
+    <string name="data_cleared">已清除所选数据</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">标签页</string>
+    <string name="new_tab">新标签页</string>
+    <string name="close_tab">关闭标签页</string>
+    <string name="close_all_tabs">关闭所有标签页</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">添加到收藏</string>
+    <string name="reload_button">重新加载</string>
+    <string name="home_button">主页</string>
+    <string name="exit_button">退出</string>
+    <string name="menu_button">菜单</string>
+    <string name="search_button">快速搜索</string>
+    <string name="share_button">通过二维码分享</string>
+    <string name="qr_code_title">分享页面</string>
+    <string name="qr_code_label">二维码</string>
+    <string name="close_button">关闭</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">说点什么…</string>
+    <string name="voice_listening">正在聆听…</string>
+    <string name="voice_search">语音搜索</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser 媒体会话</string>
+    <string name="media_browser_title">来自浏览器的音频</string>
+    <string name="media_browser_subtitle">播放当前音频</string>
+
+    <!-- Status -->
+    <string name="status_loaded">已加载</string>
+
+    <!-- Update -->
+    <string name="update_available">发现新版本：%s</string>
+    <string name="update_available_title">AABrowser 更新 %s</string>
+    <string name="update_available_text">有新版本可用。点击下载并安装。</string>
+    <string name="download_button">更新</string>
+    <string name="downloading_update">正在下载更新…</string>
+    <string name="update_download_started">已开始下载更新</string>
+    <string name="update_download_failed">下载更新失败</string>
+    <string name="kinginstaller_not_found">未找到 KingInstaller！已取消更新以保持在 Android Auto 中的可见性。</string>
+
+    <string name="settings_footer_github">GitHub 项目</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">刷新缓存大小</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">如果您喜欢这个项目，可以请我喝杯咖啡，支持我编写此代码和与 Gemini 争论所失去的睡眠时间 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">重置默认收藏</string>
+    <string name="reset_favorites_desc">将主屏幕收藏恢复为最初的默认网站</string>
+    <string name="add_missing_favorites_label">加载新收藏</string>
+    <string name="add_missing_favorites_desc">将缺少的默认网站添加到当前列表，而不重置它</string>
+    <string name="reset_button">重置</string>
+    <string name="add_button">添加</string>
+    <plurals name="favorites_added_count">
+        <item quantity="other">已添加 %d 个收藏</item>
+    </plurals>
+    <string name="no_new_favorites">您的列表已是最新</string>
+    <string name="are_you_sure">您确定吗？</string>
+    <string name="export_settings_label">导出设置与书签</string>
+    <string name="export_settings_desc">将所有书签和设置保存到 JSON 备份文件</string>
+    <string name="export_button">导出</string>
+    <string name="import_settings_label">导入设置与书签</string>
+    <string name="import_settings_desc">从备份文件恢复书签和设置</string>
+    <string name="import_button">导入</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">备份失败。</string>
+    <string name="import_success">恢复完成！请重新启动应用。</string>
+    <string name="import_error">恢复失败。</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">欢迎使用 AABrowser</string>
+    <string name="welcome_subtitle">专为 Android Auto 设计的完整浏览器。为确保最佳性能，请授予以下权限：</string>
+    <string name="perm_mic_title">麦克风</string>
+    <string name="perm_mic_desc">用于网站内的语音听写和搜索输入。</string>
+    <string name="perm_location_title">网络定位</string>
+    <string name="perm_location_desc">专用于在您的车载屏幕上显示本地天气更新。</string>
+    <string name="perm_notifications_title">通知</string>
+    <string name="perm_notifications_desc">后台音乐播放控制、天气小部件和应用更新所必需。</string>
+    <string name="grant_permissions_button">授予权限并开始</string>
+    <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
+</resources>

@@ -1,0 +1,227 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Уведомление Android Auto Browser</string>
+    <string name="notification_title">AABrowser запущен</string>
+    <string name="notification_text">Нажмите, чтобы остановить</string>
+
+    <string name="settings_name">Настройки</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">Воспроизвести</string>
+    <string name="label_pause">Пауза</string>
+    <string name="label_previous">Предыдущий трек</string>
+    <string name="label_next">Следующий трек</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">Быстрый доступ к часто используемым сайтам</string>
+    <string name="edit_mode_toggle">Переключить режим редактирования</string>
+    <string name="resume_button">Продолжить</string>
+    <string name="tabs_button">Вкладки</string>
+    <string name="settings_button">Настройки</string>
+    <string name="add_favorite_title">Добавить в избранное</string>
+    <string name="edit_favorite_title">Изменить избранное</string>
+    <string name="favorite_added">Сайт добавлен на главную</string>
+    <string name="favorite_updated">Избранное обновлено</string>
+    <string name="field_name">Имя</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">URL значка (Необязательно)</string>
+    <string name="field_color">Цвет</string>
+    <string name="site_info_title">Информация о сайте</string>
+    <string name="display_settings_title">Настройки отображения</string>
+    <string name="desktop_mode_desc_site">Использовать режим ПК для этого сайта</string>
+    <string name="confirm_button">Подтвердить</string>
+    <string name="cancel_button">Отмена</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">Внешний вид приложения</string>
+    <string name="settings_category_web">Веб-страницы</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="back_button">Назад</string>
+    <string name="theme_mode_label">Режим темы приложения</string>
+    <string name="theme_mode_desc">Принудительно включить светлый или темный стиль на экране авто</string>
+    <string name="theme_force_label">Принудительный режим темы</string>
+    <string name="theme_force_desc_on">Ручной режим активен</string>
+    <string name="theme_force_desc_off">Автоматически следовать системной теме</string>
+    <string name="theme_selection_label">Выберите тему:</string>
+    <string name="dashboard_columns_label">Панель в три колонки</string>
+    <string name="dashboard_columns_desc">Включить 3 колонки вместо 2 на главном экране</string>
+    <string name="open_dashboard_on_new_tab_label">Панель как новая вкладка</string>
+    <string name="open_dashboard_on_new_tab_desc">Открывать панель вместо страницы поиска при нажатии на кнопку новой вкладки</string>
+    <string name="auto_open_favorite_label">Избранное как стартовая страница</string>
+    <string name="auto_open_favorite_desc">Автоматически загружать определенный сайт вместо панели</string>
+    <string name="selected_favorite_label">Выбранное избранное</string>
+    <string name="auto_open_none">Нет (открывать панель)</string>
+    <string name="autoplay_label">Автовоспроизведение медиа</string>
+    <string name="autoplay_desc">Разрешить автоматический запуск аудио и видео при открытии вкладок</string>
+    <string name="weather_widget_label">Виджет погоды в панели плеера</string>
+    <string name="weather_widget_desc">Показывать погоду и температуру в панели плеера при остановке воспроизведения</string>
+    <string name="weather_permission_toast">Включите разрешение на геолокацию на смартфоне для точной погоды</string>
+    <string name="preload_favorites_label">Предзагрузка избранного при запуске</string>
+    <string name="preload_favorites_desc">Открывать топ сайтов в фоновых вкладках при запуске приложения</string>
+    <string name="preload_favorites_count_label">Количество вкладок для предзагрузки: %d</string>
+    <string name="persistent_nav_label">Постоянная кнопка навигации</string>
+    <string name="persistent_nav_desc">Держать кнопку навигации всегда видимой (отключить автоскрытие)</string>
+    <string name="tab_bar_mode_label">Видимость панели вкладок</string>
+    <string name="tab_bar_mode_off">Выкл</string>
+    <string name="tab_bar_mode_auto">Автоскрытие</string>
+    <string name="tab_bar_mode_always">Всегда вкл</string>
+    <string name="tab_bar_mode_desc">Выберите, должна ли панель вкладок скрываться или быть фиксированной</string>
+    <string name="tab_bar_enable_label">Панель вкладок</string>
+    <string name="tab_bar_enable_desc">Включить горизонтальную панель открытых вкладок прямо над браузером</string>
+    <string name="forward_button">Вперед</string>
+    <string name="dark_pages_label">Темные веб-страницы</string>
+    <string name="dark_pages_desc">Принудительный темный режим на сайтах</string>
+    <string name="desktop_mode_label">Режим ПК</string>
+    <string name="desktop_mode_desc">Запрашивать настольную версию сайтов</string>
+    <string name="desktop_zoom_label">Масштаб ПК: %d%%</string>
+    <string name="mobile_zoom_label">Масштаб мобильный: %d%%</string>
+    <string name="mobile_zoom_desc">Настройка масштаба веб-страниц в мобильном режиме</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">Блокировка навязчивой рекламы и трекеров</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">Автопропуск рекламы YouTube (Бета: может перестать работать в любой момент)</string>
+    <string name="multi_window_label">Множественные окна (Всплывающие)</string>
+    <string name="multi_window_desc">Разрешить сайтам открывать новые вкладки или всплывающие окна (например, для входа)</string>
+    <string name="force_english_label">Принудительно английский язык</string>
+    <string name="force_english_desc">Всегда использовать английский независимо от языка системы</string>
+    <string name="search_engine_label">Поисковая система по умолчанию</string>
+    <string name="search_engine_desc">Выберите поисковик для быстрого поиска</string>
+    <string name="search_engine_custom_on">Пользовательский поисковик активен</string>
+    <string name="search_engine_custom_off">По умолчанию: Google</string>
+    <string name="search_engine_selection_label">Выберите поисковик:</string>
+    <string name="ui_scale_label">Масштаб интерфейса (DPI)</string>
+    <string name="ui_scale_desc">Настройка общего размера интерфейса приложения</string>
+    <string name="clear_data_label">Очистить данные браузера</string>
+    <string name="clear_data_desc">Выберите данные для удаления с устройства</string>
+    <string name="cache_label">Кэш (%s)</string>
+    <string name="cookies_label">Куки</string>
+    <string name="data_cleared">Выбранные данные очищены</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">Вкладки</string>
+    <string name="new_tab">Новая вкладка</string>
+    <string name="close_tab">Закрыть вкладку</string>
+    <string name="close_all_tabs">Закрыть все вкладки</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">В избранное</string>
+    <string name="reload_button">Обновить</string>
+    <string name="home_button">Домой</string>
+    <string name="exit_button">Выход</string>
+    <string name="menu_button">Меню</string>
+    <string name="search_button">Быстрый поиск</string>
+    <string name="share_button">Поделиться через QR-код</string>
+    <string name="qr_code_title">Поделиться страницей</string>
+    <string name="qr_code_label">QR-код</string>
+    <string name="close_button">Закрыть</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">Скажите что-нибудь…</string>
+    <string name="voice_listening">Слушаю…</string>
+    <string name="voice_search">Голосовой поиск</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_browser_title">Звук из браузера</string>
+    <string name="media_browser_subtitle">Воспроизвести текущий звук</string>
+
+    <!-- Status -->
+    <string name="status_loaded">Загружено</string>
+
+    <!-- Update -->
+    <string name="update_available">Доступно обновление: %s</string>
+    <string name="update_available_title">Обновление AABrowser %s</string>
+    <string name="update_available_text">Доступна новая версия. Нажмите для скачивания и установки.</string>
+    <string name="download_button">Обновить</string>
+    <string name="downloading_update">Загрузка обновления…</string>
+    <string name="update_download_started">Загрузка обновления начата</string>
+    <string name="update_download_failed">Не удалось загрузить обновление</string>
+    <string name="kinginstaller_not_found">KingInstaller не найден! Обновление отменено для сохранения видимости в Android Auto.</string>
+
+    <string name="settings_footer_github">Проект на GitHub</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">Обновить размер кэша</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">Если вам нравится проект, вы можете угостить меня кофе, чтобы поддержать часы потерянного сна за написанием этого кода и спорами с Gemini 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">Сбросить избранное по умолчанию</string>
+    <string name="reset_favorites_desc">Восстановить исходные сайты на главном экране</string>
+    <string name="add_missing_favorites_label">Загрузить новое избранное</string>
+    <string name="add_missing_favorites_desc">Добавить недостающие сайты в текущий список без его сброса</string>
+    <string name="reset_button">Сбросить</string>
+    <string name="add_button">Добавить</string>
+    <plurals name="favorites_added_count">
+        <item quantity="one">%d сайт добавлен</item>
+        <item quantity="few">%d сайта добавлено</item>
+        <item quantity="many">%d сайтов добавлено</item>
+        <item quantity="other">%d сайтов добавлено</item>
+    </plurals>
+    <string name="no_new_favorites">Ваш список уже актуален</string>
+    <string name="are_you_sure">Вы уверены?</string>
+    <string name="export_settings_label">Экспорт настроек и закладок</string>
+    <string name="export_settings_desc">Сохранить все закладки и настройки в резервный файл JSON</string>
+    <string name="export_button">Экспорт</string>
+    <string name="import_settings_label">Импорт настроек и закладок</string>
+    <string name="import_settings_desc">Восстановить закладки и настройки из файла резервной копии</string>
+    <string name="import_button">Импорт</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">Ошибка резервного копирования.</string>
+    <string name="import_success">Восстановление завершено! Перезапустите приложение.</string>
+    <string name="import_error">Ошибка восстановления.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Добро пожаловать в AABrowser</string>
+    <string name="welcome_subtitle">Полнофункциональный браузер для Android Auto. Для оптимальной работы предоставьте следующие разрешения:</string>
+    <string name="perm_mic_title">Микрофон</string>
+    <string name="perm_mic_desc">Используется для голосового ввода и поиска на сайтах.</string>
+    <string name="perm_location_title">Геолокация сети</string>
+    <string name="perm_location_desc">Исключительно для отображения местной погоды на экране автомобиля.</string>
+    <string name="perm_notifications_title">Уведомления</string>
+    <string name="perm_notifications_desc">Требуются для управления фоновым воспроизведением музыки, виджета погоды и обновлений.</string>
+    <string name="grant_permissions_button">Предоставить разрешения и начать</string>
+    <string name="skip_onboarding_button">Я знаю, что делаю (Пропустить)</string>
+</resources>

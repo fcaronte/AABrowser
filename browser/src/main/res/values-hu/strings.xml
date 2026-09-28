@@ -1,0 +1,225 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Android Auto Browser értesítés</string>
+    <string name="notification_title">Az AABrowser fut</string>
+    <string name="notification_text">Koppintson a leállításhoz</string>
+
+    <string name="settings_name">Beállítások</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">Lejátszás</string>
+    <string name="label_pause">Szünet</string>
+    <string name="label_previous">Előző szám</string>
+    <string name="label_next">Következő szám</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">Gyorselérés a leggyakrabban használt oldalakhoz</string>
+    <string name="edit_mode_toggle">Szerkesztési mód váltása</string>
+    <string name="resume_button">Folytatás</string>
+    <string name="tabs_button">Lapok</string>
+    <string name="settings_button">Beállítások</string>
+    <string name="add_favorite_title">Kedvenc hozzáadása</string>
+    <string name="edit_favorite_title">Kedvenc szerkesztése</string>
+    <string name="favorite_added">Kedvenc hozzáadva a Kezdőlaphoz</string>
+    <string name="favorite_updated">Kedvenc frissítve</string>
+    <string name="field_name">Név</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">Favicon URL (Opcionális)</string>
+    <string name="field_color">Szín</string>
+    <string name="site_info_title">Webhely információ</string>
+    <string name="display_settings_title">Megjelenítési beállítások</string>
+    <string name="desktop_mode_desc_site">Asztali mód használata ehhez a webhelyhez</string>
+    <string name="confirm_button">Megerősítés</string>
+    <string name="cancel_button">Mégse</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">Alkalmazás megjelenése</string>
+    <string name="settings_category_web">Weboldalak</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Beállítások</string>
+    <string name="back_button">Vissza</string>
+    <string name="theme_mode_label">Alkalmazás témamódja</string>
+    <string name="theme_mode_desc">Világos vagy sötét stílus kényszerítése az autós kijelzőn</string>
+    <string name="theme_force_label">Témamód kényszerítése</string>
+    <string name="theme_force_desc_on">Kézi mód aktív</string>
+    <string name="theme_force_desc_off">Rendszertéma automatikus követése</string>
+    <string name="theme_selection_label">Téma kiválasztása:</string>
+    <string name="dashboard_columns_label">Három oszlopos műszerfal</string>
+    <string name="dashboard_columns_desc">3 oszlop engedélyezése 2 helyett a kezdőképernyőn</string>
+    <string name="open_dashboard_on_new_tab_label">Műszerfal használata új lapként</string>
+    <string name="open_dashboard_on_new_tab_desc">A műszerfal megnyitása a keresőoldal helyett az új lap gombra kattintva</string>
+    <string name="auto_open_favorite_label">Kedvenc használata kezdőlapként</string>
+    <string name="auto_open_favorite_desc">Adott kedvenc automatikus betöltése a műszerfal helyett</string>
+    <string name="selected_favorite_label">Kiválasztott kedvenc</string>
+    <string name="auto_open_none">Nincs (Műszerfal megnyitása)</string>
+    <string name="autoplay_label">Média automatikus lejátszása</string>
+    <string name="autoplay_desc">Hang és videó azonnali indításának engedélyezése lapok megnyitásakor</string>
+    <string name="weather_widget_label">Időjárás widget a lejátszó sávban</string>
+    <string name="weather_widget_desc">Időjárás és hőmérséklet megjelenítése a lejátszó sávban, ha a lejátszás nem aktív</string>
+    <string name="weather_permission_toast">Kérjük, engedélyezze a helymeghatározást okostelefonján a pontos időjáráshoz</string>
+    <string name="preload_favorites_label">Kedvenc oldalak előtöltése indításkor</string>
+    <string name="preload_favorites_desc">Legfontosabb kedvencek megnyitása háttérfüleken az alkalmazás indításakor</string>
+    <string name="preload_favorites_count_label">Előtöltendő lapok száma: %d</string>
+    <string name="persistent_nav_label">Állandó navigációs gomb</string>
+    <string name="persistent_nav_desc">Navigációs gomb mindig látható tartása (automatikus elrejtés letiltása)</string>
+    <string name="tab_bar_mode_label">Lap sáv láthatósága</string>
+    <string name="tab_bar_mode_off">Ki</string>
+    <string name="tab_bar_mode_auto">Automatikus elrejtés</string>
+    <string name="tab_bar_mode_always">Mindig be</string>
+    <string name="tab_bar_mode_desc">Válassza ki, hogy a vízszintes lap sáv elrejtődjön-e vagy rögzítve legyen</string>
+    <string name="tab_bar_enable_label">Lap sáv</string>
+    <string name="tab_bar_enable_desc">Vízszintes sáv engedélyezése a nyitott lapokhoz közvetlenül a böngésző felett</string>
+    <string name="forward_button">Előre</string>
+    <string name="dark_pages_label">Sötét weboldalak</string>
+    <string name="dark_pages_desc">Sötét mód kényszerítése webhelyeken</string>
+    <string name="desktop_mode_label">Asztali mód</string>
+    <string name="desktop_mode_desc">Webhelyek asztali verziójának kérése</string>
+    <string name="desktop_zoom_label">Asztali nagyítás: %d%%</string>
+    <string name="mobile_zoom_label">Mobil nagyítás: %d%%</string>
+    <string name="mobile_zoom_desc">Weboldalak nagyításának beállítása mobil módban</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">Tolakodó hirdetések és nyomkövetők blokkolása</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">YouTube hirdetések automatikus átugrása (Béta: bármikor leállhat)</string>
+    <string name="multi_window_label">Több ablak (Felugró ablakok)</string>
+    <string name="multi_window_desc">Webhelyek engedélyezése új lapok vagy felugró ablakok megnyitására (pl. bejelentkezési oldalak)</string>
+    <string name="force_english_label">Angol nyelv kényszerítése</string>
+    <string name="force_english_desc">Mindig angol nyelv használata a rendszernyelvtől függetlenül</string>
+    <string name="search_engine_label">Alapértelmezett keresőmotor</string>
+    <string name="search_engine_desc">Motor kiválasztása a gyorskereséshez</string>
+    <string name="search_engine_custom_on">Egyéni motor aktív</string>
+    <string name="search_engine_custom_off">Alapértelmezett: Google</string>
+    <string name="search_engine_selection_label">Motor kiválasztása:</string>
+    <string name="ui_scale_label">Felület skálázása (DPI)</string>
+    <string name="ui_scale_desc">Az alkalmazás felületének általános méretének beállítása</string>
+    <string name="clear_data_label">Böngészési adatok törlése</string>
+    <string name="clear_data_desc">Eltávolítandó adatok kiválasztása az eszközről</string>
+    <string name="cache_label">Gyorsítótár (%s)</string>
+    <string name="cookies_label">Sütik</string>
+    <string name="data_cleared">Kiválasztott adatok törölve</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">Lapok</string>
+    <string name="new_tab">Új lap</string>
+    <string name="close_tab">Lap bezárása</string>
+    <string name="close_all_tabs">Összes lap bezárása</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">Hozzáadás a kedvencekhez</string>
+    <string name="reload_button">Frissítés</string>
+    <string name="home_button">Kezdőlap</string>
+    <string name="exit_button">Kilépés</string>
+    <string name="menu_button">Menü</string>
+    <string name="search_button">Gyorskeresés</string>
+    <string name="share_button">Megosztás QR-kóddal</string>
+    <string name="qr_code_title">Oldal megosztása</string>
+    <string name="qr_code_label">QR-kód</string>
+    <string name="close_button">Bezárás</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">Mondjon valamit…</string>
+    <string name="voice_listening">Hallgatás…</string>
+    <string name="voice_search">Hangalapú keresés</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_browser_title">Hang a böngészőből</string>
+    <string name="media_browser_subtitle">Aktuális hang lejátszása</string>
+
+    <!-- Status -->
+    <string name="status_loaded">Betöltve</string>
+
+    <!-- Update -->
+    <string name="update_available">Új frissítés érhető el: %s</string>
+    <string name="update_available_title">AABrowser frissítés %s</string>
+    <string name="update_available_text">Új verzió érhető el. Koppintson a letöltéshez és telepítéshez.</string>
+    <string name="download_button">Frissítés</string>
+    <string name="downloading_update">Frissítés letöltése…</string>
+    <string name="update_download_started">Frissítés letöltése elindult</string>
+    <string name="update_download_failed">A frissítés letöltése sikertelen</string>
+    <string name="kinginstaller_not_found">KingInstaller nem található! A frissítés megszakítva az Android Auto láthatóságának megőrzése érdekében.</string>
+
+    <string name="settings_footer_github">GitHub Projekt</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">Gyorsítótár méretének frissítése</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">Ha tetszik a projekt, meghívhatsz egy kávéra, támogatva a kódírás és a Geminivel való vitatkozás közben elvesztett alvásórákat 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">Alapértelmezett kedvencek visszaállítása</string>
+    <string name="reset_favorites_desc">Kezdőképernyő kedvenceinek visszaállítása az eredeti alapértelmezett oldalakra</string>
+    <string name="add_missing_favorites_label">Új kedvencek betöltése</string>
+    <string name="add_missing_favorites_desc">Hiányzó alapértelmezett oldalak hozzáadása a jelenlegi listához anélkül, hogy visszaállítaná azt</string>
+    <string name="reset_button">Visszaállítás</string>
+    <string name="add_button">Hozzáadás</string>
+    <plurals name="favorites_added_count">
+        <item quantity="one">%d kedvenc hozzáadva</item>
+        <item quantity="other">%d kedvenc hozzáadva</item>
+    </plurals>
+    <string name="no_new_favorites">A listája már naprakész</string>
+    <string name="are_you_sure">Biztos benne?</string>
+    <string name="export_settings_label">Beállítások és könyvjelzők exportálása</string>
+    <string name="export_settings_desc">Az összes könyvjelző és beállítás mentése egy JSON biztonsági mentési fájlba</string>
+    <string name="export_button">Exportálás</string>
+    <string name="import_settings_label">Beállítások és könyvjelzők importálása</string>
+    <string name="import_settings_desc">Könyvjelzők és beállítások visszaállítása biztonsági mentési fájlból</string>
+    <string name="import_button">Importálás</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">A biztonsági mentés sikertelen.</string>
+    <string name="import_success">Visszaállítás kész! Kérjük, indítsa újra az alkalmazást.</string>
+    <string name="import_error">A visszaállítás sikertelen.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Üdvözli az AABrowser</string>
+    <string name="welcome_subtitle">Az Android Auto számára tervezett teljes körű böngésző. Az optimális teljesítmény érdekében kérjük, adja meg a következő engedélyeket:</string>
+    <string name="perm_mic_title">Mikrofon</string>
+    <string name="perm_mic_desc">Hangalapú diktáláshoz és webhelyeken belüli kereséshez használatos.</string>
+    <string name="perm_location_title">Hálózati helymeghatározás</string>
+    <string name="perm_location_desc">Kizárólag a helyi időjárás-frissítések megjelenítésére szolgál az autó kijelzőjén.</string>
+    <string name="perm_notifications_title">Értesítések</string>
+    <string name="perm_notifications_desc">Szükséges a háttérben történő zenelejátszás vezérléséhez, az időjárás widgethez és az alkalmazásfrissítésekhez.</string>
+    <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
+    <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
+</resources>

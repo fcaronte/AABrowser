@@ -206,7 +206,7 @@
     <string name="import_settings_label">Import Settings &amp; Bookmarks</string>
     <string name="import_settings_desc">Restore bookmarks and settings from a backup file</string>
     <string name="import_button">Import</string>
-    <string name="backup_success">Backup completed successfully!</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
     <string name="backup_error">Backup failed.</string>
     <string name="import_success">Restore completed! Please restart the app.</string>
     <string name="import_error">Restore failed.</string>

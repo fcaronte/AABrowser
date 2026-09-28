@@ -566,7 +566,7 @@ fun SettingsScreen(
                                                     val aaBrowserFolder = File(downloadsDir, "AABrowser")
                                                     val file = File(aaBrowserFolder, "aabrowser_backup.json")
                                                     val success = BackupRestoreUtils.exportSettingsAndBookmarksToFile(context, file)
-                                                    val msg = if (success) "Backup salvato in Download/AABrowser/aabrowser_backup.json" else context.getString(R.string.backup_error)
+                                                    val msg = if (success) context.getString(R.string.backup_success) else context.getString(R.string.backup_error)
                                                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                                     confirmExport = false
                                                 } else {

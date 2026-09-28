@@ -1,0 +1,226 @@
+<resources>
+    <string name="app_name">AABrowser</string>
+
+    <string name="notification_channel_name">Android Auto Browser</string>
+    <string name="notification_channel_description">Notification Android Auto Browser</string>
+    <string name="notification_title">AABrowser en cours d\'exécution</string>
+    <string name="notification_text">Appuyez pour arrêter</string>
+
+    <string name="settings_name">Paramètres</string>
+    <string name="service_name">AAB Media</string>
+
+    <string name="label_play">Lecture</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_previous">Piste précédente</string>
+    <string name="label_next">Piste suivante</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_subtitle">Accès rapide aux sites que vous utilisez le plus</string>
+    <string name="edit_mode_toggle">Basculer le mode Édition</string>
+    <string name="resume_button">Reprendre</string>
+    <string name="tabs_button">Onglets</string>
+    <string name="settings_button">Paramètres</string>
+    <string name="add_favorite_title">Ajouter un favori</string>
+    <string name="edit_favorite_title">Modifier le favori</string>
+    <string name="favorite_added">Favori ajouté à l\'accueil</string>
+    <string name="favorite_updated">Favori mis à jour</string>
+    <string name="field_name">Nom</string>
+    <string name="field_url">URL</string>
+    <string name="field_favicon">URL du Favicon (Facultatif)</string>
+    <string name="field_color">Couleur</string>
+    <string name="site_info_title">Informations du site</string>
+    <string name="display_settings_title">Paramètres d\'affichage</string>
+    <string name="desktop_mode_desc_site">Utiliser le mode bureau pour ce site</string>
+    <string name="confirm_button">Confirmer</string>
+    <string name="cancel_button">Annuler</string>
+
+    <!-- Settings Categories -->
+    <string name="settings_category_app">Apparence de l\'application</string>
+    <string name="settings_category_web">Pages Web</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="back_button">Retour</string>
+    <string name="theme_mode_label">Mode de thème de l\'application</string>
+    <string name="theme_mode_desc">Forcer le style clair ou sombre sur l\'écran de la voiture</string>
+    <string name="theme_force_label">Forcer le mode de thème</string>
+    <string name="theme_force_desc_on">Mode manuel actif</string>
+    <string name="theme_force_desc_off">Suivre automatiquement le thème du système</string>
+    <string name="theme_selection_label">Sélectionner le thème :</string>
+    <string name="dashboard_columns_label">Tableau de bord à trois colonnes</string>
+    <string name="dashboard_columns_desc">Activer 3 colonnes au lieu de 2 sur l\'écran d\'accueil</string>
+    <string name="open_dashboard_on_new_tab_label">Utiliser le tableau de bord comme nouvel onglet</string>
+    <string name="open_dashboard_on_new_tab_desc">Ouvrir le tableau de bord au lieu de la page de recherche lors du clic sur le bouton nouvel onglet</string>
+    <string name="auto_open_favorite_label">Utiliser un favori comme page de démarrage</string>
+    <string name="auto_open_favorite_desc">Charger automatiquement un favori spécifique au lieu du tableau de bord</string>
+    <string name="selected_favorite_label">Favori sélectionné</string>
+    <string name="auto_open_none">Aucun (Ouvrir le tableau de bord)</string>
+    <string name="autoplay_label">Lecture automatique des médias</string>
+    <string name="autoplay_desc">Permettre au son et aux vidéos de démarrer immédiatement lors de l\'ouverture des onglets</string>
+    <string name="weather_widget_label">Widget météo dans la barre du lecteur</string>
+    <string name="weather_widget_desc">Afficher la météo et la température dans la barre du lecteur lorsque la lecture est inactive</string>
+    <string name="weather_permission_toast">Veuillez activer l\'autorisation de localisation sur votre smartphone pour obtenir une météo précise</string>
+    <string name="preload_favorites_label">Précharger les favoris au démarrage</string>
+    <string name="preload_favorites_desc">Ouvrir les principaux favoris dans des onglets d\'arrière-plan au démarrage de l\'application</string>
+    <string name="preload_favorites_count_label">Nombre d\'onglets à précharger : %d</string>
+    <string name="persistent_nav_label">Bouton de navigation persistant</string>
+    <string name="persistent_nav_desc">Garder le bouton de navigation toujours visible (désactiver le masquage automatique)</string>
+    <string name="tab_bar_mode_label">Visibilité de la barre d\'onglets</string>
+    <string name="tab_bar_mode_off">Désactivé</string>
+    <string name="tab_bar_mode_auto">Masquage auto</string>
+    <string name="tab_bar_mode_always">Toujours actif</string>
+    <string name="tab_bar_mode_desc">Choisir si la barre d\'onglets horizontale doit être masquée ou fixe</string>
+    <string name="tab_bar_enable_label">Barre d\'onglets</string>
+    <string name="tab_bar_enable_desc">Activer une barre horizontale pour les onglets ouverts directement au-dessus du navigateur</string>
+    <string name="forward_button">Suivant</string>
+    <string name="dark_pages_label">Pages Web sombres</string>
+    <string name="dark_pages_desc">Forcer le mode sombre sur les sites Web</string>
+    <string name="desktop_mode_label">Mode bureau</string>
+    <string name="desktop_mode_desc">Demander la version de bureau des sites Web</string>
+    <string name="desktop_zoom_label">Zoom bureau : %d%%</string>
+    <string name="mobile_zoom_label">Zoom mobile : %d%%</string>
+    <string name="mobile_zoom_desc">Ajuster le zoom des pages Web en mode mobile</string>
+    <string name="adblock_label">AdBlock</string>
+    <string name="adblock_desc">Bloquer les publicités intrusives et les traqueurs</string>
+    <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
+    <string name="adblock_youtube_desc">Passer automatiquement les pubs YouTube (Beta : peut cesser de fonctionner à tout moment)</string>
+    <string name="multi_window_label">Fenêtres multiples (Popups)</string>
+    <string name="multi_window_desc">Permettre aux sites Web d\'ouvrir de nouveaux onglets ou des fenêtres popup (ex. pages de connexion)</string>
+    <string name="force_english_label">Forcer la langue anglaise</string>
+    <string name="force_english_desc">Toujours utiliser l\'anglais indépendamment de la langue du système</string>
+    <string name="search_engine_label">Moteur de recherche par défaut</string>
+    <string name="search_engine_desc">Choisir le moteur pour la recherche rapide</string>
+    <string name="search_engine_custom_on">Moteur personnalisé actif</string>
+    <string name="search_engine_custom_off">Par défaut : Google</string>
+    <string name="search_engine_selection_label">Sélectionner le moteur :</string>
+    <string name="ui_scale_label">Échelle de l\'interface (DPI)</string>
+    <string name="ui_scale_desc">Ajuster la taille globale de l\'interface de l\'application</string>
+    <string name="clear_data_label">Effacer les données du navigateur</string>
+    <string name="clear_data_desc">Sélectionner les données à supprimer de votre appareil</string>
+    <string name="cache_label">Cache (%s)</string>
+    <string name="cookies_label">Cookies</string>
+    <string name="data_cleared">Données sélectionnées effacées</string>
+
+    <!-- Tab Manager -->
+    <string name="tabs_title">Onglets</string>
+    <string name="new_tab">Nouvel onglet</string>
+    <string name="close_tab">Fermer l\'onglet</string>
+    <string name="close_all_tabs">Fermer tous les onglets</string>
+
+    <!-- Navigation Overlay -->
+    <string name="add_to_favorites">Ajouter aux favoris</string>
+    <string name="reload_button">Recharger</string>
+    <string name="home_button">Accueil</string>
+    <string name="exit_button">Quitter</string>
+    <string name="menu_button">Menu</string>
+    <string name="search_button">Recherche rapide</string>
+    <string name="share_button">Partager via QR code</string>
+    <string name="qr_code_title">Partager la page</string>
+    <string name="qr_code_label">QR Code</string>
+    <string name="close_button">Fermer</string>
+
+    <!-- Browser -->
+    <string name="voice_prompt">Dites quelque chose…</string>
+    <string name="voice_listening">Écoute en cours…</string>
+    <string name="voice_search">Recherche vocale</string>
+
+    <!-- Media -->
+    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_browser_title">Audio du navigateur</string>
+    <string name="media_browser_subtitle">Lire l\'audio actuel</string>
+
+    <!-- Status -->
+    <string name="status_loaded">Chargé</string>
+
+    <!-- Update -->
+    <string name="update_available">Nouvelle mise à jour disponible : %s</string>
+    <string name="update_available_title">Mise à jour AABrowser %s</string>
+    <string name="update_available_text">Une nouvelle version est disponible. Appuyez pour télécharger et installer.</string>
+    <string name="download_button">Mettre à jour</string>
+    <string name="downloading_update">Téléchargement de la mise à jour…</string>
+    <string name="update_download_started">Téléchargement de la mise à jour démarré</string>
+    <string name="update_download_failed">Échec du téléchargement de la mise à jour</string>
+    <string name="kinginstaller_not_found">KingInstaller introuvable ! Mise à jour annulée pour maintenir la visibilité sur Android Auto.</string>
+
+    <string name="settings_footer_github">Projet GitHub</string>
+    <string name="github_label">GitHub</string>
+    <string name="refresh_cache">Actualiser la taille du cache</string>
+    <string name="paypal_label" translatable="false">PayPal</string>
+    <string name="buymeacoffee_label" translatable="false">Buy Me a Coffee</string>
+    <string name="settings_footer_donation">Si vous aimez le projet, vous pouvez m\'offrir un café pour soutenir les heures de sommeil perdues à écrire ce code et à argumenter avec Gemini 😂</string>
+
+    <!-- URLs & Defaults (Not for translation) -->
+    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
+
+    <!-- Default Favorites -->
+    <string name="favorite_default_name_0" translatable="false">Google</string>
+    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_1" translatable="false">YouTube</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_4" translatable="false">Spotify</string>
+    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_5" translatable="false">Telegram</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_7" translatable="false">Zappr</string>
+    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_8" translatable="false">Poki</string>
+    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_name_9" translatable="false">DAZN</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+
+    <!-- Search Engines -->
+    <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
+    <string name="google_home_url" translatable="false">https://www.google.com</string>
+    <string name="duckduckgo_base_url" translatable="false">https://duckduckgo.com/?q=</string>
+    <string name="duckduckgo_home_url" translatable="false">https://duckduckgo.com</string>
+    <string name="bing_base_url" translatable="false">https://www.bing.com/search?q=</string>
+    <string name="bing_home_url" translatable="false">https://www.bing.com</string>
+    <string name="yahoo_base_url" translatable="false">https://search.yahoo.com/search?p=</string>
+    <string name="yahoo_home_url" translatable="false">https://search.yahoo.com</string>
+
+    <!-- Reset Favorites -->
+    <string name="reset_favorites_label">Réinitialiser les favoris par défaut</string>
+    <string name="reset_favorites_desc">Restaurer les favoris de l\'écran d\'accueil aux sites par défaut d\'origine</string>
+    <string name="add_missing_favorites_label">Charger les nouveaux favoris</string>
+    <string name="add_missing_favorites_desc">Ajouter les sites par défaut manquants à votre liste actuelle sans la réinitialiser</string>
+    <string name="reset_button">Réinitialiser</string>
+    <string name="add_button">Ajouter</string>
+    <plurals name="favorites_added_count">
+        <item quantity="zero">0 favori ajouté</item>
+        <item quantity="one">%d favori ajouté</item>
+        <item quantity="other">%d favoris ajoutés</item>
+    </plurals>
+    <string name="no_new_favorites">Votre liste est déjà à jour</string>
+    <string name="are_you_sure">Êtes-vous sûr ?</string>
+    <string name="export_settings_label">Exporter les paramètres et favoris</string>
+    <string name="export_settings_desc">Sauvegarder tous vos favoris et paramètres dans un fichier de sauvegarde JSON</string>
+    <string name="export_button">Exporter</string>
+    <string name="import_settings_label">Importer les paramètres et favoris</string>
+    <string name="import_settings_desc">Restaurer les favoris et paramètres à partir d\'un fichier de sauvegarde</string>
+    <string name="import_button">Importer</string>
+    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_error">Échec de la sauvegarde.</string>
+    <string name="import_success">Restauration terminée ! Veuillez redémarrer l\'application.</string>
+    <string name="import_error">Échec de la restauration.</string>
+
+    <!-- Onboarding / Welcome -->
+    <string name="welcome_title">Bienvenue dans AABrowser</string>
+    <string name="welcome_subtitle">Le navigateur complet conçu pour Android Auto. Pour garantir des performances optimales, veuillez accorder les autorisations suivantes :</string>
+    <string name="perm_mic_title">Microphone</string>
+    <string name="perm_mic_desc">Utilisé pour la dictée vocale et la saisie de recherche dans les sites Web.</string>
+    <string name="perm_location_title">Localisation réseau</string>
+    <string name="perm_location_desc">Utilisé exclusivement pour afficher les mises à jour météo locales sur l\'écran de votre voiture.</string>
+    <string name="perm_notifications_title">Notifications</string>
+    <string name="perm_notifications_desc">Requis pour les contrôles de lecture de musique en arrière-plan, le widget météo et les mises à jour de l\'application.</string>
+    <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
+    <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
+</resources>
