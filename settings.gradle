@@ -9,6 +9,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
+        maven { url "https://maven.google.com" }
         mavenCentral()
         maven { url "https://artifactory.appodeal.com/appodeal-public/" }
         maven { url "https://jitpack.io" }

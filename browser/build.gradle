@@ -94,6 +94,8 @@ dependencies {
     implementation libs.androidx.webkit
     implementation libs.zxing.core
     implementation libs.play.services.location
+    implementation libs.androidx.car.app
+    implementation libs.androidx.car.app.projected
 
     implementation libs.kotlin.stdlib
 }

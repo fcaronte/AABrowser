@@ -12,6 +12,7 @@ coil = "2.7.0"
 webkit = "1.17.1"
 zxing = "3.5.4"
 playServicesLocation = "21.4.0"
+carApp = "1.7.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -34,6 +35,8 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+androidx-car-app = { module = "androidx.car.app:app", version.ref = "carApp" }
+androidx-car-app-projected = { module = "androidx.car.app:app-projected", version.ref = "carApp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

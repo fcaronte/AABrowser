@@ -2,6 +2,7 @@ package com.fcaronte.aabrowser
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
+import com.fcaronte.aabrowser.model.WebStateRepository
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.google.android.material.color.DynamicColors
@@ -15,6 +16,7 @@ class CarApplication : Application() {
 
         // Inizializza il gestore delle pubblicità (AdBlock leggero)
         AdBlockHost.init(this)
+        WebStateRepository.init(this)
     }
 
     companion object {
