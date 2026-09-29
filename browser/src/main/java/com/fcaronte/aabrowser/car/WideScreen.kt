@@ -22,6 +22,7 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -44,16 +45,26 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.model.WebStateRepository
+import java.io.ByteArrayInputStream
 import kotlin.math.cos
 import kotlin.math.sin
 
+/**
+ * Schermata "wide" (finto navigatore).
+ * Richiede WideHomeAndSearch.kt (HomePage e WideSearchScreen) nello stesso package.
+ */
 class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private companion object {
         const val TAG = "WideScreen"
-        const val MAX_FAVORITES = 4          // limite del NavigationTemplate (ActionStrip)
+
+        // Quanti preferiti tenere come scorciatoie testuali nell'ActionStrip (0-2).
+        // Con 0 nell'ActionStrip restano solo Ricarica e Chiudi (i preferiti sono nella home HTML).
+        const val SHORTCUT_FAVORITES = 0
         const val MAX_TITLE = 12
-        const val FALLBACK_URL = "https://www.google.com"
+
+        // Marcatore interno per "la pagina corrente è la home HTML"
+        const val HOME = "about:home"
     }
 
     private var virtualDisplay: VirtualDisplay? = null
@@ -65,14 +76,23 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var surfaceHeight = 480
     private var surfaceDensity = 160
 
-    // Ultimo URL aperto nella WebView del display virtuale (sopravvive al rilascio della surface)
+    // Area realmente libera (non coperta dal player affiancato o dalle strisce dei comandi)
+    private var visibleArea: Rect? = null
+
+    // Ultimo URL aperto (o HOME). Sopravvive al rilascio della surface.
     private var lastUrl: String? = null
+
+    // HTML della home, servito da shouldInterceptRequest su HomePage.BASE_URL
+    @Volatile
+    private var homeHtml: String? = null
 
     private val handler = Handler(Looper.getMainLooper())
     private var downTime = 0L
 
     private val iconBack: CarIcon = CarIcon.BACK
     private val iconPan: CarIcon = CarIcon.PAN
+    private val iconHome: CarIcon by lazy { buildHomeIcon() }
+    private val iconSearch: CarIcon by lazy { buildSearchIcon() }
     private val iconReload: CarIcon by lazy { buildReloadIcon() }
     private val iconClose: CarIcon by lazy { buildCloseIcon() }
 
@@ -106,23 +126,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     override fun onGetTemplate(): Template {
-        val favorites = try {
-            FavoritesRepository(carContext).loadFavorites().take(MAX_FAVORITES)
-        } catch (e: Exception) {
-            Log.e(TAG, "Errore lettura preferiti", e)
-            emptyList()
-        }
-
         // ActionStrip: almeno 1 azione, max 4, ognuna con titolo OPPURE icona
         val strip = ActionStrip.Builder()
-        if (favorites.isEmpty()) {
-            strip.addAction(
-                Action.Builder()
-                    .setTitle("Google")
-                    .setOnClickListener { loadUrl(FALLBACK_URL) }
-                    .build()
-            )
-        } else {
+
+        if (SHORTCUT_FAVORITES > 0) {
+            val favorites = try {
+                FavoritesRepository(carContext).loadFavorites().take(SHORTCUT_FAVORITES.coerceAtMost(2))
+            } catch (e: Exception) {
+                Log.e(TAG, "Errore lettura preferiti", e)
+                emptyList()
+            }
             favorites.forEach { fav ->
                 val title = if (fav.name.length > MAX_TITLE) fav.name.take(MAX_TITLE - 1) + "…" else fav.name
                 strip.addAction(
@@ -134,7 +147,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             }
         }
 
-        // MapActionStrip: solo icone. PAN serve per ricevere scroll/fling/scale
+        strip.addAction(
+            Action.Builder()
+                .setIcon(iconReload)
+                .setOnClickListener { webView?.reload() }
+                .build()
+        )
+        strip.addAction(
+            Action.Builder()
+                .setIcon(iconClose)
+                .setOnClickListener { closeApp() }
+                .build()
+        )
+
+        // MapActionStrip: solo icone. PAN serve per ricevere scroll/fling/scale.
+        // Verifica sul DHU se accetta più di 4 azioni; per ora sono 4.
         val mapStrip = ActionStrip.Builder()
             .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
             .addAction(
@@ -147,14 +174,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
             .addAction(
                 Action.Builder()
-                    .setIcon(iconReload)
-                    .setOnClickListener { webView?.reload() }
+                    .setIcon(iconHome)
+                    .setOnClickListener { showHome() }
                     .build()
             )
             .addAction(
                 Action.Builder()
-                    .setIcon(iconClose)
-                    .setOnClickListener { closeApp() }
+                    .setIcon(iconSearch)
+                    .setOnClickListener { openSearch() }
                     .build()
             )
             .build()
@@ -165,10 +192,44 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
     }
 
+    // ------------------------------------------------------------------
+    // Navigazione: home HTML, ricerca, URL
+    // ------------------------------------------------------------------
+
+    private fun buildHomeHtml(): String {
+        val items = try {
+            FavoritesRepository(carContext).loadFavorites().map { HomePage.Item(it.name, it.url) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Errore lettura preferiti", e)
+            emptyList()
+        }
+        return HomePage.build(items)
+    }
+
+    private fun showHome() {
+        homeHtml = buildHomeHtml()
+        lastUrl = HOME
+        val wv = webView ?: return
+        if (wv.url == HomePage.BASE_URL) wv.reload() else wv.loadUrl(HomePage.BASE_URL)
+    }
+
+    private fun openSearch() {
+        screenManager.push(WideSearchScreen(carContext) { query ->
+            loadUrl(HomePage.queryToUrl(query))
+        })
+    }
+
     private fun loadUrl(url: String) {
         WebStateRepository.currentUrl = url
         lastUrl = url
         webView?.loadUrl(url)
+    }
+
+    private fun loadInitial(wv: WebView) {
+        val target = lastUrl
+            ?: WebStateRepository.currentUrl.takeIf { it.isNotEmpty() && !it.startsWith(HomePage.BASE_URL) }
+            ?: HOME
+        if (target == HOME) showHome() else wv.loadUrl(target)
     }
 
     private fun closeApp() {
@@ -198,8 +259,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         surface = null
     }
 
-    override fun onVisibleAreaChanged(visibleArea: Rect) {}
+    // Zona non coperta dal player affiancato / dalle strisce dei comandi
+    override fun onVisibleAreaChanged(visibleArea: Rect) {
+        this.visibleArea = Rect(visibleArea)
+        handler.post { applyVisibleArea() }
+    }
+
     override fun onStableAreaChanged(stableArea: Rect) {}
+
+    private fun applyVisibleArea() {
+        val wv = webView ?: return
+        val r = visibleArea ?: return
+        if (r.isEmpty) return
+
+        val lp = (wv.layoutParams as? FrameLayout.LayoutParams)
+            ?: FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        lp.leftMargin = r.left.coerceAtLeast(0)
+        lp.topMargin = r.top.coerceAtLeast(0)
+        lp.rightMargin = (surfaceWidth - r.right).coerceAtLeast(0)
+        lp.bottomMargin = (surfaceHeight - r.bottom).coerceAtLeast(0)
+        wv.layoutParams = lp
+    }
 
     override fun onClick(x: Float, y: Float) {
         dispatchTouch(MotionEvent.ACTION_DOWN, x, y)
@@ -229,7 +312,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val wv = webView ?: return@post
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
-            val event = MotionEvent.obtain(downTime, now, action, x, y, 0)
+
+            // Le coordinate arrivano relative all'intera surface: togli lo scostamento della WebView
+            val area = visibleArea
+            val lx = x - (area?.left ?: 0)
+            val ly = y - (area?.top ?: 0)
+
+            val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
             wv.dispatchTouchEvent(event)
             event.recycle()
@@ -282,10 +371,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
 
                     val wv = WebView(ctx).apply {
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
                         settings.apply {
                             javaScriptEnabled = true
                             domStorageEnabled = true
@@ -298,6 +383,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             mediaPlaybackRequiresUserGesture = false
                         }
                         webViewClient = object : WebViewClient() {
+
+                            // La home HTML è servita in locale: nessuna rete e la cronologia (Indietro) funziona
+                            override fun shouldInterceptRequest(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): WebResourceResponse? {
+                                val url = request?.url?.toString()
+                                if (url == HomePage.BASE_URL) {
+                                    val html = homeHtml ?: buildHomeHtml().also { homeHtml = it }
+                                    return WebResourceResponse(
+                                        "text/html",
+                                        "UTF-8",
+                                        ByteArrayInputStream(html.toByteArray(Charsets.UTF_8))
+                                    )
+                                }
+                                return super.shouldInterceptRequest(view, request)
+                            }
+
                             override fun shouldOverrideUrlLoading(
                                 view: WebView?,
                                 request: WebResourceRequest?
@@ -308,7 +411,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             }
 
                             override fun onPageFinished(view: WebView?, url: String?) {
-                                if (!url.isNullOrEmpty()) {
+                                if (url.isNullOrEmpty()) return
+                                if (url.startsWith(HomePage.BASE_URL)) {
+                                    lastUrl = HOME
+                                } else {
                                     WebStateRepository.currentUrl = url
                                     lastUrl = url
                                 }
@@ -317,18 +423,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
 
                     webView = wv
-                    frame.addView(wv)
+                    frame.addView(
+                        wv,
+                        FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    )
                     setContentView(frame)
-
-                    val urlToLoad = lastUrl
-                        ?: WebStateRepository.currentUrl.takeIf { it.isNotEmpty() }
-                        ?: try {
-                            FavoritesRepository(carContext).loadFavorites().firstOrNull()?.url
-                        } catch (_: Exception) {
-                            null
-                        }
-                        ?: FALLBACK_URL
-                    wv.loadUrl(urlToLoad)
+                    applyVisibleArea()
+                    loadInitial(wv)
                 }
             }
 
@@ -340,7 +444,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun releaseVirtualDisplay() {
         try {
-            webView?.url?.let { if (it.isNotEmpty()) lastUrl = it }
+            webView?.url?.let {
+                if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
+            }
             webView?.stopLoading()
             webView?.destroy()
         } catch (e: Exception) {
@@ -377,6 +483,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             style = Paint.Style.STROKE
             strokeWidth = size * 0.09f
             strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
         }
         draw(canvas, paint, size.toFloat())
         return CarIcon.Builder(IconCompat.createWithBitmap(bmp))
@@ -408,5 +515,32 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             close()
         }
         c.drawPath(head, fill)
+    }
+
+    private fun buildSearchIcon(): CarIcon = maskIcon { c, p, s ->
+        val cx = s * 0.42f
+        val cy = s * 0.42f
+        val r = s * 0.22f
+        c.drawCircle(cx, cy, r, p)
+        val d = r * 0.72f
+        c.drawLine(cx + d, cy + d, s * 0.78f, s * 0.78f, p)
+    }
+
+    private fun buildHomeIcon(): CarIcon = maskIcon { c, p, s ->
+        // tetto
+        val roof = Path().apply {
+            moveTo(s * 0.18f, s * 0.48f)
+            lineTo(s * 0.50f, s * 0.20f)
+            lineTo(s * 0.82f, s * 0.48f)
+        }
+        c.drawPath(roof, p)
+        // corpo
+        val body = Path().apply {
+            moveTo(s * 0.28f, s * 0.44f)
+            lineTo(s * 0.28f, s * 0.78f)
+            lineTo(s * 0.72f, s * 0.78f)
+            lineTo(s * 0.72f, s * 0.44f)
+        }
+        c.drawPath(body, p)
     }
 }
