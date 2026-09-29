@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.car
 import android.annotation.SuppressLint
 import android.app.Presentation
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -48,6 +47,7 @@ import com.fcaronte.aabrowser.model.WebStateRepository
 import java.io.ByteArrayInputStream
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.core.graphics.createBitmap
 
 /**
  * Schermata "wide" (finto navigatore).
@@ -57,11 +57,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private companion object {
         const val TAG = "WideScreen"
-
-        // Quanti preferiti tenere come scorciatoie testuali nell'ActionStrip (0-2).
-        // Con 0 nell'ActionStrip restano solo Ricarica e Chiudi (i preferiti sono nella home HTML).
-        const val SHORTCUT_FAVORITES = 0
-        const val MAX_TITLE = 12
 
         // Marcatore interno per "la pagina corrente è la home HTML"
         const val HOME = "about:home"
@@ -88,13 +83,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private val handler = Handler(Looper.getMainLooper())
     private var downTime = 0L
-
-    private val iconBack: CarIcon = CarIcon.BACK
     private val iconPan: CarIcon = CarIcon.PAN
     private val iconHome: CarIcon by lazy { buildHomeIcon() }
     private val iconSearch: CarIcon by lazy { buildSearchIcon() }
     private val iconReload: CarIcon by lazy { buildReloadIcon() }
-    private val iconClose: CarIcon by lazy { buildCloseIcon() }
 
     init {
         try {
@@ -110,7 +102,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             })
             navManager.navigationStarted()
         } catch (e: Exception) {
-            // Tipicamente SecurityException se manca il permesso ACCESS_SURFACE nel manifest
             Log.e(TAG, "Init failed (controlla i permessi NAVIGATION_TEMPLATES e ACCESS_SURFACE)", e)
         }
 
@@ -126,56 +117,25 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     override fun onGetTemplate(): Template {
-        // ActionStrip: almeno 1 azione, max 4, ognuna con titolo OPPURE icona
+        // ActionStrip superiore: lasciamo solo la HOME in alto a destra
         val strip = ActionStrip.Builder()
-
-        if (SHORTCUT_FAVORITES > 0) {
-            val favorites = try {
-                FavoritesRepository(carContext).loadFavorites().take(SHORTCUT_FAVORITES.coerceAtMost(2))
-            } catch (e: Exception) {
-                Log.e(TAG, "Errore lettura preferiti", e)
-                emptyList()
-            }
-            favorites.forEach { fav ->
-                val title = if (fav.name.length > MAX_TITLE) fav.name.take(MAX_TITLE - 1) + "…" else fav.name
-                strip.addAction(
-                    Action.Builder()
-                        .setTitle(title.ifBlank { "Link" })
-                        .setOnClickListener { loadUrl(fav.url) }
-                        .build()
-                )
-            }
-        }
-
-        strip.addAction(
-            Action.Builder()
-                .setIcon(iconReload)
-                .setOnClickListener { webView?.reload() }
-                .build()
-        )
-        strip.addAction(
-            Action.Builder()
-                .setIcon(iconClose)
-                .setOnClickListener { closeApp() }
-                .build()
-        )
-
-        // MapActionStrip: solo icone. PAN serve per ricevere scroll/fling/scale.
-        // Verifica sul DHU se accetta più di 4 azioni; per ora sono 4.
-        val mapStrip = ActionStrip.Builder()
-            .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
-            .addAction(
-                Action.Builder()
-                    .setIcon(iconBack)
-                    .setOnClickListener {
-                        webView?.let { if (it.canGoBack()) it.goBack() }
-                    }
-                    .build()
-            )
             .addAction(
                 Action.Builder()
                     .setIcon(iconHome)
                     .setOnClickListener { showHome() }
+                    .build()
+            )
+            .build()
+
+        // MapActionStrip (barra laterale): Pan, Indietro, Cerca e Refresh
+        val mapStrip = ActionStrip.Builder()
+            .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
+            .addAction(
+                Action.Builder()
+                    .setIcon(CarIcon.BACK)
+                    .setOnClickListener {
+                        webView?.let { if (it.canGoBack()) it.goBack() }
+                    }
                     .build()
             )
             .addAction(
@@ -184,10 +144,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     .setOnClickListener { openSearch() }
                     .build()
             )
+            .addAction(
+                Action.Builder()
+                    .setIcon(iconReload)
+                    .setOnClickListener { webView?.reload() }
+                    .build()
+            )
             .build()
 
         return NavigationTemplate.Builder()
-            .setActionStrip(strip.build())
+            .setActionStrip(strip)
             .setMapActionStrip(mapStrip)
             .build()
     }
@@ -203,7 +169,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             Log.e(TAG, "Errore lettura preferiti", e)
             emptyList()
         }
-        return HomePage.build(items)
+        return HomePage.build(carContext, items)
     }
 
     private fun showHome() {
@@ -259,7 +225,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         surface = null
     }
 
-    // Zona non coperta dal player affiancato / dalle strisce dei comandi
     override fun onVisibleAreaChanged(visibleArea: Rect) {
         this.visibleArea = Rect(visibleArea)
         handler.post { applyVisibleArea() }
@@ -267,20 +232,37 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onStableAreaChanged(stableArea: Rect) {}
 
+    private var lockedRightMargin = 0
+
     private fun applyVisibleArea() {
         val wv = webView ?: return
         val r = visibleArea ?: return
         if (r.isEmpty) return
+
+        val currentRight = (surfaceWidth - r.right).coerceAtLeast(0)
+
+        // Gestione stabile del player laterale a destra:
+        // Se supera i 50px (player aperto), blocchiamo/aggiorniamo il margine esatto
+        // evitando che le micro-variazioni dovute alla comparsa dei tasti touch facciano ballare la UI.
+        if (currentRight > 50) {
+            if (lockedRightMargin == 0 || kotlin.math.abs(currentRight - lockedRightMargin) > 25) {
+                lockedRightMargin = currentRight
+            }
+        } else {
+            lockedRightMargin = 0
+        }
 
         val lp = (wv.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+
         lp.leftMargin = r.left.coerceAtLeast(0)
-        lp.topMargin = r.top.coerceAtLeast(0)
-        lp.rightMargin = (surfaceWidth - r.right).coerceAtLeast(0)
-        lp.bottomMargin = (surfaceHeight - r.bottom).coerceAtLeast(0)
+        lp.rightMargin = lockedRightMargin
+        lp.topMargin = 0
+        lp.bottomMargin = 0
+
         wv.layoutParams = lp
     }
 
@@ -289,7 +271,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         dispatchTouch(MotionEvent.ACTION_UP, x, y)
     }
 
-    // Arrivano solo se nella MapActionStrip c'è Action.PAN e l'auto li supporta
     override fun onScroll(distanceX: Float, distanceY: Float) {
         webView?.scrollBy(distanceX.toInt(), distanceY.toInt())
     }
@@ -313,7 +294,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
-            // Le coordinate arrivano relative all'intera surface: togli lo scostamento della WebView
             val area = visibleArea
             val lx = x - (area?.left ?: 0)
             val ly = y - (area?.top ?: 0)
@@ -382,9 +362,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             displayZoomControls = false
                             mediaPlaybackRequiresUserGesture = false
                         }
-                        webViewClient = object : WebViewClient() {
+                        webViewClient = @SuppressLint("MissingOnRenderProcessGone")
+                        object : WebViewClient() {
 
-                            // La home HTML è servita in locale: nessuna rete e la cronologia (Indietro) funziona
                             override fun shouldInterceptRequest(
                                 view: WebView?,
                                 request: WebResourceRequest?
@@ -406,7 +386,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 request: WebResourceRequest?
                             ): Boolean {
                                 val scheme = request?.url?.scheme
-                                // Blocca schemi non web (intent:, market:, ecc.)
                                 return scheme != "http" && scheme != "https"
                             }
 
@@ -470,13 +449,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // ------------------------------------------------------------------
-    // Icone disegnate a codice (nessun drawable da aggiungere).
-    // Maschere nere con tint CarColor.DEFAULT: colore scelto dall'host.
+    // Icone disegnate a codice
     // ------------------------------------------------------------------
 
     private fun maskIcon(draw: (Canvas, Paint, Float) -> Unit): CarIcon {
         val size = 96
-        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bmp = createBitmap(size, size)
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
@@ -491,19 +469,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
     }
 
-    private fun buildCloseIcon(): CarIcon = maskIcon { c, p, s ->
-        val m = s * 0.25f
-        c.drawLine(m, m, s - m, s - m, p)
-        c.drawLine(s - m, m, m, s - m, p)
-    }
-
     private fun buildReloadIcon(): CarIcon = maskIcon { c, p, s ->
         val cx = s / 2f
         val cy = s / 2f
         val r = s * 0.30f
         c.drawArc(RectF(cx - r, cy - r, cx + r, cy + r), -60f, 290f, false, p)
 
-        // punta della freccia all'inizio dell'arco
         val a = Math.toRadians(-60.0)
         val px = cx + r * cos(a).toFloat()
         val py = cy + r * sin(a).toFloat()
@@ -527,14 +498,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun buildHomeIcon(): CarIcon = maskIcon { c, p, s ->
-        // tetto
         val roof = Path().apply {
             moveTo(s * 0.18f, s * 0.48f)
             lineTo(s * 0.50f, s * 0.20f)
             lineTo(s * 0.82f, s * 0.48f)
         }
         c.drawPath(roof, p)
-        // corpo
         val body = Path().apply {
             moveTo(s * 0.28f, s * 0.44f)
             lineTo(s * 0.28f, s * 0.78f)
