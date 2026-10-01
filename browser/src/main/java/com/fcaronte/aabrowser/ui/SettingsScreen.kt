@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -86,7 +88,8 @@ import java.io.File
 fun SettingsScreen(
     favoritesViewModel: FavoritesViewModel,
     onBack: () -> Unit,
-    onShowFeedback: (String) -> Unit
+    onShowFeedback: (String) -> Unit,
+    isCarModeOverride: Boolean = false
 ) {
     val context = LocalContext.current
     var confirmReset by remember { mutableStateOf(false) }
@@ -140,9 +143,12 @@ fun SettingsScreen(
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
 
     val configuration = LocalConfiguration.current
-    val isCarMode = (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_CAR
+    val isCarMode = isCarModeOverride ||
+        (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_CAR
 
     val dataClearedMsg = stringResource(R.string.data_cleared)
+    val readmeUrl = stringResource(R.string.url_readme)
+    val notAvailableInCarMsg = stringResource(R.string.not_available_in_car)
 
     LaunchedEffect(Unit) {
         val size = calculateCacheSize(context)
@@ -784,6 +790,34 @@ fun SettingsScreen(
                                     }
                                 }
                             }
+
+                            SettingsCard {
+                                SettingsButtonItem(
+                                    label = stringResource(R.string.change_language),
+                                    description = stringResource(R.string.change_language_desc),
+                                    buttonText = stringResource(R.string.change_button),
+                                    onClick = {
+                                        when {
+                                            isCarMode -> onShowFeedback(notAvailableInCarMsg)
+                                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                                                if (forceEnglish) {
+                                                    AppSettings.setForceEnglish(context, false)
+                                                }
+                                                val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
+                                                    data = "package:${context.packageName}".toUri()
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
+                                                context.startActivity(intent)
+                                            }
+                                            else -> Toast.makeText(
+                                                context,
+                                                R.string.language_settings_android_13,
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
 
@@ -1014,6 +1048,19 @@ fun SettingsScreen(
                                 }
                             }
                         }
+                    }
+
+                    SettingsCard {
+                        SettingsButtonItem(
+                            label = stringResource(R.string.open_readme),
+                            description = stringResource(R.string.open_readme_desc),
+                            buttonText = stringResource(R.string.open_readme),
+                            onClick = {
+                                handleExternalLink(context, readmeUrl, isCarMode) {
+                                    qrUrlToShow = it
+                                }
+                            }
+                        )
                     }
 
                     // Spazio elastico che spinge il footer in basso se possibile

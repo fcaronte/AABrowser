@@ -8,6 +8,13 @@
 
     <string name="settings_name">Ajustes</string>
     <string name="service_name">AAB Media</string>
+    <string name="open_readme">Abrir README</string>
+    <string name="open_readme_desc">Lee la documentación de la aplicación en GitHub</string>
+    <string name="change_language">Cambiar idioma de la aplicación</string>
+    <string name="change_language_desc">Abre los ajustes del sistema para cambiar el idioma de la aplicación</string>
+    <string name="change_button">Cambiar</string>
+    <string name="not_available_in_car">Cambia este ajuste desde el teléfono</string>
+    <string name="language_settings_android_13">Los ajustes de idioma de la aplicación requieren Android 13 o posterior</string>
 
     <string name="label_play">Reproducir</string>
     <string name="label_pause">Pausa</string>

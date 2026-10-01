@@ -12,6 +12,14 @@ class FavoritesRepository(private val context: Context) {
         val count = prefs.getInt("BookmarksCount", 0)
         val list = mutableListOf<FavoriteSite>()
         var migrationNeeded = false
+        fun readZoom(key: String): Float? {
+            val storedValue = prefs.all[key] ?: return null
+            val zoom = storedValue as? Number
+                ?: throw IllegalStateException("Stored favorite zoom '$key' is not numeric")
+            if (storedValue !is Float) migrationNeeded = true
+            return zoom.toFloat()
+        }
+
         for (i in 0 until count) {
             val idFromPrefs = prefs.getString("BookmarkId$i", null)
             val id = idFromPrefs ?: java.util.UUID.randomUUID().toString()
@@ -23,8 +31,8 @@ class FavoritesRepository(private val context: Context) {
             val faviconUrl = prefs.getString("BookmarkFavicon$i", null)
 
             val isDesktopMode = if (prefs.contains("BookmarkDesktop$i")) prefs.getBoolean("BookmarkDesktop$i", false) else null
-            val mobileZoom = if (prefs.contains("BookmarkMobileZoom$i")) prefs.getFloat("BookmarkMobileZoom$i", 1.0f) else null
-            val desktopZoom = if (prefs.contains("BookmarkDesktopZoom$i")) prefs.getFloat("BookmarkDesktopZoom$i", 1.0f) else null
+            val mobileZoom = readZoom("BookmarkMobileZoom$i")
+            val desktopZoom = readZoom("BookmarkDesktopZoom$i")
 
             list.add(FavoriteSite(id, name, url, color, faviconUrl, isDesktopMode, mobileZoom, desktopZoom))
         }

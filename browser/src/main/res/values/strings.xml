@@ -9,6 +9,13 @@
 
     <string name="settings_name">Settings</string>
     <string name="service_name">AAB Media</string>
+    <string name="open_readme">Open README</string>
+    <string name="open_readme_desc">Read the app documentation on GitHub</string>
+    <string name="change_language">Change App Language</string>
+    <string name="change_language_desc">Open system language settings to change app language</string>
+    <string name="change_button">Change</string>
+    <string name="not_available_in_car">Please change this setting from your phone</string>
+    <string name="language_settings_android_13">App language settings require Android 13 or newer</string>
 
     <string name="label_play">Play</string>
     <string name="label_pause">Pause</string>
@@ -153,6 +160,7 @@
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
+    <string name="url_readme" translatable="false">https://github.com/fcaronte/AABrowser/blob/main/README.md</string>
     <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 

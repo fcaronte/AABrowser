@@ -8,6 +8,13 @@
 
     <string name="settings_name">Beállítások</string>
     <string name="service_name">AAB Media</string>
+    <string name="open_readme">README megnyitása</string>
+    <string name="open_readme_desc">Az alkalmazás dokumentációjának megtekintése a GitHubon</string>
+    <string name="change_language">Alkalmazás nyelvének módosítása</string>
+    <string name="change_language_desc">A rendszer nyelvi beállításainak megnyitása</string>
+    <string name="change_button">Módosítás</string>
+    <string name="not_available_in_car">Ezt a beállítást a telefonon módosítsa</string>
+    <string name="language_settings_android_13">Az alkalmazás nyelvi beállításához Android 13 vagy újabb verzió szükséges</string>
 
     <string name="label_play">Lejátszás</string>
     <string name="label_pause">Szünet</string>

@@ -179,7 +179,7 @@ object AppSettings {
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
 
         enableWeatherByDefaultIfLocationGranted(context)
-        updateLocale()
+        if (_forceEnglish.value) updateLocale()
     }
 
     fun enableWeatherByDefaultIfLocationGranted(context: Context) {

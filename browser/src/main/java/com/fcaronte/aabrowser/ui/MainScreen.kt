@@ -125,7 +125,7 @@ private fun getDirSize(dir: java.io.File): Long {
 }
 
 @Composable
-fun MainScreen(carInputManager: CarInputManager? = null) {
+fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean = false) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val favoritesViewModel: FavoritesViewModel = viewModel(
@@ -613,7 +613,8 @@ fun MainScreen(carInputManager: CarInputManager? = null) {
                         SettingsScreen(
                             favoritesViewModel = favoritesViewModel,
                             onBack = { currentScreen = previousScreen },
-                            onShowFeedback = { feedbackMessage = it }
+                            onShowFeedback = { feedbackMessage = it },
+                            isCarModeOverride = isAutomotive
                         )
                     }
 

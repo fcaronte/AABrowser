@@ -8,6 +8,13 @@
 
     <string name="settings_name">सेटिंग्स</string>
     <string name="service_name">AAB Media</string>
+    <string name="open_readme">README खोलें</string>
+    <string name="open_readme_desc">GitHub पर ऐप का दस्तावेज़ पढ़ें</string>
+    <string name="change_language">ऐप की भाषा बदलें</string>
+    <string name="change_language_desc">ऐप की भाषा बदलने के लिए सिस्टम सेटिंग्स खोलें</string>
+    <string name="change_button">बदलें</string>
+    <string name="not_available_in_car">यह सेटिंग स्मार्टफोन से बदलें</string>
+    <string name="language_settings_android_13">ऐप की भाषा सेटिंग के लिए Android 13 या नया संस्करण आवश्यक है</string>
 
     <string name="label_play">चलाएं</string>
     <string name="label_pause">रोकें</string>

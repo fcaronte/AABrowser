@@ -8,6 +8,13 @@
 
     <string name="settings_name">设置</string>
     <string name="service_name">AAB Media</string>
+    <string name="open_readme">打开 README</string>
+    <string name="open_readme_desc">在 GitHub 上阅读应用文档</string>
+    <string name="change_language">更改应用语言</string>
+    <string name="change_language_desc">打开系统语言设置以更改应用语言</string>
+    <string name="change_button">更改</string>
+    <string name="not_available_in_car">请在手机上更改此设置</string>
+    <string name="language_settings_android_13">应用语言设置需要 Android 13 或更高版本</string>
 
     <string name="label_play">播放</string>
     <string name="label_pause">暂停</string>

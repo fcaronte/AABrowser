@@ -37,8 +37,11 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 ## Disclaimer & Compatibility
 
 * **It’s a bit buggy:** Expect some "surprises" here and there. It's a work in progress!
-* **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless**, an open-source solution like [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (which can be installed on a Raspberry Pi and includes app unlocking among its features), or if it's installed via **KingInstaller** (to bypass Play Store restrictions).
-* **Compatibility:** Note that the **KingInstaller** method currently seems to work reliably only on **Pixel** and **Samsung** devices.
+* **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless**, an open-source solution like [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (which can be installed on a Raspberry Pi and includes app unlocking among its features), or if it's installed via [KingInstaller](https://github.com/fcaronte/KingInstaller/releases) (to bypass Play Store restrictions).
+* **Compatibility & Installation via KingInstaller:**
+  * **Samsung & Pixel:** Works directly without requiring Shizuku.
+  * **Other devices:** Works using Shizuku integration in KingInstaller.
+  * **Note for Xiaomi / POCO / Redmi:** On recent devices from the Xiaomi, POCO, and Redmi family running MIUI or HyperOS, strict manufacturer customizations block alternative installation methods. On these devices, the Shizuku method does not work, making Root permissions the only working method.
 * **Important:** Remember to enable **"Unknown sources"** in the Android Auto developer options on your phone.
 * **Testing:** Primarily tested on a **Samsung S24 Ultra**.
 
@@ -97,8 +100,11 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 ## Disclaimer & Compatibilità
 
 * **Ci sono dei bug:** Aspettatevi qualche sorpresa qua e là. È un work in progress!
-* **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless**, una soluzione open source come [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (installabile su Raspberry Pi o simili, che tra le sue funzioni include lo sblocco delle app), o se viene installata con **KingInstaller** (per bypassare le restrizioni del Play Store).
-* **Compatibilità:** Nota che il metodo tramite **KingInstaller** attualmente sembra funzionare correttamente soprattutto su dispositivi **Pixel** e **Samsung**.
+* **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless**, una soluzione open source come [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (installabile su Raspberry Pi o simili, che tra le sue funzioni include lo sblocco delle app), o se viene installata con [KingInstaller](https://github.com/fcaronte/KingInstaller/releases) (per bypassare le restrizioni del Play Store).
+* **Compatibilità & Installazione tramite KingInstaller:**
+  * **Samsung & Pixel:** Funziona direttamente senza necessità di Shizuku.
+  * **Altri dispositivi:** Funziona tramite l'integrazione con Shizuku in KingInstaller.
+  * **Nota per Xiaomi / POCO / Redmi:** Sui dispositivi recenti della famiglia Xiaomi, POCO e Redmi con MIUI o HyperOS, le rigide personalizzazioni del produttore bloccano i metodi di installazione alternativi. Su questi dispositivi il metodo Shizuku non funziona, rendendo i permessi di Root l'unico metodo realmente funzionante.
 * **Importante:** Ricordarsi di abilitare le **"Origini sconosciute"** nelle impostazioni sviluppatore di Android Auto sul telefono.
 * **Test:** Testata principalmente su **Samsung S24 Ultra**.
 

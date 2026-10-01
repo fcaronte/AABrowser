@@ -65,7 +65,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
             }
 
             setContent {
-                MainScreen(carInputManager = inputManager)
+                MainScreen(carInputManager = inputManager, isAutomotive = true)
             }
         }
 
