@@ -82,6 +82,9 @@ object AppSettings {
     private val _lastUrl = mutableStateOf("")
     val lastUrl: State<String> = _lastUrl
 
+    private val _wideLastUrl = mutableStateOf("")
+    val wideLastUrl: State<String> = _wideLastUrl
+
     private val _dashboardThreeColumns = mutableStateOf(false)
     val dashboardThreeColumns: State<Boolean> = _dashboardThreeColumns
 
@@ -142,6 +145,7 @@ object AppSettings {
         _desktopMode.value = prefs.getBoolean("desktop_mode", false)
         _desktopScale.floatValue = prefs.getFloat("desktop_scale", 1.0f)
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
+        _wideLastUrl.value = prefs.getString("wide_last_url", "") ?: ""
         _dashboardThreeColumns.value = prefs.getBoolean("dashboard_three_columns", false)
         _openDashboardOnNewTab.value = prefs.getBoolean("open_dashboard_on_new_tab", false)
         _forceEnglish.value = prefs.getBoolean("force_english", false)
@@ -248,6 +252,11 @@ object AppSettings {
     fun setLastUrl(context: Context, url: String) {
         _lastUrl.value = url
         saveString(context, "last_url", url)
+    }
+
+    fun setWideLastUrl(context: Context, url: String) {
+        _wideLastUrl.value = url
+        saveString(context, "wide_last_url", url)
     }
 
     fun setDashboardThreeColumns(context: Context, enabled: Boolean) {

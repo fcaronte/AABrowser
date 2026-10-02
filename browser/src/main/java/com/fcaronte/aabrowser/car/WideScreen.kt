@@ -30,6 +30,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.PermissionRequest
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -62,10 +65,12 @@ import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
-import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.DaznManager
+import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
+import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
@@ -73,7 +78,8 @@ import kotlin.math.sin
 
 /**
  * Schermata "wide" (finto navigatore).
- * Indipendente dall'app principale: condivide solo gli script JavaScript (adblock, login, ecc.).
+ * Indipendente dall'app principale: condivide solo gli script JavaScript e i fix per i siti
+ * (WebViewScriptRouter, AdBlock, GoogleLoginManager, BrowserJavascript).
  * Richiede WideHomeAndSearch.kt (HomePage, SiteSearch, WideSearchScreen) nello stesso package.
  */
 class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
@@ -81,6 +87,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private companion object {
         const val TAG = "WideScreen"
         const val HOME = "about:home"
+
+        // Scale passate a WebViewScriptRouter.routeAndInject (1.0 = nessuna modifica).
+        // Le scale dell'app principale sono pensate per il telefono: qui si regolano a parte.
+        const val WIDE_DISPLAY_SCALE = 1.0f
+        const val WIDE_DESKTOP_SCALE = 1.0f
 
         // Legge il colore di sfondo della pagina per colorare le fasce libere attorno alla WebView
         const val BACKDROP_JS =
@@ -90,11 +101,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     "return c;})()"
     }
 
+    // ------------------------------------------------------------------
+    // Impostazioni della wide (se hai nomi diversi in AppSettings, cambia solo queste 4 righe)
+    // ------------------------------------------------------------------
+    private fun reopenEnabled(): Boolean = AppSettings.wideReopenLastPage.value
+    private fun toggleReopen() = AppSettings.setWideReopenLastPage(carContext, !reopenEnabled())
+    private fun savedUrl(): String = AppSettings.wideLastUrl.value
+    private fun saveUrl(url: String) = AppSettings.setWideLastUrl(carContext, url)
+
     private var virtualDisplay: VirtualDisplay? = null
     private var presentation: Presentation? = null
-    private var backdrop: FrameLayout? = null
+    private var backdrop: FrameLayout? = null      // contenitore radice nella Presentation
     private var webView: WebView? = null
     private var surface: Surface? = null
+
+    private var customView: View? = null            // video a schermo intero
+    private var customViewCallback: WebChromeClient.CustomViewCallback? = null
+    private var lastRenderCrash = 0L
+    private var daznDesktopForced = false       // DAZN: dopo il clic su un evento serve la modalità desktop
 
     private var popupOverlayReference: FrameLayout? = null
     private var isInputPopupVisible = false
@@ -165,7 +189,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 Action.Builder()
                     .setIcon(CarIcon.BACK)
                     .setOnClickListener {
-                        webView?.let { if (it.canGoBack()) it.goBack() }
+                        if (customView != null) {
+                            hideCustomView()
+                        } else {
+                            webView?.let { if (it.canGoBack()) it.goBack() }
+                        }
                     }
                     .build()
             )
@@ -200,10 +228,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             Log.e(TAG, "Errore lettura preferiti", e)
             emptyList()
         }
-        return HomePage.build(carContext, items, AppSettings.wideReopenLastPage.value)
+        return HomePage.build(carContext, items, reopenEnabled())
     }
 
     private fun showHome() {
+        hideCustomView()
         homeHtml = buildHomeHtml()
         lastUrl = HOME
         val wv = webView ?: return
@@ -232,16 +261,27 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun loadUrl(url: String) {
         lastUrl = url
-        webView?.loadUrl(url)
+        webView?.let {
+            applyUserAgent(it, url)
+            it.loadUrl(url)
+        }
     }
 
+    /**
+     * All'apertura della WebView:
+     * 1) se la surface viene ricreata (ricerca, crash, ecc.) riapre dov'eri;
+     * 2) altrimenti, se "riapri ultima pagina" è ON, l'ultima pagina salvata;
+     * 3) altrimenti la home.
+     */
     private fun loadInitial() {
-        val lastSavedUrl = AppSettings.lastUrl.value
-        val shouldReopen = AppSettings.wideReopenLastPage.value
+        val resume = lastUrl
+        if (resume != null) {
+            if (resume == HOME) showHome() else loadUrl(resume)
+            return
+        }
 
-        val targetUrl = if (shouldReopen && !lastSavedUrl.isNullOrEmpty()) lastSavedUrl else null
-
-        if (targetUrl != null) loadUrl(targetUrl) else showHome()
+        val saved = savedUrl()
+        if (reopenEnabled() && saved.isNotEmpty()) loadUrl(saved) else showHome()
     }
 
     private fun closeApp() {
@@ -251,6 +291,77 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             Log.w(TAG, "navigationEnded failed", e)
         }
         carContext.finishCarApp()
+    }
+
+    // ------------------------------------------------------------------
+    // Fix per i siti (condivisi con l'app principale tramite WebViewScriptRouter)
+    // ------------------------------------------------------------------
+
+    /** Desktop o mobile in base al sito (Google, WhatsApp, login, ...). Non tocca la home locale. */
+    private fun isDazn(url: String?): Boolean =
+        url?.contains("dazn.com", ignoreCase = true) == true
+
+    private fun needsDesktopForUrl(url: String?): Boolean =
+        WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+
+    private fun applyUserAgent(view: WebView, url: String?) {
+        if (url != null && url.startsWith(HomePage.BASE_URL)) return
+        if (needsDesktopForUrl(url)) {
+            WebViewScriptRouter.setDesktopUserAgent(view, carContext)
+        } else {
+            WebViewScriptRouter.setMobileUserAgent(view, carContext)
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Video a schermo intero
+    // ------------------------------------------------------------------
+
+    private fun applyMargins(target: View, source: FrameLayout.LayoutParams?) {
+        val lp = (target.layoutParams as? FrameLayout.LayoutParams)
+            ?: FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        if (source != null) {
+            lp.leftMargin = source.leftMargin
+            lp.rightMargin = source.rightMargin
+            lp.topMargin = source.topMargin
+            lp.bottomMargin = source.bottomMargin
+        }
+        target.layoutParams = lp
+    }
+
+    private fun showCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
+        val frame = backdrop
+        if (frame == null || customView != null) {
+            callback.onCustomViewHidden()
+            return
+        }
+        (view.parent as? ViewGroup)?.removeView(view)
+        view.setBackgroundColor(Color.BLACK)
+        frame.addView(
+            view,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        applyMargins(view, webView?.layoutParams as? FrameLayout.LayoutParams)
+        popupOverlayReference?.bringToFront()
+        customView = view
+        customViewCallback = callback
+    }
+
+    private fun hideCustomView() {
+        val view = customView ?: return
+        (view.parent as? ViewGroup)?.removeView(view)
+        customView = null
+        try {
+            customViewCallback?.onCustomViewHidden()
+        } catch (_: Exception) {
+        }
+        customViewCallback = null
     }
 
     // ------------------------------------------------------------------
@@ -334,6 +445,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.bottomMargin = 0
 
         wv.layoutParams = lp
+        customView?.let { applyMargins(it, lp) }
         updatePopupPosition()
     }
 
@@ -367,18 +479,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
-        if (isInputPopupVisible) return
+        if (isInputPopupVisible || customView != null) return
         webView?.scrollBy(distanceX.toInt(), distanceY.toInt())
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
-        if (isInputPopupVisible) return
+        if (isInputPopupVisible || customView != null) return
         webView?.flingScroll(-velocityX.toInt(), -velocityY.toInt())
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
         // Niente zoom sulla home (zoomBy ignora il meta viewport, va bloccato qui)
-        if (isInputPopupVisible || isHome()) return
+        if (isInputPopupVisible || customView != null || isHome()) return
         if (scaleFactor in 0.5f..2.0f) {
             try {
                 webView?.zoomBy(scaleFactor)
@@ -389,7 +501,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun dispatchTouch(action: Int, x: Float, y: Float) {
         handler.post {
-            val wv = webView ?: return@post
+            // Con un video a schermo intero i tocchi vanno ai suoi controlli
+            val target: View = customView ?: webView ?: return@post
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
@@ -399,7 +512,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
-            wv.dispatchTouchEvent(event)
+            target.dispatchTouchEvent(event)
             event.recycle()
         }
     }
@@ -536,18 +649,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             mediaPlaybackRequiresUserGesture = !AppSettings.autoplayMedia.value
                         }
 
+                        CookieManager.getInstance().setAcceptCookie(true)
                         CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
 
+                        // Script all'inizio di ogni pagina. L'AdBlock di YouTube NON va qui:
+                        // lo inietta WebViewScriptRouter solo sui domini YouTube.
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-                            val isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value
-
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getLifecycleAndMetadataScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getGoogleOauthFixScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getPopupInterceptorScript(), setOf("*"))
-
-                            if (isYouTubeAdBlockEnabled) {
-                                WebViewCompat.addDocumentStartJavaScript(this, AdBlockJavascript.getYouTubeAdBlockScript(), setOf("*"))
-                            }
+                            WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
                         }
 
                         addJavascriptInterface(
@@ -574,6 +685,53 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 @JavascriptInterface
                                 @Suppress("unused")
+                                fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {}
+
+                                // DAZN: chiamate di autenticazione/playback fatte lato app (thread del ponte, bloccante)
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun proxyFetch(
+                                    urlString: String,
+                                    method: String,
+                                    headersJson: String,
+                                    body: String?,
+                                    requestUserAgent: String
+                                ): String = DaznProxy.proxyFetch(
+                                    carContext, urlString, method, headersJson, body, requestUserAgent
+                                )
+
+                                // DAZN: al clic su un evento passa alla modalità desktop
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onDaznEventClicked(eventUrl: String) {
+                                    post {
+                                        if (!daznDesktopForced) {
+                                            daznDesktopForced = true
+                                            WebViewScriptRouter.setDesktopUserAgent(this@apply, carContext)
+                                            if (eventUrl.startsWith("http")) {
+                                                this@WideScreen.loadUrl(eventUrl)
+                                            } else {
+                                                this@apply.reload()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Chiamato dagli script quando serve l'AdBlock di YouTube
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onStartAdBlock() {
+                                    post {
+                                        WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(
+                                            this@apply,
+                                            this@apply.url,
+                                            AdBlockSettings.isYouTubeEnabled.value
+                                        )
+                                    }
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
                                 fun onStartInput() {
                                     post {
                                         popupOverlay.visibility = View.VISIBLE
@@ -595,23 +753,42 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openInNewTab(url: String) {
-                                    post { loadUrl(url) }
+                                    post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openLinkInNewTab(url: String) {
-                                    post { loadUrl(url) }
+                                    post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openPopup(url: String) {
-                                    post { loadUrl(url) }
+                                    post { this@WideScreen.loadUrl(url) }
                                 }
                             },
                             "AndroidBridge"
                         )
+
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                                if (view == null || callback == null) return
+                                showCustomView(view, callback)
+                            }
+
+                            override fun onHideCustomView() {
+                                hideCustomView()
+                            }
+
+                            // Solo DRM (Netflix, Spotify, ...). Microfono e fotocamera restano negati.
+                            override fun onPermissionRequest(request: PermissionRequest?) {
+                                val allowed = request?.resources
+                                    ?.filter { it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
+                                    ?.toTypedArray()
+                                if (allowed.isNullOrEmpty()) request?.deny() else request.grant(allowed)
+                            }
+                        }
 
                         webViewClient = @SuppressLint("MissingOnRenderProcessGone")
                         object : WebViewClient() {
@@ -637,6 +814,34 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         ByteArrayInputStream("".toByteArray())
                                     )
                                 }
+                                // DAZN: risposta alle richieste CORS "OPTIONS" (solo per i domini DAZN)
+                                if (request != null && request.method.equals("OPTIONS", ignoreCase = true)) {
+                                    val origin = request.requestHeaders["Origin"] ?: ""
+                                    val isDaznRequest = isDazn(urlString) || isDazn(origin)
+                                    val isPlaybackPreflight =
+                                        request.url.host.equals("api.playback.indazn.com", ignoreCase = true) &&
+                                                request.url.path.equals("/v5/Playback", ignoreCase = true)
+                                    if (isDaznRequest && !isPlaybackPreflight) {
+                                        val reqOrigin = origin.ifEmpty { "https://www.dazn.com" }
+                                        val reqHeaders = request.requestHeaders["Access-Control-Request-Headers"] ?: "*"
+                                        val corsHeaders = mapOf(
+                                            "Access-Control-Allow-Origin" to reqOrigin,
+                                            "Access-Control-Allow-Credentials" to "true",
+                                            "Access-Control-Allow-Methods" to "GET, POST, OPTIONS, PUT, DELETE",
+                                            "Access-Control-Allow-Headers" to reqHeaders,
+                                            "Access-Control-Max-Age" to "86400"
+                                        )
+                                        return WebResourceResponse(
+                                            "text/plain",
+                                            "UTF-8",
+                                            200,
+                                            "OK",
+                                            corsHeaders,
+                                            ByteArrayInputStream(ByteArray(0))
+                                        )
+                                    }
+                                }
+
                                 return super.shouldInterceptRequest(view, request)
                             }
 
@@ -645,30 +850,121 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 request: WebResourceRequest?
                             ): Boolean {
                                 val url = request?.url?.toString() ?: ""
+
                                 if (url.startsWith("about:toggle_reopen")) {
-                                    AppSettings.setWideReopenLastPage(carContext, !AppSettings.wideReopenLastPage.value)
+                                    toggleReopen()
                                     homeHtml = null
                                     showHome()
                                     return true
                                 }
+
+                                // Link "intent://": usa l'indirizzo di ripiego invece di aprire un'app
+                                if (url.startsWith("intent://")) {
+                                    try {
+                                        val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                                        val fallback = intent.getStringExtra("browser_fallback_url")
+                                        val target = if (!fallback.isNullOrEmpty()) {
+                                            fallback
+                                        } else {
+                                            intent.dataString?.takeIf { it.startsWith("https://") }
+                                        }
+                                        if (!target.isNullOrEmpty()) {
+                                            if (isDazn(target)) daznDesktopForced = true
+                                            this@WideScreen.loadUrl(target)
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.w(TAG, "Intent parse error", e)
+                                    }
+                                    return true
+                                }
+
+                                // DAZN: le pagine evento funzionano solo in modalità desktop
+                                if (isDazn(url) &&
+                                    (url.contains("/watch/") || url.contains("/event/") || url.contains("/video/")) &&
+                                    !daznDesktopForced
+                                ) {
+                                    daznDesktopForced = true
+                                    this@WideScreen.loadUrl(url)
+                                    return true
+                                }
+
+                                // Blocca market:// e ogni altro schema non web
                                 val scheme = request?.url?.scheme
                                 return scheme != "http" && scheme != "https"
                             }
 
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                                val isHomePage = url?.startsWith(HomePage.BASE_URL) == true
+
                                 // Zoom disattivato solo sulla home
-                                view?.settings?.setSupportZoom(url?.startsWith(HomePage.BASE_URL) != true)
+                                view?.settings?.setSupportZoom(!isHomePage)
+
+                                // Autoplay: su DAZN sempre consentito
+                                view?.settings?.mediaPlaybackRequiresUserGesture =
+                                    !AppSettings.autoplayMedia.value && !isDazn(url)
+
+                                // Uscendo da DAZN si torna alla modalità normale
+                                if (!isHomePage && !isDazn(url)) daznDesktopForced = false
+
+                                if (view != null && !isHomePage) {
+                                    applyUserAgent(view, url)
+                                    if (needsDesktopForUrl(url)) {
+                                        val ua = view.settings.userAgentString.orEmpty()
+                                        val chromeVersion = Regex("Chrome/([0-9.]+)")
+                                            .find(ua)?.groups?.get(1)?.value ?: "152.0.0.0"
+                                        view.evaluateJavascript(
+                                            BrowserJavascript.getDesktopSpoofScript(chromeVersion),
+                                            null
+                                        )
+                                    }
+                                }
                             }
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url.isNullOrEmpty()) return
+
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
                                 } else {
                                     lastUrl = url
-                                    AppSettings.setLastUrl(carContext, url)
+                                    saveUrl(url)
+
+                                    // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)
+                                    view?.let {
+                                        if (isDazn(url)) {
+                                            it.evaluateJavascript(DaznManager.getClickInterceptorScript(), null)
+                                        }
+                                        WebViewScriptRouter.routeAndInject(
+                                            webView = it,
+                                            urlString = url,
+                                            isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value,
+                                            autoplayMedia = AppSettings.autoplayMedia.value,
+                                            displayScale = WIDE_DISPLAY_SCALE,
+                                            desktopScale = WIDE_DESKTOP_SCALE,
+                                            isDesktopMode = needsDesktopForUrl(url),
+                                            isTabActive = true
+                                        )
+                                    }
                                 }
                                 sampleBackdrop(view)
+                            }
+
+                            // Se il processo di rendering muore, ricrea la WebView sulla stessa pagina
+                            override fun onRenderProcessGone(
+                                view: WebView?,
+                                detail: RenderProcessGoneDetail?
+                            ): Boolean {
+                                AppLog.e(TAG, "Render process gone (crash=${detail?.didCrash()})")
+                                val now = SystemClock.uptimeMillis()
+                                val recent = now - lastRenderCrash < 5000
+                                lastRenderCrash = now
+                                handler.post {
+                                    releaseVirtualDisplay()
+                                    if (!recent && surface?.isValid == true) {
+                                        createVirtualDisplayAndPresentation()
+                                    }
+                                }
+                                return true
                             }
                         }
                     }
@@ -732,6 +1028,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         handler.removeCallbacks(hidePopupRunnable)
         popupOverlayReference = null
         isInputPopupVisible = false
+
+        // Esce dal video a schermo intero prima di distruggere la WebView
+        try {
+            customViewCallback?.onCustomViewHidden()
+        } catch (_: Exception) {
+        }
+        customView = null
+        customViewCallback = null
         backdrop = null
 
         try {
