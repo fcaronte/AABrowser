@@ -77,7 +77,8 @@
         <service
             android:name=".car.CarServiceWide"
             android:exported="true"
-            android:label="@string/wide_app_name">
+            android:label="@string/wide_app_name"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.car.app.CarAppService" />
                 <category android:name="androidx.car.app.category.NAVIGATION" />

@@ -64,20 +64,11 @@ object AppSettings {
     private val _preloadFavoritesCount = mutableIntStateOf(4)
     val preloadFavoritesCount: State<Int> = _preloadFavoritesCount
 
-    private val _resumeLastPage = mutableStateOf(true)
-    val resumeLastPage: State<Boolean> = _resumeLastPage
-
-    private val _restoreLastTabs = mutableStateOf(false)
-    val restoreLastTabs: State<Boolean> = _restoreLastTabs
-
-    private val _persistentUrlBar = mutableStateOf(false)
-    val persistentUrlBar: State<Boolean> = _persistentUrlBar
+    private val _wideReopenLastPage = mutableStateOf(false)
+    val wideReopenLastPage: State<Boolean> = _wideReopenLastPage
 
     private val _fabLocation = mutableStateOf(FABLocation.BOTTOM_RIGHT)
     val fabLocation: State<FABLocation> = _fabLocation
-
-    private val _fabBehavior = mutableStateOf(FABBehavior.OPEN_MENU)
-    val fabBehavior: State<FABBehavior> = _fabBehavior
 
     private val _displayScale = mutableFloatStateOf(1.0f)
     val displayScale: State<Float> = _displayScale
@@ -119,9 +110,6 @@ object AppSettings {
     private val _persistentNavigation = mutableStateOf(false)
     val persistentNavigation: State<Boolean> = _persistentNavigation
 
-    private val _persistentTabBar = mutableStateOf(false)
-    val persistentTabBar: State<Boolean> = _persistentTabBar
-
     private val _tabBarMode = mutableStateOf(TabBarMode.OFF)
     val tabBarMode: State<TabBarMode> = _tabBarMode
 
@@ -145,16 +133,10 @@ object AppSettings {
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
-        _resumeLastPage.value = prefs.getBoolean("resume_last_page", true)
-        _restoreLastTabs.value = prefs.getBoolean("restore_last_tabs", false)
-        _persistentUrlBar.value = prefs.getBoolean("persistent_url_bar", false)
+        _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
                 ?: FABLocation.BOTTOM_RIGHT.name
-        )
-        _fabBehavior.value = FABBehavior.valueOf(
-            prefs.getString("fab_behavior", FABBehavior.OPEN_MENU.name)
-                ?: FABBehavior.OPEN_MENU.name
         )
         _displayScale.floatValue = prefs.getFloat("display_scale", 1.0f)
         _desktopMode.value = prefs.getBoolean("desktop_mode", false)
@@ -170,7 +152,6 @@ object AppSettings {
         _uiScale.floatValue = prefs.getFloat("ui_scale", 1.0f)
         _autoOpenFavoriteId.value = prefs.getString("auto_open_favorite_id", null)
         _persistentNavigation.value = prefs.getBoolean("persistent_navigation", false)
-        _persistentTabBar.value = prefs.getBoolean("persistent_tab_bar", false)
         _tabBarMode.value = TabBarMode.valueOf(
             prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
         )
@@ -218,14 +199,14 @@ object AppSettings {
         saveString(context, "theme_mode", mode.name)
     }
 
-    fun setDynamicColor(context: Context, enabled: Boolean) {
-        _dynamicColor.value = enabled
-        saveBoolean(context, "dynamic_color", enabled)
-    }
-
     fun setAutoplayMedia(context: Context, enabled: Boolean) {
         _autoplayMedia.value = enabled
         saveBoolean(context, "autoplay_media", enabled)
+    }
+
+    fun setWideReopenLastPage(context: Context, enabled: Boolean) {
+        _wideReopenLastPage.value = enabled
+        saveBoolean(context, "reopen_last_page", enabled)
     }
 
     fun setDarkPages(context: Context, enabled: Boolean) {
@@ -310,11 +291,6 @@ object AppSettings {
         saveBoolean(context, "persistent_navigation", enabled)
     }
 
-    fun setPersistentTabBar(context: Context, enabled: Boolean) {
-        _persistentTabBar.value = enabled
-        saveBoolean(context, "persistent_tab_bar", enabled)
-    }
-
     fun setTabBarMode(context: Context, mode: TabBarMode) {
         _tabBarMode.value = mode
         saveString(context, "tab_bar_mode", mode.name)
@@ -368,11 +344,6 @@ object AppSettings {
             AppLog.e("AppSettings", "Error clearing cache", e)
         }
     }
-
-    fun clearBrowserData(context: Context) {
-        clearCache(context)
-        clearCookies()
-    }
     fun clearCookies() {
         try {
             CookieManager.getInstance().removeAllCookies(null)
@@ -387,7 +358,7 @@ object AppSettings {
         val localeList = if (languageCode != null) {
             LocaleListCompat.forLanguageTags(languageCode)
         } else {
-            androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+            LocaleListCompat.getEmptyLocaleList()
         }
         androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(localeList)
     }

@@ -470,7 +470,8 @@ fun BrowserScreen(
             factory = { context ->
                 val webView = object : WebView(context) {
                     override fun onPause() {
-                        // Impedisce a Chromium di sospendere l'esecuzione multimediale in background
+                        // Impedito il blocco forzato
+                        return
                     }
                     override fun onWindowVisibilityChanged(visibility: Int) {
                         super.onWindowVisibilityChanged(VISIBLE)

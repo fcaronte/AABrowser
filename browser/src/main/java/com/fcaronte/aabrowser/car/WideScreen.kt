@@ -3,29 +3,41 @@ package com.fcaronte.aabrowser.car
 import android.annotation.SuppressLint
 import android.app.Presentation
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
+import android.view.Gravity
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.Surface
+import android.view.View
 import android.view.ViewGroup
+import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
@@ -39,49 +51,70 @@ import androidx.car.app.model.Template
 import androidx.car.app.navigation.NavigationManager
 import androidx.car.app.navigation.NavigationManagerCallback
 import androidx.car.app.navigation.model.NavigationTemplate
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
+import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesRepository
-import com.fcaronte.aabrowser.model.WebStateRepository
+import com.fcaronte.aabrowser.settings.AdBlockSettings
+import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockJavascript
+import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import java.io.ByteArrayInputStream
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.core.graphics.createBitmap
 
 /**
  * Schermata "wide" (finto navigatore).
- * Richiede WideHomeAndSearch.kt (HomePage e WideSearchScreen) nello stesso package.
+ * Indipendente dall'app principale: condivide solo gli script JavaScript (adblock, login, ecc.).
+ * Richiede WideHomeAndSearch.kt (HomePage, SiteSearch, WideSearchScreen) nello stesso package.
  */
 class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private companion object {
         const val TAG = "WideScreen"
-
-        // Marcatore interno per "la pagina corrente è la home HTML"
         const val HOME = "about:home"
+
+        // Legge il colore di sfondo della pagina per colorare le fasce libere attorno alla WebView
+        const val BACKDROP_JS =
+            "(function(){var b=document.body,d=document.documentElement;" +
+                    "var c=b?getComputedStyle(b).backgroundColor:'';" +
+                    "if(!c||c==='transparent'||c==='rgba(0, 0, 0, 0)'){c=getComputedStyle(d).backgroundColor;}" +
+                    "return c;})()"
     }
 
     private var virtualDisplay: VirtualDisplay? = null
     private var presentation: Presentation? = null
+    private var backdrop: FrameLayout? = null
     private var webView: WebView? = null
     private var surface: Surface? = null
+
+    private var popupOverlayReference: FrameLayout? = null
+    private var isInputPopupVisible = false
+    private val hidePopupRunnable = Runnable {
+        popupOverlayReference?.visibility = View.GONE
+        isInputPopupVisible = false
+    }
 
     private var surfaceWidth = 800
     private var surfaceHeight = 480
     private var surfaceDensity = 160
 
-    // Area realmente libera (non coperta dal player affiancato o dalle strisce dei comandi)
     private var visibleArea: Rect? = null
-
-    // Ultimo URL aperto (o HOME). Sopravvive al rilascio della surface.
     private var lastUrl: String? = null
 
-    // HTML della home, servito da shouldInterceptRequest su HomePage.BASE_URL
     @Volatile
     private var homeHtml: String? = null
 
     private val handler = Handler(Looper.getMainLooper())
+
     private var downTime = 0L
     private val iconPan: CarIcon = CarIcon.PAN
     private val iconHome: CarIcon by lazy { buildHomeIcon() }
@@ -102,7 +135,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             })
             navManager.navigationStarted()
         } catch (e: Exception) {
-            Log.e(TAG, "Init failed (controlla i permessi NAVIGATION_TEMPLATES e ACCESS_SURFACE)", e)
+            Log.e(TAG, "Init failed", e)
         }
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -117,7 +150,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     override fun onGetTemplate(): Template {
-        // ActionStrip superiore: lasciamo solo la HOME in alto a destra
         val strip = ActionStrip.Builder()
             .addAction(
                 Action.Builder()
@@ -127,7 +159,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
             .build()
 
-        // MapActionStrip (barra laterale): Pan, Indietro, Cerca e Refresh
         val mapStrip = ActionStrip.Builder()
             .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
             .addAction(
@@ -169,7 +200,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             Log.e(TAG, "Errore lettura preferiti", e)
             emptyList()
         }
-        return HomePage.build(carContext, items)
+        return HomePage.build(carContext, items, AppSettings.wideReopenLastPage.value)
     }
 
     private fun showHome() {
@@ -179,23 +210,38 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (wv.url == HomePage.BASE_URL) wv.reload() else wv.loadUrl(HomePage.BASE_URL)
     }
 
+    private fun isHome(): Boolean =
+        lastUrl == HOME || webView?.url?.startsWith(HomePage.BASE_URL) == true
+
+    /** Lente: cerca sul sito che stai guardando (YouTube, Amazon, ...), altrimenti su Google. */
     private fun openSearch() {
-        screenManager.push(WideSearchScreen(carContext) { query ->
-            loadUrl(HomePage.queryToUrl(query))
+        val from = (webView?.url ?: lastUrl)
+            ?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
+        val target = SiteSearch.targetFor(from)
+        screenManager.push(WideSearchScreen(carContext, "Cerca su ${target.label}") { query ->
+            loadUrl(SiteSearch.resolve(from, query))
+        })
+    }
+
+    /** Tastiera dal popup dei campi di testo: scrive nel campo selezionato della pagina. */
+    private fun openFieldInput() {
+        screenManager.push(WideSearchScreen(carContext, "Scrivi nel campo") { text ->
+            webView?.evaluateJavascript(BrowserJavascript.getInjectTextScript(text), null)
         })
     }
 
     private fun loadUrl(url: String) {
-        WebStateRepository.currentUrl = url
         lastUrl = url
         webView?.loadUrl(url)
     }
 
-    private fun loadInitial(wv: WebView) {
-        val target = lastUrl
-            ?: WebStateRepository.currentUrl.takeIf { it.isNotEmpty() && !it.startsWith(HomePage.BASE_URL) }
-            ?: HOME
-        if (target == HOME) showHome() else wv.loadUrl(target)
+    private fun loadInitial() {
+        val lastSavedUrl = AppSettings.lastUrl.value
+        val shouldReopen = AppSettings.wideReopenLastPage.value
+
+        val targetUrl = if (shouldReopen && !lastSavedUrl.isNullOrEmpty()) lastSavedUrl else null
+
+        if (targetUrl != null) loadUrl(targetUrl) else showHome()
     }
 
     private fun closeApp() {
@@ -208,10 +254,37 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // ------------------------------------------------------------------
+    // Sfondo che segue il colore della pagina
+    // ------------------------------------------------------------------
+
+    private fun sampleBackdrop(view: WebView?) {
+        view?.evaluateJavascript(BACKDROP_JS) { raw ->
+            parseCssColor(raw)?.let { color -> backdrop?.setBackgroundColor(color) }
+        }
+    }
+
+    private fun parseCssColor(raw: String?): Int? {
+        val m = Regex("""rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)""")
+            .find(raw ?: return null) ?: return null
+        val alpha = m.groupValues[4].toFloatOrNull() ?: 1f
+        if (alpha < 0.1f) return Color.WHITE
+        return Color.rgb(
+            m.groupValues[1].toInt().coerceIn(0, 255),
+            m.groupValues[2].toInt().coerceIn(0, 255),
+            m.groupValues[3].toInt().coerceIn(0, 255)
+        )
+    }
+
+    // ------------------------------------------------------------------
     // SurfaceCallback
     // ------------------------------------------------------------------
 
     override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) {
+        try {
+            AppSettings.init(carContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "AppSettings init failed", e)
+        }
         surface = surfaceContainer.surface
         surfaceWidth = if (surfaceContainer.width > 0) surfaceContainer.width else 800
         surfaceHeight = if (surfaceContainer.height > 0) surfaceContainer.height else 480
@@ -241,11 +314,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         val currentRight = (surfaceWidth - r.right).coerceAtLeast(0)
 
-        // Gestione stabile del player laterale a destra:
-        // Se supera i 50px (player aperto), blocchiamo/aggiorniamo il margine esatto
-        // evitando che le micro-variazioni dovute alla comparsa dei tasti touch facciano ballare la UI.
         if (currentRight > 50) {
-            if (lockedRightMargin == 0 || kotlin.math.abs(currentRight - lockedRightMargin) > 25) {
+            if (lockedRightMargin == 0 || abs(currentRight - lockedRightMargin) > 25) {
                 lockedRightMargin = currentRight
             }
         } else {
@@ -264,22 +334,51 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.bottomMargin = 0
 
         wv.layoutParams = lp
+        updatePopupPosition()
+    }
+
+    private fun updatePopupPosition() {
+        val overlay = popupOverlayReference ?: return
+        val r = visibleArea
+        if (r == null || r.isEmpty) return
+
+        val card = overlay.getChildAt(0) as? LinearLayout ?: return
+        val lp = card.layoutParams as? FrameLayout.LayoutParams ?: return
+
+        val centerX = r.left + r.width() / 2
+        val centerY = r.top + r.height() / 2
+
+        lp.gravity = Gravity.TOP or Gravity.START
+        card.post {
+            lp.leftMargin = centerX - card.width / 2
+            lp.topMargin = centerY - card.height / 2
+            card.layoutParams = lp
+        }
     }
 
     override fun onClick(x: Float, y: Float) {
+        if (isInputPopupVisible) {
+            dispatchTouchToPopup(MotionEvent.ACTION_DOWN, x, y)
+            dispatchTouchToPopup(MotionEvent.ACTION_UP, x, y)
+            return
+        }
         dispatchTouch(MotionEvent.ACTION_DOWN, x, y)
         dispatchTouch(MotionEvent.ACTION_UP, x, y)
     }
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
+        if (isInputPopupVisible) return
         webView?.scrollBy(distanceX.toInt(), distanceY.toInt())
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
+        if (isInputPopupVisible) return
         webView?.flingScroll(-velocityX.toInt(), -velocityY.toInt())
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
+        // Niente zoom sulla home (zoomBy ignora il meta viewport, va bloccato qui)
+        if (isInputPopupVisible || isHome()) return
         if (scaleFactor in 0.5f..2.0f) {
             try {
                 webView?.zoomBy(scaleFactor)
@@ -296,7 +395,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             val area = visibleArea
             val lx = x - (area?.left ?: 0)
-            val ly = y - (area?.top ?: 0)
+            val ly = y
 
             val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
@@ -305,8 +404,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    private fun dispatchTouchToPopup(action: Int, x: Float, y: Float) {
+        handler.post {
+            val overlay = popupOverlayReference ?: return@post
+            val now = SystemClock.uptimeMillis()
+            if (action == MotionEvent.ACTION_DOWN) downTime = now
+
+            val event = MotionEvent.obtain(downTime, now, action, x, y, 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            overlay.dispatchTouchEvent(event)
+            event.recycle()
+        }
+    }
+
     // ------------------------------------------------------------------
-    // VirtualDisplay + Presentation + WebView
+    // VirtualDisplay + Presentation + WebView + Popup
     // ------------------------------------------------------------------
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -347,8 +459,69 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setBackgroundColor(Color.BLACK)
+                        setBackgroundColor(Color.parseColor("#101010"))
                     }
+                    backdrop = frame
+
+                    // Popup compatto (tastiera e microfono) con timeout e chiusura al tocco esterno
+                    val popupOverlay = FrameLayout(ctx).apply {
+                        layoutParams = FrameLayout.LayoutParams(-1, -1)
+                        visibility = View.GONE
+                        setBackgroundColor(Color.parseColor("#99000000"))
+                        setOnClickListener {
+                            handler.removeCallbacks(hidePopupRunnable)
+                            visibility = View.GONE
+                            isInputPopupVisible = false
+                        }
+                    }
+                    popupOverlayReference = popupOverlay
+
+                    val inputCard = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        setPadding(24, 16, 24, 16)
+                        gravity = Gravity.CENTER
+                        background = GradientDrawable().apply {
+                            setColor(Color.parseColor("#202124"))
+                            cornerRadius = 20f
+                        }
+                        setOnClickListener { /* consuma click sulla card */ }
+                    }
+
+                    val btnKeyboard = Button(ctx).apply {
+                        text = "⌨️"
+                        textSize = 20f
+                        setTextColor(Color.WHITE)
+                        setBackgroundColor(Color.parseColor("#3b82f6"))
+                        setPadding(20, 12, 20, 12)
+                        setOnClickListener {
+                            handler.removeCallbacks(hidePopupRunnable)
+                            popupOverlay.visibility = View.GONE
+                            isInputPopupVisible = false
+                            openFieldInput()
+                        }
+                    }
+
+                    val btnMic = Button(ctx).apply {
+                        text = "🎤"
+                        textSize = 20f
+                        setTextColor(Color.WHITE)
+                        setBackgroundColor(Color.parseColor("#ef4444"))
+                        setPadding(20, 12, 20, 12)
+                        setOnClickListener {
+                            handler.removeCallbacks(hidePopupRunnable)
+                            popupOverlay.visibility = View.GONE
+                            isInputPopupVisible = false
+                            startVoiceListening(ctx, webView)
+                        }
+                    }
+
+                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 16 })
+                    inputCard.addView(btnMic, LinearLayout.LayoutParams(-2, -2))
+
+                    val cardLp = FrameLayout.LayoutParams(-2, -2).apply {
+                        gravity = Gravity.CENTER
+                    }
+                    popupOverlay.addView(inputCard, cardLp)
 
                     val wv = WebView(ctx).apply {
                         settings.apply {
@@ -360,22 +533,108 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             setSupportZoom(true)
                             builtInZoomControls = true
                             displayZoomControls = false
-                            mediaPlaybackRequiresUserGesture = false
+                            mediaPlaybackRequiresUserGesture = !AppSettings.autoplayMedia.value
                         }
+
+                        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                            val isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value
+
+                            WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getLifecycleAndMetadataScript(), setOf("*"))
+                            WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getGoogleOauthFixScript(), setOf("*"))
+                            WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getPopupInterceptorScript(), setOf("*"))
+
+                            if (isYouTubeAdBlockEnabled) {
+                                WebViewCompat.addDocumentStartJavaScript(this, AdBlockJavascript.getYouTubeAdBlockScript(), setOf("*"))
+                            }
+                        }
+
+                        addJavascriptInterface(
+                            object {
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onVideoStarted(time: Float) {}
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {}
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {}
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun updateMediaMetadata(title: String, artist: String, albumArtUrl: String, duration: Float) {}
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun recMediaStatus(jsonStr: String) {}
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun onStartInput() {
+                                    post {
+                                        popupOverlay.visibility = View.VISIBLE
+                                        isInputPopupVisible = true
+                                        updatePopupPosition()
+                                        handler.removeCallbacks(hidePopupRunnable)
+                                        handler.postDelayed(hidePopupRunnable, 3000)
+                                    }
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun injectText(text: String) {
+                                    post {
+                                        evaluateJavascript(BrowserJavascript.getInjectTextScript(text), null)
+                                    }
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun openInNewTab(url: String) {
+                                    post { loadUrl(url) }
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun openLinkInNewTab(url: String) {
+                                    post { loadUrl(url) }
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun openPopup(url: String) {
+                                    post { loadUrl(url) }
+                                }
+                            },
+                            "AndroidBridge"
+                        )
+
                         webViewClient = @SuppressLint("MissingOnRenderProcessGone")
                         object : WebViewClient() {
-
                             override fun shouldInterceptRequest(
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): WebResourceResponse? {
-                                val url = request?.url?.toString()
-                                if (url == HomePage.BASE_URL) {
+                                val urlString = request?.url?.toString() ?: ""
+
+                                if (urlString == HomePage.BASE_URL) {
                                     val html = homeHtml ?: buildHomeHtml().also { homeHtml = it }
                                     return WebResourceResponse(
                                         "text/html",
                                         "UTF-8",
                                         ByteArrayInputStream(html.toByteArray(Charsets.UTF_8))
+                                    )
+                                }
+
+                                if (AdBlockHost.shouldBlock(urlString)) {
+                                    return WebResourceResponse(
+                                        "text/plain",
+                                        "utf-8",
+                                        ByteArrayInputStream("".toByteArray())
                                     )
                                 }
                                 return super.shouldInterceptRequest(view, request)
@@ -385,8 +644,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): Boolean {
+                                val url = request?.url?.toString() ?: ""
+                                if (url.startsWith("about:toggle_reopen")) {
+                                    AppSettings.setWideReopenLastPage(carContext, !AppSettings.wideReopenLastPage.value)
+                                    homeHtml = null
+                                    showHome()
+                                    return true
+                                }
                                 val scheme = request?.url?.scheme
                                 return scheme != "http" && scheme != "https"
+                            }
+
+                            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                                // Zoom disattivato solo sulla home
+                                view?.settings?.setSupportZoom(url?.startsWith(HomePage.BASE_URL) != true)
                             }
 
                             override fun onPageFinished(view: WebView?, url: String?) {
@@ -394,9 +665,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
                                 } else {
-                                    WebStateRepository.currentUrl = url
                                     lastUrl = url
+                                    AppSettings.setLastUrl(carContext, url)
                                 }
+                                sampleBackdrop(view)
                             }
                         }
                     }
@@ -409,9 +681,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                     )
+
+                    frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
+
                     setContentView(frame)
                     applyVisibleArea()
-                    loadInitial(wv)
+                    loadInitial()
                 }
             }
 
@@ -421,7 +696,44 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    private fun startVoiceListening(context: Context, targetWebView: WebView?) {
+        try {
+            val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.voice_prompt))
+            }
+            speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {}
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEndOfSpeech() {}
+                override fun onError(error: Int) {
+                    try { speechRecognizer.destroy() } catch (_: Exception) {}
+                }
+                override fun onResults(results: Bundle?) {
+                    val spokenText = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                    if (!spokenText.isNullOrEmpty() && targetWebView != null) {
+                        targetWebView.evaluateJavascript(BrowserJavascript.getInjectTextScript(spokenText), null)
+                    }
+                    try { speechRecognizer.destroy() } catch (_: Exception) {}
+                }
+                override fun onPartialResults(partialResults: Bundle?) {}
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+            speechRecognizer.startListening(intent)
+        } catch (e: Exception) {
+            AppLog.e(TAG, "SpeechRecognizer error", e)
+        }
+    }
+
     private fun releaseVirtualDisplay() {
+        handler.removeCallbacks(hidePopupRunnable)
+        popupOverlayReference = null
+        isInputPopupVisible = false
+        backdrop = null
+
         try {
             webView?.url?.let {
                 if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
@@ -449,7 +761,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // ------------------------------------------------------------------
-    // Icone disegnate a codice
+    // Icone disegnate a codice (maschere nere con tint scelto dall'host)
     // ------------------------------------------------------------------
 
     private fun maskIcon(draw: (Canvas, Paint, Float) -> Unit): CarIcon {

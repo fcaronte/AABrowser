@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.car
 
+import android.content.Context
 import android.net.Uri
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
@@ -19,61 +20,67 @@ object HomePage {
         val iconUrl: String? = null
     )
 
+    private fun hostOf(url: String): String? =
+        try { url.toUri().host } catch (_: Exception) { null }
+
     private fun faviconFor(url: String): String? {
-        return try {
-            val host = url.toUri().host ?: return null
-            when {
-                // Per WhatsApp e domini simili usiamo il favicon finder di DuckDuckGo che non dà 403
-                host.contains("whatsapp.com") || host.contains("wa.me") ->
-                    "https://icons.duckduckgo.com/ip3/whatsapp.com.ico"
+        val host = hostOf(url) ?: return null
+        return when {
+            // WhatsApp: il favicon di Google dà 403, usiamo DuckDuckGo
+            host.contains("whatsapp.com") || host.contains("wa.me") ->
+                "https://icons.duckduckgo.com/ip3/whatsapp.com.ico"
 
-                host.contains("youtubekids.com") ->
-                    "https://www.google.com/s2/favicons?domain=youtube.com&sz=128"
+            host.contains("youtubekids.com") ->
+                "https://www.google.com/s2/favicons?domain=youtube.com&sz=128"
 
-                else ->
-                    "https://www.google.com/s2/favicons?domain=$host&sz=128"
-            }
-        } catch (_: Exception) {
-            null
+            else ->
+                "https://www.google.com/s2/favicons?domain=$host&sz=128"
         }
     }
 
-    fun build(context: android.content.Context, items: List<Item>): String {
+    /**
+     * Catena di icone da provare in ordine:
+     * icona salvata -> Google -> DuckDuckGo -> /favicon.ico del sito -> lettera (gestita in JS).
+     */
+    private fun iconCandidates(item: Item): List<String> {
+        val list = mutableListOf<String>()
+        item.iconUrl?.takeIf { it.isNotBlank() }?.let { list.add(it) }
+        faviconFor(item.url)?.let { list.add(it) }
+        val uri = try { item.url.toUri() } catch (_: Exception) { null }
+        val host = uri?.host
+        if (host != null) {
+            list.add("https://icons.duckduckgo.com/ip3/$host.ico")
+            val scheme = uri.scheme ?: "https"
+            list.add("$scheme://$host/favicon.ico")
+        }
+        return list.distinct()
+    }
+
+    fun build(context: Context, items: List<Item>, reopenLastPage: Boolean): String {
         val version = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
         } catch (_: Exception) {
             "1.0"
         }
 
-        val tiles = items.joinToString("\n") { item ->
+        val toggleText = if (reopenLastPage) "ON" else "OFF"
+        val toggleColor = if (reopenLastPage) "#3b82f6" else "#444444"
 
+        val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()
             val url = item.url.htmlEncode()
+            val letter = item.name.trim().take(1).uppercase().ifEmpty { "?" }.htmlEncode()
+            val candidates = iconCandidates(item)
 
-            val letter = item.name.trim()
-                .take(1)
-                .uppercase()
-                .ifEmpty { "?" }.htmlEncode()
+            val iconHtml = if (candidates.isNotEmpty()) {
+                val all = candidates.joinToString("|").htmlEncode()
+                val first = candidates.first().htmlEncode()
+                """<img class="ico-img" src="$first" data-s="$all" data-i="0" onerror="fb(this)" onload="ld(this)"><div class="ico" style="display:none">$letter</div>"""
+            } else {
+                """<div class="ico">$letter</div>"""
+            }
 
-            val iconUrl = item.iconUrl ?: faviconFor(item.url)
-
-            val iconHtml =
-                if (!iconUrl.isNullOrBlank()) {
-                    """
-                    <img class="ico-img" src="${iconUrl.htmlEncode()}">
-                    """.trimIndent()
-                } else {
-                    """
-                    <div class="ico">$letter</div>
-                    """.trimIndent()
-                }
-
-            """
-            <a class="tile" href="$url">
-                $iconHtml
-                <div class="name">$name</div>
-            </a>
-            """.trimIndent()
+            """<a class="tile" href="$url">$iconHtml<div class="name">$name</div></a>"""
         }
 
         val titleText = "AABrowser v$version"
@@ -83,7 +90,7 @@ object HomePage {
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <style>
 
@@ -93,6 +100,9 @@ html, body {
     background:#101010;
     color:#ffffff;
     font-family:sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-x pan-y;
 }
 
 body {
@@ -111,14 +121,27 @@ h1 {
     opacity:.9;
 }
 
-/* Griglia più densa: ridotto minmax a 115px per far stare più preferiti per riga */
+.settings {
+    margin-bottom: 16px;
+}
+.toggle {
+    display:inline-block;
+    background: rgba(30, 30, 30, 0.85);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    font-size: 14px;
+    text-decoration:none;
+}
+.toggle:active { background: rgba(51, 51, 51, 0.95); }
+
 .grid {
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(115px,1fr));
     gap:12px;
 }
 
-/* Tile più compatti */
 .tile {
     display:flex;
     flex-direction:column;
@@ -176,11 +199,42 @@ h1 {
 }
 
 </style>
+
+<script>
+  // Icone: se una sorgente fallisce (o e' solo il globo 16px di default) prova la successiva,
+  // alla fine mostra la lettera iniziale.
+  function nxt(img) {
+    var l = (img.dataset.s || '').split('|').filter(Boolean);
+    var i = parseInt(img.dataset.i || '0') + 1;
+    return { l: l, i: i };
+  }
+  function fb(img) {
+    var n = nxt(img);
+    if (n.i < n.l.length) {
+      img.dataset.i = n.i;
+      img.src = n.l[n.i];
+    } else {
+      img.style.display = 'none';
+      var p = img.nextElementSibling;
+      if (p) p.style.display = 'flex';
+    }
+  }
+  function ld(img) {
+    var n = nxt(img);
+    if (img.naturalWidth <= 16 && n.i < n.l.length) { fb(img); }
+  }
+</script>
 </head>
 
 <body>
 
 <h1>$titleText</h1>
+
+<div class="settings">
+    <a class="toggle" href="about:toggle_reopen">
+        Riapri ultima pagina: <span style="color:$toggleColor">$toggleText</span>
+    </a>
+</div>
 
 <div class="grid">
 ${
@@ -196,25 +250,72 @@ ${
         """.trimIndent()
     }
 
-    fun queryToUrl(query: String): String {
+    /** Se il testo sembra un indirizzo restituisce l'URL, altrimenti null. */
+    fun asUrlOrNull(query: String): String? {
         val q = query.trim()
-
         return when {
-            q.startsWith("http://") ||
-                    q.startsWith("https://") ->
-                q
+            q.startsWith("http://") || q.startsWith("https://") -> q
+            q.contains('.') && !q.contains(' ') -> "https://$q"
+            else -> null
+        }
+    }
 
-            q.contains('.') && !q.contains(' ') ->
-                "https://$q"
+    fun queryToUrl(query: String): String =
+        asUrlOrNull(query) ?: ("https://www.google.com/search?q=" + Uri.encode(query.trim()))
+}
 
-            else ->
-                "https://www.google.com/search?q=" + Uri.encode(q)
+/**
+ * Ricerca "sul sito che stai guardando": YouTube cerca su YouTube, Amazon su Amazon, ecc.
+ * Sulla home o su un sito sconosciuto cerca su Google.
+ */
+object SiteSearch {
+
+    data class Target(val label: String, val template: String?)
+
+    private class Site(val match: (String) -> Boolean, val label: String, val template: String)
+
+    // %s = testo cercato (già codificato), {host} = host della pagina corrente
+    private val sites = listOf(
+        Site({ it.endsWith("youtube.com") }, "YouTube", "https://www.youtube.com/results?search_query=%s"),
+        Site({ it.endsWith("spotify.com") }, "Spotify", "https://open.spotify.com/search/%s"),
+        Site({ it.endsWith("wikipedia.org") }, "Wikipedia", "https://{host}/w/index.php?search=%s"),
+        Site({ it.contains("amazon.") }, "Amazon", "https://{host}/s?k=%s"),
+        Site({ it.contains("ebay.") }, "eBay", "https://{host}/sch/i.html?_nkw=%s"),
+        Site({ it.endsWith("reddit.com") }, "Reddit", "https://www.reddit.com/search/?q=%s"),
+        Site({ it.endsWith("imdb.com") }, "IMDb", "https://www.imdb.com/find/?q=%s"),
+        Site({ it.endsWith("twitch.tv") }, "Twitch", "https://www.twitch.tv/search?term=%s"),
+        Site({ it.endsWith("netflix.com") }, "Netflix", "https://www.netflix.com/search?q=%s"),
+    )
+
+    private fun hostOf(url: String?): String? =
+        try { if (url == null) null else Uri.parse(url).host?.lowercase() } catch (_: Exception) { null }
+
+    fun targetFor(currentUrl: String?): Target {
+        val host = hostOf(currentUrl) ?: return Target("Google", null)
+        val site = sites.firstOrNull { it.match(host) } ?: return Target("Google", null)
+        return Target(site.label, site.template)
+    }
+
+    fun resolve(currentUrl: String?, query: String): String {
+        HomePage.asUrlOrNull(query)?.let { return it }
+        val host = hostOf(currentUrl)
+        val site = host?.let { h -> sites.firstOrNull { it.match(h) } }
+        val encoded = Uri.encode(query.trim())
+        return if (site != null && host != null) {
+            site.template.replace("{host}", host).replace("%s", encoded)
+        } else {
+            "https://www.google.com/search?q=$encoded"
         }
     }
 }
 
+/**
+ * Schermata di ricerca/testo: l'host di Android Auto mostra tastiera e microfono.
+ * A veicolo in movimento la tastiera può essere disabilitata dall'host.
+ */
 class WideSearchScreen(
     carContext: CarContext,
+    private val hint: String,
     private val onSubmit: (String) -> Unit
 ) : Screen(carContext) {
 
@@ -231,6 +332,7 @@ class WideSearchScreen(
         }
         return SearchTemplate.Builder(callback)
             .setHeaderAction(Action.BACK)
+            .setSearchHint(hint)
             .setShowKeyboardByDefault(true)
             .build()
     }
