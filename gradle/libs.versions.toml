@@ -4,6 +4,7 @@ kotlin = "2.4.20"
 appcompat = "1.8.0"
 constraintlayout = "2.2.2"
 media = "1.8.0"
+media3 = "1.5.1"
 material = "1.14.0"
 composeBom = "2026.09.00"
 activityCompose = "1.13.0"
@@ -18,6 +19,9 @@ carApp = "1.7.0"
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-media = { group = "androidx.media", name = "media", version.ref = "media" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

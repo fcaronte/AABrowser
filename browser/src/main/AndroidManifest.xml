@@ -112,6 +112,20 @@
             </intent-filter>
         </service>
 
+        <!-- Media3 Service (disabled by default for testing) -->
+        <service
+            android:name=".mediaservice.CarMediaService3"
+            android:enabled="false"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
+            android:label="@string/service_name"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".mediaservice.CarMediaButtonReceiver"
             android:exported="true">

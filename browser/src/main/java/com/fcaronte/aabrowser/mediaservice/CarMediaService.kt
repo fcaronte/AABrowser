@@ -244,7 +244,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
                 if (mediaMetadataCompat != null) {
                     val title = mediaMetadataCompat.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                    val hasIcon = mediaMetadataCompat.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON) != null
+                    AppLog.d(TAG, "Received metadata: title='$title', hasIcon=$hasIcon")
                     if (title.isNullOrBlank()) {
+                        AppLog.d(TAG, "Title is blank, switching to weather mode")
                         showingWeather = true
                         isUserPaused = false
                         checkAndUpdateWeatherMetadata()
