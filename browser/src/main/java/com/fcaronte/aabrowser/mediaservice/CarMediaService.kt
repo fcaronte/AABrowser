@@ -137,6 +137,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                         mMediasessioncompat?.setPlaybackState(state)
 
                         updateNotification()
+                        requestAudioFocus()
                         AppLog.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
                     }
                 }
@@ -189,6 +190,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         clientUid: Int,
         rootHints: Bundle?
     ): BrowserRoot {
+        AppLog.d(TAG, "onGetRoot: client=$clientPackageName")
+        mMediasessioncompat?.isActive = true
+        checkAndUpdateWeatherMetadata()
         return BrowserRoot("root", null)
     }
 
@@ -196,6 +200,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         parentMediaId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem?>?>
     ) {
+        AppLog.d(TAG, "onLoadChildren: parentMediaId=$parentMediaId")
+        checkAndUpdateWeatherMetadata()
+
         val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem?>()
 
         if ("root" == parentMediaId) {
@@ -251,6 +258,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     } else {
                         showingWeather = false
                         mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
+                        requestAudioFocus()
                         update = true
                     }
                 }

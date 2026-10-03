@@ -71,6 +71,9 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
+import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
+import android.support.v4.media.session.PlaybackStateCompat
+import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
@@ -137,6 +140,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     @Volatile
     private var homeHtml: String? = null
 
+    private val mediaSessionManager = MediaSessionManager(carContext)
     private val handler = Handler(Looper.getMainLooper())
 
     private var downTime = 0L
@@ -652,6 +656,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         CookieManager.getInstance().setAcceptCookie(true)
                         CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
 
+                        mediaSessionManager.connect()
+                        mediaSessionManager.apply {
+                            onPlay = { evaluateJavascript(BrowserJavascript.PLAY_SCRIPT.trimIndent(), null) }
+                            onPause = { evaluateJavascript(BrowserJavascript.PAUSE_SCRIPT.trimIndent(), null) }
+                            onStop = { evaluateJavascript(BrowserJavascript.STOP_SCRIPT.trimIndent(), null) }
+                            onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
+                            onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
+                            onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
+                        }
+
                         // Script all'inizio di ogni pagina. L'AdBlock di YouTube NON va qui:
                         // lo inietta WebViewScriptRouter solo sui domini YouTube.
                         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
@@ -665,23 +679,77 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             object {
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun onVideoStarted(time: Float) {}
+                                fun onVideoStarted(time: Float) {
+                                    @Suppress("DEPRECATION")
+                                    mediaSessionManager.updatePlaybackState(
+                                        PlaybackStateCompat.STATE_PLAYING,
+                                        (time * 1000).toLong(),
+                                        1.0f
+                                    )
+                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {}
+                                fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {
+                                    @Suppress("DEPRECATION")
+                                    mediaSessionManager.updatePlaybackState(
+                                        if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+                                        (time * 1000).toLong(),
+                                        speed
+                                    )
+                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {}
+                                fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {
+                                    @Suppress("DEPRECATION")
+                                    mediaSessionManager.updatePlaybackState(
+                                        if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+                                        (time * 1000).toLong(),
+                                        speed
+                                    )
+                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun updateMediaMetadata(title: String, artist: String, albumArtUrl: String, duration: Float) {}
+                                fun updateMediaMetadata(title: String, artist: String, albumArtUrl: String, duration: Float) {
+                                    mediaSessionManager.updateMetadata(
+                                        title,
+                                        artist,
+                                        albumArtUrl,
+                                        (duration * 1000).toLong()
+                                    )
+                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun recMediaStatus(jsonStr: String) {}
+                                fun recMediaStatus(jsonStr: String) {
+                                    try {
+                                        val json = JSONObject(jsonStr)
+                                        val title = json.optString("track", "")
+                                        val artist = json.optString("artist", "")
+                                        val position = json.optLong("position", 0L)
+                                        val duration = json.optLong("duration", 0L)
+                                        val isPlaying = json.optBoolean("playing", false)
+
+                                        var coverUrl = json.optString("cover", "")
+                                        coverUrl = coverUrl.replace("00004851", "0000b273")
+
+                                        val lowerTitle = title.lowercase()
+                                        val ignoredTitles = listOf("buonasera", "buongiorno", "buon pomeriggio", "good evening", "good morning", "spotify", "home", "search", "cerca")
+                                        if (title.isNotEmpty() && !ignoredTitles.any { lowerTitle.contains(it) }) {
+                                            mediaSessionManager.updateMetadata(title, artist, coverUrl, duration)
+                                            mediaSessionManager.updatePlaybackState(
+                                                if (isPlaying) PlaybackStateCompat.STATE_PLAYING
+                                                else PlaybackStateCompat.STATE_PAUSED,
+                                                position,
+                                                1.0f
+                                            )
+                                        }
+                                    } catch (e: Exception) {
+                                        AppLog.e("WideScreenBridge", "Error parsing media status", e)
+                                    }
+                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
@@ -1025,6 +1093,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun releaseVirtualDisplay() {
+        mediaSessionManager.disconnect()
         handler.removeCallbacks(hidePopupRunnable)
         popupOverlayReference = null
         isInputPopupVisible = false
