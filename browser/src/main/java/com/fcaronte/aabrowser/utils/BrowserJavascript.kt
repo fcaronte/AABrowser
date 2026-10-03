@@ -35,11 +35,16 @@ object BrowserJavascript {
             ${getLongPressLinkScript()}
 
             const host = window.location.hostname.toLowerCase();
-            const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || host.includes('spotify.com') || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
+            const isSpotify = host.includes('spotify.com');
+            const needsMock = host.includes('youtube.com') || host.includes('youtubekids.com') || isSpotify || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
+            const needsAntiPause = host.includes('youtube.com') || host.includes('youtubekids.com') || isSpotify || host.includes('twitch.tv') || host.includes('zappr.stream') || host.includes('zapps.stream');
 
-            if (needsAntiPause) {
+            if (needsMock) {
                 mockVisibility();
-                $ANTI_PAUSE_JS
+                $VISIBILITY_BLOCK_JS
+            }
+            if (needsAntiPause) {
+                $MEDIA_PAUSE_BLOCK_JS
             }
 
             $METADATA_SYNC_CORE_JS
@@ -700,7 +705,7 @@ object BrowserJavascript {
         };
     """
 
-    private const val ANTI_PAUSE_JS = """
+    private const val VISIBILITY_BLOCK_JS = """
         const blockEvent = (e) => { 
             if (e.type === 'blur' || e.type === 'mouseleave' || e.type.includes('visibility') || e.type === 'pagehide') {
                 e.stopImmediatePropagation(); 
@@ -710,22 +715,101 @@ object BrowserJavascript {
             document.addEventListener(evt, blockEvent, true);
             window.addEventListener(evt, blockEvent, true);
         });
-        const origVideoPause = HTMLVideoElement.prototype.pause;
-        const handleMediaPause = function() {
-            const timeSinceInteraction = Date.now() - (window.aabLastInteraction || 0);
-            const isUserAction = timeSinceInteraction < 1000;
-            
-            if (window.isMediaPlaying === true && !window.aabIsAdPlaying && !window.aabUserTappedPause && !isUserAction) {
-                console.log("AABrowser: Blocked automatic background pause()");
-                return Promise.resolve();
-            }
-            return origVideoPause.apply(this, arguments);
-        };
-        HTMLVideoElement.prototype.pause = handleMediaPause;
-        if (window.HTMLAudioElement) {
-            HTMLAudioElement.prototype.pause = handleMediaPause;
-        }
     """
+
+    private const val MEDIA_PAUSE_BLOCK_JS = """
+    (function() {
+        if (window.aabMediaPauseBlockInitialized) return;
+        window.aabMediaPauseBlockInitialized = true;
+
+        const origVideoPause = HTMLVideoElement.prototype.pause;
+        const origAudioPause = window.HTMLAudioElement
+            ? HTMLAudioElement.prototype.pause
+            : null;
+
+        function isSpotify() {
+            try {
+                return window.location.hostname
+                    .toLowerCase()
+                    .includes('spotify.com');
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function handlePause(originalPause) {
+            const hostIsSpotify = isSpotify();
+
+            /*
+             * Spotify può chiamare pause() durante l'ingresso
+             * o l'uscita dal fullscreen.
+             *
+             * In questa situazione il pause() non deve essere
+             * eseguito se la musica risultava già in riproduzione.
+             */
+            const spotifyFullscreenTransition =
+                hostIsSpotify &&
+                window.aabSpotifyFullscreenTransition === true;
+
+            if (
+                window.isMediaPlaying === true &&
+                !window.aabIsAdPlaying &&
+                !window.aabUserTappedPause
+            ) {
+
+                /*
+                 * FIX SPOTIFY:
+                 * blocca il vero pause() durante il cambio
+                 * di modalità fullscreen.
+                 */
+                if (spotifyFullscreenTransition) {
+                    console.log(
+                        "AABrowser: Blocked Spotify pause during fullscreen transition"
+                    );
+                    return;
+                }
+
+                /*
+                 * Comportamento originale per gli altri siti:
+                 * blocca solamente i pause automatici.
+                 */
+                const timeSinceInteraction =
+                    Date.now() - (window.aabLastInteraction || 0);
+
+                const isUserAction = timeSinceInteraction < 1000;
+
+                if (!isUserAction) {
+                    console.log(
+                        "AABrowser: Blocked automatic pause()"
+                        + (hostIsSpotify ? " on Spotify" : "")
+                    );
+                    return;
+                }
+            }
+
+            return originalPause.apply(this, arguments);
+        }
+
+        /*
+         * HTMLVideoElement
+         */
+        HTMLVideoElement.prototype.pause = function() {
+            return handlePause.call(this, origVideoPause);
+        };
+
+        /*
+         * HTMLAudioElement
+         *
+         * Spotify utilizza principalmente audio, quindi è
+         * importante intercettare anche questo prototype.
+         */
+        if (origAudioPause && window.HTMLAudioElement) {
+            HTMLAudioElement.prototype.pause = function() {
+                return handlePause.call(this, origAudioPause);
+            };
+        }
+    })();
+"""
 
     private const val METADATA_SYNC_CORE_JS = """
         function syncPageMetadata() {
@@ -821,33 +905,262 @@ object BrowserJavascript {
     """
 
     private const val MEDIA_LISTENERS_JS = """
+    (function() {
+        if (window.aabMediaListenersInitialized) return;
+        window.aabMediaListenersInitialized = true;
+
+        /*
+         * Indica che Spotify sta entrando o uscendo
+         * dalla modalità fullscreen.
+         */
+        window.aabSpotifyFullscreenTransition = false;
+
+        let spotifyFullscreenTimer = null;
+
+        function isSpotifyPage() {
+            try {
+                return window.location.hostname
+                    .toLowerCase()
+                    .includes('spotify.com');
+            } catch (e) {
+                return false;
+            }
+        }
+
+        /*
+         * Attiva la protezione durante la transizione fullscreen.
+         */
+        function markSpotifyFullscreenTransition() {
+            if (!isSpotifyPage()) return;
+
+            window.aabSpotifyFullscreenTransition = true;
+
+            if (spotifyFullscreenTimer) {
+                clearTimeout(spotifyFullscreenTimer);
+            }
+
+            /*
+             * Lasciamo 1.5 secondi a Spotify/WebView per
+             * completare il cambio di modalità.
+             */
+            spotifyFullscreenTimer = setTimeout(() => {
+                window.aabSpotifyFullscreenTransition = false;
+                spotifyFullscreenTimer = null;
+            }, 1500);
+        }
+
+        /*
+         * Fullscreen API standard
+         */
+        document.addEventListener(
+            'fullscreenchange',
+            markSpotifyFullscreenTransition,
+            true
+        );
+
+        /*
+         * WebKit
+         */
+        document.addEventListener(
+            'webkitfullscreenchange',
+            markSpotifyFullscreenTransition,
+            true
+        );
+
+        /*
+         * Firefox / vecchie implementazioni
+         */
+        document.addEventListener(
+            'mozfullscreenchange',
+            markSpotifyFullscreenTransition,
+            true
+        );
+
+        document.addEventListener(
+            'MSFullscreenChange',
+            markSpotifyFullscreenTransition,
+            true
+        );
+
+        /*
+         * Il pointerdown può arrivare prima di fullscreenchange.
+         *
+         * Intercettiamo quindi anche il click sul pulsante
+         * fullscreen di Spotify.
+         */
+        function looksLikeFullscreenButton(target) {
+            if (!target || !isSpotifyPage()) return false;
+
+            try {
+                const el = target.closest(
+                    'button, [role="button"], [aria-label], [data-testid]'
+                );
+
+                if (!el) return false;
+
+                const text = (
+                    el.getAttribute('aria-label') ||
+                    el.getAttribute('title') ||
+                    el.getAttribute('data-testid') ||
+                    ''
+                ).toLowerCase();
+
+                return (
+                    text.includes('fullscreen') ||
+                    text.includes('full screen') ||
+                    text.includes('schermo intero') ||
+                    text.includes('a schermo intero') ||
+                    text.includes('enter fullscreen') ||
+                    text.includes('exit fullscreen') ||
+                    text.includes('full-screen')
+                );
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function markFullscreenPointer(event) {
+            if (looksLikeFullscreenButton(event.target)) {
+                markSpotifyFullscreenTransition();
+            }
+        }
+
+        document.addEventListener(
+            'pointerdown',
+            markFullscreenPointer,
+            true
+        );
+
+        document.addEventListener(
+            'mousedown',
+            markFullscreenPointer,
+            true
+        );
+
+        document.addEventListener(
+            'touchstart',
+            markFullscreenPointer,
+            true
+        );
+
+        document.addEventListener(
+            'click',
+            markFullscreenPointer,
+            true
+        );
+
+        /*
+         * Configurazione listener dei media.
+         */
         function setupMediaListeners(media) {
-            if (media.dataset.mediaListenersAdded) return;
+            if (!media || media.dataset.mediaListenersAdded) return;
+
             media.dataset.mediaListenersAdded = 'true';
             media.lastBridgeUpdate = 0;
+
+            /*
+             * PLAY
+             */
             media.addEventListener('play', () => {
                 window.isMediaPlaying = true;
-                if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(true, media.currentTime, media.playbackRate);
+
+                if (window.AndroidBridge) {
+                    AndroidBridge.onMediaStatusChanged(
+                        true,
+                        media.currentTime,
+                        media.playbackRate
+                    );
+                }
+
                 syncMetadata();
             });
+
+            /*
+             * PAUSE
+             */
             media.addEventListener('pause', () => {
-                if (window.AndroidBridge) AndroidBridge.onMediaStatusChanged(false, media.currentTime, media.playbackRate);
+
+                /*
+                 * Fallback nel caso Spotify/WebView generi comunque
+                 * un evento pause durante il fullscreen.
+                 *
+                 * Il vero blocco viene fatto prima da
+                 * MEDIA_PAUSE_BLOCK_JS.
+                 */
+                if (
+                    isSpotifyPage() &&
+                    window.aabSpotifyFullscreenTransition === true &&
+                    window.isMediaPlaying === true &&
+                    !window.aabUserTappedPause
+                ) {
+                    console.log(
+                        'AABrowser: Ignored Spotify pause event during fullscreen transition'
+                    );
+
+                    window.isMediaPlaying = true;
+                    return;
+                }
+
+                if (window.AndroidBridge) {
+                    AndroidBridge.onMediaStatusChanged(
+                        false,
+                        media.currentTime,
+                        media.playbackRate
+                    );
+                }
             });
+
+            /*
+             * TIME UPDATE
+             */
             media.addEventListener('timeupdate', () => {
                 const now = Date.now();
+
                 if (now - media.lastBridgeUpdate > 500) {
-                    if (window.AndroidBridge) AndroidBridge.onMediaTimeUpdate(media.currentTime, media.playbackRate, !media.paused);
+                    if (window.AndroidBridge) {
+                        AndroidBridge.onMediaTimeUpdate(
+                            media.currentTime,
+                            media.playbackRate,
+                            !media.paused
+                        );
+                    }
+
                     media.lastBridgeUpdate = now;
                 }
             });
-            media.addEventListener('durationchange', syncMetadata);
+
+            /*
+             * DURATA
+             */
+            media.addEventListener(
+                'durationchange',
+                syncMetadata
+            );
         }
+
+        /*
+         * Osserva i nuovi elementi audio/video creati da Spotify.
+         */
         const mediaObserver = new MutationObserver(() => {
-            document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
+            document
+                .querySelectorAll('video, audio')
+                .forEach(media => setupMediaListeners(media));
         });
-        mediaObserver.observe(document, { childList: true, subtree: true });
-        document.querySelectorAll('video, audio').forEach(media => setupMediaListeners(media));
-    """
+
+        mediaObserver.observe(document, {
+            childList: true,
+            subtree: true
+        });
+
+        /*
+         * Aggancia anche i media già presenti.
+         */
+        document
+            .querySelectorAll('video, audio')
+            .forEach(media => setupMediaListeners(media));
+
+    })();
+"""
 
     private const val INPUT_LISTENERS_JS = """
         function notifyInputInteraction(event) {

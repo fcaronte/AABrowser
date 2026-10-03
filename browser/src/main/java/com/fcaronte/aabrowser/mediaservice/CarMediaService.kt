@@ -31,6 +31,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private lateinit var audioManager: AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
+    private var lastWebPlaybackState: Int = PlaybackStateCompat.STATE_NONE
+
     var showingWeather = true
     var isUserPaused = false
 
@@ -233,13 +235,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 val playbackStateCompat =
                     extras.getParcelable<PlaybackStateCompat?>("PlaybackStateCompat")
                 if (playbackStateCompat != null) {
+                    lastWebPlaybackState = playbackStateCompat.state
+
                     update = stateChanged(playbackStateCompat)
-                    cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
+                    cancel = playbackStateCompat.state == PlaybackStateCompat.STATE_NONE
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
                     if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
-                        playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
+                        playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED
+                    ) {
                         showingWeather = true
                         isUserPaused = false
                         checkAndUpdateWeatherMetadata()
@@ -258,7 +263,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     } else {
                         showingWeather = false
                         mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
-                        requestAudioFocus()
                         update = true
                     }
                 }
@@ -339,7 +343,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
             service.showingWeather = false
             service.isUserPaused = false
-            service.requestAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
 
