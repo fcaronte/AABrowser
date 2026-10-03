@@ -1,9 +1,7 @@
 package com.fcaronte.aabrowser.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,23 +23,15 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -58,6 +48,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -68,101 +60,23 @@ import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
-import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
+import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
-import com.fcaronte.aabrowser.utils.SpotifyManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
-import java.io.ByteArrayInputStream
-import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import java.io.ByteArrayInputStream
 
 private fun setDesktopUserAgent(webView: WebView, context: Context): String =
     WebViewScriptRouter.setDesktopUserAgent(webView, context)
-
 private fun setMobileUserAgent(webView: WebView, context: Context) =
     WebViewScriptRouter.setMobileUserAgent(webView, context)
-
-private fun summarizeDaznErrorBody(body: String): String {
-    val errorFields = setOf(
-        "code", "error_code", "errorcode", "error_description", "message",
-        "description", "reason", "type", "status", "request_id", "requestid",
-        "correlation_id", "correlationid"
-    )
-    val containerFields = setOf("error", "errors", "details", "data", "cause", "metadata")
-
-    fun sanitizeValue(value: String): String = value
-        .replace(Regex("""(?is)<(script|style)\b[^>]*>.*?</\1>"""), " ")
-        .replace(Regex("""(?s)<!--.*?-->"""), " ")
-        .replace(Regex("""<[^>]*>"""), " ")
-        .replace("&nbsp;", " ", ignoreCase = true)
-        .replace("&quot;", "\"", ignoreCase = true)
-        .replace("&#39;", "'", ignoreCase = true)
-        .replace("&lt;", "<", ignoreCase = true)
-        .replace("&gt;", ">", ignoreCase = true)
-        .replace("&amp;", "&", ignoreCase = true)
-        .replace(
-            Regex("""(?i)(bearer\s+)[A-Za-z0-9._~+/-]+=*"""),
-            "$1[REDACTED]"
-        )
-        .replace(
-            Regex("""(?i)("?(?:access[_-]?token|refresh[_-]?token|id[_-]?token|authorization|cookie|password|secret)"?\s*[:=]\s*"?)[^",}\s]+"""),
-            "$1[REDACTED]"
-        )
-        .replace(Regex("""[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}"""), "[REDACTED_EMAIL]")
-        .replace(Regex("""\s+"""), " ")
-        .take(800)
-
-    fun filter(value: Any?, depth: Int): Any? {
-        if (depth > 6) return null
-        return when (value) {
-            is JSONObject -> JSONObject().apply {
-                val keys = value.keys()
-                while (keys.hasNext()) {
-                    val key = keys.next()
-                    val normalizedKey = key.lowercase()
-                    val child = value.opt(key)
-                    when {
-                        normalizedKey in errorFields && child !is JSONObject && child !is JSONArray ->
-                            put(key, sanitizeValue(child.toString()))
-                        normalizedKey in containerFields ->
-                            filter(child, depth + 1)?.let { put(key, it) }
-                    }
-                }
-            }
-            is JSONArray -> JSONArray().apply {
-                for (index in 0 until minOf(value.length(), 10)) {
-                    filter(value.opt(index), depth + 1)?.let { put(it) }
-                }
-            }
-            else -> null
-        }
-    }
-
-    return try {
-        val filtered = filter(JSONObject(body), 0)?.toString().orEmpty()
-        filtered.ifBlank { "No allowlisted error fields" }.take(1000)
-    } catch (_: JSONException) {
-        sanitizeValue(body).ifBlank { "Empty error body" }
-    }
-}
-
 private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDesktopRequired(url)
-
 private fun safeUrlForLog(url: String?): String =
     AppLog.safeUrlForLog(url)
-
 private fun createPopupWebView(
     context: Context,
     initialUrl: String? = null,
@@ -299,7 +213,7 @@ fun BrowserScreen(
 
     val webViewState = remember { mutableStateOf<WebView?>(null) }
     var webViewReference by webViewState
-    
+
     var showInputPopup by remember { mutableStateOf(value = false) }
     var isListening by remember { mutableStateOf(value = false) }
     var customView by remember { mutableStateOf<android.view.View?>(null) }
@@ -506,7 +420,7 @@ fun BrowserScreen(
                         displayZoomControls = false
                         allowContentAccess = true
                         allowFileAccess = true
-                        mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                        mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                         setSupportMultipleWindows(multiWindowEnabled)
                         javaScriptCanOpenWindowsAutomatically = multiWindowEnabled
                     }
@@ -602,48 +516,48 @@ fun BrowserScreen(
 
                     addJavascriptInterface(
                         object {
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onVideoStarted(time: Float) {
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
-                                    android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING,
+                                    PlaybackStateCompat.STATE_PLAYING,
                                     (time * 1000).toLong(),
                                     1.0f
                                 )
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
-                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
+                                        PlaybackStateCompat.STATE_PLAYING
                                     } else {
-                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
+                                        PlaybackStateCompat.STATE_PAUSED
                                     },
                                     (time * 1000).toLong(),
                                     speed
                                 )
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
-                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
+                                        PlaybackStateCompat.STATE_PLAYING
                                     } else {
-                                        android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
+                                        PlaybackStateCompat.STATE_PAUSED
                                     },
                                     (time * 1000).toLong(),
                                     speed
                                 )
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun updateMediaMetadata(
                                 title: String,
@@ -669,7 +583,7 @@ fun BrowserScreen(
                                     val position = json.optLong("position", 0L)
                                     val duration = json.optLong("duration", 0L)
                                     val isPlaying = json.optBoolean("playing", false)
-                                    
+
                                     var coverUrl = json.optString("cover", "")
                                     // Trucco upscaling: forza la risoluzione alta della cover di Spotify
                                     coverUrl = coverUrl.replace("00004851", "0000b273")
@@ -681,7 +595,7 @@ fun BrowserScreen(
                                     if (title.isNotEmpty() && !ignoredTitles.any { lowerTitle.contains(it) }) {
                                         mediaSessionManager?.updateMetadata(title, artist, coverUrl, duration)
                                         mediaSessionManager?.updatePlaybackState(
-                                            if (isPlaying) PlaybackStateCompat.STATE_PLAYING 
+                                            if (isPlaying) PlaybackStateCompat.STATE_PLAYING
                                             else PlaybackStateCompat.STATE_PAUSED,
                                             position,
                                             1.0f
@@ -692,7 +606,7 @@ fun BrowserScreen(
                                 }
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {
                                 post {
@@ -724,7 +638,7 @@ fun BrowserScreen(
                                 }
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onStartAdBlock() {
                                 post {
@@ -734,7 +648,7 @@ fun BrowserScreen(
                                 }
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun onStartInput() {
                                 AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
@@ -743,7 +657,7 @@ fun BrowserScreen(
                                 }
                             }
 
-                            @android.webkit.JavascriptInterface
+                            @JavascriptInterface
                             @Suppress("unused")
                             fun injectText(text: String) {
                                 post {
@@ -767,7 +681,7 @@ fun BrowserScreen(
                             @Suppress("unused")
                             fun openLinkInNewTab(url: String) {
                                 post {
-                                    val uri = android.net.Uri.parse(url)
+                                    val uri = Uri.parse(url)
                                     if ((uri.scheme == "http" || uri.scheme == "https") && !uri.host.isNullOrBlank()) {
                                         AppLog.d("##BrowserScreen", "Long-pressed link opened in new tab: ${safeUrlForLog(url)}")
                                         TabManager.addTab(url = uri.toString())
@@ -799,160 +713,7 @@ fun BrowserScreen(
                                 headersJson: String,
                                 body: String?,
                                 requestUserAgent: String
-                            ): String {
-                                return runBlocking(Dispatchers.IO) {
-                                    val requestStartedAt = android.os.SystemClock.elapsedRealtime()
-                                    try {
-                                        val url = URL(urlString)
-                                        val userAgent = requestUserAgent.ifBlank {
-                                            WebSettings.getDefaultUserAgent(context)
-                                        }
-                                        var hasAuthorizationHeader = false
-                                        var hasCookieHeader = false
-                                        val conn = (url.openConnection() as HttpURLConnection).apply {
-                                            requestMethod = if (method.isBlank()) "GET" else method
-                                            connectTimeout = 15000
-                                            readTimeout = 15000
-                                            instanceFollowRedirects = true
-                                            doInput = true
-
-                                            setRequestProperty("User-Agent", userAgent)
-                                            setRequestProperty("Origin", "https://www.dazn.com")
-                                            setRequestProperty("Referer", "https://www.dazn.com/")
-
-                                            val cookieDazn = CookieManager.getInstance().getCookie("https://www.dazn.com") ?: ""
-                                            val cookieIndazn = CookieManager.getInstance().getCookie("https://www.indazn.com") ?: ""
-                                            val cookieTarget = CookieManager.getInstance().getCookie(urlString) ?: ""
-                                            val combinedCookie = listOf(cookieDazn, cookieIndazn, cookieTarget)
-                                                .flatMap { it.split(";") }
-                                                .map { it.trim() }
-                                                .filter { it.isNotEmpty() }
-                                                .distinct()
-                                                .joinToString("; ")
-                                            if (combinedCookie.isNotEmpty()) {
-                                                hasCookieHeader = true
-                                                setRequestProperty("Cookie", combinedCookie)
-                                            }
-
-                                            try {
-                                                val headersObj = JSONObject(headersJson)
-                                                val keys = headersObj.keys()
-                                                val restricted = setOf("user-agent", "content-length", "host", "connection", "accept-encoding", "expect", "if-modified-since")
-                                                while (keys.hasNext()) {
-                                                    val k = keys.next()
-                                                    val lowerK = k.lowercase()
-                                                    if (!lowerK.startsWith("sec-") && !restricted.contains(lowerK)) {
-                                                        if (lowerK == "authorization") {
-                                                            hasAuthorizationHeader = headersObj.optString(k).isNotBlank()
-                                                        }
-                                                        if (lowerK == "cookie") {
-                                                            val headerCookie = headersObj.getString(k)
-                                                            hasCookieHeader = hasCookieHeader || headerCookie.isNotBlank()
-                                                            val combined = if (combinedCookie.isEmpty()) headerCookie else "$combinedCookie; $headerCookie"
-                                                            setRequestProperty("Cookie", combined)
-                                                        } else {
-                                                            setRequestProperty(k, headersObj.getString(k))
-                                                        }
-                                                    }
-                                                }
-                                            } catch (_: Exception) {}
-
-                                            if ((requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH")) {
-                                                doOutput = true
-                                                if (!body.isNullOrEmpty()) {
-                                                    outputStream.use { os ->
-                                                        os.write(body.toByteArray(Charsets.UTF_8))
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        val statusCode = conn.responseCode
-                                        val statusText = conn.responseMessage ?: "OK"
-
-                                        val responseHeaders = JSONObject()
-                                        try {
-                                            conn.headerFields?.let { headerFields ->
-                                                for ((key, values) in headerFields) {
-                                                    if (key != null) {
-                                                        if (key.equals("Set-Cookie", ignoreCase = true)) {
-                                                            values?.forEach { cookieValue ->
-                                                                if (!cookieValue.isNullOrEmpty()) {
-                                                                    CookieManager.getInstance().setCookie(urlString, cookieValue)
-                                                                }
-                                                            }
-                                                        } else if (!key.equals("Set-Cookie2", ignoreCase = true)) {
-                                                            responseHeaders.put(key, values?.joinToString(",") ?: "")
-                                                        }
-                                                    }
-                                                }
-                                                CookieManager.getInstance().flush()
-                                            }
-                                        } catch (e: Exception) {
-                                            AppLog.e("ProxyFetch", "Error saving cookies", e)
-                                        }
-
-                                        val inputStream = if (statusCode >= 400) conn.errorStream else conn.inputStream
-                                        val resText = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-                                        if (
-                                            statusCode >= 400 &&
-                                            url.host.equals("api.playback.indazn.com", ignoreCase = true) &&
-                                            url.path.equals("/v5/Playback", ignoreCase = true)
-                                        ) {
-                                            val diagnosticHeaders = JSONObject()
-                                            val safeHeaderNames = setOf(
-                                                "content-type", "server", "via", "x-cache",
-                                                "x-request-id", "x-correlation-id", "traceparent",
-                                                "x-amz-cf-id", "x-amz-cf-pop", "x-amz-cf-error",
-                                                "x-amz-cf-error-code"
-                                            )
-                                            val headerKeys = responseHeaders.keys()
-                                            while (headerKeys.hasNext()) {
-                                                val key = headerKeys.next()
-                                                if (key.lowercase() in safeHeaderNames) {
-                                                    diagnosticHeaders.put(key, responseHeaders.opt(key))
-                                                }
-                                            }
-                                            val requestHeaderNames = JSONObject(headersJson).keys().asSequence()
-                                                .map { it.lowercase() }
-                                                .sorted()
-                                                .joinToString(",")
-                                            AppLog.e(
-                                                "DaznPlayback",
-                                                "Playback HTTP failure status=$statusCode " +
-                                                        "authorizationPresent=$hasAuthorizationHeader " +
-                                                        "cookiePresent=$hasCookieHeader " +
-                                                        "desktopUserAgent=${userAgent.contains("Windows NT", ignoreCase = true)} " +
-                                                        "requestHeaderNames=$requestHeaderNames " +
-                                                        "responseHeaders=$diagnosticHeaders " +
-                                                        "error=${summarizeDaznErrorBody(resText)}"
-                                            )
-                                        }
-                                        AppLog.d(
-                                            "ProxyFetch",
-                                            "DAZN API request host=${url.host} path=${url.path} method=$method status=$statusCode responseBytes=${resText.toByteArray(Charsets.UTF_8).size} elapsedMs=${android.os.SystemClock.elapsedRealtime() - requestStartedAt}"
-                                        )
-
-                                        JSONObject().apply {
-                                            put("status", statusCode)
-                                            put("statusText", statusText)
-                                            put("text", resText)
-                                            put("headers", responseHeaders)
-                                        }.toString()
-                                    } catch (e: Exception) {
-                                        AppLog.e(
-                                            "AndroidBridge",
-                                            "proxyFetch failed for host=${safeUrlForLog(urlString)} (${e.javaClass.simpleName}) elapsedMs=${android.os.SystemClock.elapsedRealtime() - requestStartedAt}"
-                                        )
-                                        JSONObject().apply {
-                                            put("status", 500)
-                                            put("statusText", e.message ?: "Error")
-                                            put("text", "")
-                                        }.toString()
-                                    }
-                                }
-                            }
-
+                            ): String = DaznProxy.proxyFetch(context, urlString, method, headersJson, body, requestUserAgent)
                         },
                         "AndroidBridge",
                     )
@@ -968,7 +729,7 @@ fun BrowserScreen(
                             val popup = createPopupWebView(
                                 context,
                                 null,
-                                view?.settings?.userAgentString
+                                view.settings?.userAgentString
                             ) { popupWebView = null }
                             val transport = resultMsg?.obj as? WebView.WebViewTransport
                             if (transport != null) {
@@ -1174,7 +935,7 @@ fun BrowserScreen(
                                 AppLog.e(
                                     "DaznPlayback",
                                     "WebView playback HTTP error status=${errorResponse?.statusCode} " +
-                                            "headers=${JSONObject(safeHeaders).toString()}"
+                                            "headers=${JSONObject(safeHeaders)}"
                                 )
                             }
                             super.onReceivedHttpError(view, request, errorResponse)
@@ -1218,7 +979,7 @@ fun BrowserScreen(
                 onWebViewCreated(webView)
                 webViewReference = webView
                 CarFrameLayout(context).apply {
-                    layoutParams = android.view.ViewGroup.LayoutParams(-1, -1)
+                    layoutParams = ViewGroup.LayoutParams(-1, -1)
                     addView(webView, android.widget.FrameLayout.LayoutParams(-1, -1))
                 }
             },
@@ -1261,7 +1022,7 @@ fun BrowserScreen(
         customView?.let { view ->
             AndroidView(
                 factory = {
-                    (view.parent as? android.view.ViewGroup)?.removeView(view)
+                    (view.parent as? ViewGroup)?.removeView(view)
                     view
                 },
                 modifier = Modifier

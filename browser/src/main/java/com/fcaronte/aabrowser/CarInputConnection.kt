@@ -96,8 +96,7 @@ class CarInputConnection internal constructor(
 
         // MODALITÀ SINCRONIZZATA (Campi nativi Compose)
         if (mCarinputmanager?.onTextCommitted != null) {
-            if (text.toString() == mLastcommittedtext) return true
-            return commitText(text, newCursorPosition)
+            return text.toString() == mLastcommittedtext || commitText(text, newCursorPosition)
         }
 
         // MODALITÀ DIRETTA (WebView)

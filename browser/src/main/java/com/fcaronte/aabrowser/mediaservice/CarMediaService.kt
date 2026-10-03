@@ -397,8 +397,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     }
 
     fun stateChanged(playbackStateCompat: PlaybackStateCompat): Boolean {
-        if (mMediacontrollercompat?.playbackState == null) return false
-        return mMediacontrollercompat!!.playbackState.state != playbackStateCompat.state
+        return mMediacontrollercompat?.playbackState != null && mMediacontrollercompat!!.playbackState.state != playbackStateCompat.state
     }
 
     companion object {

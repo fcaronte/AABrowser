@@ -25,7 +25,9 @@ class CarMediaService3 : MediaLibraryService() {
 
         player = ExoPlayer.Builder(this).build()
 
-        mediaLibrarySession = MediaLibrarySession.Builder(this, player, CarMediaLibrarySessionCallback())
+        mediaLibrarySession = MediaLibrarySession.Builder(this, player,
+            CarMediaLibrarySessionCallback()
+        )
             .build()
 
         AppLog.d(TAG, "MediaLibrarySession created")
@@ -43,7 +45,7 @@ class CarMediaService3 : MediaLibraryService() {
         return mediaLibrarySession
     }
 
-    private inner class CarMediaLibrarySessionCallback : MediaLibrarySession.Callback {
+    private class CarMediaLibrarySessionCallback : MediaLibrarySession.Callback {
         override fun onConnect(
             session: MediaSession,
             controller: MediaSession.ControllerInfo

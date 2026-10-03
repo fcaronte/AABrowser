@@ -61,7 +61,7 @@ class WelcomeActivity : ComponentActivity() {
     private fun WelcomeContent() {
         var micGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.RECORD_AUDIO)) }
         var locGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) }
-        var notifGranted by remember { mutableStateOf(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS) else true) }
+        var notifGranted by remember { mutableStateOf(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)) }
 
         WelcomeScreen(
             micGranted = micGranted,
@@ -98,7 +98,7 @@ class WelcomeActivity : ComponentActivity() {
     private fun areAllPermissionsGranted(): Boolean {
         val mic = checkPermissionGranted(Manifest.permission.RECORD_AUDIO)
         val loc = checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
-        val notif = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS) else true
+        val notif = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)
         return mic && loc && notif
     }
 

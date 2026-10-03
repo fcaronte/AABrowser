@@ -65,8 +65,7 @@ object BackupRestoreUtils {
                 bookmarksPrefs.clear()
                 for (key in bookmarksJson.keys()) {
                     try {
-                        val value = bookmarksJson.get(key)
-                        when (value) {
+                        when (val value = bookmarksJson.get(key)) {
                             is String -> bookmarksPrefs.putString(key, value)
                             is Int -> bookmarksPrefs.putInt(key, value)
                             is Long -> bookmarksPrefs.putLong(key, value)
@@ -94,8 +93,7 @@ object BackupRestoreUtils {
                 settingsPrefs.clear()
                 for (key in settingsJson.keys()) {
                     try {
-                        val value = settingsJson.get(key)
-                        when (value) {
+                        when (val value = settingsJson.get(key)) {
                             is String -> settingsPrefs.putString(key, value)
                             is Int -> settingsPrefs.putInt(key, value)
                             is Long -> settingsPrefs.putLong(key, value)

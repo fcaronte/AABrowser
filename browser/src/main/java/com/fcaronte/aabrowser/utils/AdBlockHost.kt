@@ -84,9 +84,7 @@ object AdBlockHost {
     }
 
     fun shouldBlock(url: String): Boolean {
-        if (!AdBlockSettings.isEnabled.value) return false
-
-        return try {
+        return AdBlockSettings.isEnabled.value && try {
             val host = URL(url).host.lowercase()
             // Controlla se l'host o i suoi sottodomini sono nella lista nera
             blockedHosts.any { adHost ->
