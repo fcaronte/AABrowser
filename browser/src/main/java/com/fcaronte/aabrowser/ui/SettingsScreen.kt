@@ -134,6 +134,7 @@ fun SettingsScreen(
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
+    val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
 
@@ -418,33 +419,66 @@ fun SettingsScreen(
                             }
 
                             val permissionToastMsg = stringResource(R.string.weather_permission_toast)
+                            val mediaPlayerDisabledHint = stringResource(R.string.media_player_disabled_hint)
+
+                            fun restartApp() {
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                                    if (intent != null) {
+                                        val restartIntent = Intent.makeRestartActivityTask(intent.component)
+                                        context.startActivity(restartIntent)
+                                        Runtime.getRuntime().exit(0)
+                                    } else {
+                                        (context as? Activity)?.finishAffinity()
+                                        android.os.Process.killProcess(android.os.Process.myPid())
+                                    }
+                                }, 300)
+                            }
+
+                            // Player Multimediale
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.media_player_label),
+                                    description = stringResource(R.string.media_player_desc),
+                                    checked = mediaPlayerEnabled,
+                                    onCheckedChange = { enabled ->
+                                        AppSettings.setMediaPlayerEnabled(context, enabled)
+                                        restartApp()
+                                    }
+                                )
+                            }
 
                             // Widget Meteo nel Player
                             SettingsCard {
                                 SettingsSwitchItem(
                                     label = stringResource(R.string.weather_widget_label),
-                                    description = stringResource(R.string.weather_widget_desc),
-                                    checked = weatherWidgetEnabled,
+                                    description = if (!mediaPlayerEnabled) mediaPlayerDisabledHint else stringResource(R.string.weather_widget_desc),
+                                    checked = weatherWidgetEnabled && mediaPlayerEnabled,
                                     onCheckedChange = { enabled ->
-                                        AppSettings.setWeatherWidgetEnabled(context, enabled)
-                                        if (enabled) {
-                                            val hasPermission = ContextCompat.checkSelfPermission(
-                                                context,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            ) == PackageManager.PERMISSION_GRANTED
+                                        if (!mediaPlayerEnabled) {
+                                            onShowFeedback(mediaPlayerDisabledHint)
+                                        } else {
+                                            AppSettings.setWeatherWidgetEnabled(context, enabled)
+                                            restartApp()
+                                            if (enabled) {
+                                                val hasPermission = ContextCompat.checkSelfPermission(
+                                                    context,
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                                ) == PackageManager.PERMISSION_GRANTED
 
-                                            if (!hasPermission) {
-                                                if (isCarMode) {
-                                                    Toast.makeText(
-                                                        context,
-                                                        permissionToastMsg,
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                } else {
-                                                    (context as? Activity)?.requestPermissions(
-                                                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                                                        1001
-                                                    )
+                                                if (!hasPermission) {
+                                                    if (isCarMode) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            permissionToastMsg,
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
+                                                    } else {
+                                                        (context as? Activity)?.requestPermissions(
+                                                            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                                                            1001
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }

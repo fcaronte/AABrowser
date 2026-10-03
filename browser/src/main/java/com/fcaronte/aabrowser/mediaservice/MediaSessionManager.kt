@@ -21,7 +21,6 @@ class MediaSessionManager(private val context: Context) {
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaController: MediaControllerCompat? = null
-
     var onPlay: (() -> Unit)? = null
     var onPause: (() -> Unit)? = null
     var onStop: (() -> Unit)? = null
@@ -30,17 +29,39 @@ class MediaSessionManager(private val context: Context) {
     var onSeekTo: ((Long) -> Unit)? = null
     var onHeartTapped: (() -> Unit)? = null
 
+    /**
+     * Capacità del player corrente.
+     *
+     * Default:
+     * - seek disponibile
+     * - next/previous non disponibili
+     */
+    private var canSeek = true
+    private var canSkipNext = false
+    private var canSkipPrevious = false
+
     private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
+
         override fun onConnected() {
             mediaBrowser?.let {
                 if (it.isConnected) {
                     try {
-                        mediaController = MediaControllerCompat(context, it.sessionToken).apply {
-                            registerCallback(controllerCallback)
-                        }
-                        AppLog.d(TAG, "MediaBrowser connesso e MediaController inizializzato.")
+                        mediaController =
+                            MediaControllerCompat(context, it.sessionToken).apply {
+                                registerCallback(controllerCallback)
+                            }
+
+                        AppLog.d(
+                            TAG,
+                            "MediaBrowser connesso e MediaController inizializzato."
+                        )
+
                     } catch (e: Exception) {
-                        AppLog.e(TAG, "Errore durante l'inizializzazione del MediaController", e)
+                        AppLog.e(
+                            TAG,
+                            "Errore durante l'inizializzazione del MediaController",
+                            e
+                        )
                     }
                 }
             }
@@ -59,11 +80,21 @@ class MediaSessionManager(private val context: Context) {
     }
 
     private val controllerCallback = object : MediaControllerCompat.Callback() {
+
         override fun onSessionEvent(event: String?, extras: Bundle?) {
+
             if (event == "PlaybackAction") {
-                val action = extras?.getLong("PlaybackAction") ?: 0
-                AppLog.d("AABrowserPlayback", "Received PlaybackAction: $action")
+
+                val action =
+                    extras?.getLong("PlaybackAction") ?: 0L
+
+                AppLog.d(
+                    "AABrowserPlayback",
+                    "Received PlaybackAction: $action"
+                )
+
                 when (action) {
+
                     PlaybackStateCompat.ACTION_PLAY -> {
                         onPlay?.invoke()
                     }
@@ -76,15 +107,27 @@ class MediaSessionManager(private val context: Context) {
                         onStop?.invoke()
                     }
 
-                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT -> onSkipToNext?.invoke()
-                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS -> onSkipToPrevious?.invoke()
+                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT -> {
+                        onSkipToNext?.invoke()
+                    }
+
+                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS -> {
+                        onSkipToPrevious?.invoke()
+                    }
+
                     PlaybackStateCompat.ACTION_SEEK_TO -> {
-                        val pos = extras?.getLong("SeekPosition") ?: 0L
+                        val pos =
+                            extras?.getLong("SeekPosition") ?: 0L
+
                         onSeekTo?.invoke(pos)
                     }
                 }
+
             } else if (event == "CUSTOM_ACTION") {
-                val actionStr = extras?.getString("CUSTOM_ACTION")
+
+                val actionStr =
+                    extras?.getString("CUSTOM_ACTION")
+
                 if (actionStr == "ACTION_SPOTIFY_HEART") {
                     onHeartTapped?.invoke()
                 }
@@ -93,10 +136,15 @@ class MediaSessionManager(private val context: Context) {
     }
 
     fun connect() {
+
         if (mediaBrowser == null) {
+
             mediaBrowser = MediaBrowserCompat(
                 context,
-                ComponentName(context, CarMediaService::class.java),
+                ComponentName(
+                    context,
+                    CarMediaService::class.java
+                ),
                 connectionCallback,
                 null
             ).apply {
@@ -106,146 +154,380 @@ class MediaSessionManager(private val context: Context) {
     }
 
     fun disconnect() {
+
         mediaController?.unregisterCallback(controllerCallback)
+
         mediaBrowser?.disconnect()
+
         mediaBrowser = null
         mediaController = null
     }
 
-    private var lastState: Int = PlaybackStateCompat.STATE_NONE
+    private var lastState: Int =
+        PlaybackStateCompat.STATE_NONE
+
     private var lastPosition: Long = -1
+
     private var lastSpeed: Float = 1.0f
+
     private var isLiveStream: Boolean = false
 
-    fun updatePlaybackState(state: Int, position: Long, speed: Float = 1.0f) {
-        AppLog.d("AABrowserPlayback", "updatePlaybackState: state=$state, pos=$position")
+    /**
+     * Configura i controlli disponibili per il player corrente.
+     *
+     * YouTube playlist:
+     *     canSeek = false
+     *     canSkipNext = true
+     *     canSkipPrevious = true
+     *
+     * Player normale:
+     *     canSeek = true
+     *     canSkipNext = false
+     *     canSkipPrevious = false
+     *
+     * Live:
+     *     canSeek = false
+     */
+    fun setPlaybackCapabilities(
+        canSeek: Boolean,
+        canSkipNext: Boolean,
+        canSkipPrevious: Boolean
+    ) {
+        AppLog.d(
+            "AABrowserPlayback",
+            "SET CAPABILITIES: " +
+                    "seek=$canSeek, " +
+                    "next=$canSkipNext, " +
+                    "previous=$canSkipPrevious"
+        )
+
+        val changed =
+            this.canSeek != canSeek ||
+                    this.canSkipNext != canSkipNext ||
+                    this.canSkipPrevious != canSkipPrevious
+
+        this.canSeek = canSeek
+        this.canSkipNext = canSkipNext
+        this.canSkipPrevious = canSkipPrevious
+
+        if (changed) {
+            updatePlaybackState(
+                lastState,
+                lastPosition,
+                lastSpeed,
+                force = true
+            )
+        }
+    }
+
+    fun updatePlaybackState(
+        state: Int,
+        position: Long,
+        speed: Float = 1.0f,
+        force: Boolean = false
+    ) {
+        AppLog.d(
+            "AABrowserPlayback",
+            "updatePlaybackState: " +
+                    "state=$state, " +
+                    "pos=$position, " +
+                    "seek=$canSeek, " +
+                    "next=$canSkipNext, " +
+                    "previous=$canSkipPrevious, " +
+                    "live=$isLiveStream"
+        )
+
         val positionDiff = abs(position - lastPosition)
-        val isCoherent = state == lastState && speed == lastSpeed && positionDiff < 1000
-                         
-        if (isCoherent) return
-        
+
+        val isCoherent =
+            state == lastState &&
+                    speed == lastSpeed &&
+                    positionDiff < 1000
+
+        if (isCoherent && !force) {
+            return
+        }
+
         lastState = state
         lastPosition = position
         lastSpeed = speed
 
         val browser = mediaBrowser
+
         if (browser == null || !browser.isConnected) {
-            AppLog.w(TAG, "Impossibile aggiornare lo stato: MediaBrowser non connesso.")
+            AppLog.w(
+                TAG,
+                "Impossibile aggiornare lo stato: MediaBrowser non connesso."
+            )
             return
         }
 
-        var actions = PlaybackStateCompat.ACTION_PLAY or
-                PlaybackStateCompat.ACTION_PAUSE or
-                PlaybackStateCompat.ACTION_STOP or
-                PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                PlaybackStateCompat.ACTION_PLAY_PAUSE
+        var actions =
+            PlaybackStateCompat.ACTION_PLAY or
+                    PlaybackStateCompat.ACTION_PAUSE or
+                    PlaybackStateCompat.ACTION_STOP or
+                    PlaybackStateCompat.ACTION_PLAY_PAUSE
 
-        // Aggiungi SEEK_TO solo se non è un flusso live (durata > 0)
-        if (!isLiveStream) {
+        if (canSkipNext) {
+            actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+        }
+
+        if (canSkipPrevious) {
+            actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+        }
+
+        if (!isLiveStream && canSeek) {
             actions = actions or PlaybackStateCompat.ACTION_SEEK_TO
         }
 
-        val playbackState = PlaybackStateCompat.Builder()
-            .setState(state, position, speed)
-            .setActions(actions)
-            .build()
+        AppLog.d(
+            "AABrowserPlayback",
+            "MediaSession actions=$actions"
+        )
+
+        val playbackState =
+            PlaybackStateCompat.Builder()
+                .setState(
+                    state,
+                    position,
+                    speed
+                )
+                .setActions(actions)
+                .build()
 
         val bundle = Bundle().apply {
-            putParcelable("PlaybackStateCompat", playbackState)
+            putParcelable(
+                "PlaybackStateCompat",
+                playbackState
+            )
         }
-        browser.sendCustomAction("PlaybackStateCompat", bundle, null)
+
+        browser.sendCustomAction(
+            "PlaybackStateCompat",
+            bundle,
+            null
+        )
     }
 
-    private val metadataScope = CoroutineScope(Dispatchers.Main)
+    private val metadataScope =
+        CoroutineScope(Dispatchers.Main)
+
     private var lastArtUrl: String? = null
     private var lastBitmap: Bitmap? = null
     private var lastDuration: Long = 0
 
-    fun updateMetadata(title: String, artist: String?, artUrl: String?, duration: Long = 0) {
-        AppLog.d("AABrowserPlayback", "updateMetadata: title=$title, artist=$artist, artUrl=$artUrl, duration=$duration")
+    fun updateMetadata(
+        title: String,
+        artist: String?,
+        artUrl: String?,
+        duration: Long = 0
+    ) {
+
+        AppLog.d(
+            "AABrowserPlayback",
+            "updateMetadata: " +
+                    "title=$title, " +
+                    "artist=$artist, " +
+                    "artUrl=$artUrl, " +
+                    "duration=$duration"
+        )
+
         val browser = mediaBrowser
+
         if (browser == null || !browser.isConnected) {
-            AppLog.w(TAG, "Impossibile aggiornare i metadati: MediaBrowser non connesso.")
+
+            AppLog.w(
+                TAG,
+                "Impossibile aggiornare i metadati: MediaBrowser non connesso."
+            )
+
             return
         }
 
         if (title.isBlank()) {
+
             lastArtUrl = null
             lastBitmap = null
             lastDuration = 0
+
             isLiveStream = false
-            sendMetadata("", null, null, 0)
+
+            sendMetadata(
+                "",
+                null,
+                null,
+                0
+            )
+
             return
         }
 
         val wasLive = isLiveStream
+
         isLiveStream = duration <= 0
+
         lastDuration = duration
 
-        // Se passiamo da live a non-live o viceversa, forziamo l'aggiornamento dello stato di riproduzione
-        // per aggiornare le azioni disponibili (es. mostrare/nascondere la seekbar)
+        /*
+         * Se cambiamo da live a non-live o viceversa,
+         * aggiorniamo le action disponibili.
+         */
         if (wasLive != isLiveStream) {
-            updatePlaybackState(lastState, lastPosition, lastSpeed)
+
+            updatePlaybackState(
+                lastState,
+                lastPosition,
+                lastSpeed,
+                force = true
+            )
         }
 
-        // Se l'URL è lo stesso, usa l'ultimo bitmap per evitare che l'icona sparisca
-        if (!artUrl.isNullOrBlank() && artUrl == lastArtUrl && lastBitmap != null) {
-            sendMetadata(title, artist, lastBitmap, duration)
+        /*
+         * Se l'URL dell'artwork è uguale,
+         * riutilizziamo il bitmap già scaricato.
+         */
+        if (
+            !artUrl.isNullOrBlank() &&
+            artUrl == lastArtUrl &&
+            lastBitmap != null
+        ) {
+
+            sendMetadata(
+                title,
+                artist,
+                lastBitmap,
+                duration
+            )
+
             return
         }
 
-        // Se l'URL è nuovo, invia intanto il testo senza icona (o con l'icona vecchia se preferisci, 
-        // ma di solito è meglio resettare se il brano è diverso)
-        sendMetadata(title, artist, null, duration)
+        /*
+         * Aggiornamento immediato del testo.
+         */
+        sendMetadata(
+            title,
+            artist,
+            null,
+            duration
+        )
 
-        // Se c'è una URL, scarica l'immagine
-        if (!artUrl.isNullOrBlank() && artUrl != lastArtUrl) {
+        /*
+         * Download artwork.
+         */
+        if (
+            !artUrl.isNullOrBlank() &&
+            artUrl != lastArtUrl
+        ) {
+
             lastArtUrl = artUrl
+
             metadataScope.launch {
+
                 try {
-                    val bitmap = withContext(Dispatchers.IO) {
-                        URL(artUrl).openStream().use {
-                            BitmapFactory.decodeStream(it)
+
+                    val bitmap =
+                        withContext(Dispatchers.IO) {
+
+                            URL(artUrl)
+                                .openStream()
+                                .use {
+                                    BitmapFactory.decodeStream(it)
+                                }
                         }
-                    }
+
                     if (bitmap != null) {
+
                         lastBitmap = bitmap
-                        sendMetadata(title, artist, bitmap, lastDuration)
+
+                        sendMetadata(
+                            title,
+                            artist,
+                            bitmap,
+                            lastDuration
+                        )
                     }
+
                 } catch (e: Exception) {
-                    AppLog.e(TAG, "Errore download artwork: ${e.message}")
+
+                    AppLog.e(
+                        TAG,
+                        "Errore download artwork: ${e.message}"
+                    )
                 }
             }
+
         } else if (artUrl.isNullOrBlank()) {
+
             lastArtUrl = null
             lastBitmap = null
         }
     }
 
-    private fun sendMetadata(title: String, artist: String?, icon: Bitmap?, duration: Long) {
-        val browser = mediaBrowser ?: return
-        val metadataBuilder = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
-        
-        // Se la durata è <= 0, non la impostiamo per segnalare al sistema che si tratta di un contenuto Live
+    private fun sendMetadata(
+        title: String,
+        artist: String?,
+        icon: Bitmap?,
+        duration: Long
+    ) {
+
+        val browser =
+            mediaBrowser ?: return
+
+        val metadataBuilder =
+            MediaMetadataCompat.Builder()
+                .putString(
+                    MediaMetadataCompat.METADATA_KEY_TITLE,
+                    title
+                )
+                .putString(
+                    MediaMetadataCompat.METADATA_KEY_ARTIST,
+                    artist ?: ""
+                )
+
+        /*
+         * Per i live non impostiamo la durata.
+         */
         if (duration > 0) {
-            metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+
+            metadataBuilder.putLong(
+                MediaMetadataCompat.METADATA_KEY_DURATION,
+                duration
+            )
         }
 
         icon?.let {
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
-            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, it)
+
+            metadataBuilder.putBitmap(
+                MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                it
+            )
+
+            metadataBuilder.putBitmap(
+                MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON,
+                it
+            )
         }
 
-        val bundle = Bundle().apply {
-            putParcelable("MediaMetadataCompat", metadataBuilder.build())
-        }
-        browser.sendCustomAction("MediaMetadataCompat", bundle, null)
+        val bundle =
+            Bundle().apply {
+
+                putParcelable(
+                    "MediaMetadataCompat",
+                    metadataBuilder.build()
+                )
+            }
+
+        browser.sendCustomAction(
+            "MediaMetadataCompat",
+            bundle,
+            null
+        )
     }
 
     companion object {
-        private const val TAG = "MediaSessionManager"
+
+        private const val TAG =
+            "MediaSessionManager"
     }
 }

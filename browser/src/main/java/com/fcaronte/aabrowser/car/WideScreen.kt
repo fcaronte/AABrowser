@@ -753,6 +753,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 @JavascriptInterface
                                 @Suppress("unused")
+                                fun updateMediaCapabilities(canSeek: Boolean, canSkipNext: Boolean, canSkipPrevious: Boolean) {
+                                    mediaSessionManager.setPlaybackCapabilities(canSeek, canSkipNext, canSkipPrevious)
+                                }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
                                 fun onMetadataUpdated(title: String, faviconUrl: String, currentUrl: String) {}
 
                                 // DAZN: chiamate di autenticazione/playback fatte lato app (thread del ponte, bloccante)

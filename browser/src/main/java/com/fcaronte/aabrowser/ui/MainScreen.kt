@@ -198,7 +198,14 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
     var showBrowserSearch by remember { mutableStateOf(false) }
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
 
-    val mediaSessionManager = remember { MediaSessionManager(context) }
+    val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
+    val mediaSessionManager = remember {
+        if (mediaPlayerEnabled) {
+            MediaSessionManager(context)
+        } else {
+            null
+        }
+    }
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage != null) {
@@ -209,7 +216,9 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
 
     LaunchedEffect(Unit) {
         AdBlockSettings.init(context)
-        mediaSessionManager.connect()
+        if (mediaPlayerEnabled) {
+            mediaSessionManager?.connect()
+        }
 
         // Aspetta che i preferiti siano caricati dal repository
         var attempts = 0
@@ -259,7 +268,7 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaSessionManager.disconnect()
+            mediaSessionManager?.disconnect()
         }
     }
 
@@ -430,7 +439,7 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                     backTrigger = if (isTabActive) backTrigger else 0,
                                     forwardTrigger = if (isTabActive) forwardTrigger else 0,
                                     isDesktopMode = isDesktopMode,
-                                    mediaSessionManager = mediaSessionManager,
+                                    mediaSessionManager = mediaSessionManager ?: MediaSessionManager(context),
                                     carInputManager = carInputManager,
                                     desktopModeOverride = tab.desktopModeOverride,
                                     mobileZoomOverride = tab.mobileZoomOverride,

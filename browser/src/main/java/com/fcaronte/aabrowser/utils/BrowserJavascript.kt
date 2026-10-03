@@ -353,116 +353,265 @@ object BrowserJavascript {
     """
 
     const val NEXT_SCRIPT = """
-        (function() {
-            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['nexttrack'] === 'function') {
-                try {
-                    window.aabMediaSessionHandlers['nexttrack']();
-                    return;
-                } catch(e) {}
+(function() {
+    const host = window.location.hostname.toLowerCase();
+
+    if (window.aabMediaSessionHandlers &&
+        typeof window.aabMediaSessionHandlers['nexttrack'] === 'function') {
+        try {
+            window.aabMediaSessionHandlers['nexttrack']();
+            return;
+        } catch(e) {}
+    }
+
+    function smartClick(el) {
+        if (!el) return false;
+
+        try {
+            el.focus();
+            el.click();
+            return true;
+        } catch(e) {
+            try {
+                el.dispatchEvent(new MouseEvent('mousedown', {
+                    bubbles: true
+                }));
+                el.dispatchEvent(new MouseEvent('mouseup', {
+                    bubbles: true
+                }));
+                el.dispatchEvent(new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                }));
+                return true;
+            } catch(err) {
+                return false;
+            }
+        }
+    }
+
+    /*
+     * YOUTUBE
+     */
+    if (host.includes('youtube.com') ||
+        host.includes('youtubekids.com')) {
+
+        const video = document.querySelector('video');
+        if (!video) return;
+
+        let attempts = 0;
+        const maxAttempts = 15;
+
+        function findNextButton() {
+            return document.querySelector(
+                '.ytp-next-button:not(.ytp-button-disabled), ' +
+                '#next-button:not([disabled]), ' +
+                'button[aria-label*="Next" i]:not([disabled]), ' +
+                'button[aria-label*="Successivo" i]:not([disabled]), ' +
+                'ytmusic-player-bar .next-button:not([disabled]), ' +
+                '.player-control-next:not([disabled]), ' +
+                '[data-testid="control-button-skip-forward"]:not([disabled])'
+            );
+        }
+
+        function tryNext() {
+            attempts++;
+
+            if (attempts === 1 && video) {
+                video.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
             }
 
-            function smartClick(el) {
-                if (!el) return false;
-                try { el.click(); return true; } catch(e) {
-                    try {
-                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-                        return true;
-                    } catch(err) { return false; }
-                }
+            const nextBtn = findNextButton();
+
+            if (nextBtn &&
+                !nextBtn.disabled &&
+                !nextBtn.classList.contains('ytp-button-disabled')) {
+
+                console.log(
+                    "AABrowser: YouTube NEXT found"
+                );
+
+                smartClick(nextBtn);
+                return;
             }
 
-            const nextSelectors = [
-                '[data-testid="control-button-skip-forward"]',
-                '[data-testid="control-button-skip-right"]',
-                '[data-testid="skip-next-button"]',
-                '[data-testid*="skip-forward"]',
-                '[data-testid*="skip-next"]',
-                '.ytp-next-button',
-                'ytmusic-player-bar .next-button',
-                '#next-button',
-                'button[aria-label*="next" i]',
-                'button[aria-label*="successiv" i]',
-                'button[aria-label*="avanti" i]',
-                'button[aria-label*="prossim" i]',
-                'button[aria-label*="skip" i]',
-                'button[aria-label*="brano successivo" i]',
-                'button[title*="Next" i]',
-                'button[title*="Successivo" i]'
-            ];
-
-            let clicked = false;
-            for (const sel of nextSelectors) {
-                const btn = document.querySelector(sel);
-                if (btn) {
-                    clicked = smartClick(btn);
-                    if (clicked) break;
-                }
+            /*
+             * YouTube può impiegare tempo per creare
+             * o aggiornare il pulsante della playlist.
+             *
+             * Aspettiamo fino a 1.5 secondi.
+             */
+            if (attempts < maxAttempts) {
+                setTimeout(tryNext, 100);
+                return;
             }
 
-            if (!clicked) {
-                try {
-                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'MediaTrackNext', code: 'MediaTrackNext', bubbles: true }));
-                } catch(e) {}
-                const media = document.querySelector('video, audio');
-                if (media) media.currentTime += 10;
+            /*
+             * Fallback solamente se il pulsante
+             * non è realmente disponibile.
+             */
+            console.log(
+                "AABrowser: YouTube NEXT unavailable, fallback +10s"
+            );
+
+            if (video && isFinite(video.duration)) {
+                video.currentTime = Math.min(
+                    video.duration,
+                    video.currentTime + 10
+                );
             }
-        })();
-    """
+        }
+
+        tryNext();
+        return;
+    }
+
+    /*
+     * Altri player
+     */
+    const video =
+        document.querySelector('video:not([paused])') ||
+        document.querySelector('video');
+
+    if (video && isFinite(video.duration)) {
+        video.currentTime = Math.min(
+            video.duration,
+            video.currentTime + 10
+        );
+    }
+})();
+"""
+
 
     const val PREVIOUS_SCRIPT = """
-        (function() {
-            if (window.aabMediaSessionHandlers && typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
-                try {
-                    window.aabMediaSessionHandlers['previoustrack']();
-                    return;
-                } catch(e) {}
+(function() {
+    const host = window.location.hostname.toLowerCase();
+
+    if (window.aabMediaSessionHandlers &&
+        typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
+        try {
+            window.aabMediaSessionHandlers['previoustrack']();
+            return;
+        } catch(e) {}
+    }
+
+    function smartClick(el) {
+        if (!el) return false;
+
+        try {
+            el.focus();
+            el.click();
+            return true;
+        } catch(e) {
+            try {
+                el.dispatchEvent(new MouseEvent('mousedown', {
+                    bubbles: true
+                }));
+                el.dispatchEvent(new MouseEvent('mouseup', {
+                    bubbles: true
+                }));
+                el.dispatchEvent(new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                }));
+                return true;
+            } catch(err) {
+                return false;
+            }
+        }
+    }
+
+    /*
+     * YOUTUBE
+     */
+    if (host.includes('youtube.com') ||
+        host.includes('youtubekids.com')) {
+
+        const video = document.querySelector('video');
+        if (!video) return;
+
+        let attempts = 0;
+        const maxAttempts = 15;
+
+        function findPreviousButton() {
+            return document.querySelector(
+                '.ytp-prev-button:not(.ytp-button-disabled), ' +
+                '#previous-button:not([disabled]), ' +
+                'button[aria-label*="Previous" i]:not([disabled]), ' +
+                'button[aria-label*="Precedente" i]:not([disabled]), ' +
+                'ytmusic-player-bar .prev-button:not([disabled]), ' +
+                '.player-control-prev:not([disabled]), ' +
+                '[data-testid="control-button-skip-back"]:not([disabled])'
+            );
+        }
+
+        function tryPrevious() {
+            attempts++;
+
+            if (attempts === 1 && video) {
+                video.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
             }
 
-            function smartClick(el) {
-                if (!el) return false;
-                try { el.click(); return true; } catch(e) {
-                    try {
-                        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-                        return true;
-                    } catch(err) { return false; }
-                }
+            const prevBtn = findPreviousButton();
+
+            if (prevBtn &&
+                !prevBtn.disabled &&
+                !prevBtn.classList.contains('ytp-button-disabled')) {
+
+                console.log(
+                    "AABrowser: YouTube PREVIOUS found"
+                );
+
+                smartClick(prevBtn);
+                return;
             }
 
-            const prevSelectors = [
-                '[data-testid="control-button-skip-back"]',
-                '[data-testid="control-button-skip-left"]',
-                '[data-testid="skip-previous-button"]',
-                '[data-testid*="skip-back"]',
-                '[data-testid*="skip-prev"]',
-                '.ytp-prev-button',
-                'ytmusic-player-bar .previous-button',
-                '#previous-button',
-                'button[aria-label*="prev" i]',
-                'button[aria-label*="precedent" i]',
-                'button[aria-label*="indietro" i]',
-                'button[aria-label*="brano precedente" i]',
-                'button[title*="Previous" i]',
-                'button[title*="Precedente" i]'
-            ];
-
-            let clicked = false;
-            for (const sel of prevSelectors) {
-                const btn = document.querySelector(sel);
-                if (btn) {
-                    clicked = smartClick(btn);
-                    if (clicked) break;
-                }
+            /*
+             * Aspetta che YouTube aggiorni
+             * il player/playlist.
+             */
+            if (attempts < maxAttempts) {
+                setTimeout(tryPrevious, 100);
+                return;
             }
 
-            if (!clicked) {
-                try {
-                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'MediaTrackPrevious', code: 'MediaTrackPrevious', bubbles: true }));
-                } catch(e) {}
-                const media = document.querySelector('video, audio');
-                if (media) media.currentTime -= 10;
+            /*
+             * Fallback solamente se il pulsante
+             * non è realmente disponibile.
+             */
+            console.log(
+                "AABrowser: YouTube PREVIOUS unavailable, fallback -10s"
+            );
+
+            if (video && isFinite(video.duration)) {
+                video.currentTime = Math.max(
+                    0,
+                    video.currentTime - 10
+                );
             }
-        })();
-    """
+        }
+
+        tryPrevious();
+        return;
+    }
+
+    /*
+     * Altri player
+     */
+    const video =
+        document.querySelector('video:not([paused])') ||
+        document.querySelector('video');
+
+    if (video && isFinite(video.duration)) {
+        video.currentTime = Math.max(
+            0,
+            video.currentTime - 10
+        );
+    }
+})();
+"""
 
     fun getSeekScript(pos: Long): String {
         return """
@@ -812,6 +961,25 @@ object BrowserJavascript {
 """
 
     private const val METADATA_SYNC_CORE_JS = """
+        function checkYouTubeCapabilities() {
+            if (!window.AndroidBridge || !window.AndroidBridge.updateMediaCapabilities) return;
+            const host = window.location.hostname.toLowerCase();
+            if (host.includes('youtube.com') || host.includes('youtubekids.com')) {
+                const hasListParam = window.location.search.includes('list=') || window.location.pathname.includes('/playlist');
+                const nextBtn = document.querySelector('.ytp-next-button');
+                const prevBtn = document.querySelector('.ytp-prev-button');
+                const hasNext = nextBtn && !nextBtn.classList.contains('ytp-button-disabled') && nextBtn.style.display !== 'none';
+                const hasPrev = prevBtn && !prevBtn.classList.contains('ytp-button-disabled') && prevBtn.style.display !== 'none';
+                
+                const isPlaylist = hasListParam || (hasNext || hasPrev);
+                if (isPlaylist) {
+                    AndroidBridge.updateMediaCapabilities(false, true, true);
+                } else {
+                    AndroidBridge.updateMediaCapabilities(true, false, false);
+                }
+            }
+        }
+
         function syncPageMetadata() {
             const getFavicon = () => {
                 const icon = document.querySelector('link[rel="apple-touch-icon"]') || 
@@ -823,6 +991,7 @@ object BrowserJavascript {
             if (window.AndroidBridge) {
                 AndroidBridge.onMetadataUpdated(document.title, getFavicon(), window.location.href);
             }
+            checkYouTubeCapabilities();
         }
         
         // Force redraw on visibility change to fix frozen video image

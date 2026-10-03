@@ -31,8 +31,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private lateinit var audioManager: AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
-    private var lastWebPlaybackState: Int = PlaybackStateCompat.STATE_NONE
-
     var showingWeather = true
     var isUserPaused = false
 
@@ -193,6 +191,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
         rootHints: Bundle?
     ): BrowserRoot {
         AppLog.d(TAG, "onGetRoot: client=$clientPackageName")
+        
+        val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
+        val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
+        
+        if (!mediaPlayerEnabled) {
+            mMediasessioncompat?.isActive = false
+            return BrowserRoot("root", null)
+        }
+        
         mMediasessioncompat?.isActive = true
         checkAndUpdateWeatherMetadata()
         return BrowserRoot("root", null)
@@ -203,6 +210,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
         result: Result<MutableList<MediaBrowserCompat.MediaItem?>?>
     ) {
         AppLog.d(TAG, "onLoadChildren: parentMediaId=$parentMediaId")
+        
+        val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
+        val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
+        
+        if (!mediaPlayerEnabled) {
+            result.detach()
+            return
+        }
+        
         checkAndUpdateWeatherMetadata()
 
         val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem?>()
@@ -235,16 +251,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 val playbackStateCompat =
                     extras.getParcelable<PlaybackStateCompat?>("PlaybackStateCompat")
                 if (playbackStateCompat != null) {
-                    lastWebPlaybackState = playbackStateCompat.state
-
                     update = stateChanged(playbackStateCompat)
-                    cancel = playbackStateCompat.state == PlaybackStateCompat.STATE_NONE
+                    cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
                     if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
-                        playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED
-                    ) {
+                        playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
                         showingWeather = true
                         isUserPaused = false
                         checkAndUpdateWeatherMetadata()
@@ -263,6 +276,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     } else {
                         showingWeather = false
                         mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
+                        requestAudioFocus()
                         update = true
                     }
                 }
@@ -343,6 +357,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
             service.showingWeather = false
             service.isUserPaused = false
+            service.requestAudioFocus()
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
 

@@ -67,6 +67,9 @@
     <string name="autoplay_desc">Allow audio and video to start immediately when opening tabs</string>
     <string name="weather_widget_label">Weather Widget in Player Bar</string>
     <string name="weather_widget_desc">Show weather and temperature in player bar when playback is inactive</string>
+    <string name="media_player_label">Media Player</string>
+    <string name="media_player_desc">Show media player and notifications on Android Auto</string>
+    <string name="media_player_disabled_hint">Media player must be enabled to use weather widget</string>
     <string name="weather_permission_toast">Please enable location permission on your smartphone for accurate weather</string>
     <string name="preload_favorites_label">Preload favorites on startup</string>
     <string name="preload_favorites_desc">Open top favorites in background tabs when the app starts</string>

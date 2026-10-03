@@ -119,6 +119,9 @@ object AppSettings {
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
 
+    private val _mediaPlayerEnabled = mutableStateOf(true)
+    val mediaPlayerEnabled: State<Boolean> = _mediaPlayerEnabled
+
     private val _multiWindow = mutableStateOf(false)
     val multiWindow: State<Boolean> = _multiWindow
 
@@ -160,6 +163,7 @@ object AppSettings {
             prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
         )
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
+        _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
 
@@ -184,8 +188,20 @@ object AppSettings {
     }
 
     fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {
+        if (!_mediaPlayerEnabled.value) {
+            return
+        }
         _weatherWidgetEnabled.value = enabled
         saveBoolean(context, "weather_widget_enabled", enabled)
+    }
+
+    fun setMediaPlayerEnabled(context: Context, enabled: Boolean) {
+        _mediaPlayerEnabled.value = enabled
+        saveBoolean(context, "media_player_enabled", enabled)
+        if (!enabled) {
+            _weatherWidgetEnabled.value = false
+            saveBoolean(context, "weather_widget_enabled", false)
+        }
     }
 
     fun setMultiWindow(context: Context, enabled: Boolean) {

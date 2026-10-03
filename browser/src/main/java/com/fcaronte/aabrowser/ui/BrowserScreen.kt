@@ -211,6 +211,65 @@ fun BrowserScreen(
     fun isDaznUrl(pageUrl: String?): Boolean =
         pageUrl?.contains("dazn.com", ignoreCase = true) == true
 
+    fun updateMediaCapabilities(pageUrl: String?) {
+        if (!isTabActive) return
+
+        val uri = try {
+            pageUrl?.let { Uri.parse(it) }
+        } catch (_: Exception) {
+            null
+        }
+
+        val host = uri?.host?.lowercase() ?: ""
+        val isYouTube =
+            host == "youtube.com" ||
+                    host == "www.youtube.com" ||
+                    host.endsWith(".youtube.com")
+
+        /*
+         * YouTube playlist:
+         *
+         * https://www.youtube.com/watch?v=XXX&list=YYY
+         * https://www.youtube.com/playlist?list=YYY
+         *
+         * In questo caso Android Auto deve mostrare
+         * PREVIOUS / NEXT e NON i controlli +/-10 secondi.
+         */
+        val isYouTubePlaylist =
+            isYouTube &&
+                    (
+                            !uri?.getQueryParameter("list").isNullOrBlank() ||
+                                    uri?.path?.equals("/playlist", ignoreCase = true) == true
+                            )
+
+        if (isYouTubePlaylist) {
+
+            AppLog.d(
+                "AABrowserPlayback",
+                "Media capabilities: YouTube playlist -> NEXT/PREVIOUS"
+            )
+
+            mediaSessionManager?.setPlaybackCapabilities(
+                canSeek = false,
+                canSkipNext = true,
+                canSkipPrevious = true
+            )
+
+        } else {
+
+            AppLog.d(
+                "AABrowserPlayback",
+                "Media capabilities: normal player -> SEEK"
+            )
+
+            mediaSessionManager?.setPlaybackCapabilities(
+                canSeek = true,
+                canSkipNext = false,
+                canSkipPrevious = false
+            )
+        }
+    }
+
     val webViewState = remember { mutableStateOf<WebView?>(null) }
     var webViewReference by webViewState
 
@@ -240,7 +299,10 @@ fun BrowserScreen(
 
     LaunchedEffect(isTabActive) {
         if (isTabActive) {
-            webViewReference?.let { onWebViewCreated(it) }
+            webViewReference?.let {
+                onWebViewCreated(it)
+                updateMediaCapabilities(it.url ?: url)
+            }
         }
     }
 
@@ -650,6 +712,14 @@ fun BrowserScreen(
 
                             @JavascriptInterface
                             @Suppress("unused")
+                            fun updateMediaCapabilities(canSeek: Boolean, canSkipNext: Boolean, canSkipPrevious: Boolean) {
+                                post {
+                                    mediaSessionManager?.setPlaybackCapabilities(canSeek, canSkipNext, canSkipPrevious)
+                                }
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
                             fun onStartInput() {
                                 AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
                                 if (isTabActive && !isGlobalSearchActive) {
@@ -801,6 +871,8 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
+                            updateMediaCapabilities(url)
+
                             view?.settings?.mediaPlaybackRequiresUserGesture =
                                 !autoplayMedia && !isDaznUrl(url)
                             if (needsDesktopForUrl(url)) {
@@ -950,6 +1022,9 @@ fun BrowserScreen(
 
                         override fun onPageFinished(view: WebView?, url: String?) {
                             if (url != null) {
+
+                                updateMediaCapabilities(url)
+
                                 onPageFinished(url)
                                 AppLog.d("##BrowserScreen", "onPageFinished: ${safeUrlForLog(url)}")
 
@@ -978,6 +1053,9 @@ fun BrowserScreen(
                 }
                 onWebViewCreated(webView)
                 webViewReference = webView
+                if (isTabActive) {
+                    updateMediaCapabilities(webView.url ?: url)
+                }
                 CarFrameLayout(context).apply {
                     layoutParams = ViewGroup.LayoutParams(-1, -1)
                     addView(webView, android.widget.FrameLayout.LayoutParams(-1, -1))
