@@ -107,6 +107,20 @@ object BrowserJavascript {
         """.trimIndent()
     }
 
+    fun getAutoSaveActiveElementScript(): String {
+        return """
+    (function() {
+        document.addEventListener('focusin', function(e) {
+            var el = e.target;
+            if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) {
+                window.__savedInputElement = el;
+                window.__savedSelectionStart = el.selectionStart || 0;
+                window.__savedSelectionEnd = el.selectionEnd || 0;
+            }
+        });
+    })();
+    """.trimIndent()
+    }
     fun getDesktopSpoofScript(chromeVersion: String): String {
         val majorVersion = chromeVersion.split(".").firstOrNull() ?: "152"
         val uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"
@@ -1389,4 +1403,22 @@ object BrowserJavascript {
             document.body.appendChild(dropdown);
         }, true);
     """
+
+    fun getDisableDoubleTapScript(): String {
+        return """
+        (function() {
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = '* { touch-action: manipulation; }';
+            if (document.head) {
+                document.head.appendChild(style);
+            } else {
+                document.documentElement.appendChild(style);
+            }
+            document.addEventListener('dblclick', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        })();
+        """.trimIndent()
+    }
 }

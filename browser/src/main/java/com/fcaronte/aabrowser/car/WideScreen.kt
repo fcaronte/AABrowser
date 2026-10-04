@@ -500,9 +500,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
-        // Niente zoom sulla home (zoomBy ignora il meta viewport, va bloccato qui)
+        // Niente zoom sulla home o zoom improvviso (doppio tap to zoom dell'host Android Auto)
         if (isInputPopupVisible || customView != null || isHome()) return
-        if (scaleFactor in 0.5f..2.0f) {
+
+        // I doppi tap interpretati dall'host Android Auto inviano scaleFactor fissi o ampi (es. 2.0 o 0.5).
+        // Il pinch-to-zoom usa variazioni graduali vicine a 1.0 (es. 0.95 - 1.05).
+        if (abs(scaleFactor - 1.0f) > 0.35f) {
+            return
+        }
+
+        if (scaleFactor in 0.65f..1.35f) {
             try {
                 webView?.zoomBy(scaleFactor)
             } catch (_: Exception) {
@@ -683,6 +690,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getGoogleOauthFixScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getPopupInterceptorScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
+                            // Aggiungi anche lo script per salvare l'elemento attivo
+                            WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
+                            // Blocca il doppio tap to zoom in tutte le pagine
+                            WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getDisableDoubleTapScript(), setOf("*"))
                         }
 
                         addJavascriptInterface(
@@ -982,6 +993,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
+                                view?.settings?.builtInZoomControls = true
 
                                 // Autoplay: su DAZN sempre consentito
                                 view?.settings?.mediaPlaybackRequiresUserGesture =
@@ -1006,6 +1018,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url.isNullOrEmpty()) return
+
+                                view?.evaluateJavascript(BrowserJavascript.getDisableDoubleTapScript(), null)
 
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
