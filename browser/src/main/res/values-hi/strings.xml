@@ -66,6 +66,9 @@
     <string name="autoplay_desc">टैब खोलते ही ऑडियो और वीडियो तुरंत शुरू होने दें</string>
     <string name="weather_widget_label">प्लेयर बार में मौसम विजेट</string>
     <string name="weather_widget_desc">प्लेबैक निष्क्रिय होने पर प्लेयर बार में मौसम और तापमान दिखाएं</string>
+    <string name="media_player_label">मीडिया प्लेयर</string>
+    <string name="media_player_desc">Android Auto पर मीडिया प्लेयर और सूचनाएं दिखाएं</string>
+    <string name="media_player_disabled_hint">मौसम विजेट का उपयोग करने के लिए मीडिया प्लेयर सक्षम होना चाहिए</string>
     <string name="weather_permission_toast">सटीक मौसम के लिए कृपया अपने स्मार्टफोन पर स्थान की अनुमति सक्षम करें</string>
     <string name="preload_favorites_label">शुरुआत में पसंदीदा प्रीलोड करें</string>
     <string name="preload_favorites_desc">ऐप शुरू होने पर पृष्ठभूमि टैब में शीर्ष पसंदीदा खोलें</string>

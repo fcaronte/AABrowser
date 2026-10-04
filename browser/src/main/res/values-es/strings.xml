@@ -66,6 +66,9 @@
     <string name="autoplay_desc">Permitir que el audio y el video comiencen inmediatamente al abrir pestañas</string>
     <string name="weather_widget_label">Widget del clima en la barra del reproductor</string>
     <string name="weather_widget_desc">Mostrar el clima y la temperatura en la barra del reproductor cuando la reproducción esté inactiva</string>
+    <string name="media_player_label">Reproductor multimedia</string>
+    <string name="media_player_desc">Mostrar reproductor multimedia y notificaciones en Android Auto</string>
+    <string name="media_player_disabled_hint">El reproductor multimedia debe estar habilitado para usar el widget del tiempo</string>
     <string name="weather_permission_toast">Habilite el permiso de ubicación en su teléfono inteligente para obtener información meteorológica precisa</string>
     <string name="preload_favorites_label">Precargar favoritos al inicio</string>
     <string name="preload_favorites_desc">Abrir los principales favoritos en pestañas de fondo al iniciar la aplicación</string>

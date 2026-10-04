@@ -66,6 +66,9 @@
     <string name="autoplay_desc">Hang és videó azonnali indításának engedélyezése lapok megnyitásakor</string>
     <string name="weather_widget_label">Időjárás widget a lejátszó sávban</string>
     <string name="weather_widget_desc">Időjárás és hőmérséklet megjelenítése a lejátszó sávban, ha a lejátszás nem aktív</string>
+    <string name="media_player_label">Médiavajátszó</string>
+    <string name="media_player_desc">Médiavajátszó és értesítések megjelenítése az Android Auto-n</string>
+    <string name="media_player_disabled_hint">Az időjárás widget használatához engedélyezni kell a médiavajátszót</string>
     <string name="weather_permission_toast">Kérjük, engedélyezze a helymeghatározást okostelefonján a pontos időjáráshoz</string>
     <string name="preload_favorites_label">Kedvenc oldalak előtöltése indításkor</string>
     <string name="preload_favorites_desc">Legfontosabb kedvencek megnyitása háttérfüleken az alkalmazás indításakor</string>

@@ -66,6 +66,9 @@
     <string name="autoplay_desc">允许打开标签页时立即开始播放音视频</string>
     <string name="weather_widget_label">播放栏天气小部件</string>
     <string name="weather_widget_desc">在播放不活跃时在播放栏显示天气和温度</string>
+    <string name="media_player_label">媒体播放器</string>
+    <string name="media_player_desc">在 Android Auto 上显示媒体播放器和通知</string>
+    <string name="media_player_disabled_hint">必须启用媒体播放器才能使用天气小部件</string>
     <string name="weather_permission_toast">请在智能手机上启用定位权限以获取准确的天气信息</string>
     <string name="preload_favorites_label">启动时预加载收藏</string>
     <string name="preload_favorites_desc">应用启动时在后台标签页中打开热门收藏</string>

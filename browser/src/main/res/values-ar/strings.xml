@@ -66,6 +66,9 @@
     <string name="autoplay_desc">السماح بتشغيل الصوت والفيديو فوراً عند فتح علامات التبويب</string>
     <string name="weather_widget_label">أداة الطقس في شريط المشغل</string>
     <string name="weather_widget_desc">عرض الطقس ودرجة الحرارة في شريط المشغل عندما يكون التشغيل متوقفاً</string>
+    <string name="media_player_label">مشغل الوسائط</string>
+    <string name="media_player_desc">عرض مشغل الوسائط والإشعارات على Android Auto</string>
+    <string name="media_player_disabled_hint">يجب تمكين مشغل الوسائط لاستخدام أداة الطقس</string>
     <string name="weather_permission_toast">يرجى تمكين إذن الموقع على هاتفك الذكي لمعرفة الطقس بدقة</string>
     <string name="preload_favorites_label">تحميل المفضلة مسبقاً عند البدء</string>
     <string name="preload_favorites_desc">فتح أفضل المفضلة في علامات تبويب في الخلفية عند بدء تشغيل التطبيق</string>

@@ -93,7 +93,9 @@
     <string name="adblock_youtube_desc">Saltar anúncios do YouTube automaticamente (Beta: pode deixar de funcionar a qualquer momento)</string>
     <string name="multi_window_label">Múltiplas janelas (Popups)</string>
     <string name="multi_window_desc">Permitir que os sites abram novos separadores ou janelas pop-up (ex. páginas de início de sessão)</string>
-    <string name="force_english_label">Forçar idioma inglês</string>
+    <string name="media_player_label">Reprodutor de mídia</string>
+    <string name="media_player_desc">Mostrar reprodutor de mídia e notificações no Android Auto</string>
+    <string name="media_player_disabled_hint">O reprodutor de mídia deve estar ativado para usar o widget de clima</string>
     <string name="force_english_desc">Utilizar sempre inglês independentemente do idioma do sistema</string>
     <string name="search_engine_label">Motor de pesquisa predefinido</string>
     <string name="search_engine_desc">Escolher motor para pesquisa rápida</string>

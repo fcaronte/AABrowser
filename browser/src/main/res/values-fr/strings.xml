@@ -66,6 +66,9 @@
     <string name="autoplay_desc">Permettre au son et aux vidéos de démarrer immédiatement lors de l\'ouverture des onglets</string>
     <string name="weather_widget_label">Widget météo dans la barre du lecteur</string>
     <string name="weather_widget_desc">Afficher la météo et la température dans la barre du lecteur lorsque la lecture est inactive</string>
+    <string name="media_player_label">Lecteur multimédia</string>
+    <string name="media_player_desc">Afficher le lecteur multimédia et les notifications sur Android Auto</string>
+    <string name="media_player_disabled_hint">Le lecteur multimédia doit être activé pour utiliser le widget météo</string>
     <string name="weather_permission_toast">Veuillez activer l\'autorisation de localisation sur votre smartphone pour obtenir une météo précise</string>
     <string name="preload_favorites_label">Précharger les favoris au démarrage</string>
     <string name="preload_favorites_desc">Ouvrir les principaux favoris dans des onglets d\'arrière-plan au démarrage de l\'application</string>

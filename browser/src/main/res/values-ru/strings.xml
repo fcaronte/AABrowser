@@ -66,6 +66,9 @@
     <string name="autoplay_desc">Разрешить автоматический запуск аудио и видео при открытии вкладок</string>
     <string name="weather_widget_label">Виджет погоды в панели плеера</string>
     <string name="weather_widget_desc">Показывать погоду и температуру в панели плеера при остановке воспроизведения</string>
+    <string name="media_player_label">Медиаплеер</string>
+    <string name="media_player_desc">Отображение медиаплеера и уведомлений в Android Auto</string>
+    <string name="media_player_disabled_hint">Для использования виджета погоды необходимо включить медиаплеер</string>
     <string name="weather_permission_toast">Включите разрешение на геолокацию на смартфоне для точной погоды</string>
     <string name="preload_favorites_label">Предзагрузка избранного при запуске</string>
     <string name="preload_favorites_desc">Открывать топ сайтов в фоновых вкладках при запуске приложения</string>
