@@ -1,15 +1,14 @@
 package com.fcaronte.aabrowser.utils
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
+import androidx.core.net.toUri
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import androidx.core.net.toUri
 
 object WebViewScriptRouter {
 

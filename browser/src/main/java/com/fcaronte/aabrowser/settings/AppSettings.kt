@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser.settings
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -13,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLog
 
 enum class ThemeMode {
     LIGHT, DARK, AMOLED

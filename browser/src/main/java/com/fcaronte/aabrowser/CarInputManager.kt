@@ -1,11 +1,11 @@
 package com.fcaronte.aabrowser
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.fcaronte.aabrowser.utils.AppLog
 import com.google.android.gms.car.input.CarEditable
 import com.google.android.gms.car.input.CarEditableListener
 import com.google.android.gms.car.input.InputManager

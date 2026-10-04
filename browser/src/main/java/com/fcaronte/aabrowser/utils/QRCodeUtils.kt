@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser.utils
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.google.zxing.BarcodeFormat

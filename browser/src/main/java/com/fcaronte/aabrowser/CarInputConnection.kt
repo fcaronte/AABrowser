@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.os.Bundle
 import android.os.Handler
 import android.view.KeyEvent
@@ -10,6 +9,7 @@ import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputContentInfo
+import com.fcaronte.aabrowser.utils.AppLog
 
 class CarInputConnection internal constructor(
     private val mCarinputmanager: CarInputManager?,

@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser.mediaservice
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,6 +9,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import com.fcaronte.aabrowser.utils.AppLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

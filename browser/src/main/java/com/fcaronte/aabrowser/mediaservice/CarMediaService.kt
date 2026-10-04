@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser.mediaservice
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.app.Notification
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
@@ -16,6 +15,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -21,6 +21,7 @@ import android.os.SystemClock
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.Gravity
 import android.view.InputDevice
@@ -56,11 +57,12 @@ import androidx.car.app.navigation.NavigationManagerCallback
 import androidx.car.app.navigation.model.NavigationTemplate
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -71,14 +73,11 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
-import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
-import android.support.v4.media.session.PlaybackStateCompat
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.core.graphics.toColorInt
 
 /**
  * Schermata "wide" (finto navigatore).

@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,6 +10,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.fcaronte.aabrowser.utils.AppLog
 
 class ForegroundService : Service() {
     override fun onCreate() {

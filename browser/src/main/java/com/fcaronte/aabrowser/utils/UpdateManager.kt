@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser.utils
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.Manifest
 import android.app.DownloadManager
 import android.app.NotificationChannel

@@ -1,6 +1,5 @@
 package com.fcaronte.aabrowser
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
@@ -19,6 +18,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
+import com.fcaronte.aabrowser.utils.AppLog
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.input.InputManager
 

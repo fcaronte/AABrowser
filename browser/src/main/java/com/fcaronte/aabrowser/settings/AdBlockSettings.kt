@@ -1,10 +1,10 @@
 package com.fcaronte.aabrowser.settings
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
+import com.fcaronte.aabrowser.utils.AppLog
 
 object AdBlockSettings {
     private const val PREFS_NAME = "adblock_prefs"

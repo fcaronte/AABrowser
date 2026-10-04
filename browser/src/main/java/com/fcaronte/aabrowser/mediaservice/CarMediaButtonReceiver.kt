@@ -1,9 +1,9 @@
 package com.fcaronte.aabrowser.mediaservice
 
-import com.fcaronte.aabrowser.utils.AppLog
 import android.content.Context
 import android.content.Intent
 import androidx.media.session.MediaButtonReceiver
+import com.fcaronte.aabrowser.utils.AppLog
 
 class CarMediaButtonReceiver : MediaButtonReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
