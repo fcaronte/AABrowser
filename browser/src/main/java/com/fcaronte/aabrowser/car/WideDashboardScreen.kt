@@ -64,7 +64,7 @@ object HomePage {
         }
 
         val toggleText = if (reopenLastPage) "ON" else "OFF"
-        val toggleColor = if (reopenLastPage) "#3b82f6" else "#444444"
+        val toggleColor = if (reopenLastPage) "#22c55e" else "#ef4444"
 
         val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()

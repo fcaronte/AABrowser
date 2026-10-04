@@ -628,6 +628,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         btn.setPadding(32, 16, 32, 16) // Padding ridotto
                     }
 
+/*                  // Disable keyboard for now, i can't manage it correctly
                     val btnKeyboard = Button(ctx).apply {
                         text = "⌨️"
                         btnStyle(this, "#3B82F6") // Blue Material
@@ -638,6 +639,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             openFieldInput()
                         }
                     }
+*/
 
                     val btnMic = Button(ctx).apply {
                         text = "🎤"
@@ -649,7 +651,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         }
                     }
 
-                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
+                    // Disable keyboard for now, i can't manage it correctly
+//                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
                     inputCard.addView(btnMic, LinearLayout.LayoutParams(-2, -2))
 
                     val cardLp = FrameLayout.LayoutParams(-2, -2).apply {
