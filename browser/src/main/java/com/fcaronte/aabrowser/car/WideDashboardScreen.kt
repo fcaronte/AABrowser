@@ -259,9 +259,6 @@ ${
             else -> null
         }
     }
-
-    fun queryToUrl(query: String): String =
-        asUrlOrNull(query) ?: ("https://www.google.com/search?q=" + Uri.encode(query.trim()))
 }
 
 /**
@@ -276,19 +273,23 @@ object SiteSearch {
 
     // %s = testo cercato (già codificato), {host} = host della pagina corrente
     private val sites = listOf(
-        Site({ it.endsWith("youtube.com") }, "YouTube", "https://www.youtube.com/results?search_query=%s"),
-        Site({ it.endsWith("spotify.com") }, "Spotify", "https://open.spotify.com/search/%s"),
-        Site({ it.endsWith("wikipedia.org") }, "Wikipedia", "https://{host}/w/index.php?search=%s"),
+        // Cambiato .endsWith() con .contains() per catturare anche music.youtube.com
+        Site({ it.contains("youtube.com") }, "YouTube", "https://www.youtube.com/results?search_query=%s"),
+        Site({ it.contains("music.youtube.com") }, "YT Music", "https://music.youtube.com/search?q=%s"),
+        Site({ it.contains("spotify.com") }, "Spotify", "https://open.spotify.com/search/%s"),
+        Site({ it.contains("wikipedia.org") }, "Wikipedia", "https://{host}/w/index.php?search=%s"),
         Site({ it.contains("amazon.") }, "Amazon", "https://{host}/s?k=%s"),
         Site({ it.contains("ebay.") }, "eBay", "https://{host}/sch/i.html?_nkw=%s"),
-        Site({ it.endsWith("reddit.com") }, "Reddit", "https://www.reddit.com/search/?q=%s"),
-        Site({ it.endsWith("imdb.com") }, "IMDb", "https://www.imdb.com/find/?q=%s"),
-        Site({ it.endsWith("twitch.tv") }, "Twitch", "https://www.twitch.tv/search?term=%s"),
-        Site({ it.endsWith("netflix.com") }, "Netflix", "https://www.netflix.com/search?q=%s"),
+        Site({ it.contains("reddit.com") }, "Reddit", "https://www.reddit.com/search/?q=%s"),
+        Site({ it.contains("imdb.com") }, "IMDb", "https://www.imdb.com/find/?q=%s"),
+        Site({ it.contains("twitch.tv") }, "Twitch", "https://www.twitch.tv/search?term=%s"),
+        Site({ it.contains("netflix.com") }, "Netflix", "https://www.netflix.com/search?q=%s"),
     )
 
     private fun hostOf(url: String?): String? =
-        try { if (url == null) null else Uri.parse(url).host?.lowercase() } catch (_: Exception) { null }
+        try {
+            url?.toUri()?.host?.lowercase()
+        } catch (_: Exception) { null }
 
     fun targetFor(currentUrl: String?): Target {
         val host = hostOf(currentUrl) ?: return Target("Google", null)
@@ -301,11 +302,8 @@ object SiteSearch {
         val host = hostOf(currentUrl)
         val site = host?.let { h -> sites.firstOrNull { it.match(h) } }
         val encoded = Uri.encode(query.trim())
-        return if (site != null && host != null) {
-            site.template.replace("{host}", host).replace("%s", encoded)
-        } else {
-            "https://www.google.com/search?q=$encoded"
-        }
+        return site?.template?.replace("{host}", host)?.replace("%s", encoded)
+            ?: "https://www.google.com/search?q=$encoded"
     }
 }
 

@@ -78,6 +78,7 @@ import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.core.graphics.toColorInt
 
 /**
  * Schermata "wide" (finto navigatore).
@@ -260,6 +261,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun openFieldInput() {
         screenManager.push(WideSearchScreen(carContext, "Scrivi nel campo") { text ->
             webView?.evaluateJavascript(BrowserJavascript.getInjectTextScript(text), null)
+
+            // Forza il focus non subito, ma con un delay per permettere
+            // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
+            webView?.postDelayed({
+                webView?.requestFocus()
+            }, 300)
         })
     }
 
@@ -576,15 +583,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setBackgroundColor(Color.parseColor("#101010"))
+                        setBackgroundColor("#101010".toColorInt())
                     }
                     backdrop = frame
 
-                    // Popup compatto (tastiera e microfono) con timeout e chiusura al tocco esterno
+                    // Popup compatto (tastiera e microfono)
                     val popupOverlay = FrameLayout(ctx).apply {
                         layoutParams = FrameLayout.LayoutParams(-1, -1)
                         visibility = View.GONE
-                        setBackgroundColor(Color.parseColor("#99000000"))
+                        setBackgroundColor("#CC000000".toColorInt()) // Sfondo più scuro per contrasto
                         setOnClickListener {
                             handler.removeCallbacks(hidePopupRunnable)
                             visibility = View.GONE
@@ -595,21 +602,28 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     val inputCard = LinearLayout(ctx).apply {
                         orientation = LinearLayout.HORIZONTAL
-                        setPadding(24, 16, 24, 16)
+                        setPadding(16, 16, 16, 16) // Più compatto
                         gravity = Gravity.CENTER
                         background = GradientDrawable().apply {
-                            setColor(Color.parseColor("#202124"))
+                            setColor("#202124".toColorInt()) // Torniamo al tuo colore originale, più scuro
                             cornerRadius = 20f
+                            setStroke(1, "#44464A".toColorInt()) // Bordo più sottile
                         }
-                        setOnClickListener { /* consuma click sulla card */ }
+                    }
+
+                    val btnStyle = { btn: Button, color: String ->
+                        btn.textSize = 18f
+                        btn.setTextColor(Color.WHITE)
+                        btn.background = GradientDrawable().apply {
+                            setColor(color.toColorInt())
+                            cornerRadius = 16f
+                        }
+                        btn.setPadding(32, 16, 32, 16) // Padding ridotto
                     }
 
                     val btnKeyboard = Button(ctx).apply {
                         text = "⌨️"
-                        textSize = 20f
-                        setTextColor(Color.WHITE)
-                        setBackgroundColor(Color.parseColor("#3b82f6"))
-                        setPadding(20, 12, 20, 12)
+                        btnStyle(this, "#3B82F6") // Blue Material
                         setOnClickListener {
                             handler.removeCallbacks(hidePopupRunnable)
                             popupOverlay.visibility = View.GONE
@@ -620,19 +634,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     val btnMic = Button(ctx).apply {
                         text = "🎤"
-                        textSize = 20f
-                        setTextColor(Color.WHITE)
-                        setBackgroundColor(Color.parseColor("#ef4444"))
-                        setPadding(20, 12, 20, 12)
+                        btnStyle(this, "#EF4444")
                         setOnClickListener {
                             handler.removeCallbacks(hidePopupRunnable)
-                            popupOverlay.visibility = View.GONE
-                            isInputPopupVisible = false
-                            startVoiceListening(ctx, webView)
+                            // Qui ora passi correttamente il riferimento al bottone
+                            startVoiceListening(ctx, webView, this)
                         }
                     }
 
-                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 16 })
+                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
                     inputCard.addView(btnMic, LinearLayout.LayoutParams(-2, -2))
 
                     val cardLp = FrameLayout.LayoutParams(-2, -2).apply {
@@ -1066,20 +1076,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    private fun startVoiceListening(context: Context, targetWebView: WebView?) {
+    private fun startVoiceListening(context: Context, targetWebView: WebView?, btnMic: Button) {
         try {
             val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.voice_prompt))
             }
+
             speechRecognizer.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
+                override fun onReadyForSpeech(params: Bundle?) {
+                    val bg = btnMic.background
+                    if (bg is GradientDrawable) {
+                        bg.setColor("#34D399".toColorInt())
+                    }
+                }
+
+
                 override fun onBeginningOfSpeech() {}
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {}
+                override fun onEndOfSpeech() {
+                    val bg = btnMic.background
+                    if (bg is GradientDrawable) {
+                        bg.setColor("#EF4444".toColorInt())
+                    }
+                }
                 override fun onError(error: Int) {
+                    val bg = btnMic.background
+                    if (bg is GradientDrawable) {
+                        bg.setColor("#EF4444".toColorInt())
+                    }
                     try { speechRecognizer.destroy() } catch (_: Exception) {}
                 }
                 override fun onResults(results: Bundle?) {
@@ -1088,7 +1114,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         targetWebView.evaluateJavascript(BrowserJavascript.getInjectTextScript(spokenText), null)
                     }
                     try { speechRecognizer.destroy() } catch (_: Exception) {}
+                    handler.post {
+                        popupOverlayReference?.visibility = View.GONE
+                        isInputPopupVisible = false
+                    }
                 }
+                // Metodi mancanti aggiunti qui
                 override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
