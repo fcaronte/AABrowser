@@ -212,11 +212,20 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        val currentState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+        if (currentState != PlaybackStateCompat.STATE_PLAYING) {
+            stopSelf()
+        }
+    }
+
     override fun onDestroy() {
         settingsPreferences.unregisterOnSharedPreferenceChangeListener(settingsListener)
         unregisterNetworkCallback()
         weatherCheckJob?.cancel()
         abandonAudioFocus()
+        mCarmedianotificationmanager?.cancel()
         mCarmedianotificationmanager?.onDestroy()
         mCarmedianotificationmanager = null
 

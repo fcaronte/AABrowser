@@ -129,8 +129,11 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mViewModelStore.clear()
 
-        // Ferma il servizio in primo piano alla chiusura dell'activity sull'auto
+        // Ferma il servizio in primo piano e il servizio media alla chiusura dell'activity sull'auto
         ForegroundService.stopForegroundService(this)
+        try {
+            stopService(android.content.Intent(this, com.fcaronte.aabrowser.mediaservice.CarMediaService::class.java))
+        } catch (_: Exception) {}
 
         super.onDestroy()
     }
