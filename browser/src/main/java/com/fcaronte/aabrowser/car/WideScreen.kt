@@ -416,11 +416,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         surfaceHeight = if (surfaceContainer.height > 0) surfaceContainer.height else 480
         surfaceDensity = if (surfaceContainer.dpi > 0) surfaceContainer.dpi else 160
 
+        if (virtualDisplay != null && presentation != null && webView != null) {
+            try {
+                virtualDisplay?.surface = surface
+                virtualDisplay?.resize(surfaceWidth, surfaceHeight, surfaceDensity)
+                applyVisibleArea()
+                return
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to swap surface on VirtualDisplay, recreating", e)
+            }
+        }
+
         createVirtualDisplayAndPresentation()
     }
 
     override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
-        releaseVirtualDisplay()
+        try {
+            virtualDisplay?.surface = null
+        } catch (_: Exception) {}
         surface = null
     }
 
@@ -431,22 +444,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onStableAreaChanged(stableArea: Rect) {}
 
-    private var lockedRightMargin = 0
+
 
     private fun applyVisibleArea() {
         val wv = webView ?: return
-        val r = visibleArea ?: return
-        if (r.isEmpty) return
-
-        val currentRight = (surfaceWidth - r.right).coerceAtLeast(0)
-
-        if (currentRight > 50) {
-            if (lockedRightMargin == 0 || abs(currentRight - lockedRightMargin) > 25) {
-                lockedRightMargin = currentRight
-            }
-        } else {
-            lockedRightMargin = 0
-        }
 
         val lp = (wv.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(
@@ -454,12 +455,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
 
-        lp.leftMargin = r.left.coerceAtLeast(0)
-        lp.rightMargin = lockedRightMargin
+        lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+        lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+        lp.leftMargin = 0
+        lp.rightMargin = 0
         lp.topMargin = 0
         lp.bottomMargin = 0
 
         wv.layoutParams = lp
+        wv.requestLayout()
         customView?.let { applyMargins(it, lp) }
         updatePopupPosition()
     }
@@ -664,7 +668,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
                     popupOverlay.addView(inputCard, cardLp)
 
-                    val wv = webView ?: WebView(ctx).apply {
+                    val wv = WebView(ctx).apply {
                         settings.apply {
                             javaScriptEnabled = true
                             domStorageEnabled = true
@@ -1075,9 +1079,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
 
                     webView = wv
-                    (wv.parent as? ViewGroup)?.removeView(wv)
-                    wv.onResume()
-
                     frame.addView(
                         wv,
                         FrameLayout.LayoutParams(
@@ -1090,9 +1091,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     setContentView(frame)
                     applyVisibleArea()
-                    if (wv.url.isNullOrEmpty()) {
-                        loadInitial()
-                    }
+                    loadInitial()
                 }
             }
 
@@ -1156,11 +1155,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun releaseVirtualDisplay() {
+        mediaSessionManager.disconnect()
         handler.removeCallbacks(hidePopupRunnable)
         popupOverlayReference = null
         isInputPopupVisible = false
 
-        // Esce dal video a schermo intero prima di rilasciare la presentation
+        // Esce dal video a schermo intero prima di distruggere la WebView
         try {
             customViewCallback?.onCustomViewHidden()
         } catch (_: Exception) {
@@ -1170,16 +1170,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         backdrop = null
 
         try {
-            webView?.let { wv ->
-                wv.url?.let {
-                    if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
-                }
-                (wv.parent as? ViewGroup)?.removeView(wv)
+            webView?.url?.let {
+                if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
             }
+            webView?.stopLoading()
+            webView?.destroy()
         } catch (e: Exception) {
-            Log.w(TAG, "detach webView", e)
+            Log.w(TAG, "release webView", e)
         }
-        // Nota: webView NON viene distrutta qui per preservare lo stato in retro (reverse)
+        webView = null
 
         try {
             presentation?.dismiss()
