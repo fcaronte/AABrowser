@@ -169,6 +169,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 releaseVirtualDisplay()
+                mediaSessionManager.disconnect()
+                try {
+                    webView?.destroy()
+                } catch (_: Exception) {}
+                webView = null
             }
         })
     }
@@ -659,7 +664,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
                     popupOverlay.addView(inputCard, cardLp)
 
-                    val wv = WebView(ctx).apply {
+                    val wv = webView ?: WebView(ctx).apply {
                         settings.apply {
                             javaScriptEnabled = true
                             domStorageEnabled = true
@@ -1070,6 +1075,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
 
                     webView = wv
+                    (wv.parent as? ViewGroup)?.removeView(wv)
+                    wv.onResume()
+
                     frame.addView(
                         wv,
                         FrameLayout.LayoutParams(
@@ -1082,7 +1090,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     setContentView(frame)
                     applyVisibleArea()
-                    loadInitial()
+                    if (wv.url.isNullOrEmpty()) {
+                        loadInitial()
+                    }
                 }
             }
 
@@ -1146,12 +1156,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun releaseVirtualDisplay() {
-        mediaSessionManager.disconnect()
         handler.removeCallbacks(hidePopupRunnable)
         popupOverlayReference = null
         isInputPopupVisible = false
 
-        // Esce dal video a schermo intero prima di distruggere la WebView
+        // Esce dal video a schermo intero prima di rilasciare la presentation
         try {
             customViewCallback?.onCustomViewHidden()
         } catch (_: Exception) {
@@ -1161,15 +1170,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         backdrop = null
 
         try {
-            webView?.url?.let {
-                if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
+            webView?.let { wv ->
+                wv.url?.let {
+                    if (it.isNotEmpty()) lastUrl = if (it.startsWith(HomePage.BASE_URL)) HOME else it
+                }
+                (wv.parent as? ViewGroup)?.removeView(wv)
             }
-            webView?.stopLoading()
-            webView?.destroy()
         } catch (e: Exception) {
-            Log.w(TAG, "release webView", e)
+            Log.w(TAG, "detach webView", e)
         }
-        webView = null
+        // Nota: webView NON viene distrutta qui per preservare lo stato in retro (reverse)
 
         try {
             presentation?.dismiss()
