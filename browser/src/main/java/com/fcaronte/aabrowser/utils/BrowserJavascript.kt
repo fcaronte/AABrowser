@@ -418,15 +418,31 @@ object BrowserJavascript {
         const maxAttempts = 15;
 
         function findNextButton() {
-            return document.querySelector(
+            const primary = document.querySelector(
                 '.ytp-next-button:not(.ytp-button-disabled), ' +
+                'a.ytp-next-button:not(.ytp-button-disabled), ' +
+                'button.ytp-next-button:not(.ytp-button-disabled), ' +
+                '.ytm-next-button:not([disabled]), ' +
                 '#next-button:not([disabled]), ' +
-                'button[aria-label*="Next" i]:not([disabled]), ' +
-                'button[aria-label*="Successivo" i]:not([disabled]), ' +
                 'ytmusic-player-bar .next-button:not([disabled]), ' +
                 '.player-control-next:not([disabled]), ' +
                 '[data-testid="control-button-skip-forward"]:not([disabled])'
             );
+            if (primary) return primary;
+
+            const nextKeywords = ['next', 'successiv', 'suivant', 'siguient', 'nächste', 'naechste', 'seguint', 'следующ', 'التالي', 'अगला', 'következő', '下一个'];
+
+            const candidates = document.querySelectorAll('button, a, [role="button"]');
+            for (let i = 0; i < candidates.length; i++) {
+                const el = candidates[i];
+                if (el.disabled || el.classList.contains('ytp-button-disabled') || el.getAttribute('aria-disabled') === 'true') continue;
+                const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                const cls = (el.className || '').toString().toLowerCase();
+                const id = (el.id || '').toLowerCase();
+                if (cls.includes('ytp-next') || cls.includes('ytm-next') || id.includes('next-button')) return el;
+                if (nextKeywords.some(k => label.includes(k))) return el;
+            }
+            return null;
         }
 
         function tryNext() {
@@ -550,15 +566,31 @@ object BrowserJavascript {
         const maxAttempts = 15;
 
         function findPreviousButton() {
-            return document.querySelector(
+            const primary = document.querySelector(
                 '.ytp-prev-button:not(.ytp-button-disabled), ' +
+                'a.ytp-prev-button:not(.ytp-button-disabled), ' +
+                'button.ytp-prev-button:not(.ytp-button-disabled), ' +
+                '.ytm-prev-button:not([disabled]), ' +
                 '#previous-button:not([disabled]), ' +
-                'button[aria-label*="Previous" i]:not([disabled]), ' +
-                'button[aria-label*="Precedente" i]:not([disabled]), ' +
                 'ytmusic-player-bar .prev-button:not([disabled]), ' +
                 '.player-control-prev:not([disabled]), ' +
                 '[data-testid="control-button-skip-back"]:not([disabled])'
             );
+            if (primary) return primary;
+
+            const prevKeywords = ['previous', 'precedent', 'précédent', 'anterior', 'vorherig', 'предыдущ', 'السابق', 'पिछला', 'előző', '上一个'];
+
+            const candidates = document.querySelectorAll('button, a, [role="button"]');
+            for (let i = 0; i < candidates.length; i++) {
+                const el = candidates[i];
+                if (el.disabled || el.classList.contains('ytp-button-disabled') || el.getAttribute('aria-disabled') === 'true') continue;
+                const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                const cls = (el.className || '').toString().toLowerCase();
+                const id = (el.id || '').toLowerCase();
+                if (cls.includes('ytp-prev') || cls.includes('ytm-prev') || id.includes('prev-button') || id.includes('previous-button')) return el;
+                if (prevKeywords.some(k => label.includes(k))) return el;
+            }
+            return null;
         }
 
         function tryPrevious() {
