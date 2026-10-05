@@ -1,6 +1,8 @@
 package com.fcaronte.aabrowser.mediaservice
 
 import android.app.Notification
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
@@ -20,9 +22,10 @@ import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
-// TODO: Valutare migrazione a Jetpack Media3 in futuro
 @Suppress("DEPRECATION")
 class CarMediaService : MediaBrowserServiceCompat() {
     private var mCarmedianotificationmanager: CarMediaNotificationManager? = null
@@ -52,6 +55,36 @@ class CarMediaService : MediaBrowserServiceCompat() {
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {}
             AudioManager.AUDIOFOCUS_GAIN -> {}
         }
+    }
+
+    private var connectivityManager: android.net.ConnectivityManager? = null
+    private var networkCallback: android.net.ConnectivityManager.NetworkCallback? = null
+
+    private fun registerNetworkCallback() {
+        try {
+            connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            val builder = android.net.NetworkRequest.Builder()
+                .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    AppLog.d(TAG, "Network available, triggering weather check...")
+                    serviceScope.launch {
+                        checkAndUpdateWeatherMetadata()
+                    }
+                }
+            }
+            connectivityManager?.registerNetworkCallback(builder.build(), networkCallback!!)
+        } catch (e: Exception) {
+            AppLog.e(TAG, "Failed to register network callback: ${e.message}")
+        }
+    }
+
+    private fun unregisterNetworkCallback() {
+        try {
+            if (connectivityManager != null && networkCallback != null) {
+                connectivityManager?.unregisterNetworkCallback(networkCallback!!)
+            }
+        } catch (_: Exception) {}
     }
 
     override fun onCreate() {
@@ -86,7 +119,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         sessionToken = mMediasessioncompat!!.sessionToken
 
         settingsPreferences.registerOnSharedPreferenceChangeListener(settingsListener)
+        registerNetworkCallback()
         checkAndUpdateWeatherMetadata()
+        updateNotification()
     }
 
     fun checkAndUpdateWeatherMetadata() {
@@ -108,8 +143,17 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
-                AppLog.d(TAG, "Starting background weather fetch for CarMediaService...")
-                val weather = fetchWeather(applicationContext)
+                var weather: com.fcaronte.aabrowser.utils.WeatherData? = null
+                val delays = listOf(0L, 3000L, 6000L, 10000L, 15000L, 20000L)
+                for (delayTime in delays) {
+                    if (delayTime > 0) {
+                        delay(delayTime.milliseconds)
+                    }
+                    AppLog.d(TAG, "Starting background weather fetch for CarMediaService (attempt delay ${delayTime}ms)...")
+                    weather = fetchWeather(applicationContext)
+                    if (weather != null) break
+                }
+
                 if (weather != null && mMediasessioncompat != null) {
                     val currentPlayState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
                     val stillWeatherNode = (showingWeather || currentPlayState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
@@ -170,6 +214,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         settingsPreferences.unregisterOnSharedPreferenceChangeListener(settingsListener)
+        unregisterNetworkCallback()
         weatherCheckJob?.cancel()
         abandonAudioFocus()
         mCarmedianotificationmanager?.onDestroy()
@@ -404,18 +449,17 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun updateNotification() {
         val notification = this.notification
-        val state = mMediacontrollercompat?.playbackState?.state
         if (notification != null && mCarmedianotificationmanager != null) {
-            if (state == PlaybackStateCompat.STATE_PLAYING) {
+            try {
                 startForeground(
                     600,
                     notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
                 )
-            } else {
-                stopForeground(STOP_FOREGROUND_DETACH)
-                mCarmedianotificationmanager!!.notify(notification)
+            } catch (e: Exception) {
+                AppLog.e(TAG, "Error in startForeground: ${e.message}", e)
             }
+            mCarmedianotificationmanager!!.notify(notification)
         }
     }
 
@@ -429,5 +473,20 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val PLAYBACK_STATE_COMPAT = "PlaybackStateCompat"
         private const val MEDIA_METADATA_COMPAT = "MediaMetadataCompat"
         private const val PLAYBACK_ACTION = "PlaybackAction"
+
+        fun startServiceIfEnabled(context: Context) {
+            val prefs = context.getSharedPreferences("aa_browser_settings", Context.MODE_PRIVATE)
+            val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
+            val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
+            if (weatherEnabled && mediaPlayerEnabled) {
+                try {
+                    val intent = Intent(context, CarMediaService::class.java)
+                    context.startForegroundService(intent)
+                    AppLog.d(TAG, "CarMediaService requested to start for weather widget.")
+                } catch (e: Exception) {
+                    AppLog.e(TAG, "Failed to start CarMediaService: ${e.message}")
+                }
+            }
+        }
     }
 }

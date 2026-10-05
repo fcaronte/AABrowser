@@ -49,6 +49,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
 
         // Avvia il servizio in primo piano per evitare che il sistema lo killi in background
         ForegroundService.startForegroundService(this)
+        com.fcaronte.aabrowser.mediaservice.CarMediaService.startServiceIfEnabled(this)
 
         savedStateRegistryController.performRestore(bundle)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)

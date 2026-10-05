@@ -16,6 +16,7 @@ class ForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         startNotification()
+        com.fcaronte.aabrowser.mediaservice.CarMediaService.startServiceIfEnabled(this)
     }
 
     override fun onDestroy() {
@@ -24,7 +25,7 @@ class ForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent != null && intent.action != null && intent.action == "STOP") stopSelf()
+        if (intent?.action != null && intent.action == "STOP") stopSelf()
         return START_STICKY
     }
 

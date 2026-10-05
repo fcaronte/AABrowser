@@ -39,6 +39,7 @@ import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.core.content.edit
 
 private const val TAG = "WeatherWidget"
 
@@ -221,6 +222,7 @@ fun getCityName(context: Context, lat: Double, lon: Double): String {
 }
 
 suspend fun getLocation(context: Context): Triple<Double, Double, String> {
+    val prefs = context.getSharedPreferences("aa_browser_settings", Context.MODE_PRIVATE)
     val hasCoarse = ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_COARSE_LOCATION
@@ -228,61 +230,87 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
 
     AppLog.d(TAG, "getLocation: ACCESS_COARSE_LOCATION granted = $hasCoarse")
 
+    var result: Triple<Double, Double, String>? = null
+
     if (hasCoarse) {
         try {
             val fusedClient = LocationServices.getFusedLocationProviderClient(context)
             
-            // Prova prima la lastLocation che è istantanea
+            // 1. Prova prima la lastLocation (senza limite di età rigido per evitare fallback a Roma all'avvio)
             val lastLoc: Location? = suspendCancellableCoroutine { continuation ->
-                fusedClient.lastLocation.addOnSuccessListener { loc ->
-                    continuation.resume(loc)
-                }.addOnFailureListener {
-                    continuation.resume(null)
+                try {
+                    fusedClient.lastLocation.addOnSuccessListener { loc ->
+                        if (continuation.isActive) continuation.resume(loc)
+                    }.addOnFailureListener {
+                        if (continuation.isActive) continuation.resume(null)
+                    }
+                } catch (e: Exception) {
+                    if (continuation.isActive) continuation.resume(null)
                 }
             }
             
-            // Se lastLoc è recente (es. < 1 ora), usala subito per la massima velocità all'avvio
-            if (lastLoc != null && (System.currentTimeMillis() - lastLoc.time) < 3600000) {
+            if (lastLoc != null) {
                 val lat = lastLoc.latitude
                 val lon = lastLoc.longitude
                 val cityName = getCityName(context, lat, lon)
-                AppLog.d(TAG, "Using fast lastLocation: lat=$lat, lon=$lon, city=$cityName")
-                return Triple(lat, lon, cityName)
+                AppLog.d(TAG, "Using lastLocation: lat=$lat, lon=$lon, city=$cityName")
+                result = Triple(lat, lon, cityName)
             }
 
-            // Altrimenti chiedi una posizione fresca ma con timeout breve
-            val currentLocation: Location? =
-                suspendCancellableCoroutine<Location?> { continuation ->
-                    val cts = CancellationTokenSource()
-                    fusedClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                        cts.token
-                    ).addOnSuccessListener { loc ->
-                        continuation.resume(loc)
-                    }.addOnFailureListener {
-                        continuation.resume(null)
-                    }
-                    // Timeout di sicurezza di 3 secondi per non bloccare l'avvio
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (continuation.isActive) {
-                            cts.cancel()
-                            continuation.resume(null)
+            // 2. Se non c'è lastLocation o come tentativo di aggiornamento, chiedi posizione fresca con timeout di 5 secondi
+            if (result == null) {
+                val currentLocation: Location? =
+                    suspendCancellableCoroutine<Location?> { continuation ->
+                        val cts = CancellationTokenSource()
+                        try {
+                            fusedClient.getCurrentLocation(
+                                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                                cts.token
+                            ).addOnSuccessListener { loc ->
+                                if (continuation.isActive) continuation.resume(loc)
+                            }.addOnFailureListener {
+                                if (continuation.isActive) continuation.resume(null)
+                            }
+                        } catch (_: Exception) {
+                            if (continuation.isActive) continuation.resume(null)
                         }
-                    }, 3000)
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (continuation.isActive) {
+                                cts.cancel()
+                                continuation.resume(null)
+                            }
+                        }, 5000)
+                    }
+
+                if (currentLocation != null) {
+                    val lat = currentLocation.latitude
+                    val lon = currentLocation.longitude
+                    val cityName = getCityName(context, lat, lon)
+                    AppLog.d(TAG, "Using fresh GPS location: lat=$lat, lon=$lon, city=$cityName")
+                    result = Triple(lat, lon, cityName)
                 }
-
-            val location = currentLocation ?: lastLoc
-
-            if (location != null) {
-                val lat = location.latitude
-                val lon = location.longitude
-                val cityName = getCityName(context, lat, lon)
-                AppLog.d(TAG, "Using GPS/Cell location: lat=$lat, lon=$lon, city=$cityName")
-                return Triple(lat, lon, cityName)
             }
         } catch (e: Exception) {
             AppLog.e(TAG, "Error getting FusedLocation: ${e.message}", e)
         }
+    }
+
+    if (result != null) {
+        prefs.edit {
+            putFloat("cached_lat", result.first.toFloat())
+                .putFloat("cached_lon", result.second.toFloat())
+                .putString("cached_city", result.third)
+        }
+        return result
+    }
+
+    // Controlla se c'è una posizione in cache (evita di saltare a Roma al'avvio prima del fix GPS)
+    val cachedLat = prefs.getFloat("cached_lat", Float.NaN)
+    val cachedLon = prefs.getFloat("cached_lon", Float.NaN)
+    val cachedCity = prefs.getString("cached_city", null)
+    if (!cachedLat.isNaN() && !cachedLon.isNaN() && !cachedCity.isNullOrBlank()) {
+        AppLog.d(TAG, "Using cached location: lat=$cachedLat, lon=$cachedLon, city=$cachedCity")
+        return Triple(cachedLat.toDouble(), cachedLon.toDouble(), cachedCity)
     }
 
     // IP Geolocation fallback (no location permissions required)
@@ -306,6 +334,11 @@ suspend fun getLocation(context: Context): Triple<Double, Double, String> {
         }
         if (ipResult != null) {
             AppLog.d(TAG, "Using IP geolocation: lat=${ipResult.first}, lon=${ipResult.second}, city=${ipResult.third}")
+            prefs.edit {
+                putFloat("cached_lat", ipResult.first.toFloat())
+                    .putFloat("cached_lon", ipResult.second.toFloat())
+                    .putString("cached_city", ipResult.third)
+            }
             return ipResult
         }
     } catch (e: Exception) {

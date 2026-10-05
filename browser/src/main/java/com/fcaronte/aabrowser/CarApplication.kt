@@ -17,6 +17,8 @@ class CarApplication : Application() {
         // Inizializza il gestore delle pubblicità (AdBlock leggero)
         AdBlockHost.init(this)
         WebStateRepository.init(this)
+
+        com.fcaronte.aabrowser.mediaservice.CarMediaService.startServiceIfEnabled(this)
     }
 
     companion object {
