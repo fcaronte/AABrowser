@@ -8,6 +8,7 @@ import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -176,16 +177,25 @@ class CarMediaService : MediaBrowserServiceCompat() {
                         // STATE_PAUSED garantisce che Android Auto mostri la barra del player in auto senza avviare audio
                         val state = PlaybackStateCompat.Builder()
                             .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
-                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
+                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
                             .build()
                         mMediasessioncompat?.setPlaybackState(state)
 
                         updateNotification()
-                        requestAudioFocus()
                         AppLog.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
                     }
                 }
             }
+        } else if (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) {
+            // Se il meteo non è abilitato ed è inattivo, resetta a STATE_NONE per non mostrare schede vuote
+            mMediasessioncompat?.setMetadata(MediaMetadataCompat.Builder().build())
+            val state = PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+                .build()
+            mMediasessioncompat?.setPlaybackState(state)
+            try {
+                stopForeground(STOP_FOREGROUND_DETACH)
+            } catch (_: Exception) {}
         }
     }
 
@@ -256,6 +266,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         
         mMediasessioncompat?.isActive = true
         checkAndUpdateWeatherMetadata()
+        updateNotification()
         return BrowserRoot("root", null)
     }
 
@@ -267,6 +278,15 @@ class CarMediaService : MediaBrowserServiceCompat() {
         
         val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
         val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
+        
+        if (!mediaPlayerEnabled) {
+            result.detach()
+            return
+        }
+        
+        mMediasessioncompat?.isActive = true
+        checkAndUpdateWeatherMetadata()
+        updateNotification()
         
         if (!mediaPlayerEnabled) {
             result.detach()
@@ -485,13 +505,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
         fun startServiceIfEnabled(context: Context) {
             val prefs = context.getSharedPreferences("aa_browser_settings", Context.MODE_PRIVATE)
-            val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
             val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
-            if (weatherEnabled && mediaPlayerEnabled) {
+            if (mediaPlayerEnabled) {
                 try {
                     val intent = Intent(context, CarMediaService::class.java)
-                    context.startForegroundService(intent)
-                    AppLog.d(TAG, "CarMediaService requested to start for weather widget.")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                    AppLog.d(TAG, "CarMediaService requested to start.")
                 } catch (e: Exception) {
                     AppLog.e(TAG, "Failed to start CarMediaService: ${e.message}")
                 }

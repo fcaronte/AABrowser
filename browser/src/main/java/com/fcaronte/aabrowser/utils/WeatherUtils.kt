@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
 import com.google.android.gms.location.LocationServices
@@ -39,7 +40,6 @@ import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.core.content.edit
 
 private const val TAG = "WeatherWidget"
 
