@@ -232,4 +232,6 @@
     <string name="perm_notifications_desc">Szükséges a háttérben történő zenelejátszás vezérléséhez, az időjárás widgethez és az alkalmazásfrissítésekhez.</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
+    <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>
+    <string name="wide_sidebar_fixed">Rögzített menü</string>
 </resources>

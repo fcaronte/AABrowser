@@ -9,6 +9,7 @@ import androidx.car.app.model.SearchTemplate
 import androidx.car.app.model.Template
 import androidx.core.net.toUri
 import androidx.core.text.htmlEncode
+import com.fcaronte.aabrowser.R
 
 object HomePage {
 
@@ -56,7 +57,7 @@ object HomePage {
         return list.distinct()
     }
 
-    fun build(context: Context, items: List<Item>, reopenLastPage: Boolean): String {
+    fun build(context: Context, items: List<Item>, reopenLastPage: Boolean, sidebarFixed: Boolean = true): String {
         val version = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
         } catch (_: Exception) {
@@ -65,6 +66,12 @@ object HomePage {
 
         val toggleText = if (reopenLastPage) "ON" else "OFF"
         val toggleColor = if (reopenLastPage) "#22c55e" else "#ef4444"
+
+        val fixedText = if (sidebarFixed) "ON" else "OFF"
+        val fixedColor = if (sidebarFixed) "#22c55e" else "#ef4444"
+
+        val reopenLabel = context.getString(R.string.wide_reopen_last_page)
+        val fixedLabel = context.getString(R.string.wide_sidebar_fixed)
 
         val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()
@@ -123,6 +130,9 @@ h1 {
 
 .settings {
     margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 .toggle {
     display:inline-block;
@@ -232,7 +242,10 @@ h1 {
 
 <div class="settings">
     <a class="toggle" href="about:toggle_reopen">
-        Riapri ultima pagina: <span style="color:$toggleColor">$toggleText</span>
+        $reopenLabel: <span style="color:$toggleColor">$toggleText</span>
+    </a>
+    <a class="toggle" href="about:toggle_sidebar_fixed">
+        $fixedLabel: <span style="color:$fixedColor">$fixedText</span>
     </a>
 </div>
 

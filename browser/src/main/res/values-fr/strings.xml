@@ -233,4 +233,6 @@
     <string name="perm_notifications_desc">Requis pour les contrôles de lecture de musique en arrière-plan, le widget météo et les mises à jour de l\'application.</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
+    <string name="wide_reopen_last_page">Rouvrir la dernière page</string>
+    <string name="wide_sidebar_fixed">Menu fixe</string>
 </resources>

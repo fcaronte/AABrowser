@@ -232,4 +232,6 @@
     <string name="perm_notifications_desc">पृष्ठभूमि संगीत प्लेबैक नियंत्रण, मौसम विजेट और ऐप अपडेट के लिए आवश्यक।</string>
     <string name="grant_permissions_button">अनुमतियां दें और शुरू करें</string>
     <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>
+    <string name="wide_reopen_last_page">पिछला पृष्ठ फिर से खोलें</string>
+    <string name="wide_sidebar_fixed">स्थिर मेनू</string>
 </resources>

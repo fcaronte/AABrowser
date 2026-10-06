@@ -233,4 +233,6 @@
     <string name="perm_notifications_desc">Necesario para controles de reproducción de música en segundo plano, widget del clima y actualizaciones de la aplicación.</string>
     <string name="grant_permissions_button">Conceder permisos e iniciar</string>
     <string name="skip_onboarding_button">Sé lo que hago (Omitir)</string>
+    <string name="wide_reopen_last_page">Reabrir última página</string>
+    <string name="wide_sidebar_fixed">Menú fijo</string>
 </resources>

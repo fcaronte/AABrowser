@@ -234,4 +234,6 @@
     <string name="perm_notifications_desc">Required for background music playback controls, weather widget, and app updates.</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
+    <string name="wide_reopen_last_page">Reopen last page</string>
+    <string name="wide_sidebar_fixed">Fixed menu</string>
 </resources>

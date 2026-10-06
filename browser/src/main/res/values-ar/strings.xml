@@ -236,4 +236,6 @@
     <string name="perm_notifications_desc">مطلوبة للتحكم في تشغيل الموسيقى في الخلفية، أداة الطقس، وتحديثات التطبيق.</string>
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
+    <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>
+    <string name="wide_sidebar_fixed">قائمة ثابتة</string>
 </resources>

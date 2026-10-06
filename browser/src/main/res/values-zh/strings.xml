@@ -231,4 +231,6 @@
     <string name="perm_notifications_desc">后台音乐播放控制、天气小部件和应用更新所必需。</string>
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
+    <string name="wide_reopen_last_page">重新打开最后一页</string>
+    <string name="wide_sidebar_fixed">固定菜单</string>
 </resources>

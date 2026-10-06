@@ -194,4 +194,6 @@
     <string name="perm_notifications_desc">Necessarie per il funzionamento del player musicale in background, il widget meteo e gli aggiornamenti.</string>
     <string name="grant_permissions_button">Concedi Permessi e Inizia</string>
     <string name="skip_onboarding_button">So quello che faccio (Salta)</string>
+    <string name="wide_reopen_last_page">Riapri ultima pagina</string>
+    <string name="wide_sidebar_fixed">Menu fisso</string>
 </resources>

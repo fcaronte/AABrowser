@@ -232,4 +232,6 @@
     <string name="perm_notifications_desc">Erforderlich für Hintergrund-Musikwiedergabesteuerung, Wetter-Widget und App-Updates.</string>
     <string name="grant_permissions_button">Berechtigungen erteilen &amp; Starten</string>
     <string name="skip_onboarding_button">Ich weiß, was ich tue (Überspringen)</string>
+    <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>
+    <string name="wide_sidebar_fixed">Fester Menü</string>
 </resources>

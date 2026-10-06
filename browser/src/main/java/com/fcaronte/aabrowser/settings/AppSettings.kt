@@ -67,6 +67,9 @@ object AppSettings {
     private val _wideReopenLastPage = mutableStateOf(false)
     val wideReopenLastPage: State<Boolean> = _wideReopenLastPage
 
+    private val _wideSidebarFixed = mutableStateOf(true)
+    val wideSidebarFixed: State<Boolean> = _wideSidebarFixed
+
     private val _fabLocation = mutableStateOf(FABLocation.BOTTOM_RIGHT)
     val fabLocation: State<FABLocation> = _fabLocation
 
@@ -140,6 +143,7 @@ object AppSettings {
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
+        _wideSidebarFixed.value = prefs.getBoolean("wide_sidebar_fixed", true)
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
                 ?: FABLocation.BOTTOM_RIGHT.name
@@ -227,6 +231,11 @@ object AppSettings {
     fun setWideReopenLastPage(context: Context, enabled: Boolean) {
         _wideReopenLastPage.value = enabled
         saveBoolean(context, "reopen_last_page", enabled)
+    }
+
+    fun setWideSidebarFixed(context: Context, enabled: Boolean) {
+        _wideSidebarFixed.value = enabled
+        saveBoolean(context, "wide_sidebar_fixed", enabled)
     }
 
     fun setDarkPages(context: Context, enabled: Boolean) {

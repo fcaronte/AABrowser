@@ -41,6 +41,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
@@ -109,6 +111,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
     private fun reopenEnabled(): Boolean = AppSettings.wideReopenLastPage.value
     private fun toggleReopen() = AppSettings.setWideReopenLastPage(carContext, !reopenEnabled())
+    private fun sidebarFixedEnabled(): Boolean = AppSettings.wideSidebarFixed.value
+    private fun toggleSidebarFixed() = AppSettings.setWideSidebarFixed(carContext, !sidebarFixedEnabled())
     private fun savedUrl(): String = AppSettings.wideLastUrl.value
     private fun saveUrl(url: String) = AppSettings.setWideLastUrl(carContext, url)
 
@@ -124,6 +128,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var daznDesktopForced = false       // DAZN: dopo il clic su un evento serve la modalità desktop
 
     private var popupOverlayReference: FrameLayout? = null
+    private var sidebarContainerReference: LinearLayout? = null
     private var isInputPopupVisible = false
     private val hidePopupRunnable = Runnable {
         popupOverlayReference?.visibility = View.GONE
@@ -183,35 +188,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     override fun onGetTemplate(): Template {
-        val strip = ActionStrip.Builder()
-            .addAction(
-                Action.Builder()
-                    .setIcon(iconHome)
-                    .setOnClickListener { showHome() }
-                    .build()
-            )
-            .build()
+        val fixed = sidebarFixedEnabled()
 
-        val mapStrip = ActionStrip.Builder()
-            .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
-            .addAction(
-                Action.Builder()
-                    .setIcon(CarIcon.BACK)
-                    .setOnClickListener {
-                        if (customView != null) {
-                            hideCustomView()
-                        } else {
-                            webView?.let { if (it.canGoBack()) it.goBack() }
-                        }
-                    }
-                    .build()
-            )
-            .addAction(
-                Action.Builder()
-                    .setIcon(iconSearch)
-                    .setOnClickListener { openSearch() }
-                    .build()
-            )
+        val strip = ActionStrip.Builder()
             .addAction(
                 Action.Builder()
                     .setIcon(iconReload)
@@ -220,9 +199,40 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
             .build()
 
+        val mapStripBuilder = ActionStrip.Builder()
+            .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
+
+        if (!fixed) {
+            mapStripBuilder
+                .addAction(
+                    Action.Builder()
+                        .setIcon(CarIcon.BACK)
+                        .setOnClickListener {
+                            if (customView != null) {
+                                hideCustomView()
+                            } else {
+                                webView?.let { if (it.canGoBack()) it.goBack() }
+                            }
+                        }
+                        .build()
+                )
+                .addAction(
+                    Action.Builder()
+                        .setIcon(iconSearch)
+                        .setOnClickListener { openSearch() }
+                        .build()
+                )
+                .addAction(
+                    Action.Builder()
+                        .setIcon(iconHome)
+                        .setOnClickListener { showHome() }
+                        .build()
+                )
+        }
+
         return NavigationTemplate.Builder()
             .setActionStrip(strip)
-            .setMapActionStrip(mapStrip)
+            .setMapActionStrip(mapStripBuilder.build())
             .build()
     }
 
@@ -237,7 +247,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             Log.e(TAG, "Errore lettura preferiti", e)
             emptyList()
         }
-        return HomePage.build(carContext, items, reopenEnabled())
+        return HomePage.build(carContext, items, reopenEnabled(), sidebarFixedEnabled())
     }
 
     private fun showHome() {
@@ -448,23 +458,42 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun applyVisibleArea() {
         val wv = webView ?: return
+        val sb = sidebarContainerReference ?: return
+        val area = visibleArea
+
+        val leftAreaM = area?.left ?: 0
+        val rightAreaM = if (area != null && area.right > 0) maxOf(0, surfaceWidth - area.right) else 0
+        val density = surfaceDensity.toFloat()
+        val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
+
+        val fixed = sidebarFixedEnabled()
+        val effectiveLeftMargin = if (fixed) leftAreaM + sidebarWidthPx else leftAreaM
+
+        if (fixed) {
+            sb.visibility = View.VISIBLE
+            sb.alpha = 1f
+            sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                gravity = Gravity.TOP or Gravity.START
+                leftMargin = leftAreaM
+                topMargin = 0
+                bottomMargin = 0
+            }
+        } else {
+            sb.visibility = View.GONE
+        }
 
         val lp = (wv.layoutParams as? FrameLayout.LayoutParams)
-            ?: FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-
+            ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT
         lp.height = ViewGroup.LayoutParams.MATCH_PARENT
-        lp.leftMargin = 0
-        lp.rightMargin = 0
+        lp.leftMargin = effectiveLeftMargin
+        lp.rightMargin = rightAreaM
         lp.topMargin = 0
         lp.bottomMargin = 0
-
         wv.layoutParams = lp
         wv.requestLayout()
         customView?.let { applyMargins(it, lp) }
+
         updatePopupPosition()
     }
 
@@ -493,6 +522,23 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             dispatchTouchToPopup(MotionEvent.ACTION_UP, x, y)
             return
         }
+
+        val area = visibleArea
+        val leftAreaM = area?.left ?: 0
+        val density = surfaceDensity.toFloat()
+        val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
+
+        val fixed = sidebarFixedEnabled()
+        val sb = sidebarContainerReference
+
+        if (fixed && x <= (leftAreaM + sidebarWidthPx)) {
+            if (sb != null && sb.visibility == View.VISIBLE) {
+                dispatchTouchToSidebar(MotionEvent.ACTION_DOWN, x, y)
+                dispatchTouchToSidebar(MotionEvent.ACTION_UP, x, y)
+                return
+            }
+        }
+
         dispatchTouch(MotionEvent.ACTION_DOWN, x, y)
         dispatchTouch(MotionEvent.ACTION_UP, x, y)
     }
@@ -533,7 +579,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
             val area = visibleArea
-            val lx = x - (area?.left ?: 0)
+            val leftAreaM = area?.left ?: 0
+            val density = surfaceDensity.toFloat()
+            val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
+            val fixed = sidebarFixedEnabled()
+            val effectiveLeftMargin = if (fixed) leftAreaM + sidebarWidthPx else leftAreaM
+
+            val lx = x - effectiveLeftMargin
             val ly = y
 
             val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
@@ -552,6 +604,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val event = MotionEvent.obtain(downTime, now, action, x, y, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
             overlay.dispatchTouchEvent(event)
+            event.recycle()
+        }
+    }
+
+    private fun dispatchTouchToSidebar(action: Int, x: Float, y: Float) {
+        handler.post {
+            val sb = sidebarContainerReference ?: return@post
+            val now = SystemClock.uptimeMillis()
+            if (action == MotionEvent.ACTION_DOWN) downTime = now
+
+            val area = visibleArea
+            val leftAreaM = area?.left ?: 0
+            val lx = x - leftAreaM
+            val ly = y
+
+            val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            sb.dispatchTouchEvent(event)
             event.recycle()
         }
     }
@@ -960,7 +1030,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 if (url.startsWith("about:toggle_reopen")) {
                                     toggleReopen()
                                     homeHtml = null
-                                    showHome()
+                                    carContext.finishCarApp()
+                                    return true
+                                }
+
+                                if (url.startsWith("about:toggle_sidebar_fixed")) {
+                                    toggleSidebarFixed()
+                                    homeHtml = null
+                                    carContext.finishCarApp()
                                     return true
                                 }
 
@@ -1079,6 +1156,57 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
 
                     webView = wv
+
+                    val sidebarContainer = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        background = GradientDrawable().apply {
+                            setColor("#1e1e1e".toColorInt())
+                            cornerRadii = floatArrayOf(0f, 0f, 24f, 24f, 24f, 24f, 0f, 0f)
+                        }
+                        gravity = Gravity.CENTER
+                        setPadding(4, 16, 4, 16)
+                    }
+                    sidebarContainerReference = sidebarContainer
+
+                    val btnSidebarStyle = { btn: ImageButton ->
+                        btn.background = null
+                        btn.scaleType = ImageView.ScaleType.FIT_CENTER
+                        btn.setPadding(4, 4, 4, 4)
+                    }
+
+                    val btnHome = ImageButton(ctx).apply {
+                        setImageBitmap(buildHomeBitmap())
+                        btnSidebarStyle(this)
+                        setOnClickListener { showHome() }
+                    }
+                    val btnBack = ImageButton(ctx).apply {
+                        setImageBitmap(buildBackBitmap())
+                        btnSidebarStyle(this)
+                        setOnClickListener {
+                            if (customView != null) {
+                                hideCustomView()
+                            } else {
+                                webView?.let { if (it.canGoBack()) it.goBack() }
+                            }
+                        }
+                    }
+                    val btnSearch = ImageButton(ctx).apply {
+                        setImageBitmap(buildSearchBitmap())
+                        btnSidebarStyle(this)
+                        setOnClickListener { openSearch() }
+                    }
+
+                    val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
+                    val buttonLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
+                        topMargin = 10
+                        bottomMargin = 10
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    }
+
+                    sidebarContainer.addView(btnHome, buttonLp)
+                    sidebarContainer.addView(btnBack, buttonLp)
+                    sidebarContainer.addView(btnSearch, buttonLp)
+
                     frame.addView(
                         wv,
                         FrameLayout.LayoutParams(
@@ -1086,7 +1214,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                     )
-
+                    frame.addView(sidebarContainer, FrameLayout.LayoutParams(52, ViewGroup.LayoutParams.MATCH_PARENT))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
 
                     setContentView(frame)
@@ -1236,6 +1364,55 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun buildSearchIcon(): CarIcon = maskIcon { c, p, s ->
+        val cx = s * 0.42f
+        val cy = s * 0.42f
+        val r = s * 0.22f
+        c.drawCircle(cx, cy, r, p)
+        val d = r * 0.72f
+        c.drawLine(cx + d, cy + d, s * 0.78f, s * 0.78f, p)
+    }
+
+    private fun maskBitmap(draw: (Canvas, Paint, Float) -> Unit): Bitmap {
+        val size = 96
+        val bmp = createBitmap(size, size)
+        val canvas = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = size * 0.08f
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
+        }
+        draw(canvas, paint, size.toFloat())
+        return bmp
+    }
+
+    private fun buildHomeBitmap(): Bitmap = maskBitmap { c, p, s ->
+        val roof = Path().apply {
+            moveTo(s * 0.18f, s * 0.48f)
+            lineTo(s * 0.50f, s * 0.20f)
+            lineTo(s * 0.82f, s * 0.48f)
+        }
+        c.drawPath(roof, p)
+        val body = Path().apply {
+            moveTo(s * 0.28f, s * 0.44f)
+            lineTo(s * 0.28f, s * 0.78f)
+            lineTo(s * 0.72f, s * 0.78f)
+            lineTo(s * 0.72f, s * 0.44f)
+        }
+        c.drawPath(body, p)
+    }
+
+    private fun buildBackBitmap(): Bitmap = maskBitmap { c, p, s ->
+        val path = Path().apply {
+            moveTo(s * 0.65f, s * 0.25f)
+            lineTo(s * 0.35f, s * 0.50f)
+            lineTo(s * 0.65f, s * 0.75f)
+        }
+        c.drawPath(path, p)
+    }
+
+    private fun buildSearchBitmap(): Bitmap = maskBitmap { c, p, s ->
         val cx = s * 0.42f
         val cy = s * 0.42f
         val r = s * 0.22f
