@@ -28,24 +28,52 @@ android {
 
     signingConfigs {
         config {
+            def keystoreFileEnv = System.getenv('KEYSTORE_FILE')
+            def keystorePasswordEnv = System.getenv('KEYSTORE_PASSWORD')
+            def keyAliasEnv = System.getenv('KEY_ALIAS')
+            def keyPasswordEnv = System.getenv('KEY_PASSWORD')
+
+            def propFile = rootProject.file('signing.properties')
             def signingProps = new Properties()
-            def propFile = file('../signing.properties')
-            if (propFile.exists()) {
+
+            if (keystoreFileEnv && keystorePasswordEnv && keyAliasEnv && keyPasswordEnv && file(keystoreFileEnv).exists()) {
+                storeFile = file(keystoreFileEnv)
+                storePassword = keystorePasswordEnv
+                keyAlias = keyAliasEnv
+                keyPassword = keyPasswordEnv
+            } else if (propFile.exists()) {
                 signingProps.load(new FileInputStream(propFile))
-                storeFile = file(signingProps['storeFile'])
-                storePassword = signingProps['storePassword']
-                keyAlias = signingProps['keyAlias']
-                keyPassword = signingProps['keyPassword']
+                def storeFilePath = signingProps['storeFile']
+                if (storeFilePath) {
+                    def kFile = file(storeFilePath)
+                    if (!kFile.exists()) {
+                        kFile = rootProject.file(storeFilePath)
+                    }
+                    if (kFile.exists()) {
+                        storeFile = kFile
+                        storePassword = signingProps['storePassword']
+                        keyAlias = signingProps['keyAlias']
+                        keyPassword = signingProps['keyPassword']
+                    }
+                }
             }
         }
     }
 
     buildTypes {
         debug {
-            signingConfig signingConfigs.config
+            if (signingConfigs.config.storeFile != null) {
+                signingConfig signingConfigs.config
+            } else {
+                signingConfig signingConfigs.debug
+            }
         }
         release {
-            signingConfig signingConfigs.config
+            if (signingConfigs.config.storeFile != null) {
+                signingConfig signingConfigs.config
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
