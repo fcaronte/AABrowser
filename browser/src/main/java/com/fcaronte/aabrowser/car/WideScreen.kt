@@ -80,6 +80,7 @@ import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.core.view.isVisible
 
 /**
  * Schermata "wide" (finto navigatore).
@@ -98,6 +99,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         const val WIDE_DISPLAY_SCALE = 1.0f
         const val WIDE_DESKTOP_SCALE = 1.0f
 
+        // Debounce per i callback di visible area (i tasti mappa appaiono/scompaiono con animazione)
+        const val VISIBLE_AREA_DEBOUNCE_MS = 50L
+        // Secondo passaggio, per catturare lo stato finale dell'animazione dei tasti
+        const val VISIBLE_AREA_SETTLE_MS = 400L
+
+        // All'avvio (e quando la surface viene ricreata) l'host sta ancora caricando la sua UI e la
+        // visible area dei primi istanti può essere incompleta. L'inset viene applicato SUBITO
+        // (la pagina non resta mai sotto il widget) e poi ricalcolato a questi ritardi,
+        // così si corregge anche se i primi valori erano transitori.
+        val STARTUP_REAPPLY_DELAYS_MS = longArrayOf(300L, 800L, 1500L, 3000L, 6000L)
+
+        // Fascia che l'host riserva ai tasti Google (nei tuoi log: 76 px). Viene imparata dai callback
+        // a tasti nascosti; questo valore serve solo finché non è stata vista quella situazione.
+        const val DEFAULT_BUTTONS_RESERVE_PX = 76
+
         // Legge il colore di sfondo della pagina per colorare le fasce libere attorno alla WebView
         const val BACKDROP_JS =
             "(function(){var b=document.body,d=document.documentElement;" +
@@ -113,6 +129,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun toggleReopen() = AppSettings.setWideReopenLastPage(carContext, !reopenEnabled())
     private fun sidebarFixedEnabled(): Boolean = AppSettings.wideSidebarFixed.value
     private fun toggleSidebarFixed() = AppSettings.setWideSidebarFixed(carContext, !sidebarFixedEnabled())
+    private val isRtl: Boolean
+        get() = carContext.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
     private fun savedUrl(): String = AppSettings.wideLastUrl.value
     private fun saveUrl(url: String) = AppSettings.setWideLastUrl(carContext, url)
 
@@ -135,11 +153,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         isInputPopupVisible = false
     }
 
+    // Dimensioni REALI della surface: arrivano solo da onSurfaceAvailable, mai da onVisibleAreaChanged
     private var surfaceWidth = 800
     private var surfaceHeight = 480
     private var surfaceDensity = 160
 
     private var visibleArea: Rect? = null
+    private var stableArea: Rect? = null
+
+    // Fascia riservata ai tasti Google su ciascun lato (-1 = non ancora imparata)
+    private var learnedReserveLeft = -1
+    private var learnedReserveRight = -1
     private var lastUrl: String? = null
 
     @Volatile
@@ -147,6 +171,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private val mediaSessionManager = MediaSessionManager(carContext)
     private val handler = Handler(Looper.getMainLooper())
+
+    // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
+    private val applyAreaRunnable = Runnable { applyVisibleArea() }
+    private val applyAreaSettledRunnable = Runnable { applyVisibleArea() }
+
+    // Ricalcoli ritardati all'avvio, per correggere i valori transitori della UI dell'host
+    private val startupReapplyRunnable = Runnable { applyVisibleArea() }
 
     private var downTime = 0L
     private val iconPan: CarIcon = CarIcon.PAN
@@ -173,6 +204,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
+                handler.removeCallbacks(applyAreaRunnable)
+                handler.removeCallbacks(applyAreaSettledRunnable)
+                handler.removeCallbacks(startupReapplyRunnable)
                 releaseVirtualDisplay()
                 mediaSessionManager.disconnect()
                 try {
@@ -372,7 +406,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         )
-        applyMargins(view, webView?.layoutParams as? FrameLayout.LayoutParams)
+        val fullLp = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ).apply {
+            leftMargin = 0
+            rightMargin = 0
+            topMargin = 0
+            bottomMargin = 0
+        }
+        applyMargins(view, fullLp)
         popupOverlayReference?.bringToFront()
         customView = view
         customViewCallback = callback
@@ -412,6 +455,73 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // ------------------------------------------------------------------
+    // Misure della visible area (sidebar e inset)
+    // ------------------------------------------------------------------
+
+    private fun sidebarWidthPx(): Int {
+        val density = if (surfaceDensity > 0) surfaceDensity.toFloat() else 160f
+        return (52 * density / 160f).toInt()
+    }
+
+    /**
+     * L'host riserva una fascia (76 px nei tuoi log) ai tasti Google:
+     * - visible area = area libera in questo momento (si restringe quando i tasti compaiono);
+     * - stable area  = area libera ANCHE a tasti visibili: è identica con tasti nascosti o visibili.
+     * Quindi: inset reale = inset della stable area - fascia dei tasti.
+     * Così il player in split a destra/sinistra (432 px) viene sempre rispettato, mentre i tasti
+     * (che si sovrappongono alla pagina) non cambiano mai la dimensione della WebView.
+     *
+     * La fascia si impara quando i tasti sono nascosti (visible più grande della stable in alto).
+     */
+    private fun learnButtonsReserve() {
+        val v = visibleArea ?: return
+        val st = stableArea ?: return
+        if (v.top < st.top) {
+            learnedReserveRight = (v.right - st.right).coerceAtLeast(0)
+            learnedReserveLeft = (st.left - v.left).coerceAtLeast(0)
+        }
+    }
+
+    private fun buttonsReserveRight(): Int = when {
+        learnedReserveRight >= 0 -> learnedReserveRight
+        !isRtl -> DEFAULT_BUTTONS_RESERVE_PX
+        else -> 0
+    }
+
+    private fun buttonsReserveLeft(): Int = when {
+        learnedReserveLeft >= 0 -> learnedReserveLeft
+        isRtl -> DEFAULT_BUTTONS_RESERVE_PX
+        else -> 0
+    }
+
+    /** Inset sinistro reale (player a sinistra incluso), senza la fascia dei tasti. */
+    private fun leftInsetPx(): Int {
+        val st = stableArea ?: return (visibleArea?.left ?: 0).coerceAtLeast(0)
+        return (st.left - buttonsReserveLeft()).coerceAtLeast(0)
+    }
+
+    /** Inset destro grezzo della visible area (solo per il log e come ripiego). */
+    private fun rawRightInsetPx(): Int {
+        val area = visibleArea ?: return 0
+        return if (area.right in 1 until surfaceWidth) surfaceWidth - area.right else 0
+    }
+
+    /** Inset destro reale (player a destra incluso), senza la fascia dei tasti. */
+    private fun rightInsetPx(): Int {
+        val st = stableArea ?: return rawRightInsetPx()
+        val fromStable = if (st.right in 1 until surfaceWidth) surfaceWidth - st.right else 0
+        return (fromStable - buttonsReserveRight()).coerceAtLeast(0)
+    }
+
+    /** All'avvio ricalcola più volte il layout, finché la UI dell'host non si è stabilizzata. */
+    private fun scheduleStartupReapply() {
+        handler.removeCallbacks(startupReapplyRunnable)
+        for (delay in STARTUP_REAPPLY_DELAYS_MS) {
+            handler.postDelayed(startupReapplyRunnable, delay)
+        }
+    }
+
+    // ------------------------------------------------------------------
     // SurfaceCallback
     // ------------------------------------------------------------------
 
@@ -426,6 +536,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         surfaceHeight = if (surfaceContainer.height > 0) surfaceContainer.height else 480
         surfaceDensity = if (surfaceContainer.dpi > 0) surfaceContainer.dpi else 160
 
+        Log.d(TAG, "CALLBACK onSurfaceAvailable ${surfaceWidth}x$surfaceHeight dpi=$surfaceDensity")
+
+        // La UI dell'host sta ancora caricando: ricalcolo il resize più volte all'avvio
+        scheduleStartupReapply()
+
         if (virtualDisplay != null && presentation != null && webView != null) {
             try {
                 virtualDisplay?.surface = surface
@@ -438,6 +553,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
 
         createVirtualDisplayAndPresentation()
+        handler.post { applyVisibleArea() }
     }
 
     override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
@@ -448,35 +564,85 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onVisibleAreaChanged(visibleArea: Rect) {
+        Log.d(
+            TAG,
+            "CALLBACK onVisibleAreaChanged $visibleArea (w=${visibleArea.width()} h=${visibleArea.height()}) " +
+                    "surface=${surfaceWidth}x$surfaceHeight rightInset=${surfaceWidth - visibleArea.right}"
+        )
         this.visibleArea = Rect(visibleArea)
-        handler.post { applyVisibleArea() }
+
+        // NON modificare surfaceWidth/surfaceHeight qui: sono le dimensioni reali della surface
+        // e arrivano solo da onSurfaceAvailable. Cambiarle in base alla visible area le "sporca"
+        // (crescono ma non tornano mai indietro) e falsa il calcolo degli inset.
+
+        // Debounce: l'host manda più callback intermedi mentre i tasti appaiono/scompaiono.
+        handler.removeCallbacks(applyAreaRunnable)
+        handler.postDelayed(applyAreaRunnable, VISIBLE_AREA_DEBOUNCE_MS)
+
+        // Secondo passaggio a animazione conclusa, per catturare lo stato finale.
+        handler.removeCallbacks(applyAreaSettledRunnable)
+        handler.postDelayed(applyAreaSettledRunnable, VISIBLE_AREA_SETTLE_MS)
     }
 
-    override fun onStableAreaChanged(stableArea: Rect) {}
+    override fun onStableAreaChanged(stableArea: Rect) {
+        Log.d(
+            TAG,
+            "CALLBACK onStableAreaChanged $stableArea (w=${stableArea.width()} h=${stableArea.height()}) " +
+                    "surface=${surfaceWidth}x$surfaceHeight rightInset=${surfaceWidth - stableArea.right}"
+        )
+        this.stableArea = Rect(stableArea)
 
-
+        // L'inset reale dipende anche dalla stable area: ricalcolo con lo stesso debounce
+        handler.removeCallbacks(applyAreaRunnable)
+        handler.postDelayed(applyAreaRunnable, VISIBLE_AREA_DEBOUNCE_MS)
+        handler.removeCallbacks(applyAreaSettledRunnable)
+        handler.postDelayed(applyAreaSettledRunnable, VISIBLE_AREA_SETTLE_MS)
+    }
 
     private fun applyVisibleArea() {
+        layoutVisibleArea()
+    }
+
+    private fun layoutVisibleArea() {
         val wv = webView ?: return
         val sb = sidebarContainerReference ?: return
-        val area = visibleArea
 
-        val leftAreaM = area?.left ?: 0
-        val rightAreaM = if (area != null && area.right > 0) maxOf(0, surfaceWidth - area.right) else 0
-        val density = surfaceDensity.toFloat()
-        val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
+        // Impara la fascia dei tasti Google (a tasti nascosti), poi calcola gli inset reali
+        learnButtonsReserve()
+
+        val leftAreaM = leftInsetPx()
+        val rightAreaM = rightInsetPx()
+        val sidebarWidthPx = sidebarWidthPx()
 
         val fixed = sidebarFixedEnabled()
-        val effectiveLeftMargin = if (fixed) leftAreaM + sidebarWidthPx else leftAreaM
+        val rtl = isRtl
+
+        Log.d(
+            TAG,
+            "layout raw=$visibleArea surface=${surfaceWidth}x$surfaceHeight " +
+                    "stable=$stableArea rawRight=${rawRightInsetPx()} reserveL=${buttonsReserveLeft()} reserveR=${buttonsReserveRight()} -> left=$leftAreaM right=$rightAreaM " +
+                    "fixed=$fixed rtl=$rtl"
+        )
 
         if (fixed) {
             sb.visibility = View.VISIBLE
             sb.alpha = 1f
-            sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
-                gravity = Gravity.TOP or Gravity.START
-                leftMargin = leftAreaM
-                topMargin = 0
-                bottomMargin = 0
+            if (rtl) {
+                sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                    gravity = Gravity.TOP or Gravity.END
+                    rightMargin = rightAreaM
+                    leftMargin = 0
+                    topMargin = 0
+                    bottomMargin = 0
+                }
+            } else {
+                sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
+                    gravity = Gravity.TOP or Gravity.START
+                    leftMargin = 0
+                    rightMargin = 0
+                    topMargin = 0
+                    bottomMargin = 0
+                }
             }
         } else {
             sb.visibility = View.GONE
@@ -486,12 +652,29 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT
         lp.height = ViewGroup.LayoutParams.MATCH_PARENT
-        lp.leftMargin = effectiveLeftMargin
-        lp.rightMargin = rightAreaM
+        if (fixed) {
+            if (rtl) {
+                lp.leftMargin = 0
+                lp.rightMargin = sidebarWidthPx + rightAreaM
+            } else {
+                lp.leftMargin = sidebarWidthPx
+                lp.rightMargin = rightAreaM
+            }
+        } else {
+            lp.leftMargin = leftAreaM
+            lp.rightMargin = rightAreaM
+        }
         lp.topMargin = 0
         lp.bottomMargin = 0
         wv.layoutParams = lp
         wv.requestLayout()
+        wv.post {
+            Log.d(
+                TAG,
+                "WEBVIEW real left=${wv.left} right=${wv.right} width=${wv.width} " +
+                        "backdropWidth=${backdrop?.width} marginL=${lp.leftMargin} marginR=${lp.rightMargin}"
+            )
+        }
         customView?.let { applyMargins(it, lp) }
 
         updatePopupPosition()
@@ -523,19 +706,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
-        val area = visibleArea
-        val leftAreaM = area?.left ?: 0
-        val density = surfaceDensity.toFloat()
-        val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
+        val leftAreaM = leftInsetPx()
+        val rightAreaM = rightInsetPx()
+        val sidebarWidthPx = sidebarWidthPx()
 
         val fixed = sidebarFixedEnabled()
+        val rtl = isRtl
         val sb = sidebarContainerReference
 
-        if (fixed && x <= (leftAreaM + sidebarWidthPx)) {
-            if (sb != null && sb.visibility == View.VISIBLE) {
-                dispatchTouchToSidebar(MotionEvent.ACTION_DOWN, x, y)
-                dispatchTouchToSidebar(MotionEvent.ACTION_UP, x, y)
-                return
+        if (fixed) {
+            val hitSidebar = if (rtl) {
+                // Coerente con applyVisibleArea: la sidebar in RTL è spostata di rightAreaM
+                x >= (surfaceWidth - rightAreaM - sidebarWidthPx) && x <= (surfaceWidth - rightAreaM)
+            } else {
+                x >= leftAreaM && x <= (leftAreaM + sidebarWidthPx)
+            }
+            if (hitSidebar) {
+                if (sb != null && sb.isVisible) {
+                    // La sidebar ha il proprio sistema di coordinate: converto in locali
+                    val sbLeft = if (rtl) (surfaceWidth - rightAreaM - sidebarWidthPx) else leftAreaM
+                    val lx = x - sbLeft
+                    dispatchTouchToSidebar(MotionEvent.ACTION_DOWN, lx, y)
+                    dispatchTouchToSidebar(MotionEvent.ACTION_UP, lx, y)
+                    return
+                }
             }
         }
 
@@ -578,15 +772,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
-            val area = visibleArea
-            val leftAreaM = area?.left ?: 0
-            val density = surfaceDensity.toFloat()
-            val sidebarWidthPx = (52 * (if (density > 0) density else 160f) / 160f).toInt()
-            val fixed = sidebarFixedEnabled()
-            val effectiveLeftMargin = if (fixed) leftAreaM + sidebarWidthPx else leftAreaM
-
-            val lx = x - effectiveLeftMargin
-            val ly = y
+            // Coordinate locali alla view: sottraggo la sua posizione reale (margini inclusi),
+            // così il tocco resta corretto con sidebar, RTL e inset a destra/sinistra.
+            val lx = x - target.left
+            val ly = y - target.top
 
             val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
@@ -614,12 +803,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
-            val area = visibleArea
-            val leftAreaM = area?.left ?: 0
-            val lx = x - leftAreaM
-            val ly = y
-
-            val event = MotionEvent.obtain(downTime, now, action, lx, ly, 0)
+            val event = MotionEvent.obtain(downTime, now, action, x, y, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
             sb.dispatchTouchEvent(event)
             event.recycle()
@@ -706,18 +890,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         btn.setPadding(32, 16, 32, 16) // Padding ridotto
                     }
 
-/*                  // Disable keyboard for now, i can't manage it correctly
-                    val btnKeyboard = Button(ctx).apply {
-                        text = "⌨️"
-                        btnStyle(this, "#3B82F6") // Blue Material
-                        setOnClickListener {
-                            handler.removeCallbacks(hidePopupRunnable)
-                            popupOverlay.visibility = View.GONE
-                            isInputPopupVisible = false
-                            openFieldInput()
-                        }
-                    }
-*/
+                    /*                  // Disable keyboard for now, i can't manage it correctly
+                                        val btnKeyboard = Button(ctx).apply {
+                                            text = "⌨️"
+                                            btnStyle(this, "#3B82F6") // Blue Material
+                                            setOnClickListener {
+                                                handler.removeCallbacks(hidePopupRunnable)
+                                                popupOverlay.visibility = View.GONE
+                                                isInputPopupVisible = false
+                                                openFieldInput()
+                                            }
+                                        }
+                    */
 
                     val btnMic = Button(ctx).apply {
                         text = "🎤"
@@ -1159,12 +1343,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     val sidebarContainer = LinearLayout(ctx).apply {
                         orientation = LinearLayout.VERTICAL
-                        background = GradientDrawable().apply {
-                            setColor("#1e1e1e".toColorInt())
-                            cornerRadii = floatArrayOf(0f, 0f, 24f, 24f, 24f, 24f, 0f, 0f)
-                        }
+                        setBackgroundColor("#1e1e1e".toColorInt())
                         gravity = Gravity.CENTER
-                        setPadding(4, 16, 4, 16)
+                        setPadding(4, 0, 4, 0)
                     }
                     sidebarContainerReference = sidebarContainer
 
@@ -1285,7 +1466,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun releaseVirtualDisplay() {
         mediaSessionManager.disconnect()
         handler.removeCallbacks(hidePopupRunnable)
+        handler.removeCallbacks(applyAreaRunnable)
+        handler.removeCallbacks(applyAreaSettledRunnable)
         popupOverlayReference = null
+        sidebarContainerReference = null
         isInputPopupVisible = false
 
         // Esce dal video a schermo intero prima di distruggere la WebView
