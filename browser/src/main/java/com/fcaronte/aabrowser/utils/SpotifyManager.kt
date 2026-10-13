@@ -27,7 +27,11 @@ object SpotifyManager {
                     button[aria-label="Close"],
                     button[aria-label="Dismiss"],
                     button[aria-label="chiudi" i],
-                    button[aria-label="close" i]
+                    button[aria-label="close" i],
+                    button[aria-label*="cerrar" i],
+                    button[aria-label*="fermer" i],
+                    button[aria-label*="schließen" i],
+                    button[aria-label*="fechar" i]
                 `);
 
                 closeXButtons.forEach(btn => {
@@ -331,7 +335,7 @@ object SpotifyManager {
 
                 // Rilevamento dello stato di riproduzione (Play / Pausa)
                 const pauseBtn = document.querySelector('[data-testid="control-button-pause"], button[aria-label*="paus" i], button[aria-label*="pause" i]');
-                const playBtn = document.querySelector('[data-testid="control-button-play"], button[aria-label*="riproduci" i], button[aria-label*="play" i]');
+                const playBtn = document.querySelector('[data-testid="control-button-play"], button[aria-label*="riproduci" i], button[aria-label*="play" i], button[aria-label*="reproducir" i], button[aria-label*="reproduzir" i], button[aria-label*="lire" i], button[aria-label*="abspielen" i]');
 
                 let isPlaying = false;
                 if (pauseBtn && !playBtn) {
@@ -346,7 +350,7 @@ object SpotifyManager {
                         const aria = (playPauseBtn.getAttribute('aria-label') || '').toLowerCase();
                         if (aria.includes('paus')) {
                             isPlaying = true;
-                        } else if (aria.includes('play') || aria.includes('riproduci')) {
+                        } else if (aria.includes('play') || aria.includes('riproduci') || aria.includes('reproducir') || aria.includes('reproduzir') || aria.includes('lire') || aria.includes('abspielen')) {
                             isPlaying = false;
                         }
                     } else if (title && title.length > 0) {

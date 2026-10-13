@@ -706,6 +706,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
+        webView?.evaluateJavascript("window.__lastTouchX = $x; window.__lastTouchY = $y;", null)
+
         val leftAreaM = leftInsetPx()
         val rightAreaM = rightInsetPx()
         val sidebarWidthPx = sidebarWidthPx()
@@ -723,11 +725,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             }
             if (hitSidebar) {
                 if (sb != null && sb.isVisible) {
-                    // La sidebar ha il proprio sistema di coordinate: converto in locali
                     val sbLeft = if (rtl) (surfaceWidth - rightAreaM - sidebarWidthPx) else leftAreaM
                     val lx = x - sbLeft
-                    dispatchTouchToSidebar(MotionEvent.ACTION_DOWN, lx, y)
-                    dispatchTouchToSidebar(MotionEvent.ACTION_UP, lx, y)
+                    
+                    for (i in 0 until sb.childCount) {
+                        val child = sb.getChildAt(i)
+                        if (lx >= child.left && lx <= child.right && y >= child.top && y <= child.bottom) {
+                            child.performClick()
+                            return
+                        }
+                    }
+                    if (sb.childCount > 0) {
+                        val btnIndex = ((y / sb.height) * sb.childCount).toInt().coerceIn(0, sb.childCount - 1)
+                        sb.getChildAt(btnIndex)?.performClick()
+                    }
                     return
                 }
             }
@@ -740,6 +751,46 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null) return
         webView?.scrollBy(distanceX.toInt(), distanceY.toInt())
+        webView?.evaluateJavascript("""
+            (function() {
+                const dx = ${distanceX.toInt()};
+                const dy = ${distanceY.toInt()};
+                
+                // 1. Scroll window / document root
+                window.scrollBy(dx, dy);
+                
+                // 2. Scroll specific YouTube and common scrollable containers
+                const selectors = [
+                    '#secondary', '#related', '.watch-sidebar', 'ytd-watch-flexy', 
+                    '#panels', 'ytd-engagement-panel-section-list-renderer',
+                    '#contents', 'ytd-rich-grid-renderer', '[role="main"]',
+                    'div[id*="secondary"]', 'div[id*="related"]', 'div[class*="sidebar"]'
+                ];
+                selectors.forEach(sel => {
+                    document.querySelectorAll(sel).forEach(el => {
+                        if (el && (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
+                            el.scrollTop += dy;
+                            el.scrollLeft += dx;
+                        }
+                    });
+                });
+                
+                // 3. Scroll any scrollable element in the DOM
+                const allElements = document.querySelectorAll('*');
+                for (let i = 0; i < allElements.length; i++) {
+                    const el = allElements[i];
+                    const style = window.getComputedStyle(el);
+                    const oy = style.getPropertyValue('overflow-y');
+                    const ox = style.getPropertyValue('overflow-x');
+                    const o = style.getPropertyValue('overflow');
+                    if ((oy === 'auto' || oy === 'scroll' || ox === 'auto' || ox === 'scroll' || o === 'auto' || o === 'scroll') && 
+                        (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
+                        el.scrollTop += dy;
+                        el.scrollLeft += dx;
+                    }
+                }
+            })()
+        """.trimIndent(), null)
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
@@ -797,18 +848,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    private fun dispatchTouchToSidebar(action: Int, x: Float, y: Float) {
-        handler.post {
-            val sb = sidebarContainerReference ?: return@post
-            val now = SystemClock.uptimeMillis()
-            if (action == MotionEvent.ACTION_DOWN) downTime = now
 
-            val event = MotionEvent.obtain(downTime, now, action, x, y, 0)
-            event.source = InputDevice.SOURCE_TOUCHSCREEN
-            sb.dispatchTouchEvent(event)
-            event.recycle()
-        }
-    }
 
     // ------------------------------------------------------------------
     // VirtualDisplay + Presentation + WebView + Popup
@@ -1341,10 +1381,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     webView = wv
 
+                    val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
+                    val totalButtonsHeight = 3 * iconSize + 4 * 20
+                    val topOffset = ((surfaceHeight - totalButtonsHeight) / 2).coerceAtLeast(10)
+
                     val sidebarContainer = LinearLayout(ctx).apply {
                         orientation = LinearLayout.VERTICAL
                         setBackgroundColor("#1e1e1e".toColorInt())
-                        gravity = Gravity.CENTER
+                        gravity = Gravity.TOP
                         setPadding(4, 0, 4, 0)
                     }
                     sidebarContainerReference = sidebarContainer
@@ -1377,14 +1421,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         setOnClickListener { openSearch() }
                     }
 
-                    val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
+                    val homeLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
+                        topMargin = topOffset
+                        bottomMargin = 20
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    }
                     val buttonLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
-                        topMargin = 10
-                        bottomMargin = 10
+                        topMargin = 0
+                        bottomMargin = 20
                         gravity = Gravity.CENTER_HORIZONTAL
                     }
 
-                    sidebarContainer.addView(btnHome, buttonLp)
+                    sidebarContainer.addView(btnHome, homeLp)
                     sidebarContainer.addView(btnBack, buttonLp)
                     sidebarContainer.addView(btnSearch, buttonLp)
 

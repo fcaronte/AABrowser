@@ -49,7 +49,8 @@ object AdBlockJavascript {
                 for (const btn of buttons) {
                     const t = (btn.innerText || "").toLowerCase();
                     const aria = (btn.getAttribute('aria-label') || "").toLowerCase();
-                    if ((t.includes("skip") || t.includes("salta") || aria.includes("skip") || aria.includes("salta")) && isVisible(btn)) {
+                    const skipWords = ["skip", "salta", "saltar", "passer", "überspringen", "pular", "пропустить", "overslaan", "pomiń"];
+                    if (skipWords.some(w => t.includes(w) || aria.includes(w)) && isVisible(btn)) {
                         skipBtn = btn;
                         break;
                     }

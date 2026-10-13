@@ -72,6 +72,15 @@ object BrowserJavascript {
                     }
                 }, 1000);
             }
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches[0]) {
+                    window.__lastScrollElement = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+            document.addEventListener('mousedown', function(e) {
+                window.__lastScrollElement = document.elementFromPoint(e.clientX, e.clientY);
+            }, { passive: true });
         })();
         """.trimIndent()
     }
@@ -250,10 +259,22 @@ object BrowserJavascript {
                 'button[aria-label*="Riproduci" i]',
                 'button[aria-label*="Suona" i]',
                 'button[aria-label*="Ascolta" i]',
+                'button[aria-label*="Reproducir" i]',
+                'button[aria-label*="Reproduzir" i]',
+                'button[aria-label*="Lire" i]',
+                'button[aria-label*="Abspielen" i]',
+                'button[aria-label*="Wiedergabe" i]',
                 'button[title*="Play" i]',
                 'button[title*="Riproduci" i]',
+                'button[title*="Reproducir" i]',
+                'button[title*="Reproduzir" i]',
+                'button[title*="Lire" i]',
+                'button[title*="Abspielen" i]',
                 '[aria-label="Play"]',
-                '[aria-label="Riproduci"]'
+                '[aria-label="Riproduci"]',
+                '[aria-label="Reproducir"]',
+                '[aria-label="Reproduzir"]',
+                '[aria-label="Lire"]'
             ];
 
             for (const sel of playSelectors) {
@@ -311,11 +332,14 @@ object BrowserJavascript {
                 '.pause-icon',
                 'button[aria-label*="Pause" i]',
                 'button[aria-label*="Pausa" i]',
+                'button[aria-label*="Pausar" i]',
                 'button[aria-label*="In pausa" i]',
                 'button[title*="Pause" i]',
                 'button[title*="Pausa" i]',
+                'button[title*="Pausar" i]',
                 '[aria-label="Pause"]',
-                '[aria-label="Pausa"]'
+                '[aria-label="Pausa"]',
+                '[aria-label="Pausar"]'
             ];
 
             for (const sel of pauseSelectors) {
@@ -430,7 +454,7 @@ object BrowserJavascript {
             );
             if (primary) return primary;
 
-            const nextKeywords = ['next', 'successiv', 'suivant', 'siguient', 'nächste', 'naechste', 'seguint', 'следующ', 'التالي', 'अगला', 'következő', '下一个'];
+            const nextKeywords = ['next', 'successiv', 'suivant', 'siguient', 'siguiente', 'nächste', 'naechste', 'seguint', 'seguente', 'próximo', 'proximo', 'следующ', 'التالي', 'अगला', 'következő', '下一个'];
 
             const candidates = document.querySelectorAll('button, a, [role="button"]');
             for (let i = 0; i < candidates.length; i++) {
@@ -578,7 +602,7 @@ object BrowserJavascript {
             );
             if (primary) return primary;
 
-            const prevKeywords = ['previous', 'precedent', 'précédent', 'anterior', 'vorherig', 'предыдущ', 'السابق', 'पिछला', 'előző', '上一个'];
+            const prevKeywords = ['previous', 'precedent', 'précédent', 'anterior', 'vorherig', 'vorherige', 'precedente', 'previa', 'предыдущ', 'السابق', 'पिछला', 'előző', '上一个'];
 
             const candidates = document.querySelectorAll('button, a, [role="button"]');
             for (let i = 0; i < candidates.length; i++) {
