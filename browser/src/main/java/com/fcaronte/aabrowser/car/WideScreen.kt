@@ -718,28 +718,27 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val sb = sidebarContainerReference
 
         if (fixed) {
-            val hitSidebar = if (rtl) {
-                // Coerente con applyVisibleArea: la sidebar in RTL è spostata di rightAreaM
-                x >= (surfaceWidth - rightAreaM - sidebarWidthPx) && x <= (surfaceWidth - rightAreaM)
-            } else {
-                x >= leftAreaM && x <= (leftAreaM + sidebarWidthPx)
-            }
+            val sidebarLeft = if (rtl) (surfaceWidth - rightAreaM - sidebarWidthPx) else leftAreaM
+            val sidebarRight = if (rtl) (surfaceWidth - rightAreaM) else (leftAreaM + sidebarWidthPx)
+            // Tolleranza orizzontale ulteriormente ampliata (±20px)
+            val hitSidebar = x >= (sidebarLeft - 20) && x <= (sidebarRight + 20)
+            
             if (hitSidebar) {
                 if (sb != null && sb.isVisible) {
-                    val sbLeft = if (rtl) (surfaceWidth - rightAreaM - sidebarWidthPx) else leftAreaM
-                    val lx = x - sbLeft
+                    var bestButton: View? = null
+                    var minDistance = Float.MAX_VALUE
                     
+                    // Trova sempre il pulsante più vicino al punto toccato verticalmente
                     for (i in 0 until sb.childCount) {
                         val child = sb.getChildAt(i)
-                        if (lx >= child.left && lx <= child.right && y >= child.top && y <= child.bottom) {
-                            child.performClick()
-                            return
+                        val childCenterY = (child.top + child.bottom) / 2f
+                        val dist = abs(y - childCenterY)
+                        if (dist < minDistance) {
+                            minDistance = dist
+                            bestButton = child
                         }
                     }
-                    if (sb.childCount > 0) {
-                        val btnIndex = ((y / sb.height) * sb.childCount).toInt().coerceIn(0, sb.childCount - 1)
-                        sb.getChildAt(btnIndex)?.performClick()
-                    }
+                    bestButton?.performClick()
                     return
                 }
             }
