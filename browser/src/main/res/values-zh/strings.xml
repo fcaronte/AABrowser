@@ -94,6 +94,8 @@
     <string name="adblock_desc">拦截干扰性广告和追踪器</string>
     <string name="adblock_youtube_label">YouTube 广告拦截与加速</string>
     <string name="adblock_youtube_desc">自动跳过 YouTube 广告（Beta：可能随时失效）</string>
+    <string name="force_max_youtube_quality_label">YouTube 最高画质 (网络)</string>
+    <string name="force_max_youtube_quality_desc">根据网络速度自动选择最高 YouTube 视频画质</string>
     <string name="multi_window_label">多窗口（弹出窗口）</string>
     <string name="multi_window_desc">允许网站打开新标签页或弹出窗口（例如登录页面）</string>
     <string name="force_english_label">强制英语</string>

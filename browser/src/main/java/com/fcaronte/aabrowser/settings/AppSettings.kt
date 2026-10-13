@@ -57,6 +57,9 @@ object AppSettings {
     private val _autoplayMedia = mutableStateOf(false)
     val autoplayMedia: State<Boolean> = _autoplayMedia
 
+    private val _forceMaxYouTubeQuality = mutableStateOf(false)
+    val forceMaxYouTubeQuality: State<Boolean> = _forceMaxYouTubeQuality
+
     // Precaricamento schede preferiti all'avvio
     private val _preloadFavorites = mutableStateOf(false)
     val preloadFavorites: State<Boolean> = _preloadFavorites
@@ -140,6 +143,7 @@ object AppSettings {
         _dynamicColor.value = prefs.getBoolean("dynamic_color", true)
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
+        _forceMaxYouTubeQuality.value = prefs.getBoolean("force_max_youtube_quality", false)
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
@@ -226,6 +230,11 @@ object AppSettings {
     fun setAutoplayMedia(context: Context, enabled: Boolean) {
         _autoplayMedia.value = enabled
         saveBoolean(context, "autoplay_media", enabled)
+    }
+
+    fun setForceMaxYouTubeQuality(context: Context, enabled: Boolean) {
+        _forceMaxYouTubeQuality.value = enabled
+        saveBoolean(context, "force_max_youtube_quality", enabled)
     }
 
     fun setWideReopenLastPage(context: Context, enabled: Boolean) {

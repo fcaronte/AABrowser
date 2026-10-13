@@ -187,6 +187,7 @@ fun BrowserScreen(
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
     val autoplayMedia by AppSettings.autoplayMedia
+    val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
     val darkPages by AppSettings.darkPages
     val multiWindowEnabled by AppSettings.multiWindow
 
@@ -1054,6 +1055,7 @@ fun BrowserScreen(
                                         webView = webView,
                                         urlString = url,
                                         isYouTubeAdBlockEnabled = isYouTubeAdBlockEnabled,
+                                        forceMaxYouTubeQuality = forceMaxYouTubeQuality,
                                         autoplayMedia = autoplayMedia,
                                         displayScale = actualDisplayScale,
                                         desktopScale = actualDesktopScale,

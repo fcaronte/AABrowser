@@ -94,6 +94,8 @@
     <string name="adblock_desc">حظر الإعلانات المزعجة والمتعقبات</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">تخطي إعلانات يوتيوب تلقائياً (تجريبي: قد يتوقف عن العمل في أي وقت)</string>
+    <string name="force_max_youtube_quality_label">جودة YouTube القصوى (الشبكة)</string>
+    <string name="force_max_youtube_quality_desc">حدد تلقائياً أقصى جودة فيديو على YouTube بناءً على سرعة الشبكة</string>
     <string name="multi_window_label">النوافذ المتعددة (النوافذ المنبثقة)</string>
     <string name="multi_window_desc">السماح لمواقع الويب بفتح علامات تبويب جديدة أو نوافذ منبثقة (مثل صفحات تسجيل الدخول)</string>
     <string name="force_english_label">فرض اللغة الإنجليزية</string>

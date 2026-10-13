@@ -94,6 +94,8 @@
     <string name="adblock_desc">घुसपैठिए विज्ञापनों और ट्रैकर्स को ब्लॉक करें</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube विज्ञापन स्वतः छोड़ें (बीटा: किसी भी समय काम करना बंद कर सकता है)</string>
+    <string name="force_max_youtube_quality_label">YouTube अधिकतम गुणवत्ता (नेटवर्क)</string>
+    <string name="force_max_youtube_quality_desc">नेटवर्क गति के आधार पर स्वचालित रूप से अधिकतम YouTube वीडियो गुणवत्ता चुनें</string>
     <string name="multi_window_label">एकाधिक खिड़कियां (पॉपअप)</string>
     <string name="multi_window_desc">वेबसाइटों को नए टैब या पॉपअप विंडो खोलने की अनुमति दें (उदा. लॉगिन पृष्ठ)</string>
     <string name="force_english_label">अंग्रेजी भाषा लागू करें</string>

@@ -132,6 +132,7 @@ fun SettingsScreen(
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
+    val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
@@ -413,6 +414,15 @@ fun SettingsScreen(
                                     description = stringResource(R.string.autoplay_desc),
                                     checked = autoplayMedia,
                                     onCheckedChange = { AppSettings.setAutoplayMedia(context, it) }
+                                )
+                            }
+
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.force_max_youtube_quality_label),
+                                    description = stringResource(R.string.force_max_youtube_quality_desc),
+                                    checked = forceMaxYouTubeQuality,
+                                    onCheckedChange = { AppSettings.setForceMaxYouTubeQuality(context, it) }
                                 )
                             }
 

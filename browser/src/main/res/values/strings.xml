@@ -95,6 +95,8 @@
     <string name="adblock_desc">Block intrusive ads and trackers</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Auto-skip YouTube ads (Beta: may stop working at any time)</string>
+    <string name="force_max_youtube_quality_label">YouTube Max Quality (Network)</string>
+    <string name="force_max_youtube_quality_desc">Automatically select maximum YouTube video quality based on network speed</string>
     <string name="multi_window_label">Multiple Windows (Popups)</string>
     <string name="multi_window_desc">Allow websites to open new tabs or popup windows (e.g., login pages)</string>
     <string name="force_english_label">Force English Language</string>

@@ -94,6 +94,8 @@
     <string name="adblock_desc">Tolakodó hirdetések és nyomkövetők blokkolása</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube hirdetések automatikus átugrása (Béta: bármikor leállhat)</string>
+    <string name="force_max_youtube_quality_label">YouTube Maximális Minőség (Hálózat)</string>
+    <string name="force_max_youtube_quality_desc">Automatikusan kiválasztja a maximális YouTube videóminőséget a hálózati sebesség alapján</string>
     <string name="multi_window_label">Több ablak (Felugró ablakok)</string>
     <string name="multi_window_desc">Webhelyek engedélyezése új lapok vagy felugró ablakok megnyitására (pl. bejelentkezési oldalak)</string>
     <string name="force_english_label">Angol nyelv kényszerítése</string>

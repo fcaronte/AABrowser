@@ -84,7 +84,6 @@ object AdBlockJavascript {
             } else {
                 if (window.aabIsAdPlaying) {
                     window.aabIsAdPlaying = false;
-                    video.muted = false;
                     const isMusicVideo = isMusic || document.title.toLowerCase().includes('official music video');
                     const savedSpeed = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
                     
@@ -98,6 +97,9 @@ object AdBlockJavascript {
                             }
                         }
                     }, 350);
+                }
+                if (video && video.muted) {
+                    video.muted = false;
                 }
             }
 

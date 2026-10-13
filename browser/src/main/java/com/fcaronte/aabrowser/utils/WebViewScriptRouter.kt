@@ -157,6 +157,7 @@ object WebViewScriptRouter {
         webView: WebView,
         urlString: String,
         isYouTubeAdBlockEnabled: Boolean,
+        forceMaxYouTubeQuality: Boolean,
         autoplayMedia: Boolean,
         displayScale: Float,
         desktopScale: Float,
@@ -201,6 +202,50 @@ object WebViewScriptRouter {
                 // YouTube / YouTube Music: Solo script AdBlock YouTube + Metadata Lifecycle YouTube/HTML5
                 if (isYouTubeAdBlockEnabled) {
                     webView.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
+                }
+
+                if (forceMaxYouTubeQuality) {
+                    webView.evaluateJavascript("""
+                        (function() {
+                            if (!window.location.host.includes('youtube.com')) return;
+                            const setMaxQuality = function() {
+                                const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+                                if (player && typeof player.getAvailableQualityLevels === 'function' && typeof player.setPlaybackQualityRange === 'function') {
+                                    const levels = player.getAvailableQualityLevels();
+                                    if (levels && levels.length > 0) {
+                                        // Cap max quality at Full HD (1440p) to save mobile data and prevent buffering in car
+                                        const getBestQualityUnder1440 = function(arr) {
+                                            const allowed = ['hd1440', 'hd1080', 'hd720', 'large', 'medium', 'small'];
+                                            for (let i = 0; i < allowed.length; i++) {
+                                                if (arr.includes(allowed[i])) return allowed[i];
+                                            }
+                                            const filtered = arr.filter(l => l !== 'highres' && l !== 'hd2160' && l !== 'hd1440');
+                                            return filtered.length > 0 ? filtered[0] : arr[arr.length - 1];
+                                        };
+
+                                        let targetQuality = getBestQualityUnder1440(levels);
+                                        if (navigator.connection) {
+                                            const conn = navigator.connection;
+                                            const downlink = conn.downlink || 10;
+                                            const effectiveType = conn.effectiveType || '4g';
+                                            if (effectiveType === 'slow-2g' || effectiveType === '2g' || downlink < 1.0) {
+                                                targetQuality = levels[levels.length - 1];
+                                            } else if (effectiveType === '3g' || (downlink >= 1.0 && downlink < 3.0)) {
+                                                targetQuality = levels.find(l => l === 'hd720' || l === 'large') || levels[Math.floor(levels.length / 2)];
+                                            }
+                                        }
+                                        const current = player.getPlaybackQuality();
+                                        if (current !== targetQuality) {
+                                            player.setPlaybackQualityRange(targetQuality);
+                                            player.setPlaybackQuality(targetQuality);
+                                        }
+                                    }
+                                }
+                            };
+                            setInterval(setMaxQuality, 3000);
+                            setTimeout(setMaxQuality, 1000);
+                        })();
+                    """.trimIndent(), null)
                 }
 
                 if (!autoplayMedia) {
