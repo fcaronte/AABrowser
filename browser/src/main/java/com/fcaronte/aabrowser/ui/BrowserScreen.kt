@@ -862,6 +862,21 @@ fun BrowserScreen(
                             }
                             return super.onConsoleMessage(consoleMessage)
                         }
+
+                        override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                            result?.confirm()
+                            return true
+                        }
+
+                        override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                            result?.confirm()
+                            return true
+                        }
+
+                        override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean {
+                            result?.confirm(defaultValue ?: "")
+                            return true
+                        }
                     }
 
                     webViewClient = @SuppressLint("MissingOnRenderProcessGone")

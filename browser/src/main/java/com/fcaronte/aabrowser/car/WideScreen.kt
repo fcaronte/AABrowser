@@ -15,6 +15,7 @@ import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.os.Bundle
+import android.os.Message
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -1172,6 +1173,28 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         )
 
                         webChromeClient = object : WebChromeClient() {
+                            override fun onCreateWindow(
+                                view: WebView?,
+                                isDialog: Boolean,
+                                isUserGesture: Boolean,
+                                resultMsg: Message?
+                            ): Boolean {
+                                val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
+                                val dummyWebView = WebView(view?.context ?: return false).apply {
+                                    webViewClient = object : WebViewClient() {
+                                        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                            request?.url?.toString()?.let { url ->
+                                                loadUrl(url)
+                                            }
+                                            return true
+                                        }
+                                    }
+                                }
+                                transport.webView = dummyWebView
+                                resultMsg.sendToTarget()
+                                return true
+                            }
+
                             override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
                                 if (view == null || callback == null) return
                                 showCustomView(view, callback)
@@ -1187,6 +1210,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     ?.filter { it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
                                     ?.toTypedArray()
                                 if (allowed.isNullOrEmpty()) request?.deny() else request.grant(allowed)
+                            }
+
+                            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                                result?.confirm()
+                                return true
+                            }
+
+                            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
+                                result?.confirm()
+                                return true
+                            }
+
+                            override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean {
+                                result?.confirm(defaultValue ?: "")
+                                return true
                             }
                         }
 

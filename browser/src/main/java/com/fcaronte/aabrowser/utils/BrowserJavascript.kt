@@ -1413,51 +1413,88 @@ object BrowserJavascript {
     """
 
     private const val SELECT_POLYFILL_JS = """
-        document.addEventListener('click', function(e) {
-            var select = e.target.closest('select');
-            if (!select) return;
-            e.preventDefault();
-            e.stopPropagation();
-            var existing = document.getElementById('aab-custom-dropdown');
-            if (existing) existing.remove();
-            var options = select.options;
-            if (!options || options.length === 0) return;
-            var dropdown = document.createElement('div');
-            dropdown.id = 'aab-custom-dropdown';
-            dropdown.style = 'position:fixed;z-index:2147483647;left:5%;top:5%;width:90%;max-height:90%;overflow-y:auto;background:#1a1a1a;color:#fff;border:2px solid #555;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.9);padding:10px;font-family:sans-serif;';
-            var header = document.createElement('div');
-            header.style = 'padding:12px 15px;font-weight:bold;font-size:18px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;color:#aaa;';
-            header.innerText = 'Seleziona:';
-            var closeBtn = document.createElement('button');
-            closeBtn.innerText = '✕';
-            closeBtn.style = 'background:transparent;color:#ff5252;border:none;font-size:22px;cursor:pointer;';
-            closeBtn.onclick = () => dropdown.remove();
-            header.appendChild(closeBtn);
-            dropdown.appendChild(header);
-            var container = document.createElement('div');
-            container.style = 'display:flex;flex-direction:column;';
-            for (var i = 0; i < options.length; i++) {
-                (function(index) {
-                    var opt = options[index];
-                    if (opt.disabled) return;
-                    var item = document.createElement('div');
-                    item.style = 'padding:18px 15px;border-bottom:1px solid #2a2a2a;cursor:pointer;font-size:18px;border-radius:6px;';
-                    if (opt.selected || select.selectedIndex === index) {
-                        item.style.backgroundColor = '#2196F3';
-                    }
-                    item.onclick = () => {
-                        select.selectedIndex = index;
-                        select.dispatchEvent(new Event('input', { bubbles: true }));
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
-                        dropdown.remove();
-                    };
-                    item.innerText = opt.text;
-                    container.appendChild(item);
-                })(i);
+        (function() {
+            function handleDropdownTrigger(e) {
+                var select = e.target.closest('select');
+                if (!select) return;
+                
+                if (window.__aabDropdownLock) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                window.__aabDropdownLock = true;
+                setTimeout(function() {
+                    window.__aabDropdownLock = false;
+                }, 300);
+
+                var existing = document.getElementById('aab-custom-dropdown');
+                if (existing) existing.remove();
+                
+                var options = select.options;
+                if (!options || options.length === 0) return;
+                
+                var dropdown = document.createElement('div');
+                dropdown.id = 'aab-custom-dropdown';
+                dropdown.style = 'position:fixed;z-index:2147483647;left:10%;top:10%;width:80%;max-height:80%;overflow-y:auto;background:#111111;color:#ffffff;border:3px solid #3b82f6;border-radius:16px;box-shadow:0 15px 40px rgba(0,0,0,0.95);padding:15px;font-family:sans-serif;';
+                
+                var header = document.createElement('div');
+                header.style = 'padding:15px 20px;font-weight:bold;font-size:20px;border-bottom:2px solid #333333;display:flex;justify-content:space-between;align-items:center;color:#3b82f6;';
+                header.innerText = 'Seleziona voce:';
+                
+                var closeBtn = document.createElement('button');
+                closeBtn.innerText = '✕';
+                closeBtn.style = 'background:transparent;color:#ff5252;border:none;font-size:24px;cursor:pointer;padding:5px 10px;';
+                closeBtn.onclick = () => dropdown.remove();
+                header.appendChild(closeBtn);
+                dropdown.appendChild(header);
+                
+                var container = document.createElement('div');
+                container.style = 'display:flex;flex-direction:column;padding:10px 0;';
+                
+                for (var i = 0; i < options.length; i++) {
+                    (function(index) {
+                        var opt = options[index];
+                        if (opt.disabled) return;
+                        var item = document.createElement('div');
+                        item.style = 'padding:20px 15px;border-bottom:1px solid #222222;cursor:pointer;font-size:20px;color:#ffffff;border-radius:8px;margin:4px 0;';
+                        if (opt.selected || select.selectedIndex === index) {
+                            item.style.backgroundColor = '#3b82f6';
+                            item.style.fontWeight = 'bold';
+                        }
+                        
+                        var itemClickLocked = true;
+                        setTimeout(function() {
+                            itemClickLocked = false;
+                        }, 300);
+                        
+                        item.onclick = function() {
+                            if (itemClickLocked) return;
+                            select.selectedIndex = index;
+                            select.dispatchEvent(new Event('input', { bubbles: true }));
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            dropdown.remove();
+                        };
+                        
+                        item.innerText = opt.text;
+                        container.appendChild(item);
+                    })(i);
+                }
+                dropdown.appendChild(container);
+                document.body.appendChild(dropdown);
             }
-            dropdown.appendChild(container);
-            document.body.appendChild(dropdown);
-        }, true);
+
+            document.addEventListener('mousedown', handleDropdownTrigger, true);
+            document.addEventListener('touchstart', handleDropdownTrigger, true);
+            document.addEventListener('click', handleDropdownTrigger, true);
+            document.addEventListener('focus', handleDropdownTrigger, true);
+        })();
     """
 
     fun getDisableDoubleTapScript(): String {
