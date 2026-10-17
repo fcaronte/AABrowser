@@ -63,6 +63,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
@@ -296,13 +297,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun isHome(): Boolean =
         lastUrl == HOME || webView?.url?.startsWith(HomePage.BASE_URL) == true
 
-    /** Lente: cerca sul sito che stai guardando (YouTube, Amazon, ...), altrimenti su Google. */
+    /** Lente: cerca sul sito che stai guardando (YouTube, Amazon, ...), altrimenti sul motore di ricerca impostato. */
     private fun openSearch() {
         val from = (webView?.url ?: lastUrl)
             ?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
         val target = SiteSearch.targetFor(from)
         screenManager.push(WideSearchScreen(carContext, "Cerca su ${target.label}") { query ->
-            loadUrl(SiteSearch.resolve(from, query))
+            loadUrl(SiteSearch.resolve(carContext, from, query))
         })
     }
 
@@ -361,8 +362,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun isDazn(url: String?): Boolean =
         url?.contains("dazn.com", ignoreCase = true) == true
 
-    private fun needsDesktopForUrl(url: String?): Boolean =
-        WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+    private fun needsDesktopForUrl(url: String?): Boolean {
+        if (url != null && url.startsWith(HomePage.BASE_URL)) return false
+        return AppSettings.desktopMode.value || WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+    }
 
     private fun applyUserAgent(view: WebView, url: String?) {
         if (url != null && url.startsWith(HomePage.BASE_URL)) return
@@ -370,6 +373,22 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             WebViewScriptRouter.setDesktopUserAgent(view, carContext)
         } else {
             WebViewScriptRouter.setMobileUserAgent(view, carContext)
+        }
+    }
+
+    private fun applyDarkMode(settings: WebSettings) {
+        val darkPages = AppSettings.darkPages.value
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darkPages)
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+            WebSettingsCompat.setForceDarkStrategy(
+                settings,
+                WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+            )
         }
     }
 
@@ -973,6 +992,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             builtInZoomControls = true
                             displayZoomControls = false
                             mediaPlaybackRequiresUserGesture = !AppSettings.autoplayMedia.value
+                            applyDarkMode(this)
                         }
 
                         CookieManager.getInstance().setAcceptCookie(true)
@@ -1343,6 +1363,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
                                 view?.settings?.builtInZoomControls = true
+
+                                // Applica modalità scura in base alle impostazioni
+                                view?.settings?.let { applyDarkMode(it) }
 
                                 // Autoplay: su DAZN sempre consentito
                                 view?.settings?.mediaPlaybackRequiresUserGesture =

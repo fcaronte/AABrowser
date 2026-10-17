@@ -10,6 +10,8 @@ import androidx.car.app.model.Template
 import androidx.core.net.toUri
 import androidx.core.text.htmlEncode
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.settings.SearchEngine
 
 object HomePage {
 
@@ -286,9 +288,8 @@ object SiteSearch {
 
     // %s = testo cercato (già codificato), {host} = host della pagina corrente
     private val sites = listOf(
-        // Cambiato .endsWith() con .contains() per catturare anche music.youtube.com
-        Site({ it.contains("youtube.com") }, "YouTube", "https://www.youtube.com/results?search_query=%s"),
         Site({ it.contains("music.youtube.com") }, "YT Music", "https://music.youtube.com/search?q=%s"),
+        Site({ it.contains("youtube.com") }, "YouTube", "https://www.youtube.com/results?search_query=%s"),
         Site({ it.contains("spotify.com") }, "Spotify", "https://open.spotify.com/search/%s"),
         Site({ it.contains("wikipedia.org") }, "Wikipedia", "https://{host}/w/index.php?search=%s"),
         Site({ it.contains("amazon.") }, "Amazon", "https://{host}/s?k=%s"),
@@ -297,6 +298,8 @@ object SiteSearch {
         Site({ it.contains("imdb.com") }, "IMDb", "https://www.imdb.com/find/?q=%s"),
         Site({ it.contains("twitch.tv") }, "Twitch", "https://www.twitch.tv/search?term=%s"),
         Site({ it.contains("netflix.com") }, "Netflix", "https://www.netflix.com/search?q=%s"),
+        Site({ it.contains("maps.google.") || it.contains("google.com/maps") }, "Google Maps", "https://www.google.com/maps/search/%s"),
+        Site({ it.contains("dazn.com") }, "DAZN", "https://www.dazn.com/search/%s"),
     )
 
     private fun hostOf(url: String?): String? =
@@ -305,18 +308,31 @@ object SiteSearch {
         } catch (_: Exception) { null }
 
     fun targetFor(currentUrl: String?): Target {
-        val host = hostOf(currentUrl) ?: return Target("Google", null)
-        val site = sites.firstOrNull { it.match(host) } ?: return Target("Google", null)
-        return Target(site.label, site.template)
+        val host = hostOf(currentUrl)
+        val site = host?.let { h -> sites.firstOrNull { it.match(h) } }
+        if (site != null) {
+            return Target(site.label, site.template)
+        }
+        val defaultLabel = when (AppSettings.effectiveSearchEngine) {
+            SearchEngine.GOOGLE -> "Google"
+            SearchEngine.DUCKDUCKGO -> "DuckDuckGo"
+            SearchEngine.BING -> "Bing"
+            SearchEngine.YAHOO -> "Yahoo"
+        }
+        return Target(defaultLabel, null)
     }
 
-    fun resolve(currentUrl: String?, query: String): String {
+    fun resolve(context: Context, currentUrl: String?, query: String): String {
         HomePage.asUrlOrNull(query)?.let { return it }
         val host = hostOf(currentUrl)
         val site = host?.let { h -> sites.firstOrNull { it.match(h) } }
         val encoded = Uri.encode(query.trim())
-        return site?.template?.replace("{host}", host)?.replace("%s", encoded)
-            ?: "https://www.google.com/search?q=$encoded"
+        if (site != null) {
+            return site.template.replace("{host}", host ?: "").replace("%s", encoded)
+        }
+        val searchEngine = AppSettings.effectiveSearchEngine
+        val baseUrl = context.getString(searchEngine.baseUrlRes)
+        return "$baseUrl$encoded"
     }
 }
 
