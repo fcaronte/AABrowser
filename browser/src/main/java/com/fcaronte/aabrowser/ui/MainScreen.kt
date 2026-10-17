@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,7 +54,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
@@ -198,15 +196,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
     var showBrowserSearch by remember { mutableStateOf(false) }
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
 
-    val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
-    val mediaSessionManager = remember {
-        if (mediaPlayerEnabled) {
-            MediaSessionManager(context)
-        } else {
-            null
-        }
-    }
-
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage != null) {
             delay(3.seconds)
@@ -216,9 +205,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
 
     LaunchedEffect(Unit) {
         AdBlockSettings.init(context)
-        if (mediaPlayerEnabled) {
-            mediaSessionManager?.connect()
-        }
 
         // Aspetta che i preferiti siano caricati dal repository
         var attempts = 0
@@ -263,12 +249,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
             currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
         } else {
             currentScreen = Screen.Dashboard
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaSessionManager?.disconnect()
         }
     }
 
@@ -434,12 +414,14 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                             Box(modifier = Modifier.fillMaxSize()) {
                                 BrowserScreen(
                                     tabId = tab.id,
-                                    url = tab.url,
+                                    url = if (tab.isWideTab) {
+                                        // Cerca la scheda wide e usa il suo URL sincronizzato
+                                        TabManager.tabs.firstOrNull { it.isWideTab }?.url ?: tab.url
+                                    } else tab.url,
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
                                     backTrigger = if (isTabActive) backTrigger else 0,
                                     forwardTrigger = if (isTabActive) forwardTrigger else 0,
                                     isDesktopMode = isDesktopMode,
-                                    mediaSessionManager = mediaSessionManager ?: MediaSessionManager(context),
                                     carInputManager = carInputManager,
                                     desktopModeOverride = tab.desktopModeOverride,
                                     mobileZoomOverride = tab.mobileZoomOverride,
@@ -519,8 +501,10 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                         onInteraction()
                                     },
                                     onCloseTab = { index ->
+                                        val isActiveTab = TabManager.activeTabIndex == index
+                                        // Il player viene azzerato dalla scheda chiusa, solo se era sua
                                         TabManager.closeTab(index)
-                                        if (TabManager.tabs.isEmpty()) {
+                                        if (TabManager.tabs.isEmpty() || isActiveTab) {
                                             currentScreen = Screen.Dashboard
                                         }
                                         onInteraction()

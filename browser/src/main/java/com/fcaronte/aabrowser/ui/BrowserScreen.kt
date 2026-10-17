@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -171,7 +173,6 @@ fun BrowserScreen(
     backTrigger: Int = 0,
     forwardTrigger: Int = 0,
     isDesktopMode: Boolean = false,
-    mediaSessionManager: MediaSessionManager? = null,
     carInputManager: CarInputManager? = null,
     desktopModeOverride: Boolean? = null,
     mobileZoomOverride: Float? = null,
@@ -204,6 +205,19 @@ fun BrowserScreen(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val voicePrompt = stringResource(R.string.voice_prompt)
 
+    // Ogni scheda ha il suo collegamento al player di Android Auto: lo controlla l'ultima che avvia un media
+    val mediaSessionManager = remember(tabId) {
+        if (AppSettings.mediaPlayerEnabled.value) {
+            MediaSessionManager(context.applicationContext, MediaFocusManager.Source.MAIN_APP)
+        } else {
+            null
+        }
+    }
+
+    // I callback della WebView vengono creati una volta sola: da qui leggono sempre il valore attuale
+    val currentIsTabActive by rememberUpdatedState(isTabActive)
+    val currentIsGlobalSearchActive by rememberUpdatedState(isGlobalSearchActive)
+
     fun needsDesktopForUrl(pageUrl: String?): Boolean =
         actualDesktopMode ||
                 isDesktopRequired(pageUrl) ||
@@ -213,8 +227,6 @@ fun BrowserScreen(
         pageUrl?.contains("dazn.com", ignoreCase = true) == true
 
     fun updateMediaCapabilities(pageUrl: String?) {
-        if (!isTabActive) return
-
         val uri = try {
             pageUrl?.let { Uri.parse(it) }
         } catch (_: Exception) {
@@ -365,18 +377,14 @@ fun BrowserScreen(
     // Effetto separato per la pulizia definitiva quando la scheda viene rimossa dalla composizione
     DisposableEffect(tabId) {
         onDispose {
+            // Se il player era di questa scheda viene azzerato
+            mediaSessionManager?.disconnect()
             webViewState.value?.let { webView ->
                 AppLog.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
                 webView.stopLoading()
                 webView.loadUrl("about:blank")
                 webView.destroy()
             }
-            mediaSessionManager?.updatePlaybackState(
-                PlaybackStateCompat.STATE_NONE,
-                0L,
-                1.0f
-            )
-            mediaSessionManager?.updateMetadata("", "", null, 0L)
         }
     }
 
@@ -389,13 +397,22 @@ fun BrowserScreen(
     LaunchedEffect(url, isYouTubeAdBlockEnabled) {
         webViewReference?.let {
             val currentUrl = it.url
-            if (currentUrl.isNullOrBlank() || (!currentUrl.contains(url) && !url.contains(currentUrl))) {
+            val currentClean = currentUrl?.trimEnd('/') ?: ""
+            val targetClean = url.trimEnd('/')
+            if (currentClean.isBlank() || currentClean != targetClean) {
                 AppLog.d("##BrowserScreen", "Loading host: ${safeUrlForLog(url)}")
                 it.loadUrl(url)
-            } else if (currentUrl.contains("youtube.com") && isYouTubeAdBlockEnabled && lastInjectedUrl != currentUrl) {
-                AppLog.d("##BrowserScreen", "Injecting AdBlock from LaunchedEffect (URL changed)")
-                WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(it, currentUrl, isYouTubeAdBlockEnabled, isTabActive)
-                lastInjectedUrl = currentUrl
+            }
+        }
+    }
+    
+    // Per gestire l'AdBlock in modo reattivo su URL già caricati
+    LaunchedEffect(isYouTubeAdBlockEnabled, url) {
+        webViewReference?.let {
+            if (it.url?.contains("youtube.com") == true && isYouTubeAdBlockEnabled && lastInjectedUrl != it.url) {
+                AppLog.d("##BrowserScreen", "Injecting AdBlock (Sync)")
+                WebViewScriptRouter.injectYouTubeAdBlockIfNeeded(it, it.url ?: "", isYouTubeAdBlockEnabled, isTabActive)
+                lastInjectedUrl = it.url ?: ""
             }
         }
     }
@@ -575,24 +592,31 @@ fun BrowserScreen(
                         onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
                         onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
                         onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
+                        // Solo la scheda visibile può prendersi il player avviando un media
+                        canTakeFocus = { currentIsTabActive }
                     }
+                    // Titolo della pagina finché il sito non invia i metadati del media
+                    mediaSessionManager?.fallbackTitle = { title }
 
                     addJavascriptInterface(
                         object {
                             @JavascriptInterface
                             @Suppress("unused")
                             fun onVideoStarted(time: Float) {
+                                AppLog.d("BrowserScreenBridge", "onVideoStarted time=$time, tabId=$tabId, isTabActive=$currentIsTabActive")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     PlaybackStateCompat.STATE_PLAYING,
                                     (time * 1000).toLong(),
-                                    1.0f
+                                    1.0f,
+                                    isPlaybackStart = true
                                 )
                             }
 
                             @JavascriptInterface
                             @Suppress("unused")
                             fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {
+                                AppLog.d("BrowserScreenBridge", "onMediaTimeUpdate time=$time, speed=$speed, isPlaying=$isPlaying, tabId=$tabId")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
@@ -608,6 +632,7 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {
+                                AppLog.d("BrowserScreenBridge", "onMediaStatusChanged isPlaying=$isPlaying, time=$time, speed=$speed, tabId=$tabId")
                                 @Suppress("DEPRECATION")
                                 mediaSessionManager?.updatePlaybackState(
                                     if (isPlaying) {
@@ -616,7 +641,8 @@ fun BrowserScreen(
                                         PlaybackStateCompat.STATE_PAUSED
                                     },
                                     (time * 1000).toLong(),
-                                    speed
+                                    speed,
+                                    isPlaybackStart = isPlaying
                                 )
                             }
 
@@ -628,6 +654,7 @@ fun BrowserScreen(
                                 albumArtUrl: String,
                                 duration: Float,
                             ) {
+                                AppLog.d("BrowserScreenBridge", "updateMediaMetadata title='$title', artist='$artist', duration=$duration, tabId=$tabId")
                                 mediaSessionManager?.updateMetadata(
                                     title,
                                     artist,
@@ -722,8 +749,8 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun onStartInput() {
-                                AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $isTabActive, isGlobalSearch: $isGlobalSearchActive")
-                                if (isTabActive && !isGlobalSearchActive) {
+                                AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $currentIsTabActive, isGlobalSearch: $currentIsGlobalSearchActive")
+                                if (currentIsTabActive && !currentIsGlobalSearchActive) {
                                     post { showInputPopup = true }
                                 }
                             }
@@ -887,6 +914,8 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
+                            // Nuova pagina: il media della precedente non esiste più
+                            mediaSessionManager?.releaseMediaFocus()
                             updateMediaCapabilities(url)
 
                             view?.settings?.mediaPlaybackRequiresUserGesture =

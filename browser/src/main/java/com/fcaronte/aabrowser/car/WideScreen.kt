@@ -66,8 +66,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoritesRepository
+import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
@@ -92,9 +94,17 @@ import androidx.core.view.isVisible
  */
 class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
-    private companion object {
+    companion object {
         const val TAG = "WideScreen"
         const val HOME = "about:home"
+        var isWideResumed = false
+            internal set
+        private var activeInstanceRef: java.lang.ref.WeakReference<WideScreen>? = null
+        var activeInstance: WideScreen?
+            get() = activeInstanceRef?.get()
+            set(value) {
+                activeInstanceRef = value?.let { java.lang.ref.WeakReference(it) }
+            }
 
         // Scale passate a WebViewScriptRouter.routeAndInject (1.0 = nessuna modifica).
         // Le scale dell'app principale sono pensate per il telefono: qui si regolano a parte.
@@ -171,7 +181,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     @Volatile
     private var homeHtml: String? = null
 
-    private val mediaSessionManager = MediaSessionManager(carContext)
+    private val mediaSessionManager = MediaSessionManager(carContext, MediaFocusManager.Source.WIDE_APP)
     private val handler = Handler(Looper.getMainLooper())
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
@@ -188,6 +198,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val iconReload: CarIcon by lazy { buildReloadIcon() }
 
     init {
+        activeInstance = this
         try {
             carContext.getCarService(AppManager::class.java).setSurfaceCallback(this)
 
@@ -205,7 +216,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                isWideResumed = true
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                isWideResumed = false
+            }
+
             override fun onDestroy(owner: LifecycleOwner) {
+                isWideResumed = false
+                if (activeInstance == this@WideScreen) {
+                    activeInstance = null
+                }
+                TabManager.removeWideTab()
                 handler.removeCallbacks(applyAreaRunnable)
                 handler.removeCallbacks(applyAreaSettledRunnable)
                 handler.removeCallbacks(startupReapplyRunnable)
@@ -217,6 +241,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 webView = null
             }
         })
+    }
+
+    fun navigateToHome() {
+        handler.post {
+            loadUrl(HomePage.BASE_URL)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1007,6 +1037,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
                             onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
                         }
+                        // Titolo della pagina finché il sito non invia i metadati del media
+                        mediaSessionManager.fallbackTitle = { title }
 
                         // Script all'inizio di ogni pagina. L'AdBlock di YouTube NON va qui:
                         // lo inietta WebViewScriptRouter solo sui domini YouTube.
@@ -1026,17 +1058,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun onVideoStarted(time: Float) {
+                                    AppLog.d("WideScreenBridge", "onVideoStarted time=$time")
                                     @Suppress("DEPRECATION")
                                     mediaSessionManager.updatePlaybackState(
                                         PlaybackStateCompat.STATE_PLAYING,
                                         (time * 1000).toLong(),
-                                        1.0f
+                                        1.0f,
+                                        isPlaybackStart = true
                                     )
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun onMediaTimeUpdate(time: Float, speed: Float, isPlaying: Boolean) {
+                                    AppLog.d("WideScreenBridge", "onMediaTimeUpdate time=$time, speed=$speed, isPlaying=$isPlaying")
                                     @Suppress("DEPRECATION")
                                     mediaSessionManager.updatePlaybackState(
                                         if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
@@ -1048,17 +1083,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun onMediaStatusChanged(isPlaying: Boolean, time: Float, speed: Float) {
+                                    AppLog.d("WideScreenBridge", "onMediaStatusChanged isPlaying=$isPlaying, time=$time, speed=$speed")
                                     @Suppress("DEPRECATION")
                                     mediaSessionManager.updatePlaybackState(
                                         if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
                                         (time * 1000).toLong(),
-                                        speed
+                                        speed,
+                                        isPlaybackStart = isPlaying
                                     )
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun updateMediaMetadata(title: String, artist: String, albumArtUrl: String, duration: Float) {
+                                    AppLog.d("WideScreenBridge", "updateMediaMetadata title='$title', artist='$artist', duration=$duration")
                                     mediaSessionManager.updateMetadata(
                                         title,
                                         artist,
@@ -1360,6 +1398,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                 val isHomePage = url?.startsWith(HomePage.BASE_URL) == true
 
+                                // Nuova pagina (anche la home): il media della precedente non esiste più
+                                mediaSessionManager.releaseMediaFocus()
+
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
                                 view?.settings?.builtInZoomControls = true
@@ -1395,9 +1436,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
+                                    TabManager.removeWideTab()
                                 } else {
                                     lastUrl = url
                                     saveUrl(url)
+                                    TabManager.updateOrAddWideTab(url, view?.title ?: "Car Display", null)
 
                                     // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)
                                     view?.let {

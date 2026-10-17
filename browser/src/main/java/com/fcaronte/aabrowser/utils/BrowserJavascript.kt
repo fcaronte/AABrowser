@@ -64,14 +64,11 @@ object BrowserJavascript {
             $INPUT_LISTENERS_JS
             $SELECT_POLYFILL_JS
 
-            if (host.includes('spotify.com') || host.includes('zappr.stream') || host.includes('zapps.stream')) {
-                setInterval(() => {
-                    const h = window.location.hostname.toLowerCase();
-                    if (h.includes('spotify.com') || h.includes('zappr.stream') || h.includes('zapps.stream')) {
-                        syncMetadata();
-                    }
-                }, 1000);
-            }
+            setInterval(() => {
+                if (window.isMediaPlaying) {
+                    syncMetadata();
+                }
+            }, 1500);
 
             document.addEventListener('touchstart', function(e) {
                 if (e.touches && e.touches[0]) {
@@ -1132,8 +1129,22 @@ object BrowserJavascript {
     """
 
     private const val METADATA_SYNC_FINISH_JS = """
-            const lowerTitle = (title || "").toLowerCase();
-            const isGeneric = lowerTitle.includes("lettore web") || lowerTitle.includes("musica per tutti") || lowerTitle === "spotify" || lowerTitle === "home" || lowerTitle === "search" || lowerTitle === "cerca" || lowerTitle === "";
+            let lowerTitle = (title || "").toLowerCase().trim();
+            if (lowerTitle.endsWith(" - youtube")) {
+                title = title.substring(0, title.length - 10).trim();
+                lowerTitle = title.toLowerCase();
+            }
+
+            const isGeneric = lowerTitle === "lettore web" || 
+                              lowerTitle === "musica per tutti" || 
+                              lowerTitle === "spotify" || 
+                              lowerTitle === "youtube" || 
+                              lowerTitle === "youtube music" || 
+                              lowerTitle === "home" || 
+                              lowerTitle === "search" || 
+                              lowerTitle === "cerca" || 
+                              lowerTitle === "" ||
+                              lowerTitle === "aabrowser audio";
 
             if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
                 lastMediaTitle = title;
@@ -1289,6 +1300,34 @@ object BrowserJavascript {
         );
 
         /*
+         * Un media muto (anteprime, video di sfondo dei siti) non deve
+         * prendersi il player di Android Auto: viene segnalato solo
+         * quando si sente davvero.
+         */
+        function isAudible(media) {
+            return !media.muted && media.volume > 0;
+        }
+
+        function reportMediaStarted(media) {
+            media.aabReportedPlaying = true;
+
+            if (window.AndroidBridge) {
+                AndroidBridge.onMediaStatusChanged(
+                    true,
+                    media.currentTime,
+                    media.playbackRate
+                );
+            }
+
+            syncMetadata();
+            setTimeout(syncMetadata, 300);
+            setTimeout(syncMetadata, 800);
+            setTimeout(syncMetadata, 1500);
+            setTimeout(syncMetadata, 3000);
+            setTimeout(syncMetadata, 5000);
+        }
+
+        /*
          * Configurazione listener dei media.
          */
         function setupMediaListeners(media) {
@@ -1296,22 +1335,38 @@ object BrowserJavascript {
 
             media.dataset.mediaListenersAdded = 'true';
             media.lastBridgeUpdate = 0;
+            media.aabReportedPlaying = false;
 
             /*
              * PLAY
              */
             media.addEventListener('play', () => {
                 window.isMediaPlaying = true;
+                window.aabUserTappedPause = false;
 
-                if (window.AndroidBridge) {
-                    AndroidBridge.onMediaStatusChanged(
-                        true,
-                        media.currentTime,
-                        media.playbackRate
-                    );
+                if (!isAudible(media)) {
+                    // Lo stesso elemento riusato per un media muto: quello che si sentiva è finito
+                    if (media.aabReportedPlaying && window.AndroidBridge) {
+                        AndroidBridge.onMediaStatusChanged(
+                            false,
+                            media.currentTime,
+                            media.playbackRate
+                        );
+                    }
+                    media.aabReportedPlaying = false;
+                    return;
                 }
 
-                syncMetadata();
+                reportMediaStarted(media);
+            });
+
+            /*
+             * VOLUME: un media partito muto e poi riattivato conta come avvio
+             */
+            media.addEventListener('volumechange', () => {
+                if (!media.paused && !media.aabReportedPlaying && isAudible(media)) {
+                    reportMediaStarted(media);
+                }
             });
 
             /*
@@ -1340,6 +1395,10 @@ object BrowserJavascript {
                     return;
                 }
 
+                // Un media mai segnalato (muto) non deve toccare il player
+                if (!media.aabReportedPlaying) return;
+                media.aabReportedPlaying = false;
+
                 if (window.AndroidBridge) {
                     AndroidBridge.onMediaStatusChanged(
                         false,
@@ -1353,6 +1412,8 @@ object BrowserJavascript {
              * TIME UPDATE
              */
             media.addEventListener('timeupdate', () => {
+                if (!media.aabReportedPlaying) return;
+
                 const now = Date.now();
 
                 if (now - media.lastBridgeUpdate > 500) {
@@ -1375,6 +1436,14 @@ object BrowserJavascript {
                 'durationchange',
                 syncMetadata
             );
+
+            /*
+             * Media già in riproduzione quando arrivano i listener
+             * (es. script iniettato a fine caricamento): il suo "play" è già passato.
+             */
+            if (!media.paused && isAudible(media)) {
+                reportMediaStarted(media);
+            }
         }
 
         /*

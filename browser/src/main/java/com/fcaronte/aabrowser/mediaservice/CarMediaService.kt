@@ -318,20 +318,39 @@ class CarMediaService : MediaBrowserServiceCompat() {
     override fun onCustomAction(action: String, extras: Bundle?, result: Result<Bundle?>) {
         AppLog.d(TAG, "onCustomAction: $action")
         if (mMediasessioncompat != null && extras != null) {
-            extras.classLoader = PlaybackStateCompat::class.java.classLoader
+            extras.classLoader = MediaMetadataCompat::class.java.classLoader
             var update = false
             var cancel = false
             if (action == PLAYBACK_STATE_COMPAT) {
                 val playbackStateCompat =
                     extras.getParcelable<PlaybackStateCompat?>("PlaybackStateCompat")
+                val title = extras.getString("title")
+                val artist = extras.getString("artist")
+                AppLog.d(TAG, "onCustomAction PLAYBACK_STATE_COMPAT: state=${playbackStateCompat?.state}, title='$title', artist='$artist'")
                 if (playbackStateCompat != null) {
-                    update = stateChanged(playbackStateCompat)
+                    update = true
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
 
-                    if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
+                    if (!title.isNullOrBlank()) {
+                        showingWeather = false
+                        val currentMeta = mMediasessioncompat!!.controller.metadata
+                        val currentTitle = currentMeta?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                        
+                        AppLog.d(TAG, "Syncing metadata from playback state bundle: $title, current: $currentTitle")
+                        
+                        if (currentTitle != title) {
+                            val metadata = MediaMetadataCompat.Builder()
+                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
+                                .build()
+                            mMediasessioncompat!!.setMetadata(metadata)
+                            update = true
+                        }
+                    } else if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
                         playbackStateCompat.state == PlaybackStateCompat.STATE_STOPPED) {
+                        AppLog.d(TAG, "Playback state is NONE/STOPPED, restoring weather")
                         showingWeather = true
                         isUserPaused = false
                         checkAndUpdateWeatherMetadata()
@@ -343,6 +362,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     extras.getParcelable<MediaMetadataCompat?>(MEDIA_METADATA_COMPAT)
                 if (mediaMetadataCompat != null) {
                     val title = mediaMetadataCompat.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                    AppLog.d(TAG, "onCustomAction MEDIA_METADATA_COMPAT: title='$title'")
                     if (title.isNullOrBlank()) {
                         showingWeather = true
                         isUserPaused = false
@@ -350,7 +370,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     } else {
                         showingWeather = false
                         mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
-                        requestAudioFocus()
+                        // Niente requestAudioFocus(): il focus audio lo prende già la WebView quando suona
+                        // e toglierglielo la mette subito in pausa (stesso fix di "fix spotify auto pause")
                         update = true
                     }
                 }
@@ -431,7 +452,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
             service.showingWeather = false
             service.isUserPaused = false
-            service.requestAudioFocus()
+            // Il focus audio lo chiede la WebView quando riparte (vedi onCustomAction)
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_PLAY)
         }
 
@@ -478,6 +499,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun updateNotification() {
         val notification = this.notification
+        val currentTitle = mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+        val currentState = mMediacontrollercompat?.playbackState?.state
+        AppLog.d(TAG, "updateNotification: state=$currentState, title='$currentTitle'")
         if (notification != null && mCarmedianotificationmanager != null) {
             try {
                 startForeground(
