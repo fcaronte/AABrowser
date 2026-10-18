@@ -190,6 +190,8 @@
     <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
     <string name="favorite_default_name_9" translatable="false">DAZN</string>
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
+    <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
+    <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>

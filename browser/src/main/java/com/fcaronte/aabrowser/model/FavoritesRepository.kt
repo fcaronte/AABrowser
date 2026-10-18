@@ -62,7 +62,8 @@ class FavoritesRepository(private val context: Context) {
             FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFFFF0000),
             FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFFFF9800),
             FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFF9C27B0),
-            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFFF50000)
+            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFFF50000),
+            FavoriteSite("10", context.getString(R.string.favorite_default_name_10), context.getString(R.string.favorite_default_url_10), 0xFFE91E63)
         )
     }
 
