@@ -62,8 +62,8 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.utils.UrlUtils
 import kotlinx.coroutines.delay
-import java.net.URLEncoder
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -482,14 +482,8 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                             val baseUrl = stringResource(searchEngine.baseUrlRes)
                             SearchOverlay(
                                 onSearch = { query ->
-                                    val searchUrl = baseUrl + URLEncoder.encode(query, "UTF-8")
-                                    // Usa addTab invece di openOrSwitchTo per garantire una ricerca fresca ogni volta
-                                    TabManager.addTab(
-                                        url = searchUrl,
-                                        title = query,
-                                        setActive = true
-                                    )
-
+                                    val targetUrl = UrlUtils.normalizeInput(query, baseUrl)
+                                    TabManager.addTab(url = targetUrl, title = query, setActive = true)
                                     currentScreen = Screen.Browser
                                     showDashboardSearch = false
                                 },
@@ -568,13 +562,8 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                     onInteraction()
                                 },
                                 onSearch = { query ->
-                                    val searchUrl = baseUrlRes + URLEncoder.encode(query, "UTF-8")
-                                    // Usa addTab per garantire che la ricerca apra sempre una nuova scheda dedicata
-                                    TabManager.addTab(
-                                        url = searchUrl,
-                                        title = query,
-                                        setActive = true
-                                    )
+                                    val targetUrl = UrlUtils.normalizeInput(query, baseUrlRes)
+                                    TabManager.addTab(url = targetUrl, title = query, setActive = true)
                                     currentScreen = Screen.Browser
                                     onInteraction()
                                 },

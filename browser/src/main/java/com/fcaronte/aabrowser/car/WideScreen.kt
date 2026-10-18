@@ -16,9 +16,9 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.net.Uri
 import android.os.Bundle
-import android.os.Message
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.os.SystemClock
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -63,6 +63,7 @@ import androidx.car.app.navigation.model.NavigationTemplate
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.toColorInt
+import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebSettingsCompat
@@ -87,7 +88,6 @@ import java.io.ByteArrayInputStream
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.core.view.isVisible
 
 /**
  * Schermata "wide" (finto navigatore).
