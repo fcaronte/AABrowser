@@ -75,12 +75,12 @@ object AdBlockJavascript {
                 
                 if (skipBtn) {
                     const isDisabled = skipBtn.disabled || skipBtn.getAttribute('aria-disabled') === 'true';
-                        if (!isDisabled) {
-                            try {
-                                skipBtn.click();
-                                skipBtn.querySelectorAll('*').forEach(c => c.click());
-                            } catch (e) {}
-                        }
+                    if (!isDisabled) {
+                        try {
+                            skipBtn.click();
+                            skipBtn.querySelectorAll('*').forEach(c => c.click());
+                        } catch (e) {}
+                    }
                 }
 
                 if (video.paused) video.play().catch(() => {});
@@ -148,6 +148,32 @@ object AdBlockJavascript {
 
         }, 1000);
         window.aabIntervals.push(slowLoop);
+
+        // Salva la velocità scelta dall'utente (solo video normali, non musica, non annunci)
+        const persistSpeed = setInterval(() => {
+            if (!window.location.host.includes('youtube.com')) return;
+            if (window.aabIsAdPlaying) return;
+            if (window.location.host.includes('music.youtube.com')) return;
+            if (document.title.toLowerCase().includes('official music video')) return;
+
+            const video = document.querySelector('video');
+            if (!video) return;
+
+            const rate = video.playbackRate;
+            // Escludi 16x dell'adskip e valori fuori range utente
+            if (rate < 0.25 || rate > 2.0) return;
+
+            const saved = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
+            if (Math.abs(saved - rate) > 0.01) {
+                localStorage.setItem('yt-custom-speed', rate.toString());
+                console.log('AABrowser AdBlock: saved yt-custom-speed = ' + rate);
+                // Persistenza globale lato Android (sopravvive alla chiusura dell'app)
+                if (window.AndroidBridge && typeof window.AndroidBridge.saveYouTubeSpeed === 'function') {
+                    window.AndroidBridge.saveYouTubeSpeed(rate);
+                }
+            }
+        }, 1500);
+        window.aabIntervals.push(persistSpeed);
 
     })();
     """.trimIndent()

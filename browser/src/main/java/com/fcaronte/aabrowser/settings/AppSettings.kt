@@ -339,6 +339,16 @@ object AppSettings {
         saveString(context, "tab_bar_mode", mode.name)
     }
 
+    // Velocità di riproduzione YouTube (globale, persistente tra sessioni)
+    fun getYouTubeSpeed(context: Context): Float {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getFloat("youtube_playback_speed", 1.0f)
+    }
+
+    fun setYouTubeSpeed(context: Context, speed: Float) {
+        saveFloat(context, "youtube_playback_speed", speed)
+    }
+
     fun clearCache(context: Context) {
         try {
             // 1. Pulizia standard API WebView: rimuove file HTML/immagini temporanei

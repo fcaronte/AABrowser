@@ -417,7 +417,7 @@ fun BrowserScreen(
             }
         }
     }
-    
+
     // Per gestire l'AdBlock in modo reattivo su URL già caricati
     LaunchedEffect(isYouTubeAdBlockEnabled, url) {
         webViewReference?.let {
@@ -846,6 +846,13 @@ fun BrowserScreen(
                                 body: String?,
                                 requestUserAgent: String
                             ): String = DaznProxy.proxyFetch(context, urlString, method, headersJson, body, requestUserAgent)
+
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun saveYouTubeSpeed(speed: Float) {
+                                AppSettings.setYouTubeSpeed(context, speed)
+                                AppLog.d("YouTubeSpeed", "Saved playback speed = $speed")
+                            }
                         },
                         "AndroidBridge",
                     )
@@ -1123,6 +1130,16 @@ fun BrowserScreen(
                                             DaznManager.getClickInterceptorScript(),
                                             null
                                         )
+                                    }
+                                    // Ripristina la velocità YouTube salvata lato Android
+                                    if (url.contains("youtube.com", ignoreCase = true) &&
+                                        !url.contains("music.youtube.com", ignoreCase = true)) {
+                                        val savedSpeed = AppSettings.getYouTubeSpeed(context)
+                                        webView.evaluateJavascript(
+                                            "localStorage.setItem('yt-custom-speed', '$savedSpeed');",
+                                            null
+                                        )
+                                        AppLog.d("YouTubeSpeed", "Restored playback speed = $savedSpeed")
                                     }
                                     WebViewScriptRouter.routeAndInject(
                                         webView = webView,
