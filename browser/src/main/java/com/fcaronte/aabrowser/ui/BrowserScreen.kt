@@ -15,6 +15,7 @@ import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -291,6 +292,9 @@ fun BrowserScreen(
     var customView by remember { mutableStateOf<android.view.View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
     var popupWebView by remember { mutableStateOf<WebView?>(null) }
+
+    // File e cartelle chiesti dalla pagina (sull'auto la pagina riceve l'ultima scelta fatta sul telefono)
+    val fileChooser = rememberWebFileChooser()
 
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
@@ -757,6 +761,12 @@ fun BrowserScreen(
 
                             @JavascriptInterface
                             @Suppress("unused")
+                            fun onFolderInputClicked() {
+                                fileChooser.onFolderInputClicked()
+                            }
+
+                            @JavascriptInterface
+                            @Suppress("unused")
                             fun injectText(text: String) {
                                 post {
                                     evaluateJavascript(
@@ -817,6 +827,16 @@ fun BrowserScreen(
                     )
 
                     webChromeClient = object : WebChromeClient() {
+                        override fun onShowFileChooser(
+                            webView: WebView?,
+                            filePathCallback: ValueCallback<Array<Uri>>?,
+                            fileChooserParams: FileChooserParams?
+                        ): Boolean {
+                            // false: la richiesta viene annullata dalla WebView (il callback non va chiamato)
+                            if (filePathCallback == null) return false
+                            return fileChooser.show(filePathCallback, fileChooserParams)
+                        }
+
                         override fun onCreateWindow(
                             view: WebView?,
                             isDialog: Boolean,
@@ -1266,5 +1286,7 @@ fun BrowserScreen(
                 onDismiss = { showInputPopup = false },
             )
         }
+
+        WebFileChooserDialog(fileChooser)
     }
 }

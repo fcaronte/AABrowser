@@ -95,6 +95,7 @@
     <string name="force_max_youtube_quality_desc">Selecionar automaticamente a qualidade máxima de vídeo do YouTube com base na velocidade da rede</string>
     <string name="multi_window_label">Múltiplas janelas (Popups)</string>
     <string name="multi_window_desc">Permitir que os sites abram novos separadores ou janelas pop-up (ex. páginas de início de sessão)</string>
+    <string name="force_english_label">Forçar o idioma inglês</string>
     <string name="media_player_label">Reprodutor de mídia</string>
     <string name="media_player_desc">Mostrar reprodutor de mídia e notificações no Android Auto</string>
     <string name="media_player_disabled_hint">O reprodutor de mídia deve estar ativado para usar o widget de clima</string>
@@ -189,6 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
+    <string name="favorite_default_name_11" translatable="false">Web Player</string>
+    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -238,4 +241,9 @@
     <string name="skip_onboarding_button">Sei o que estou a fazer (Ignorar)</string>
     <string name="wide_reopen_last_page">Reabrir última página</string>
     <string name="wide_sidebar_fixed">Menu fixo</string>
+
+    <!-- File chooser -->
+    <string name="file_chooser_last_folder">Última pasta: %1$s</string>
+    <string name="file_chooser_use_folder">Usar</string>
+    <string name="file_chooser_change_folder">Escolher outra</string>
 </resources>

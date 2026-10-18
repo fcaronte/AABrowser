@@ -166,13 +166,7 @@ object TabManager {
     fun removeWideTab() {
         val index = tabs.indexOfFirst { it.isWideTab }
         if (index != -1) {
-            tabs.removeAt(index)
-            if (activeTabIndex >= tabs.size) {
-                activeTabIndex = tabs.size - 1
-            }
-            if (tabs.isEmpty()) {
-                activeTabIndex = -1
-            }
+            removeTabAt(index)
         }
     }
 
@@ -182,13 +176,19 @@ object TabManager {
             if (tab.isWideTab) {
                 com.fcaronte.aabrowser.car.WideScreen.activeInstance?.navigateToHome()
             }
-            tabs.removeAt(index)
-            if (activeTabIndex >= tabs.size) {
-                activeTabIndex = tabs.size - 1
-            }
-            if (tabs.isEmpty()) {
-                activeTabIndex = -1
-            }
+            removeTabAt(index)
+        }
+    }
+
+    // La scheda attiva resta la stessa anche se cambia posizione; se si chiude proprio lei si passa
+    // a quella alla sua sinistra (alla nuova prima scheda se era la prima)
+    private fun removeTabAt(index: Int) {
+        val wasActive = index == activeTabIndex
+        tabs.removeAt(index)
+        when {
+            tabs.isEmpty() -> activeTabIndex = -1
+            wasActive -> switchTab((index - 1).coerceAtLeast(0))
+            index < activeTabIndex -> activeTabIndex--
         }
     }
 

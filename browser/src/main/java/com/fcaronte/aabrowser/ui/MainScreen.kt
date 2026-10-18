@@ -3,6 +3,8 @@ package com.fcaronte.aabrowser.ui
 import android.app.Activity
 import android.os.Process
 import android.webkit.WebView
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -294,9 +296,18 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         localized.setTheme(R.style.AppTheme)
         localized
     }
+    // Il contesto localizzato non risale più all'Activity: Activity e registro dei risultati
+    // (selettore di file e cartelle delle pagine) vanno ripassati a parte. Sull'auto non ci sono.
+    val activity = LocalActivity.current
+    val activityResultRegistryOwner = LocalActivityResultRegistryOwner.current
+    val activityLocals = listOfNotNull(
+        LocalActivity provides activity,
+        activityResultRegistryOwner?.let { LocalActivityResultRegistryOwner provides it },
+    )
     CompositionLocalProvider(
         LocalContext provides localizedContext,
-        LocalDensity provides customDensity
+        LocalDensity provides customDensity,
+        *activityLocals.toTypedArray(),
     ) {
         AABrowserTheme(themeMode = themeMode) {
             Box(
@@ -501,10 +512,10 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                         onInteraction()
                                     },
                                     onCloseTab = { index ->
-                                        val isActiveTab = TabManager.activeTabIndex == index
-                                        // Il player viene azzerato dalla scheda chiusa, solo se era sua
+                                        // Il player viene azzerato dalla scheda chiusa, solo se era sua.
+                                        // Se era quella attiva si passa alla scheda alla sua sinistra (TabManager)
                                         TabManager.closeTab(index)
-                                        if (TabManager.tabs.isEmpty() || isActiveTab) {
+                                        if (TabManager.tabs.isEmpty()) {
                                             currentScreen = Screen.Dashboard
                                         }
                                         onInteraction()

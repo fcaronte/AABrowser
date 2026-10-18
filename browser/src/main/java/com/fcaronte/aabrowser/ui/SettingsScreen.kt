@@ -1,7 +1,6 @@
 package com.fcaronte.aabrowser.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +9,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -90,6 +90,8 @@ fun SettingsScreen(
     isCarModeOverride: Boolean = false
 ) {
     val context = LocalContext.current
+    // Il contesto di MainScreen è localizzato e non è l'Activity
+    val activity = LocalActivity.current
     var confirmReset by remember { mutableStateOf(false) }
     LaunchedEffect(confirmReset) {
         if (confirmReset) {
@@ -437,7 +439,7 @@ fun SettingsScreen(
                                         context.startActivity(restartIntent)
                                         Runtime.getRuntime().exit(0)
                                     } else {
-                                        (context as? Activity)?.finishAffinity()
+                                        activity?.finishAffinity()
                                         android.os.Process.killProcess(android.os.Process.myPid())
                                     }
                                 }, 300)
@@ -482,7 +484,7 @@ fun SettingsScreen(
                                                             Toast.LENGTH_LONG
                                                         ).show()
                                                     } else {
-                                                        (context as? Activity)?.requestPermissions(
+                                                        activity?.requestPermissions(
                                                             arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                                                             1001
                                                         )

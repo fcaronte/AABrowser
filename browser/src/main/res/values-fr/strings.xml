@@ -190,6 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
+    <string name="favorite_default_name_11" translatable="false">Web Player</string>
+    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -239,4 +241,9 @@
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>
     <string name="wide_sidebar_fixed">Menu fixe</string>
+
+    <!-- File chooser -->
+    <string name="file_chooser_last_folder">Dernier dossier : %1$s</string>
+    <string name="file_chooser_use_folder">L\'utiliser</string>
+    <string name="file_chooser_change_folder">En choisir un autre</string>
 </resources>

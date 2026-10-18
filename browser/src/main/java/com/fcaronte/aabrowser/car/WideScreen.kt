@@ -14,6 +14,7 @@ import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.net.Uri
 import android.os.Bundle
 import android.os.Message
 import android.os.Handler
@@ -34,6 +35,7 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -78,6 +80,7 @@ import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
+import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -1257,6 +1260,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         )
 
                         webChromeClient = object : WebChromeClient() {
+                            // Sull'auto il selettore non si apre: la pagina riceve l'ultima scelta fatta sul telefono
+                            override fun onShowFileChooser(
+                                webView: WebView?,
+                                filePathCallback: ValueCallback<Array<Uri>>?,
+                                fileChooserParams: FileChooserParams?
+                            ): Boolean = filePathCallback != null && LastFileSelection.deliver(carContext, filePathCallback)
+
                             override fun onCreateWindow(
                                 view: WebView?,
                                 isDialog: Boolean,

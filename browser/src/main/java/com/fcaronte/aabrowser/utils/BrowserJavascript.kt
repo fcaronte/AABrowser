@@ -1554,9 +1554,18 @@ object BrowserJavascript {
     private const val INPUT_LISTENERS_JS = """
         function notifyInputInteraction(event) {
             const target = event.target;
-            if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) {
-                if (window.AndroidBridge) AndroidBridge.onStartInput();
+            const field = target instanceof Element ? target.closest('input, textarea, [contenteditable="true"]') : null;
+            if (!field) return;
+            if (field.tagName === 'INPUT' && field.type === 'file') {
+                // I campi file aprono il selettore di sistema, non la tastiera. La WebView presenta webkitdirectory
+                // come scelta multipla di file: l'app va avvisata prima, per aprire il selettore cartella
+                if (event.type === 'click' && (field.webkitdirectory || field.hasAttribute('directory')) &&
+                        window.AndroidBridge && typeof AndroidBridge.onFolderInputClicked === 'function') {
+                    AndroidBridge.onFolderInputClicked();
+                }
+                return;
             }
+            if (window.AndroidBridge) AndroidBridge.onStartInput();
         }
         document.addEventListener('focusin', notifyInputInteraction, true);
         document.addEventListener('click', notifyInputInteraction, true);

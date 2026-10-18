@@ -198,4 +198,9 @@
     <string name="skip_onboarding_button">So quello che faccio (Salta)</string>
     <string name="wide_reopen_last_page">Riapri ultima pagina</string>
     <string name="wide_sidebar_fixed">Menu fisso</string>
+
+    <!-- File chooser -->
+    <string name="file_chooser_last_folder">Ultima cartella: %1$s</string>
+    <string name="file_chooser_use_folder">Usala</string>
+    <string name="file_chooser_change_folder">Scegline un\'altra</string>
 </resources>

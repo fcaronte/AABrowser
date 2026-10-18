@@ -3,6 +3,13 @@
 ## 1. Current Status
 - **Version / Milestone**: Post-2.2 Development Branch
 - **Recent Updates**:
+  - **Startup crash fixed + file/folder picker for web pages (SAF, no storage permissions)**: new favorite #11 "Web Player" (`web-player.streamlit.app`, local media player in a srcdoc iframe with `<input webkitdirectory>` "Select Folder" and `<input multiple>` "Select Files", filters by file-name extension, plays via blob URLs).
+    - Crash `No ActivityResultRegistryOwner was provided via LocalActivityResultRegistryOwner` at startup: `MainScreen` replaces `LocalContext` with `createConfigurationContext()` (a `ContextImpl`, not a wrapper of the Activity), so `LocalActivity` / `LocalActivityResultRegistryOwner` (both resolved from `LocalContext`) were null below it. `MainScreen` now re-provides both (registry only when present: `MainCarActivity` has none).
+    - Chromium WebView maps `webkitdirectory` to `MODE_OPEN_MULTIPLE` (`FileModeConversionHelper`) and expects the folder's descendant files, so the app cannot tell it from `multiple`: the input listener JS calls `AndroidBridge.onFolderInputClicked()` on click of a `webkitdirectory` input; the next `MODE_OPEN_MULTIPLE` request (within 1.5 s) opens `ACTION_OPEN_DOCUMENT_TREE` and returns the folder's files. `showDirectoryPicker()` arrives as `MODE_OPEN_FOLDER` (File System Access is enabled by WebView for targetSdk >= 36) and gets the tree URI.
+    - File inputs no longer open the keyboard/mic input popup (`onStartInput`).
+    - **Last selection reused** (`LastFileSelection`): phone and car pages are different WebViews and the system picker cannot open on the car, so on the car (Main `MainCarActivity` and Wide) any file request gets the last phone selection. The folder keeps a persisted read grant (survives restarts); single files stay in memory (readable while the phone Activity lives). On the phone, a folder request with a remembered folder shows "Last folder: X — Use it / Choose another" instead of the system picker, so a page reload no longer asks for the permission again.
+  - **Tab close**: closing the active tab (tab bar or tab manager) now switches to the tab on its left (the new first tab if it was the first); the Dashboard opens only when no tab is left. Closing a tab on the left of the active one no longer shifts the selection to another tab (same fix for `removeWideTab`).
+  - **Settings**: location permission request and restart fallback used `context as? Activity` (always null under `MainScreen`): now `LocalActivity.current`.
   - **Multi-tab Android Auto player: "last started playback wins"** (replaces the old close-tab/reload/navigate-home workaround):
     - Every WebView is now its own media client: each Main tab (`BrowserScreen`) creates its own `MediaSessionManager`, the Wide keeps its own. `MediaFocusManager` arbitrates between all of them.
     - When a playback starts in a client, that client takes the AA player; the previous owner is paused (PAUSE_SCRIPT) and detached, but its page is never closed, reloaded or sent to home.
@@ -20,6 +27,17 @@
   - **Wide double-tap-zoom block on YouTube**: `getDisableDoubleTapScript()` used `style.innerHTML`, blocked by YouTube's Trusted Types ("This document requires 'TrustedHTML' assignment" in logcat), so the style never applied there. Now uses `style.textContent`.
 
 ## 2. Modified / Created Files
+- `browser/src/main/java/com/fcaronte/aabrowser/ui/WebFileChooser.kt` (new): `onShowFileChooser` handling for the Main tabs (`rememberWebFileChooser()`; without an `ActivityResultRegistryOwner` it falls back to `LastFileSelection`) + `WebFileChooserDialog` (reuse the remembered folder). Files: `FileChooserParams.createIntent()`; `webkitdirectory`: tree picker + listing via `DocumentsContract` (one query per folder, hidden entries skipped, max 5000 files); `showDirectoryPicker()`: tree URI with persisted permission.
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/LastFileSelection.kt` (new): last phone selection (files in memory, folder persisted in `WEB_FILE_CHOOSER_PREFS` + persisted grant), `deliver()` for the car (Main and Wide), folder listing.
+- `browser/src/main/java/com/fcaronte/aabrowser/car/WideScreen.kt`: `onShowFileChooser` -> `LastFileSelection.deliver()`.
+- `browser/src/main/java/com/fcaronte/aabrowser/model/TabManager.kt`: `removeTabAt()` shared by `closeTab`/`removeWideTab` (left neighbour after closing the active tab, index kept on the same tab).
+- `browser/src/main/java/com/fcaronte/aabrowser/ui/SettingsScreen.kt`: `LocalActivity.current` instead of `context as? Activity`.
+- `res/values*/strings.xml`: `file_chooser_last_folder`, `file_chooser_use_folder`, `file_chooser_change_folder` (11 locales).
+- `browser/src/main/java/com/fcaronte/aabrowser/ui/MainScreen.kt`: re-provides `LocalActivity` and `LocalActivityResultRegistryOwner` next to the localized `LocalContext`; tab bar close goes to the Dashboard only when no tab is left.
+- `browser/src/main/java/com/fcaronte/aabrowser/ui/BrowserScreen.kt`: removed the broken `BrowserScreen`/`BrowserScreenInternal` wrapper and the two launchers; `onShowFileChooser` delegates to `WebFileChooser`; bridge method `onFolderInputClicked()`.
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/BrowserJavascript.kt`: `INPUT_LISTENERS_JS` ignores file inputs and reports `webkitdirectory` clicks.
+- `model/FavoritesRepository.kt` + `res/values*/strings.xml`: default favorite #11 "Web Player".
+- `browser/build.gradle`, `gradle/libs.versions.toml`: `documentfile` dependency removed (unused).
 - `PROJECT_MEMORY.md`: Updated project memory log.
 - `CLAUDE.md`: Imports `AABrowser.md` + `PROJECT_MEMORY.md` so every Claude Code session (CLI or Android Studio plugin) loads the project context automatically.
 - `browser/src/main/java/com/fcaronte/aabrowser/mediaservice/CarMediaService.kt`: Removed `requestAudioFocus()` from the metadata path and from `onPlay` (audio focus belongs to the WebView).
@@ -35,6 +53,8 @@
 - `browser/src/main/java/com/fcaronte/aabrowser/utils/BrowserJavascript.kt`: `MEDIA_LISTENERS_JS` reports only audible media (muted previews / background videos can't steal the player), unmute while playing counts as a start, media already playing when listeners attach is reported; `getDisableDoubleTapScript()` uses `textContent` (Trusted Types safe).
 
 ## 3. Architectural Decisions
+- **Below `MainScreen`, `LocalContext` is not the Activity**: use `LocalActivity.current` (re-provided by `MainScreen`), never `LocalContext.current as? Activity`, and `LocalActivityResultRegistryOwner.current` may be null (Android Auto `MainCarActivity`).
+- **Web file chooser contract**: the `ValueCallback` must be completed exactly once. Either call it and return true, or return false without calling it (the WebView then cancels by itself); doing both crashes with "Duplicate showFileChooser result". Only SAF intents are used, so no storage permission is needed.
 - **Per-WebView media clients + single arbiter**: `MediaFocusManager` is the only place that decides who owns the AA player; `MediaSessionManager` instances never talk to each other.
 - **Who can take the player**: a client claims it only on a real start (JS `play` event / unmute, or a paused→playing transition) and only if it can take focus (visible Main tab or the Wide). Background tabs that start by themselves (autoplay, wide mirror tab) are paused.
 - **Stale reports never claim**: periodic updates (`timeupdate`, Spotify polling) from a non-owner that was already playing are treated as late reports and paused (rate limited to 1/s).
@@ -43,6 +63,9 @@
 - **Never request Android audio focus from the app side** (`CarMediaService` or elsewhere): each WebView requests it through Chromium when its media really starts; any other request from our package takes it away and Chromium pauses the page. The WebViews also pause each other natively through audio focus, which is consistent with "last started wins".
 
 ## 4. Next Steps (TODO)
+- Verify on the phone: Web Player -> "Select Folder" (first time: system picker; then "Use it / Choose another" dialog, also after a reload); "Select Files"; on the car (Main and Wide) "Select Folder" loads the folder chosen on the phone.
+- Verify tab close from the tab bar (active tab -> left neighbour) and from the tab manager; Settings location permission button on the phone.
+- Optional: a real picker from the car would need a transparent proxy Activity started on the phone (background activity start limits).
 - Deploy and verify on device / Android Auto: Main tab A -> tab B -> back to A; Main <-> Wide; "Wide:" tab selection; closing the owner tab; muted autoplay sites while music plays.
 - If a site keeps resuming after being paused (ping-pong), check the `MediaFocusManager` logs (`DENIED`) and tune `RECLAIM_GUARD_MS`.
 - Verify YouTube voice search in the Wide on the car (mic routing through Android Auto).

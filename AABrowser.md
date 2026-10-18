@@ -91,6 +91,8 @@ When modifying code, refactoring, or generating files for AABrowser, strictly ad
 
 3\. \*\*Log Security\*\*: Never log raw URLs, tokens, or personal context using standard \`Log.d\` / \`Log.e\`. Always wrap logs through the \`AppLog\` sanitizer class.
 
+4\. \*\*Dependency Management (TOML)\*\*: Always define dependencies and library versions in \`gradle/libs.versions.toml\` (Version Catalog). Never hardcode dependency strings directly in \`build.gradle\` files.
+
 \### Release Changelog Generation Standard
 
 When tasked with creating release updates, strictly follow this format:
