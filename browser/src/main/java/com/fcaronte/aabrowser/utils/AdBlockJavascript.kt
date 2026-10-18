@@ -74,10 +74,13 @@ object AdBlockJavascript {
                 video.playbackRate = 16.0;
                 
                 if (skipBtn) {
-                    try {
-                        skipBtn.click();
-                        skipBtn.querySelectorAll('*').forEach(c => c.click());
-                    } catch (e) {}
+                    const isDisabled = skipBtn.disabled || skipBtn.getAttribute('aria-disabled') === 'true';
+                        if (!isDisabled) {
+                            try {
+                                skipBtn.click();
+                                skipBtn.querySelectorAll('*').forEach(c => c.click());
+                            } catch (e) {}
+                        }
                 }
 
                 if (video.paused) video.play().catch(() => {});
