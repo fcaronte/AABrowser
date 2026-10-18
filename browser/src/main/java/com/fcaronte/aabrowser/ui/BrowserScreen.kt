@@ -69,6 +69,7 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
+import com.fcaronte.aabrowser.utils.SpotifyManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -240,15 +241,11 @@ fun BrowserScreen(
                     host == "www.youtube.com" ||
                     host.endsWith(".youtube.com")
 
-        /*
-         * YouTube playlist:
-         *
-         * https://www.youtube.com/watch?v=XXX&list=YYY
-         * https://www.youtube.com/playlist?list=YYY
-         *
-         * In questo caso Android Auto deve mostrare
-         * PREVIOUS / NEXT e NON i controlli +/-10 secondi.
-         */
+        val isSpotify =
+            host == "open.spotify.com" ||
+                    host == "spotify.com" ||
+                    host.endsWith(".spotify.com")
+
         val isYouTubePlaylist =
             isYouTube &&
                     (
@@ -256,31 +253,42 @@ fun BrowserScreen(
                                     uri?.path?.equals("/playlist", ignoreCase = true) == true
                             )
 
-        if (isYouTubePlaylist) {
+        when {
+            isSpotify -> {
+                AppLog.d(
+                    "AABrowserPlayback",
+                    "Media capabilities: Spotify -> NEXT/PREVIOUS"
+                )
+                mediaSessionManager?.setPlaybackCapabilities(
+                    canSeek = false,
+                    canSkipNext = true,
+                    canSkipPrevious = true
+                )
+            }
 
-            AppLog.d(
-                "AABrowserPlayback",
-                "Media capabilities: YouTube playlist -> NEXT/PREVIOUS"
-            )
+            isYouTubePlaylist -> {
+                AppLog.d(
+                    "AABrowserPlayback",
+                    "Media capabilities: YouTube playlist -> NEXT/PREVIOUS"
+                )
+                mediaSessionManager?.setPlaybackCapabilities(
+                    canSeek = false,
+                    canSkipNext = true,
+                    canSkipPrevious = true
+                )
+            }
 
-            mediaSessionManager?.setPlaybackCapabilities(
-                canSeek = false,
-                canSkipNext = true,
-                canSkipPrevious = true
-            )
-
-        } else {
-
-            AppLog.d(
-                "AABrowserPlayback",
-                "Media capabilities: normal player -> SEEK"
-            )
-
-            mediaSessionManager?.setPlaybackCapabilities(
-                canSeek = true,
-                canSkipNext = false,
-                canSkipPrevious = false
-            )
+            else -> {
+                AppLog.d(
+                    "AABrowserPlayback",
+                    "Media capabilities: normal player -> SEEK"
+                )
+                mediaSessionManager?.setPlaybackCapabilities(
+                    canSeek = true,
+                    canSkipNext = false,
+                    canSkipPrevious = false
+                )
+            }
         }
     }
 
@@ -593,8 +601,24 @@ fun BrowserScreen(
                         onPlay = { evaluateJavascript(BrowserJavascript.PLAY_SCRIPT.trimIndent(), null) }
                         onPause = { evaluateJavascript(BrowserJavascript.PAUSE_SCRIPT.trimIndent(), null) }
                         onStop = { evaluateJavascript(BrowserJavascript.STOP_SCRIPT.trimIndent(), null) }
-                        onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
-                        onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
+                        onSkipToNext = {
+                            val isSpotify = url.contains("spotify.com", ignoreCase = true)
+                            val script = if (isSpotify) {
+                                SpotifyManager.getNextScript()
+                            } else {
+                                BrowserJavascript.NEXT_SCRIPT.trimIndent()
+                            }
+                            evaluateJavascript(script, null)
+                        }
+                        onSkipToPrevious = {
+                            val isSpotify = url.contains("spotify.com", ignoreCase = true)
+                            val script = if (isSpotify) {
+                                SpotifyManager.getPreviousScript()
+                            } else {
+                                BrowserJavascript.PREVIOUS_SCRIPT.trimIndent()
+                            }
+                            evaluateJavascript(script, null)
+                        }
                         onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
                         // Solo la scheda visibile può prendersi il player avviando un media
                         canTakeFocus = { currentIsTabActive }

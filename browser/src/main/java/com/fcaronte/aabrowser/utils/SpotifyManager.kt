@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.utils
 
 object SpotifyManager {
+
     fun getInjectionScript(): String {
         return """
         (function() {
@@ -426,4 +427,22 @@ object SpotifyManager {
         })();
         """.trimIndent()
     }
+
+    /** Click sul pulsante "brano successivo" del player Spotify. */
+    fun getNextScript(): String = """
+        (function() {
+            var btn = document.querySelector('[data-testid="control-button-skip-forward"]');
+            if (btn) { btn.click(); return 'ok'; }
+            return 'not-found';
+        })();
+    """.trimIndent()
+
+    /** Click sul pulsante "brano precedente" del player Spotify. */
+    fun getPreviousScript(): String = """
+        (function() {
+            var btn = document.querySelector('[data-testid="control-button-skip-back"]');
+            if (btn) { btn.click(); return 'ok'; }
+            return 'not-found';
+        })();
+    """.trimIndent()
 }
