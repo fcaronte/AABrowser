@@ -69,7 +69,6 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
-import com.fcaronte.aabrowser.utils.SpotifyManager
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -241,10 +240,12 @@ fun BrowserScreen(
                     host == "www.youtube.com" ||
                     host.endsWith(".youtube.com")
 
-        val isSpotify =
+        // Siti con una coda di brani: skip avanti/indietro invece di +/-10 s
+        val isTrackSite =
             host == "open.spotify.com" ||
                     host == "spotify.com" ||
-                    host.endsWith(".spotify.com")
+                    host.endsWith(".spotify.com") ||
+                    host == "music.youtube.com"
 
         val isYouTubePlaylist =
             isYouTube &&
@@ -254,10 +255,10 @@ fun BrowserScreen(
                             )
 
         when {
-            isSpotify -> {
+            isTrackSite -> {
                 AppLog.d(
                     "AABrowserPlayback",
-                    "Media capabilities: Spotify -> NEXT/PREVIOUS"
+                    "Media capabilities: track site (Spotify / YouTube Music) -> NEXT/PREVIOUS"
                 )
                 mediaSessionManager?.setPlaybackCapabilities(
                     canSeek = false,
@@ -324,10 +325,8 @@ fun BrowserScreen(
 
     LaunchedEffect(isTabActive) {
         if (isTabActive) {
-            webViewReference?.let {
-                onWebViewCreated(it)
-                updateMediaCapabilities(it.url ?: url)
-            }
+            // I tasti del player restano quelli della pagina: ogni scheda ha il suo MediaSessionManager
+            webViewReference?.let { onWebViewCreated(it) }
         }
     }
 
@@ -601,24 +600,11 @@ fun BrowserScreen(
                         onPlay = { evaluateJavascript(BrowserJavascript.PLAY_SCRIPT.trimIndent(), null) }
                         onPause = { evaluateJavascript(BrowserJavascript.PAUSE_SCRIPT.trimIndent(), null) }
                         onStop = { evaluateJavascript(BrowserJavascript.STOP_SCRIPT.trimIndent(), null) }
-                        onSkipToNext = {
-                            val isSpotify = url.contains("spotify.com", ignoreCase = true)
-                            val script = if (isSpotify) {
-                                SpotifyManager.getNextScript()
-                            } else {
-                                BrowserJavascript.NEXT_SCRIPT.trimIndent()
-                            }
-                            evaluateJavascript(script, null)
-                        }
-                        onSkipToPrevious = {
-                            val isSpotify = url.contains("spotify.com", ignoreCase = true)
-                            val script = if (isSpotify) {
-                                SpotifyManager.getPreviousScript()
-                            } else {
-                                BrowserJavascript.PREVIOUS_SCRIPT.trimIndent()
-                            }
-                            evaluateJavascript(script, null)
-                        }
+                        // Spotify e gli altri siti a brani sono gestiti dentro gli script (Media Session
+                        // della pagina o pulsante del brano), così vale anche per la Wide e per le schede
+                        // arrivate su Spotify navigando: qui `url` sarebbe quello con cui è nata la scheda
+                        onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
+                        onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
                         onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
                         // Solo la scheda visibile può prendersi il player avviando un media
                         canTakeFocus = { currentIsTabActive }
@@ -1118,9 +1104,8 @@ fun BrowserScreen(
 
                         override fun onPageFinished(view: WebView?, url: String?) {
                             if (url != null) {
-
-                                updateMediaCapabilities(url)
-
+                                // Niente updateMediaCapabilities qui: i tasti predefiniti li mette onPageStarted
+                                // e a pagina caricata li aggiorna la pagina stessa (Media Session, playlist YouTube)
                                 onPageFinished(url)
                                 AppLog.d("##BrowserScreen", "onPageFinished: ${safeUrlForLog(url)}")
 

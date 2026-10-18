@@ -530,6 +530,10 @@ class MediaSessionManager(
         lastPosition = -1
         lastSpeed = 1.0f
         isLiveStream = false
+        // Pagina nuova: i tasti tornano quelli predefiniti finché la pagina non dice di avere brani
+        canSeek = true
+        canSkipNext = false
+        canSkipPrevious = false
     }
 
     private fun isPlayingState(state: Int): Boolean =

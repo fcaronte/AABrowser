@@ -122,6 +122,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
         const val INPUT_POPUP_SUPPRESS_MS = 1500L
 
+        // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
+        const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
+
         // All'avvio (e quando la surface viene ricreata) l'host sta ancora caricando la sua UI e la
         // visible area dei primi istanti può essere incompleta. L'inset viene applicato SUBITO
         // (la pagina non resta mai sotto il widget) e poi ricalcolato a questi ritardi,
@@ -790,38 +793,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         webView?.evaluateJavascript("window.__lastTouchX = $x; window.__lastTouchY = $y;", null)
 
-        val leftAreaM = leftInsetPx()
-        val rightAreaM = rightInsetPx()
-        val sidebarWidthPx = sidebarWidthPx()
-
         val fixed = sidebarFixedEnabled()
         val rtl = isRtl
         val sb = sidebarContainerReference
 
-        if (fixed) {
-            val sidebarLeft = if (rtl) (surfaceWidth - rightAreaM - sidebarWidthPx) else leftAreaM
-            val sidebarRight = if (rtl) (surfaceWidth - rightAreaM) else (leftAreaM + sidebarWidthPx)
-            // Tolleranza orizzontale ulteriormente ampliata (±20px)
-            val hitSidebar = x >= (sidebarLeft - 20) && x <= (sidebarRight + 20)
-            
+        if (fixed && sb != null && sb.isVisible && sb.width > 0) {
+            // Stessi limiti della sidebar disegnata (la WebView parte esattamente dal suo bordo):
+            // tolleranza solo verso il bordo dello schermo, mai verso la pagina, altrimenti
+            // i tocchi sul sito vicino alla sidebar finiscono su home/indietro/ricerca
+            val hitSidebar = if (rtl) {
+                x >= sb.left && x <= sb.right + SIDEBAR_OUTER_TOUCH_TOLERANCE_PX
+            } else {
+                x >= sb.left - SIDEBAR_OUTER_TOUCH_TOLERANCE_PX && x < sb.right
+            }
+
             if (hitSidebar) {
-                if (sb != null && sb.isVisible) {
-                    var bestButton: View? = null
-                    var minDistance = Float.MAX_VALUE
-                    
-                    // Trova sempre il pulsante più vicino al punto toccato verticalmente
-                    for (i in 0 until sb.childCount) {
-                        val child = sb.getChildAt(i)
-                        val childCenterY = (child.top + child.bottom) / 2f
-                        val dist = abs(y - childCenterY)
-                        if (dist < minDistance) {
-                            minDistance = dist
-                            bestButton = child
-                        }
+                var bestButton: View? = null
+                var minDistance = Float.MAX_VALUE
+
+                // Trova sempre il pulsante più vicino al punto toccato verticalmente
+                for (i in 0 until sb.childCount) {
+                    val child = sb.getChildAt(i)
+                    val childCenterY = (child.top + child.bottom) / 2f
+                    val dist = abs(y - childCenterY)
+                    if (dist < minDistance) {
+                        minDistance = dist
+                        bestButton = child
                     }
-                    bestButton?.performClick()
-                    return
                 }
+                bestButton?.performClick()
+                return
             }
         }
 

@@ -25,14 +25,14 @@ object UrlUtils {
                 input.startsWith("[::1]")
 
     /**
-     * Converte l'input dell'utente in un URL caricabile.
+     * L'URL da caricare se l'input è un indirizzo, altrimenti null.
      * - URL con schema       → invariato
      * - sembra un dominio/IP → aggiunge https://
-     * - altrimenti           → ricerca sul motore indicato
+     * Un testo con spazi non è mai un indirizzo (es. "10.000 passi" non è un IP locale).
      */
-    fun normalizeInput(rawInput: String, searchBaseUrl: String): String {
+    fun asUrlOrNull(rawInput: String): String? {
         val input = rawInput.trim()
-        if (input.isEmpty()) return "about:blank"
+        if (input.isEmpty()) return null
 
         return when {
             input.startsWith("http://", true) ||
@@ -45,9 +45,22 @@ object UrlUtils {
                     input.startsWith("mailto:", true) ||
                     input.startsWith("tel:", true) -> input
 
+            input.any { it.isWhitespace() } -> null
+
             looksLikeLocalhost(input) || looksLikeUrl(input) -> "https://$input"
 
-            else -> searchBaseUrl + Uri.encode(input)
+            else -> null
         }
+    }
+
+    /**
+     * Converte l'input dell'utente in un URL caricabile: l'indirizzo se lo è ([asUrlOrNull]),
+     * altrimenti la ricerca sul motore indicato.
+     */
+    fun normalizeInput(rawInput: String, searchBaseUrl: String): String {
+        val input = rawInput.trim()
+        if (input.isEmpty()) return "about:blank"
+
+        return asUrlOrNull(input) ?: (searchBaseUrl + Uri.encode(input))
     }
 }

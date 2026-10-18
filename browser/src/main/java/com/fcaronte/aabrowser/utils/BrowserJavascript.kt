@@ -35,6 +35,7 @@ object BrowserJavascript {
             $VISIBILITY_MOCK_JS
             $DRM_L3_ENFORCER_JS
             ${getLongPressLinkScript()}
+            $MEDIA_SESSION_TRACKS_JS
 
             const host = window.location.hostname.toLowerCase();
             const isSpotify = host.includes('spotify.com');
@@ -475,7 +476,7 @@ object BrowserJavascript {
     if (window.aabMediaSessionHandlers &&
         typeof window.aabMediaSessionHandlers['nexttrack'] === 'function') {
         try {
-            window.aabMediaSessionHandlers['nexttrack']();
+            window.aabMediaSessionHandlers['nexttrack']({ action: 'nexttrack' });
             return;
         } catch(e) {}
     }
@@ -600,6 +601,17 @@ object BrowserJavascript {
     }
 
     /*
+     * Spotify (se non ha registrato i comandi nella Media Session): pulsante del brano successivo
+     */
+    if (host.includes('spotify.com')) {
+        const spotifyNext = document.querySelector('[data-testid="control-button-skip-forward"]');
+        if (spotifyNext) {
+            smartClick(spotifyNext);
+            return;
+        }
+    }
+
+    /*
      * Altri player
      */
     const video =
@@ -623,7 +635,7 @@ object BrowserJavascript {
     if (window.aabMediaSessionHandlers &&
         typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
         try {
-            window.aabMediaSessionHandlers['previoustrack']();
+            window.aabMediaSessionHandlers['previoustrack']({ action: 'previoustrack' });
             return;
         } catch(e) {}
     }
@@ -743,6 +755,17 @@ object BrowserJavascript {
 
         tryPrevious();
         return;
+    }
+
+    /*
+     * Spotify (se non ha registrato i comandi nella Media Session): pulsante del brano precedente
+     */
+    if (host.includes('spotify.com')) {
+        const spotifyPrevious = document.querySelector('[data-testid="control-button-skip-back"]');
+        if (spotifyPrevious) {
+            smartClick(spotifyPrevious);
+            return;
+        }
     }
 
     /*
@@ -1112,7 +1135,8 @@ object BrowserJavascript {
         function checkYouTubeCapabilities() {
             if (!window.AndroidBridge || !window.AndroidBridge.updateMediaCapabilities) return;
             const host = window.location.hostname.toLowerCase();
-            if (host.includes('youtube.com') || host.includes('youtubekids.com')) {
+            // YouTube Music ha sempre una coda di brani: lo gestisce MEDIA_SESSION_TRACKS_JS
+            if ((host.includes('youtube.com') && !host.includes('music.youtube.com')) || host.includes('youtubekids.com')) {
                 const hasListParam = window.location.search.includes('list=') || window.location.pathname.includes('/playlist');
                 const nextBtn = document.querySelector('.ytp-next-button');
                 const prevBtn = document.querySelector('.ytp-prev-button');
@@ -1234,6 +1258,58 @@ object BrowserJavascript {
             }
         }
     """
+
+    /*
+     * Siti a brani (Spotify, YouTube Music, SoundCloud, ...): registrano 'nexttrack'/'previoustrack'
+     * nella Media Session. Li memorizziamo per i tasti avanti/indietro di Android Auto (NEXT_SCRIPT /
+     * PREVIOUS_SCRIPT li usano per primi) e segnaliamo all'app di mostrare lo skip invece di +/-10 s.
+     * Play/pausa non vengono toccati. Sui video di YouTube resta la logica delle playlist.
+     */
+    private const val MEDIA_SESSION_TRACKS_JS = """
+    (function() {
+        if (window.aabTrackHandlersInitialized) return;
+        window.aabTrackHandlersInitialized = true;
+
+        const host = window.location.hostname.toLowerCase();
+        const isYouTubeVideo = (host.includes('youtube.com') && !host.includes('music.youtube.com')) ||
+            host.includes('youtubekids.com');
+        if (isYouTubeVideo) return;
+
+        window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
+        const handlers = window.aabMediaSessionHandlers;
+
+        // Hanno sempre una coda di brani, anche prima di registrare i comandi
+        const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com');
+        let lastReport = null;
+
+        function report() {
+            if (!window.AndroidBridge || !window.AndroidBridge.updateMediaCapabilities) return;
+            const hasNext = isTrackSite || typeof handlers.nexttrack === 'function';
+            const hasPrevious = isTrackSite || typeof handlers.previoustrack === 'function';
+            const key = hasNext + ',' + hasPrevious;
+            if (key === lastReport) return;
+            lastReport = key;
+            AndroidBridge.updateMediaCapabilities(!(hasNext || hasPrevious), hasNext, hasPrevious);
+        }
+
+        if (navigator.mediaSession && typeof navigator.mediaSession.setActionHandler === 'function') {
+            const originalSetActionHandler = navigator.mediaSession.setActionHandler;
+            navigator.mediaSession.setActionHandler = function(action, handler) {
+                if (action === 'nexttrack' || action === 'previoustrack') {
+                    if (typeof handler === 'function') {
+                        handlers[action] = handler;
+                    } else {
+                        delete handlers[action];
+                    }
+                    report();
+                }
+                return originalSetActionHandler.apply(this, arguments);
+            };
+        }
+
+        if (isTrackSite) report();
+    })();
+"""
 
     private const val MEDIA_LISTENERS_JS = """
     (function() {

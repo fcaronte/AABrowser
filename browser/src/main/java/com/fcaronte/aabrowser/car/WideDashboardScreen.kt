@@ -12,6 +12,7 @@ import androidx.core.text.htmlEncode
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
+import com.fcaronte.aabrowser.utils.UrlUtils
 
 object HomePage {
 
@@ -264,16 +265,6 @@ ${
 </html>
         """.trimIndent()
     }
-
-    /** Se il testo sembra un indirizzo restituisce l'URL, altrimenti null. */
-    fun asUrlOrNull(query: String): String? {
-        val q = query.trim()
-        return when {
-            q.startsWith("http://") || q.startsWith("https://") -> q
-            q.contains('.') && !q.contains(' ') -> "https://$q"
-            else -> null
-        }
-    }
 }
 
 /**
@@ -323,7 +314,8 @@ object SiteSearch {
     }
 
     fun resolve(context: Context, currentUrl: String?, query: String): String {
-        HomePage.asUrlOrNull(query)?.let { return it }
+        // Un indirizzo si apre direttamente (stessa regola della Main)
+        UrlUtils.asUrlOrNull(query)?.let { return it }
         val host = hostOf(currentUrl)
         val site = host?.let { h -> sites.firstOrNull { it.match(h) } }
         val encoded = Uri.encode(query.trim())
