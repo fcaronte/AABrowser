@@ -1571,7 +1571,8 @@ object BrowserJavascript {
         (function() {
             var style = document.createElement('style');
             style.type = 'text/css';
-            style.innerHTML = '* { touch-action: manipulation; }';
+            // textContent e non innerHTML: su YouTube (Trusted Types) innerHTML viene bloccato
+            style.textContent = '* { touch-action: manipulation; }';
             if (document.head) {
                 document.head.appendChild(style);
             } else {

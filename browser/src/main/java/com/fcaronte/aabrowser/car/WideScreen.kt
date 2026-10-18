@@ -1263,8 +1263,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                             // Solo DRM (Netflix, Spotify, ...). Microfono e fotocamera restano negati.
                             override fun onPermissionRequest(request: PermissionRequest?) {
+                                // DRM e microfono (es. ricerca vocale di YouTube, che registra con getUserMedia),
+                                // come nella Main; la fotocamera resta negata
                                 val allowed = request?.resources
-                                    ?.filter { it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
+                                    ?.filter {
+                                        it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID ||
+                                                it == PermissionRequest.RESOURCE_AUDIO_CAPTURE
+                                    }
                                     ?.toTypedArray()
                                 if (allowed.isNullOrEmpty()) request?.deny() else request.grant(allowed)
                             }
