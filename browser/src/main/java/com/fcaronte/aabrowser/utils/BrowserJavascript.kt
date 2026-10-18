@@ -1,5 +1,7 @@
 package com.fcaronte.aabrowser.utils
 
+import org.json.JSONObject
+
 /**
  * Central repository for all JavaScript snippets injected into the WebView.
  */
@@ -127,6 +129,85 @@ object BrowserJavascript {
     })();
     """.trimIndent()
     }
+
+    /**
+     * Wide: Android Auto concede la tastiera alle app con template solo a schermo intero e intanto la pagina
+     * perde il focus. Questo script memorizza il campo di testo PRIMA di aprire la tastiera e ne restituisce
+     * testo e suggerimento (per precompilarla); null se non c'è un campo scrivibile.
+     */
+    fun getCaptureInputTargetScript(): String {
+        return """
+        (function() {
+            $EDITABLE_FIELD_JS
+            const el = isEditable(document.activeElement) ? document.activeElement : window.__savedInputElement;
+            if (!isEditable(el)) {
+                window.__aabTypingTarget = null;
+                return null;
+            }
+            window.__aabTypingTarget = el;
+            const isPassword = el.type === 'password';
+            return {
+                value: isPassword ? '' : (el.isContentEditable ? el.innerText : el.value) || '',
+                hint: el.getAttribute('placeholder') || el.getAttribute('aria-label') || '',
+                password: isPassword
+            };
+        })();
+        """.trimIndent()
+    }
+
+    /**
+     * Scrive [text] nel campo memorizzato da [getCaptureInputTargetScript] come un input vero e, visto che
+     * il tasto della tastiera di Android Auto è "Cerca", invia il modulo solo se è un campo di ricerca.
+     */
+    fun getSetInputTextScript(text: String): String {
+        return """
+        (function(text) {
+            $EDITABLE_FIELD_JS
+            const el = [window.__aabTypingTarget, document.activeElement, window.__savedInputElement].find(isEditable);
+            if (!el) return 'no-target';
+
+            el.focus();
+            if (el.isContentEditable) {
+                el.textContent = text;
+            } else {
+                // Setter nativo: i siti React ignorano un semplice el.value = ...
+                const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+                Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, text);
+                try { el.setSelectionRange(text.length, text.length); } catch (e) {}
+            }
+            el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const name = (el.getAttribute('name') || '').toLowerCase();
+            const isSearch = el.type === 'search' ||
+                ['searchbox', 'combobox'].includes(el.getAttribute('role')) ||
+                el.getAttribute('enterkeyhint') === 'search' ||
+                !!el.closest('[role="search"]') ||
+                ['q', 'query', 'search', 'search_query', 's'].includes(name);
+            if (!isSearch || !text) return 'typed';
+
+            if (el.form) {
+                if (typeof el.form.requestSubmit === 'function') el.form.requestSubmit(); else el.form.submit();
+            } else {
+                const keyInit = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+                el.dispatchEvent(new KeyboardEvent('keydown', keyInit));
+                el.dispatchEvent(new KeyboardEvent('keyup', keyInit));
+            }
+            return 'submitted';
+        })(${JSONObject.quote(text)});
+        """.trimIndent()
+    }
+
+    private const val EDITABLE_FIELD_JS = """
+        function isEditable(el) {
+            if (!el || !(el instanceof Element) || !el.isConnected) return false;
+            if (el.isContentEditable) return true;
+            if (el.disabled || el.readOnly) return false;
+            if (el.tagName === 'TEXTAREA') return true;
+            if (el.tagName !== 'INPUT') return false;
+            return ['text', 'search', 'email', 'url', 'tel', 'password', 'number'].includes((el.type || 'text').toLowerCase());
+        }
+    """
     fun getDesktopSpoofScript(chromeVersion: String): String {
         val majorVersion = chromeVersion.split(".").firstOrNull() ?: "152"
         val uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chromeVersion Safari/537.36"

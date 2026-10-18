@@ -116,6 +116,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Secondo passaggio, per catturare lo stato finale dell'animazione dei tasti
         const val VISIBLE_AREA_SETTLE_MS = 400L
 
+        // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
+        const val INPUT_POPUP_SUPPRESS_MS = 1500L
+
         // All'avvio (e quando la surface viene ricreata) l'host sta ancora caricando la sua UI e la
         // visible area dei primi istanti può essere incompleta. L'inset viene applicato SUBITO
         // (la pagina non resta mai sotto il widget) e poi ricalcolato a questi ritardi,
@@ -160,6 +163,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
     private var isInputPopupVisible = false
+    private var suppressInputPopupUntil = 0L
     private val hidePopupRunnable = Runnable {
         popupOverlayReference?.visibility = View.GONE
         isInputPopupVisible = false
@@ -337,17 +341,42 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         })
     }
 
-    /** Tastiera dal popup dei campi di testo: scrive nel campo selezionato della pagina. */
+    /**
+     * Tastiera dal popup dei campi di testo. Alle app con template Android Auto dà solo la tastiera a schermo
+     * intero (SearchTemplate) e mentre è aperta la pagina perde il focus: il campo viene memorizzato prima
+     * di aprirla (precompilandola col suo testo) e al ritorno il testo viene scritto lì.
+     */
     private fun openFieldInput() {
-        screenManager.push(WideSearchScreen(carContext, "Scrivi nel campo") { text ->
-            webView?.evaluateJavascript(BrowserJavascript.getInjectTextScript(text), null)
+        val wv = webView ?: return
+        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
+            val field = result?.takeIf { it.startsWith("{") }?.let {
+                try {
+                    JSONObject(it)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            val hint = field?.optString("hint")?.takeIf { it.isNotBlank() } ?: "Scrivi nel campo"
 
-            // Forza il focus non subito, ma con un delay per permettere
-            // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
-            webView?.postDelayed({
-                webView?.requestFocus()
-            }, 300)
-        })
+            screenManager.push(
+                WideSearchScreen(
+                    carContext,
+                    hint,
+                    initialText = field?.optString("value").orEmpty(),
+                    allowEmpty = true
+                ) { text ->
+                    // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
+                    suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
+                    webView?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text), null)
+
+                    // Forza il focus non subito, ma con un delay per permettere
+                    // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
+                    webView?.postDelayed({
+                        webView?.requestFocus()
+                    }, 300)
+                }
+            )
+        }
     }
 
     private fun loadUrl(url: String) {
@@ -979,18 +1008,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         btn.setPadding(32, 16, 32, 16) // Padding ridotto
                     }
 
-                    /*                  // Disable keyboard for now, i can't manage it correctly
-                                        val btnKeyboard = Button(ctx).apply {
-                                            text = "⌨️"
-                                            btnStyle(this, "#3B82F6") // Blue Material
-                                            setOnClickListener {
-                                                handler.removeCallbacks(hidePopupRunnable)
-                                                popupOverlay.visibility = View.GONE
-                                                isInputPopupVisible = false
-                                                openFieldInput()
-                                            }
-                                        }
-                    */
+                    val btnKeyboard = Button(ctx).apply {
+                        text = "⌨️"
+                        btnStyle(this, "#3B82F6") // Blue Material
+                        setOnClickListener {
+                            handler.removeCallbacks(hidePopupRunnable)
+                            popupOverlay.visibility = View.GONE
+                            isInputPopupVisible = false
+                            openFieldInput()
+                        }
+                    }
 
                     val btnMic = Button(ctx).apply {
                         text = "🎤"
@@ -1002,8 +1029,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         }
                     }
 
-                    // Disable keyboard for now, i can't manage it correctly
-//                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
+                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
                     inputCard.addView(btnMic, LinearLayout.LayoutParams(-2, -2))
 
                     val cardLp = FrameLayout.LayoutParams(-2, -2).apply {
@@ -1192,6 +1218,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun onStartInput() {
                                     post {
+                                        if (SystemClock.uptimeMillis() < suppressInputPopupUntil) return@post
                                         popupOverlay.visibility = View.VISIBLE
                                         isInputPopupVisible = true
                                         updatePopupPosition()

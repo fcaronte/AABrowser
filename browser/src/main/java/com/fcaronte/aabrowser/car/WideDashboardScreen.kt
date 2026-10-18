@@ -343,6 +343,10 @@ object SiteSearch {
 class WideSearchScreen(
     carContext: CarContext,
     private val hint: String,
+    // Testo già presente nel campo della pagina, così si modifica invece di riscriverlo
+    private val initialText: String = "",
+    // Per i campi delle pagine anche il testo vuoto è valido (svuota il campo)
+    private val allowEmpty: Boolean = false,
     private val onSubmit: (String) -> Unit
 ) : Screen(carContext) {
 
@@ -351,7 +355,7 @@ class WideSearchScreen(
             override fun onSearchTextChanged(searchText: String) {}
 
             override fun onSearchSubmitted(searchText: String) {
-                if (searchText.isNotBlank()) {
+                if (searchText.isNotBlank() || allowEmpty) {
                     screenManager.pop()
                     onSubmit(searchText)
                 }
@@ -360,6 +364,7 @@ class WideSearchScreen(
         return SearchTemplate.Builder(callback)
             .setHeaderAction(Action.BACK)
             .setSearchHint(hint)
+            .setInitialSearchText(initialText)
             .setShowKeyboardByDefault(true)
             .build()
     }
