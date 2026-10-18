@@ -204,6 +204,9 @@ object WebViewScriptRouter {
                     webView.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
                 }
 
+                // Tap sulla barra di avanzamento = salto in quel punto (YouTube mobile permette solo il trascinamento)
+                webView.evaluateJavascript(YouTubeManager.getTapToSeekScript(), null)
+
                 if (forceMaxYouTubeQuality) {
                     webView.evaluateJavascript("""
                         (function() {

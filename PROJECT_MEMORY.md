@@ -14,6 +14,7 @@
     - Bridge calls ran on the JavaBridge thread; the delayed (500 ms) PLAYING could be published after a later pause or after another client took focus. Now all state changes run on the main thread, the pending PLAYING is coalesced, re-checked and cancelled on focus loss.
     - Metadata updates no longer force STATE_PLAYING (a paused page stays paused on AA).
   - **Self-pause right after a playback starts (page change) fixed**: `CarMediaService` called `requestAudioFocus()` on every metadata update (and on AA play). The WebView (Chromium `AudioFocusDelegate`) already holds audio focus while playing, so the service stole it and Chromium paused the video ~1 s after it started (seen in logcat: WebView requestAudioFocus -> service requestAudioFocus -> `onAudioFocusChange(-1)` to `AudioFocusDelegate` -> page `pause`). Same fix as commit `bd244ca` ("fix spotify auto pause"), which had been undone by `3053222`.
+  - **YouTube tap-to-seek (Main + Wide)**: the m.youtube.com player (2026: `div.ytPlayerProgressBarDragContainer[role=slider]`, 44 px tall) seeks only by dragging; a tap on the bar is ignored (reproduced with Chrome 155 headless, same UA/viewport as the car WebView: 1075x514 CSS px, dpr 0.744). New `YouTubeManager.getTapToSeekScript()`, injected by `WebViewScriptRouter` for YouTube: a still tap inside the visible bar seeks to that point (skips overlapping buttons, ads, live streams). Drags are untouched (no preventDefault/stopPropagation). In the Wide dragging is still impossible: the Car App Library `onScroll` gives only distances, no finger position, and is converted to page scroll.
 
 ## 2. Modified / Created Files
 - `PROJECT_MEMORY.md`: Updated project memory log.
@@ -25,6 +26,8 @@
 - `browser/src/main/java/com/fcaronte/aabrowser/ui/MainScreen.kt`: Removed the shared media session and the manual player reset on tab close (the closed tab clears the player only if it owned it).
 - `browser/src/main/java/com/fcaronte/aabrowser/car/WideScreen.kt`: Sends `isPlaybackStart`, releases the player on every page start (not only home), page title as fallback.
 - `browser/src/main/java/com/fcaronte/aabrowser/model/TabManager.kt`: Non-destructive `switchTab` for the wide tab; `findTabIndexByUrlOrHost` ignores the wide mirror tab (opening a site from Main never lands on it).
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/YouTubeManager.kt`: `getTapToSeekScript()` (tap on the YouTube mobile progress bar = seek).
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/WebViewScriptRouter.kt`: Injects the tap-to-seek script on YouTube pages (shared by Main and Wide).
 - `browser/src/main/java/com/fcaronte/aabrowser/utils/BrowserJavascript.kt`: `MEDIA_LISTENERS_JS` reports only audible media (muted previews / background videos can't steal the player), unmute while playing counts as a start, media already playing when listeners attach is reported.
 
 ## 3. Architectural Decisions
@@ -37,4 +40,6 @@
 ## 4. Next Steps (TODO)
 - Deploy and verify on device / Android Auto: Main tab A -> tab B -> back to A; Main <-> Wide; "Wide:" tab selection; closing the owner tab; muted autoplay sites while music plays.
 - If a site keeps resuming after being paused (ping-pong), check the `MediaFocusManager` logs (`DENIED`) and tune `RECLAIM_GUARD_MS`.
+- Verify YouTube tap-to-seek on the device (Main phone/car and Wide). If YouTube renames the bar class, update the selector in `getTapToSeekScript()`.
+- Optional (not done): in the Wide, horizontal swipe on a fullscreen video could seek ±N s, since real dragging is not possible there.
 - Continue maintaining `PROJECT_MEMORY.md`.

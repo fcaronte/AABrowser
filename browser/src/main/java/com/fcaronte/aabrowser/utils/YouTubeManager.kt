@@ -53,4 +53,60 @@ object YouTubeManager {
         }
         """.trimIndent()
     }
+
+    /**
+     * Sul player mobile di YouTube la barra di avanzamento si può solo trascinare: un tap non sposta il video.
+     * Questo script fa saltare il video nel punto toccato (Main e Wide; nella Wide i trascinamenti
+     * diventano scroll della pagina, quindi il tap è l'unico modo per spostarsi nel video).
+     * Il trascinamento resta gestito da YouTube: lo script non blocca né modifica nessun evento.
+     */
+    fun getTapToSeekScript(): String {
+        return """
+        (function() {
+            if (window.aabTapSeekInitialized) return;
+            window.aabTapSeekInitialized = true;
+
+            // Oltre questa distanza (px CSS) è un trascinamento: lo gestisce YouTube
+            const MOVE_TOLERANCE = 12;
+            let tap = null;
+
+            window.addEventListener('pointerdown', function(e) {
+                tap = e.isPrimary ? { id: e.pointerId, x: e.clientX, y: e.clientY, target: e.target } : null;
+            }, true);
+
+            window.addEventListener('pointermove', function(e) {
+                if (tap && e.pointerId === tap.id &&
+                    Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > MOVE_TOLERANCE) {
+                    tap = null;
+                }
+            }, true);
+
+            window.addEventListener('pointercancel', function() { tap = null; }, true);
+
+            window.addEventListener('pointerup', function(e) {
+                const t = tap;
+                tap = null;
+                if (!t || e.pointerId !== t.id || window.aabIsAdPlaying) return;
+
+                // Con i controlli nascosti il tap serve solo a mostrarli
+                const bar = document.querySelector('.ytPlayerProgressBarDragContainer');
+                if (!bar || getComputedStyle(bar).visibility !== 'visible') return;
+
+                const r = bar.getBoundingClientRect();
+                if (r.width <= 0 || t.x < r.left || t.x > r.right || t.y < r.top || t.y > r.bottom) return;
+
+                // Pulsanti sovrapposti alla barra (es. schermo intero): il tap è loro
+                const target = t.target instanceof Element ? t.target : null;
+                if (target && !bar.contains(target) && target.closest('button, a, [role="button"]')) return;
+
+                const video = document.querySelector('video');
+                if (!video || !isFinite(video.duration) || video.duration <= 0) return;
+
+                const rtl = getComputedStyle(bar).direction === 'rtl';
+                const fraction = Math.min(1, Math.max(0, (rtl ? r.right - t.x : t.x - r.left) / r.width));
+                video.currentTime = fraction * video.duration;
+            }, true);
+        })();
+        """.trimIndent()
+    }
 }
