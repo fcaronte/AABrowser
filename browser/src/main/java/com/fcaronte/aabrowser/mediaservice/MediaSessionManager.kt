@@ -14,6 +14,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.LocalPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -360,8 +361,13 @@ class MediaSessionManager(
                 metadataScope.launch {
                     try {
                         val bitmap = withContext(Dispatchers.IO) {
-                            URL(artUrl).openStream().use {
-                                BitmapFactory.decodeStream(it)
+                            // Copertine del lettore locale: le legge l'app (player.local esiste solo nelle WebView)
+                            if (LocalPlayer.isPlayerUrl(artUrl)) {
+                                LocalPlayer.artworkBitmap(context, artUrl)
+                            } else {
+                                URL(artUrl).openStream().use {
+                                    BitmapFactory.decodeStream(it)
+                                }
                             }
                         }
                         // La copertina vale solo se nel frattempo il brano non è cambiato

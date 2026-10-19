@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.net.http.SslError
 import android.os.Bundle
 import android.os.Message
 import android.speech.RecognitionListener
@@ -15,6 +16,7 @@ import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
+import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -69,6 +71,9 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
+import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.PendingSslError
+import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -305,6 +310,10 @@ fun BrowserScreen(
     // File e cartelle chiesti dalla pagina (sull'auto la pagina riceve l'ultima scelta fatta sul telefono)
     val fileChooser = rememberWebFileChooser()
 
+    // Certificato non valido (es. server di casa autofirmato): come in Chrome la pagina aspetta la conferma
+    var sslPrompt by remember { mutableStateOf<PendingSslError?>(null) }
+    val sslPrompts = remember { SslErrorPrompts { sslPrompt = it } }
+
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
     var lastProcessedForwardTrigger by remember { mutableIntStateOf(forwardTrigger) }
@@ -390,6 +399,7 @@ fun BrowserScreen(
         onDispose {
             // Se il player era di questa scheda viene azzerato
             mediaSessionManager?.disconnect()
+            sslPrompts.cancelAll()
             webViewState.value?.let { webView ->
                 AppLog.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
                 webView.stopLoading()
@@ -954,6 +964,8 @@ fun BrowserScreen(
                             // Nuova pagina: il media della precedente non esiste più
                             mediaSessionManager?.releaseMediaFocus()
                             updateMediaCapabilities(url)
+                            // e neanche le sue richieste in attesa di un avviso di certificato
+                            sslPrompts.cancelAll()
 
                             view?.settings?.mediaPlaybackRequiresUserGesture =
                                 !autoplayMedia && !isDaznUrl(url)
@@ -1028,6 +1040,9 @@ fun BrowserScreen(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
+                            // Lettore locale dell'app (https://player.local/): pagina e file della cartella scelta
+                            LocalPlayer.intercept(context, request)?.let { return it }
+
                             val urlString = request?.url?.toString() ?: ""
                             val requestUrl = request?.url
                             if (AdBlockHost.shouldBlock(urlString)) {
@@ -1093,6 +1108,14 @@ fun BrowserScreen(
                                 )
                             }
                             super.onReceivedHttpError(view, request, errorResponse)
+                        }
+
+                        override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+                            if (handler == null || error == null) {
+                                handler?.cancel()
+                                return
+                            }
+                            sslPrompts.onSslError(handler, error)
                         }
 
                         override fun onRenderProcessGone(
@@ -1314,5 +1337,14 @@ fun BrowserScreen(
         }
 
         WebFileChooserDialog(fileChooser)
+
+        // Le schede in background restano in attesa: l'avviso compare quando le apri
+        sslPrompt?.takeIf { isTabActive }?.let { prompt ->
+            SslWarningPopup(
+                host = prompt.host,
+                onProceed = { sslPrompts.answer(prompt, proceed = true) },
+                onCancel = { sslPrompts.answer(prompt, proceed = false) },
+            )
+        }
     }
 }

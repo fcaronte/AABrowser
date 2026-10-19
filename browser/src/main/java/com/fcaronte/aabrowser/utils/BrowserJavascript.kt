@@ -1195,6 +1195,7 @@ object BrowserJavascript {
 
         let lastMediaTitle = "";
         let lastDuration = 0;
+        let lastArtUrl = "";
         function syncMetadata() {
             if (!window.AndroidBridge) return;
             const media = document.querySelector('video, audio');
@@ -1203,6 +1204,7 @@ object BrowserJavascript {
                 if (lastMediaTitle !== "") {
                     lastMediaTitle = "";
                     lastDuration = 0;
+                    lastArtUrl = "";
                     AndroidBridge.updateMediaMetadata("", "", "", 0);
                     AndroidBridge.onMediaStatusChanged(false, 0, 1.0);
                 }
@@ -1212,6 +1214,17 @@ object BrowserJavascript {
             let artist = "AABrowser Audio";
             let artUrl = "";
             let duration = media && isFinite(media.duration) ? media.duration : 0;
+
+            // Brano dichiarato dalla pagina nella Media Session (lettore locale dell'app, molti siti musicali);
+            // YouTube, Spotify e Zappr lo affinano subito dopo con le loro regole
+            const sessionMeta = navigator.mediaSession && navigator.mediaSession.metadata;
+            if (sessionMeta && sessionMeta.title) {
+                title = sessionMeta.title;
+                if (sessionMeta.artist) artist = sessionMeta.artist;
+                if (sessionMeta.artwork && sessionMeta.artwork.length > 0) {
+                    artUrl = sessionMeta.artwork[sessionMeta.artwork.length - 1].src || "";
+                }
+            }
     """
 
     private const val SPOTIFY_METADATA_JS = """
@@ -1251,9 +1264,11 @@ object BrowserJavascript {
                               lowerTitle === "" ||
                               lowerTitle === "aabrowser audio";
 
-            if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1)) {
+            // Anche la sola copertina conta: spesso arriva dopo il titolo
+            if (!isGeneric && title && (title !== lastMediaTitle || Math.abs(duration - lastDuration) > 1 || artUrl !== lastArtUrl)) {
                 lastMediaTitle = title;
                 lastDuration = duration;
+                lastArtUrl = artUrl;
                 AndroidBridge.updateMediaMetadata(title, artist, artUrl, duration);
             }
         }
@@ -1639,6 +1654,11 @@ object BrowserJavascript {
                         window.AndroidBridge && typeof AndroidBridge.onFolderInputClicked === 'function') {
                     AndroidBridge.onFolderInputClicked();
                 }
+                return;
+            }
+            // Cursori (es. barre di avanzamento), caselle e pulsanti non hanno testo da scrivere
+            if (field.tagName === 'INPUT' &&
+                    !['text', 'search', 'email', 'url', 'tel', 'password', 'number'].includes((field.type || 'text').toLowerCase())) {
                 return;
             }
             if (window.AndroidBridge) AndroidBridge.onStartInput();

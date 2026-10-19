@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.model
 import android.content.Context
 import android.content.SharedPreferences
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.LocalPlayer
 
 class FavoritesRepository(private val context: Context) {
     private val prefs: SharedPreferences =
@@ -25,10 +26,23 @@ class FavoritesRepository(private val context: Context) {
             val id = idFromPrefs ?: java.util.UUID.randomUUID().toString()
             if (idFromPrefs == null) migrationNeeded = true
             
-            val name = prefs.getString("BookmarkName$i", "") ?: ""
-            val url = prefs.getString("BookmarkUrl$i", "") ?: ""
+            var name = prefs.getString("BookmarkName$i", "") ?: ""
+            var url = prefs.getString("BookmarkUrl$i", "") ?: ""
             val color = prefs.getLong("BookmarkColor$i", 0xFF2196F3)
-            val faviconUrl = prefs.getString("BookmarkFavicon$i", null)
+            var faviconUrl = prefs.getString("BookmarkFavicon$i", null)
+
+            // Il lettore di prova su streamlit è stato sostituito dal lettore locale dell'app
+            if (url.startsWith(TEST_PLAYER_URL)) {
+                url = LocalPlayer.BASE_URL
+                name = context.getString(R.string.favorite_default_name_11)
+                faviconUrl = null
+                migrationNeeded = true
+            }
+            // Il lettore locale si chiamava "AABrowser Player" (il nome scelto dall'utente non viene toccato)
+            if (url == LocalPlayer.BASE_URL && name == OLD_PLAYER_NAME) {
+                name = context.getString(R.string.favorite_default_name_11)
+                migrationNeeded = true
+            }
 
             val isDesktopMode = if (prefs.contains("BookmarkDesktop$i")) prefs.getBoolean("BookmarkDesktop$i", false) else null
             val mobileZoom = readZoom("BookmarkMobileZoom$i")
@@ -90,5 +104,10 @@ class FavoritesRepository(private val context: Context) {
         val defaults = getDefaultFavorites()
         saveFavorites(defaults)
         return defaults
+    }
+
+    companion object {
+        private const val TEST_PLAYER_URL = "https://web-player.streamlit.app"
+        private const val OLD_PLAYER_NAME = "AABrowser Player"
     }
 }

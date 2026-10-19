@@ -60,6 +60,14 @@ class MainActivity : ComponentActivity() {
             permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)
         }
 
+        // 4. Rete locale (Android 17+): senza, le pagine non raggiungono gli IP di casa (Home Assistant,
+        //    Proxmox, proxy). Si può chiedere solo dal telefono: in auto il sistema non mostra la richiesta
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.ACCESS_LOCAL_NETWORK)
+            }
+        }
+
         // Se c'è almeno un permesso mancante, li chiede tutti insieme con un unico popup di sistema
         if (permissionsToRequest.isNotEmpty()) {
             requestPermissions(permissionsToRequest.toTypedArray(), permissionRequestCode)

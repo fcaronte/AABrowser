@@ -190,8 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">Web Player</string>
-    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
+    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
+    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -245,4 +245,15 @@
     <string name="file_chooser_last_folder">पिछला फ़ोल्डर: %1$s</string>
     <string name="file_chooser_use_folder">इसका उपयोग करें</string>
     <string name="file_chooser_change_folder">दूसरा चुनें</string>
+    <string name="player_choose_folder">फ़ोल्डर चुनें</string>
+    <string name="player_no_folder">अभी कोई फ़ोल्डर नहीं: फ़ोन पर “फ़ोल्डर चुनें” से चुनें।</string>
+    <string name="player_empty_folder">इस फ़ोल्डर में कोई ऑडियो या वीडियो फ़ाइल नहीं है।</string>
+    <string name="player_loading">लोड हो रहा है…</string>
+    <string name="player_unplayable">यह फ़ाइल नहीं चल सकती: अगली पर जा रहे हैं।</string>
+    <string name="player_tab_audio">ऑडियो</string>
+    <string name="player_tab_video">वीडियो</string>
+    <string name="ssl_warning_title">प्रमाणपत्र मान्य नहीं है</string>
+    <string name="ssl_warning_message">%1$s का प्रमाणपत्र भरोसेमंद नहीं है (स्व-हस्ताक्षरित, समाप्त या किसी दूसरे पते का)। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो, जैसे घर के नेटवर्क का सर्वर।</string>
+    <string name="ssl_warning_proceed">फिर भी जारी रखें</string>
+    <string name="ssl_warning_cancel">रद्द करें</string>
 </resources>

@@ -16,6 +16,74 @@ object AdBlockJavascript {
             return !!(el && el.offsetParent !== null);
         };
 
+        // --- Velocità: pubblicità 16x, musica 1x fissa, gli altri video la velocità scelta dall'utente ---
+        const MIN_USER_SPEED = 0.25;
+        const MAX_USER_SPEED = 4.0;
+
+        const getPlayer = () => document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+
+        function isMusicContent() {
+            if (window.location.host.includes('music.youtube.com')) return true;
+            if ((document.title || '').toLowerCase().includes('official music video')) return true;
+            // Categoria del video: non dipende dalla lingua del titolo
+            try {
+                const player = getPlayer();
+                const response = player && typeof player.getPlayerResponse === 'function' ? player.getPlayerResponse() : null;
+                const micro = response && response.microformat && response.microformat.playerMicroformatRenderer;
+                if (micro && micro.category === 'Music') return true;
+            } catch (e) {}
+            return false;
+        }
+
+        function getSavedSpeed() {
+            const saved = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
+            return isFinite(saved) && saved >= MIN_USER_SPEED && saved <= MAX_USER_SPEED ? saved : 1.0;
+        }
+
+        function saveSpeed(rate) {
+            if (Math.abs(getSavedSpeed() - rate) < 0.01) return;
+            localStorage.setItem('yt-custom-speed', rate.toString());
+            console.log('AABrowser AdBlock: saved yt-custom-speed = ' + rate);
+            // Persistenza globale lato Android (sopravvive alla chiusura dell'app)
+            if (window.AndroidBridge && typeof window.AndroidBridge.saveYouTubeSpeed === 'function') {
+                window.AndroidBridge.saveYouTubeSpeed(rate);
+            }
+        }
+
+        // Velocità impostata da noi: il ratechange che segue non è una scelta dell'utente.
+        // Passa anche dall'API del player, così il menu di YouTube resta allineato e non la riporta a 1x
+        function applyRate(video, rate) {
+            window.aabExpectedRate = rate;
+            window.aabExpectedRateTime = Date.now();
+            const player = getPlayer();
+            if (rate <= 2.0 && player && typeof player.setPlaybackRate === 'function') {
+                try { player.setPlaybackRate(rate); } catch (e) {}
+            }
+            if (Math.abs(video.playbackRate - rate) > 0.01) video.playbackRate = rate;
+        }
+
+        // YouTube riusa lo stesso <video> per tutti i video: id e sorgente indicano quale video sta suonando
+        function videoKey(video) {
+            const id = new URLSearchParams(window.location.search).get('v') || '';
+            return window.location.pathname + '|' + id + '|' + (video.currentSrc || '');
+        }
+
+        function trackUserSpeed(video) {
+            if (video.dataset.aabRateListener) return;
+            video.dataset.aabRateListener = 'true';
+            video.addEventListener('ratechange', () => {
+                const rate = video.playbackRate;
+                const ours = Math.abs(rate - (window.aabExpectedRate || 0)) < 0.01 &&
+                    Date.now() - (window.aabExpectedRateTime || 0) < 1500;
+                // Non sono scelte dell'utente: i nostri cambi, pubblicità e musica (velocità fisse)
+                // e il reset a 1x che YouTube fa su un video nuovo (non ancora inizializzato da noi)
+                if (ours || window.aabIsAdPlaying || isMusicContent()) return;
+                if (video.dataset.aabSpeedKey !== videoKey(video)) return;
+                if (rate < MIN_USER_SPEED || rate > MAX_USER_SPEED) return;
+                saveSpeed(rate);
+            });
+        }
+
         const mainLoop = setInterval(() => {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be') && !window.location.host.includes('youtubekids.com')) return;
             const video = document.querySelector('video');
@@ -87,14 +155,12 @@ object AdBlockJavascript {
             } else {
                 if (window.aabIsAdPlaying) {
                     window.aabIsAdPlaying = false;
-                    const isMusicVideo = isMusic || document.title.toLowerCase().includes('official music video');
-                    const savedSpeed = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
-                    
+
                     // Ritardo di assestamento per permettere a YouTube di ripristinare il timing del video principale
                     // ed evitare il salto a inizio video o il disalignamento della seekbar.
                     setTimeout(() => {
                         if (!window.aabIsAdPlaying && video) {
-                            video.playbackRate = isMusicVideo ? 1.0 : savedSpeed;
+                            applyRate(video, isMusicContent() ? 1.0 : getSavedSpeed());
                             if (window.AndroidBridge) {
                                 AndroidBridge.onMediaStatusChanged(!video.paused, video.currentTime, video.playbackRate);
                             }
@@ -125,14 +191,18 @@ object AdBlockJavascript {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be')) return;
             const video = document.querySelector('video');
             if (video && !window.aabIsAdPlaying) {
-                const isMusic = window.location.host.includes('music.youtube.com') || document.title.toLowerCase().includes('official music video');
-                if (isMusic) {
-                    if (video.playbackRate !== 1.0) video.playbackRate = 1.0;
-                } else {
-                    const savedSpeed = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
-                    if (!video.dataset.speedInitialized) {
-                        video.playbackRate = savedSpeed;
-                        video.dataset.speedInitialized = 'true';
+                trackUserSpeed(video);
+                const key = videoKey(video);
+                if (isMusicContent()) {
+                    if (Math.abs(video.playbackRate - 1.0) > 0.01) applyRate(video, 1.0);
+                    video.dataset.aabSpeedKey = key;
+                } else if (video.dataset.aabSpeedKey !== key && !video.paused && video.currentTime > 0.5) {
+                    // Video nuovo (YouTube lo fa ripartire da 1x): appena parte riceve la velocità salvata.
+                    // Se è già diversa da 1x l'ha scelta l'utente (o YouTube la ricordava): la rispettiamo
+                    video.dataset.aabSpeedKey = key;
+                    const savedSpeed = getSavedSpeed();
+                    if (Math.abs(video.playbackRate - 1.0) < 0.01 && Math.abs(savedSpeed - 1.0) > 0.01) {
+                        applyRate(video, savedSpeed);
                     }
                 }
             }
@@ -148,32 +218,6 @@ object AdBlockJavascript {
 
         }, 1000);
         window.aabIntervals.push(slowLoop);
-
-        // Salva la velocità scelta dall'utente (solo video normali, non musica, non annunci)
-        const persistSpeed = setInterval(() => {
-            if (!window.location.host.includes('youtube.com')) return;
-            if (window.aabIsAdPlaying) return;
-            if (window.location.host.includes('music.youtube.com')) return;
-            if (document.title.toLowerCase().includes('official music video')) return;
-
-            const video = document.querySelector('video');
-            if (!video) return;
-
-            const rate = video.playbackRate;
-            // Escludi 16x dell'adskip e valori fuori range utente
-            if (rate < 0.25 || rate > 2.0) return;
-
-            const saved = parseFloat(localStorage.getItem('yt-custom-speed') || '1.0');
-            if (Math.abs(saved - rate) > 0.01) {
-                localStorage.setItem('yt-custom-speed', rate.toString());
-                console.log('AABrowser AdBlock: saved yt-custom-speed = ' + rate);
-                // Persistenza globale lato Android (sopravvive alla chiusura dell'app)
-                if (window.AndroidBridge && typeof window.AndroidBridge.saveYouTubeSpeed === 'function') {
-                    window.AndroidBridge.saveYouTubeSpeed(rate);
-                }
-            }
-        }, 1500);
-        window.aabIntervals.push(persistSpeed);
 
     })();
     """.trimIndent()

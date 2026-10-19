@@ -203,4 +203,15 @@
     <string name="file_chooser_last_folder">Ultima cartella: %1$s</string>
     <string name="file_chooser_use_folder">Usala</string>
     <string name="file_chooser_change_folder">Scegline un\'altra</string>
+    <string name="player_choose_folder">Scegli cartella</string>
+    <string name="player_no_folder">Nessuna cartella: sceglila dal telefono con «Scegli cartella».</string>
+    <string name="player_empty_folder">Nessun file audio o video in questa cartella.</string>
+    <string name="player_loading">Caricamento…</string>
+    <string name="player_unplayable">Questo file non si può riprodurre: passo al successivo.</string>
+    <string name="player_tab_audio">Audio</string>
+    <string name="player_tab_video">Video</string>
+    <string name="ssl_warning_title">Certificato non valido</string>
+    <string name="ssl_warning_message">Il certificato di %1$s non è attendibile (autofirmato, scaduto o di un altro indirizzo). Continua solo se è un tuo dispositivo, come un server della rete di casa.</string>
+    <string name="ssl_warning_proceed">Continua comunque</string>
+    <string name="ssl_warning_cancel">Annulla</string>
 </resources>

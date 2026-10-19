@@ -15,6 +15,7 @@ import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.net.Uri
+import android.net.http.SslError
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -35,6 +36,7 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -65,6 +67,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
@@ -82,6 +85,8 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.LastFileSelection
+import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -193,6 +198,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private val mediaSessionManager = MediaSessionManager(carContext, MediaFocusManager.Source.WIDE_APP)
     private val handler = Handler(Looper.getMainLooper())
+
+    // Certificato non valido (es. server di casa autofirmato): conferma con una schermata di Android Auto
+    private val sslPrompts = SslErrorPrompts { handler.post { refreshSslWarning() } }
+    private var sslWarningScreen: WideSslWarningScreen? = null
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
     private val applyAreaRunnable = Runnable { applyVisibleArea() }
@@ -391,6 +400,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             applyUserAgent(it, url)
             it.loadUrl(url)
         }
+    }
+
+    /** Mostra l'avviso di certificato in attesa, oppure chiude quello che non serve più (nuova pagina). */
+    private fun refreshSslWarning() {
+        if (lifecycle.currentState == Lifecycle.State.DESTROYED) return
+        val prompt = sslPrompts.current
+        val shown = sslWarningScreen
+        if (shown?.prompt === prompt) return
+
+        sslWarningScreen = null
+        shown?.finish()
+        if (prompt == null) return
+        sslWarningScreen = WideSslWarningScreen(carContext, prompt) { proceed ->
+            sslPrompts.answer(prompt, proceed)
+        }.also { screenManager.push(it) }
     }
 
     /**
@@ -1334,6 +1358,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): WebResourceResponse? {
+                                // Lettore locale dell'app (https://player.local/), lo stesso della Main
+                                LocalPlayer.intercept(carContext, request)?.let { return it }
+
                                 val urlString = request?.url?.toString() ?: ""
 
                                 if (urlString == HomePage.BASE_URL) {
@@ -1441,8 +1468,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                 val isHomePage = url?.startsWith(HomePage.BASE_URL) == true
 
-                                // Nuova pagina (anche la home): il media della precedente non esiste più
+                                // Nuova pagina (anche la home): il media della precedente non esiste più,
+                                // e neanche le sue richieste in attesa di un avviso di certificato
                                 mediaSessionManager.releaseMediaFocus()
+                                sslPrompts.cancelAll()
 
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
@@ -1504,6 +1533,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     }
                                 }
                                 sampleBackdrop(view)
+                            }
+
+                            override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+                                if (handler == null || error == null) {
+                                    handler?.cancel()
+                                    return
+                                }
+                                sslPrompts.onSslError(handler, error)
                             }
 
                             // Se il processo di rendering muore, ricrea la WebView sulla stessa pagina
@@ -1660,6 +1697,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun releaseVirtualDisplay() {
         mediaSessionManager.disconnect()
+        sslPrompts.cancelAll()
         handler.removeCallbacks(hidePopupRunnable)
         handler.removeCallbacks(applyAreaRunnable)
         handler.removeCallbacks(applyAreaSettledRunnable)

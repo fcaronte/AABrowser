@@ -190,8 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">Web Player</string>
-    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
+    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
+    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -244,4 +244,15 @@
     <string name="file_chooser_last_folder">上次的文件夹：%1$s</string>
     <string name="file_chooser_use_folder">使用</string>
     <string name="file_chooser_change_folder">选择其他文件夹</string>
+    <string name="player_choose_folder">选择文件夹</string>
+    <string name="player_no_folder">尚未选择文件夹：请在手机上点击“选择文件夹”。</string>
+    <string name="player_empty_folder">此文件夹中没有音频或视频文件。</string>
+    <string name="player_loading">正在加载…</string>
+    <string name="player_unplayable">无法播放此文件：跳到下一个。</string>
+    <string name="player_tab_audio">音频</string>
+    <string name="player_tab_video">视频</string>
+    <string name="ssl_warning_title">证书无效</string>
+    <string name="ssl_warning_message">%1$s 的证书不受信任（自签名、已过期或属于其他地址）。仅当它是你自己的设备（例如家庭网络中的服务器）时才继续。</string>
+    <string name="ssl_warning_proceed">仍然继续</string>
+    <string name="ssl_warning_cancel">取消</string>
 </resources>

@@ -67,6 +67,9 @@ object LastFileSelection {
     suspend fun listRememberedFolder(context: Context): Array<Uri>? =
         rememberedFolder(context)?.let { listFolder(context, it) }
 
+    /** Cartella ricordata con il permesso ancora valido (usata dal lettore locale); null se non c'è. */
+    fun rememberedFolderUri(context: Context): Uri? = rememberedFolder(context)
+
     private fun rememberedFolder(context: Context): Uri? {
         val folder = prefs(context).getString(KEY_FOLDER, null)?.let(Uri::parse) ?: return null
         val granted = context.contentResolver.persistedUriPermissions.any { it.uri == folder && it.isReadPermission }

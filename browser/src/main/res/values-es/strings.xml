@@ -190,8 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">Web Player</string>
-    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
+    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
+    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -246,4 +246,15 @@
     <string name="file_chooser_last_folder">Última carpeta: %1$s</string>
     <string name="file_chooser_use_folder">Usarla</string>
     <string name="file_chooser_change_folder">Elegir otra</string>
+    <string name="player_choose_folder">Elegir carpeta</string>
+    <string name="player_no_folder">Aún no hay carpeta: elígela en el teléfono con «Elegir carpeta».</string>
+    <string name="player_empty_folder">No hay archivos de audio o vídeo en esta carpeta.</string>
+    <string name="player_loading">Cargando…</string>
+    <string name="player_unplayable">No se puede reproducir este archivo: paso al siguiente.</string>
+    <string name="player_tab_audio">Audio</string>
+    <string name="player_tab_video">Vídeo</string>
+    <string name="ssl_warning_title">Certificado no válido</string>
+    <string name="ssl_warning_message">El certificado de %1$s no es de confianza (autofirmado, caducado o de otra dirección). Continúa solo si es un dispositivo tuyo, como un servidor de tu red doméstica.</string>
+    <string name="ssl_warning_proceed">Continuar de todos modos</string>
+    <string name="ssl_warning_cancel">Cancelar</string>
 </resources>

@@ -190,8 +190,8 @@
     <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">Web Player</string>
-    <string name="favorite_default_url_11" translatable="false">https://web-player.streamlit.app/</string>
+    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
+    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -249,4 +249,15 @@
     <string name="file_chooser_last_folder">آخر مجلد: %1$s</string>
     <string name="file_chooser_use_folder">استخدامه</string>
     <string name="file_chooser_change_folder">اختيار مجلد آخر</string>
+    <string name="player_choose_folder">اختيار مجلد</string>
+    <string name="player_no_folder">لا يوجد مجلد بعد: اختر مجلدًا على الهاتف باستخدام «اختيار مجلد».</string>
+    <string name="player_empty_folder">لا توجد ملفات صوت أو فيديو في هذا المجلد.</string>
+    <string name="player_loading">جارٍ التحميل…</string>
+    <string name="player_unplayable">لا يمكن تشغيل هذا الملف: الانتقال إلى التالي.</string>
+    <string name="player_tab_audio">صوت</string>
+    <string name="player_tab_video">فيديو</string>
+    <string name="ssl_warning_title">شهادة غير صالحة</string>
+    <string name="ssl_warning_message">شهادة %1$s غير موثوقة (موقّعة ذاتيًا أو منتهية الصلاحية أو لعنوان آخر). تابع فقط إذا كان جهازك الخاص، مثل خادم على شبكتك المنزلية.</string>
+    <string name="ssl_warning_proceed">المتابعة على أي حال</string>
+    <string name="ssl_warning_cancel">إلغاء</string>
 </resources>
