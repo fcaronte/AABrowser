@@ -79,6 +79,7 @@ import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
+import com.fcaronte.aabrowser.utils.SslExceptions
 import kotlinx.coroutines.delay
 import java.io.File
 
@@ -1006,6 +1007,8 @@ fun SettingsScreen(
                             SettingsCard {
                                 var clearCache by remember { mutableStateOf(false) }
                                 var clearCookies by remember { mutableStateOf(false) }
+                                var clearCertificates by remember { mutableStateOf(false) }
+                                var certificatesCount by remember { mutableStateOf(SslExceptions.count(context)) }
 
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Row(
@@ -1062,6 +1065,17 @@ fun SettingsScreen(
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }
+                                    // Certificati non validi accettati con "Continua comunque" (es. server di casa)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = clearCertificates,
+                                            onCheckedChange = { clearCertificates = it }
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.certificates_label, certificatesCount),
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -1076,9 +1090,14 @@ fun SettingsScreen(
                                                 AppSettings.clearCookies()
                                                 clearCookies = false
                                             }
+                                            if (clearCertificates) {
+                                                SslExceptions.clear(context)
+                                                certificatesCount = 0
+                                                clearCertificates = false
+                                            }
                                             onShowFeedback(dataClearedMsg)
                                         },
-                                        enabled = clearCache || clearCookies,
+                                        enabled = clearCache || clearCookies || clearCertificates,
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.error,

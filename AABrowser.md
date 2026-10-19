@@ -53,7 +53,7 @@
 
   - \*Hard Constraint\*: Android Auto stock template framework enforces that the right stock bar MUST keep at least one action button locked at the top-right corner.
 
-  - \*Beta Limitations\*: Software keyboard popup and double-tap-to-zoom gestures are explicitly restricted/disabled in Wide Mode for touch stability and safety while driving.
+  - \*Beta Limitations\*: Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving). Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
 
 \### Web Engine & Injected JavaScript
 
@@ -109,7 +109,7 @@ When tasked with creating release updates, strictly follow this format:
 
 Se ti piace usare l'applicazione e desideri supportare lo sviluppo, puoi farlo tramite i seguenti link:
 
-\- \*\*\[Dona tramite PayPal\](https://www.paypal.com/paypalme/FCaronte/2)\*\*
+\- \*\*\[Dona tramite PayPal\](https://www.paypal.com/paypalme/FCaronte/4)\*\*
 
 \- \*\*\[Offr
 

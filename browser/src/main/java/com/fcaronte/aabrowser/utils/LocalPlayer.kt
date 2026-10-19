@@ -2,22 +2,22 @@ package com.fcaronte.aabrowser.utils
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Build
 import android.provider.DocumentsContract
 import android.util.Base64
 import android.util.LruCache
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.ui.appColorScheme
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -159,31 +159,36 @@ object LocalPlayer {
     }
 
     /**
-     * Colori Material You del telefono (Android 12+, con i colori dinamici attivi nelle impostazioni dell'app),
-     * sempre nella versione scura: sono le variabili di player.css. Altrimenti restano quelle predefinite.
+     * Colori della pagina uguali a quelli dell'app (Tema: automatico o forzato chiaro/scuro/AMOLED, colori dinamici
+     * del telefono): diventano le variabili di player.css. Solo i ruoli che tutte le palette dell'app definiscono.
+     * In chiaro "only light" impedisce alla WebView di scurire da sola la pagina (scurimento automatico dei siti).
+     * Nella Wide "automatico" segue il giorno/notte dell'auto (configurazione del CarContext).
      */
     private fun themeCss(context: Context): String {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !AppSettings.dynamicColor.value) return ""
-        val scheme = dynamicDarkColorScheme(context)
+        val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        val scheme = appColorScheme(context, systemIsDark = night)
+        val light = scheme.background.luminance() > 0.5f
         val colors = mapOf(
-            "bg" to scheme.surfaceContainerLowest,
+            "bg" to scheme.background,
             "panel" to scheme.surfaceContainer,
             "line" to scheme.outlineVariant,
             "text" to scheme.onSurface,
             "muted" to scheme.onSurfaceVariant,
             "accent" to scheme.primary,
             "on-accent" to scheme.onPrimary,
-            "soft" to scheme.secondaryContainer,
-            "raised" to scheme.surfaceContainerHigh,
-            "pressed" to scheme.surfaceContainerHighest,
-            "current" to scheme.surfaceContainerHigh,
-            "art-from" to scheme.surfaceContainerHigh,
-            "art-to" to scheme.surfaceContainerLowest,
-            "note" to scheme.outlineVariant,
+            "soft" to scheme.surfaceVariant,
+            "raised" to scheme.surfaceVariant,
+            "pressed" to scheme.surfaceVariant,
+            "current" to scheme.surfaceContainer,
+            "art-from" to scheme.surfaceVariant,
+            "art-to" to scheme.background,
+            "note" to scheme.outline,
         )
-        return colors.entries.joinToString("", prefix = ":root{", postfix = "}") { (name, color) ->
+        val variables = colors.entries.joinToString("") { (name, color) ->
             "--$name:" + String.format(Locale.ROOT, "#%06X", color.toArgb() and 0xFFFFFF) + ";"
         }
+        return ":root{color-scheme:" + (if (light) "only light" else "dark") + ";" + variables + "}"
     }
 
     private fun asset(context: Context, name: String, mime: String): WebResourceResponse =

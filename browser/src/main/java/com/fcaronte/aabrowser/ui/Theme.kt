@@ -1,7 +1,9 @@
 package com.fcaronte.aabrowser.ui
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -72,12 +74,34 @@ fun AABrowserTheme(
     themeMode: ThemeMode = AppSettings.themeMode.value,
     content: @Composable () -> Unit
 ) {
-    val context = LocalContext.current
-    val supportsDynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val systemIsDark = isSystemInDarkTheme()
-    val dynamicColorEnabled = AppSettings.dynamicColor.value
+    val colorScheme = appColorScheme(
+        context = LocalContext.current,
+        systemIsDark = isSystemInDarkTheme(),
+        forceTheme = forceTheme,
+        themeMode = themeMode,
+        dynamicColorEnabled = AppSettings.dynamicColor.value
+    )
 
-    val colorScheme = if (!forceTheme) {
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content
+    )
+}
+
+/**
+ * Colori dell'app secondo le impostazioni (tema automatico o forzato chiaro/scuro/AMOLED, colori dinamici del
+ * telefono). Funzione normale e non @Composable: la usa anche AAB Media (LocalPlayer) per la sua pagina.
+ */
+fun appColorScheme(
+    context: Context,
+    systemIsDark: Boolean,
+    forceTheme: Boolean = AppSettings.forceTheme.value,
+    themeMode: ThemeMode = AppSettings.themeMode.value,
+    dynamicColorEnabled: Boolean = AppSettings.dynamicColor.value,
+): ColorScheme {
+    val supportsDynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    return if (!forceTheme) {
         // Modalità Automatica: segue il sistema
         if (supportsDynamic && dynamicColorEnabled) {
             if (systemIsDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -102,9 +126,4 @@ fun AABrowserTheme(
             }
         }
     }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
 }

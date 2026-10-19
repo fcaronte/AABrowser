@@ -10,11 +10,38 @@ object AdBlockJavascript {
         }
         window.aabIntervals = [];
 
-        console.log("AABrowser: YouTube AdBlock Active (v10.1-MusicFix)");
+        console.log("AABrowser: YouTube AdBlock Active (v11)");
 
+        // Non offsetParent: è null anche dentro i contenitori "fixed", come il player di m.youtube.com,
+        // e il tasto "Salta" non veniva mai trovato
         const isVisible = (el) => {
-            return !!(el && el.offsetParent !== null);
+            if (!el || !el.isConnected) return false;
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return false;
+            const style = getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
         };
+
+        // Un semplice click() a volte viene ignorato: sequenza completa come un tocco vero
+        function pressButton(el) {
+            try {
+                const rect = el.getBoundingClientRect();
+                const init = {
+                    bubbles: true, cancelable: true, view: window,
+                    clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2
+                };
+                ['pointerdown', 'mousedown', 'pointerup', 'mouseup'].forEach(type => {
+                    const EventType = type.indexOf('pointer') === 0 && window.PointerEvent ? PointerEvent : MouseEvent;
+                    el.dispatchEvent(new EventType(type, init));
+                });
+                el.click();
+            } catch (e) {}
+        }
+
+        // Il <video> del player: sulla home di m.youtube.com prima nel DOM ci possono essere le anteprime
+        function getMainVideo(player) {
+            return (player && player.querySelector('video')) || document.querySelector('video');
+        }
 
         // --- Velocità: pubblicità 16x, musica 1x fissa, gli altri video la velocità scelta dall'utente ---
         const MIN_USER_SPEED = 0.25;
@@ -86,12 +113,11 @@ object AdBlockJavascript {
 
         const mainLoop = setInterval(() => {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be') && !window.location.host.includes('youtubekids.com')) return;
-            const video = document.querySelector('video');
-            if (!video) return;
-
             const isMusic = window.location.host.includes('music.youtube.com');
             const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player') || document.querySelector('ytmusic-player');
-            
+            const video = getMainVideo(player);
+            if (!video) return;
+
             // Rilevamento basato sugli stati nativi del player di YouTube e YouTube Music
             let adShowing = player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting'));
 
@@ -112,7 +138,8 @@ object AdBlockJavascript {
             
             let skipBtn = skipBtnSelectors.map(s => document.querySelector(s)).find(isVisible);
 
-            if (!skipBtn) {
+            // Ricerca per testo (più pesante: legge tutti i pulsanti) solo durante una pubblicità
+            if (!skipBtn && adShowing) {
                 const buttons = document.querySelectorAll('button, [role="button"], .ytmusic-skip-ad-button');
                 for (const btn of buttons) {
                     const t = (btn.innerText || "").toLowerCase();
@@ -138,16 +165,19 @@ object AdBlockJavascript {
 
             if (isActuallyAd) {
                 window.aabIsAdPlaying = true;
-                video.muted = true;
+                if (!video.muted) {
+                    video.muted = true;
+                    video.dataset.aabAdMuted = 'true';
+                }
                 video.playbackRate = 16.0;
-                
+
                 if (skipBtn) {
                     const isDisabled = skipBtn.disabled || skipBtn.getAttribute('aria-disabled') === 'true';
                     if (!isDisabled) {
-                        try {
-                            skipBtn.click();
-                            skipBtn.querySelectorAll('*').forEach(c => c.click());
-                        } catch (e) {}
+                        pressButton(skipBtn);
+                        // Trovato il contenitore: va premuto anche il pulsante vero e proprio
+                        const inner = skipBtn.querySelector('button');
+                        if (inner && inner !== skipBtn) pressButton(inner);
                     }
                 }
 
@@ -167,8 +197,11 @@ object AdBlockJavascript {
                         }
                     }, 350);
                 }
-                if (video && video.muted) {
+                // Audio di nuovo attivo solo se l'avevamo tolto noi per la pubblicità: non i video che l'utente
+                // ha messo in muto e non le anteprime mute (si sentirebbero e prenderebbero il player dell'auto)
+                if (video.dataset.aabAdMuted === 'true') {
                     video.muted = false;
+                    delete video.dataset.aabAdMuted;
                 }
             }
 
@@ -189,7 +222,7 @@ object AdBlockJavascript {
 
         const slowLoop = setInterval(() => {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be')) return;
-            const video = document.querySelector('video');
+            const video = getMainVideo(getPlayer());
             if (video && !window.aabIsAdPlaying) {
                 trackUserSpeed(video);
                 const key = videoKey(video);

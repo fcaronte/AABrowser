@@ -313,7 +313,7 @@ fun BrowserScreen(
 
     // Certificato non valido (es. server di casa autofirmato): come in Chrome la pagina aspetta la conferma
     var sslPrompt by remember { mutableStateOf<PendingSslError?>(null) }
-    val sslPrompts = remember { SslErrorPrompts { sslPrompt = it } }
+    val sslPrompts = remember { SslErrorPrompts(context) { sslPrompt = it } }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }

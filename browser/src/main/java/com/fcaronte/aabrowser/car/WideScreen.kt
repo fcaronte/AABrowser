@@ -196,7 +196,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val handler = Handler(Looper.getMainLooper())
 
     // Certificato non valido (es. server di casa autofirmato): conferma con una schermata di Android Auto
-    private val sslPrompts = SslErrorPrompts { handler.post { refreshSslWarning() } }
+    private val sslPrompts = SslErrorPrompts(carContext) { handler.post { refreshSslWarning() } }
     private var sslWarningScreen: WideSslWarningScreen? = null
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa

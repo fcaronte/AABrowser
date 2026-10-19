@@ -111,6 +111,7 @@
     <string name="clear_data_desc">अपने डिवाइस से हटाने के लिए डेटा चुनें</string>
     <string name="cache_label">कैش (%s)</string>
     <string name="cookies_label">कुकीज़</string>
+    <string name="certificates_label">स्वीकृत प्रमाणपत्र (%1$d)</string>
     <string name="data_cleared">चयनित डेटा साफ़ किया गया</string>
 
     <!-- Tab Manager -->
@@ -164,7 +165,7 @@
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
-    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/4</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->

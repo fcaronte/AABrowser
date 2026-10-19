@@ -111,6 +111,7 @@
     <string name="clear_data_desc">选择要从设备中删除的数据</string>
     <string name="cache_label">缓存 (%s)</string>
     <string name="cookies_label">Cookie</string>
+    <string name="certificates_label">已接受的证书 (%1$d)</string>
     <string name="data_cleared">已清除所选数据</string>
 
     <!-- Tab Manager -->
@@ -164,7 +165,7 @@
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
-    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/4</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->

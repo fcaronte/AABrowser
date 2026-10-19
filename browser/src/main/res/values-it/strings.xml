@@ -112,6 +112,7 @@
     <string name="clear_data_desc">Seleziona i dati da rimuovere dal dispositivo</string>
     <string name="cache_label">Cache (%s)</string>
     <string name="cookies_label">Cookies</string>
+    <string name="certificates_label">Certificati accettati (%1$d)</string>
     <string name="data_cleared">Dati selezionati cancellati</string>
 
     <!-- Tab Manager -->

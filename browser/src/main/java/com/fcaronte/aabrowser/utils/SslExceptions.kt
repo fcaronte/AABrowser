@@ -1,5 +1,7 @@
 package com.fcaronte.aabrowser.utils
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.net.http.SslError
 import android.webkit.SslErrorHandler
@@ -28,8 +30,12 @@ class PendingSslError(private val error: SslError, val key: String) {
  * Avvisi di certificato di una WebView, mostrati uno alla volta. Tutto gira sul main thread
  * (callback della WebView e UI). [onChanged] riceve l'avviso da mostrare ora (null = nessuno).
  */
-class SslErrorPrompts(private val onChanged: (PendingSslError?) -> Unit) {
+class SslErrorPrompts(context: Context, private val onChanged: (PendingSslError?) -> Unit) {
     private val queue = mutableListOf<PendingSslError>()
+
+    init {
+        SslExceptions.init(context)
+    }
 
     val current: PendingSslError? get() = queue.firstOrNull()
 
@@ -71,12 +77,39 @@ class SslErrorPrompts(private val onChanged: (PendingSslError?) -> Unit) {
 /**
  * Certificati non validi accettati dall'utente (es. server di casa autofirmato, Proxmox, proxy locale).
  *
- * Come in Chrome, la pagina si carica solo dopo una conferma esplicita: la scelta vale per quel sito e quel
- * certificato fino alla chiusura dell'app ed è condivisa tra Main e Wide. Un certificato diverso sullo stesso
- * sito va confermato di nuovo.
+ * Come in Chrome, la pagina si carica solo dopo una conferma esplicita. La scelta resta salvata (anche dopo la
+ * chiusura dell'app) per quel sito e quel certificato ed è condivisa tra Main e Wide. Un certificato diverso sullo
+ * stesso sito (rinnovato, o di qualcuno che si spaccia per il server) va confermato di nuovo. Si dimenticano
+ * dalle impostazioni (Cancella dati).
  */
 object SslExceptions {
+    private const val PREFS_NAME = "ssl_exceptions"
+    private const val KEY_ALLOWED = "allowed"
+
     private val allowed = mutableSetOf<String>()
+    private var prefs: SharedPreferences? = null
+
+    /** Carica le scelte salvate, una volta per processo (la chiamano sia la Main sia la Wide). */
+    @Synchronized
+    fun init(context: Context) {
+        if (prefs != null) return
+        val stored = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs = stored
+        allowed.addAll(stored.getStringSet(KEY_ALLOWED, null).orEmpty())
+    }
+
+    @Synchronized
+    fun count(context: Context): Int {
+        init(context)
+        return allowed.size
+    }
+
+    @Synchronized
+    fun clear(context: Context) {
+        init(context)
+        allowed.clear()
+        prefs?.edit()?.remove(KEY_ALLOWED)?.apply()
+    }
 
     /** Sito da mostrare all'utente nell'avviso. */
     fun hostOf(error: SslError): String = Uri.parse(error.url).host ?: error.url
@@ -99,6 +132,8 @@ object SslExceptions {
 
     @Synchronized
     fun allow(error: SslError) {
-        allowed.add(keyOf(error))
+        if (allowed.add(keyOf(error))) {
+            prefs?.edit()?.putStringSet(KEY_ALLOWED, HashSet(allowed))?.apply()
+        }
     }
 }

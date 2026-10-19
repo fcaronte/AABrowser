@@ -111,6 +111,7 @@
     <string name="clear_data_desc">حدد البيانات المراد إزالتها من جهازك</string>
     <string name="cache_label">ذاكرة التخزين المؤقت (%s)</string>
     <string name="cookies_label">ملفات تعريف الارتباط</string>
+    <string name="certificates_label">الشهادات المقبولة (%1$d)</string>
     <string name="data_cleared">تم مسح البيانات المحددة</string>
 
     <!-- Tab Manager -->
@@ -164,7 +165,7 @@
 
     <!-- URLs & Defaults (Not for translation) -->
     <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
-    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/2</string>
+    <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/4</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->
