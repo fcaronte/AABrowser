@@ -162,10 +162,7 @@ fun TabItem(
         }
     }
 
-    val faviconUrl = remember(tab.url, tab.faviconUrl) {
-        if (!tab.faviconUrl.isNullOrEmpty()) tab.faviconUrl
-        else "https://www.google.com/s2/favicons?domain=$domain&sz=128"
-    }
+    val iconModel = remember(tab.url, tab.faviconUrl) { siteIconModel(tab.url, tab.faviconUrl, domain) }
 
     Surface(
         onClick = onClick,
@@ -187,7 +184,7 @@ fun TabItem(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             AsyncImage(
-                model = faviconUrl,
+                model = iconModel,
                 contentDescription = null,
                 modifier = Modifier
                     .size(20.dp)

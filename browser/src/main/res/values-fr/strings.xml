@@ -253,8 +253,16 @@
     <string name="player_unplayable">Impossible de lire ce fichier : passage au suivant.</string>
     <string name="player_tab_audio">Audio</string>
     <string name="player_tab_video">Vidéo</string>
+    <string name="player_options">Options</string>
+    <string name="player_crossfade">Fondu enchaîné</string>
+    <string name="player_off">Non</string>
+    <string name="player_effects">Effets visuels</string>
+    <string name="player_effect_bars">Barres</string>
+    <string name="player_effect_wave">Onde</string>
+    <string name="player_effect_circle">Cercle</string>
     <string name="ssl_warning_title">Certificat non valide</string>
     <string name="ssl_warning_message">Le certificat de %1$s n\'est pas fiable (autosigné, expiré ou pour une autre adresse). Continue seulement s\'il s\'agit de ton propre appareil, comme un serveur de ton réseau domestique.</string>
+    <string name="ssl_warning_message_car">Le certificat de %1$s n\'est pas fiable. Continue seulement s\'il s\'agit de ton propre appareil.</string>
     <string name="ssl_warning_proceed">Continuer quand même</string>
     <string name="ssl_warning_cancel">Annuler</string>
 </resources>

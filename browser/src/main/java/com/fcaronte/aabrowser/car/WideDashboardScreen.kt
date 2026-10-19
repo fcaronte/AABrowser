@@ -12,6 +12,7 @@ import androidx.core.text.htmlEncode
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
+import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
 
 object HomePage {
@@ -47,6 +48,8 @@ object HomePage {
      * icona salvata -> Google -> DuckDuckGo -> /favicon.ico del sito -> lettera (gestita in JS).
      */
     private fun iconCandidates(item: Item): List<String> {
+        // AAB Media: la sua icona la serve l'app (player.local esiste solo nelle WebView)
+        if (LocalPlayer.isPlayerUrl(item.url)) return listOf(LocalPlayer.ICON_URL)
         val list = mutableListOf<String>()
         item.iconUrl?.takeIf { it.isNotBlank() }?.let { list.add(it) }
         faviconFor(item.url)?.let { list.add(it) }

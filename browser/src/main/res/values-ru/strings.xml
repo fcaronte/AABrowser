@@ -254,8 +254,16 @@
     <string name="player_unplayable">Этот файл нельзя воспроизвести: переход к следующему.</string>
     <string name="player_tab_audio">Аудио</string>
     <string name="player_tab_video">Видео</string>
+    <string name="player_options">Параметры</string>
+    <string name="player_crossfade">Плавный переход</string>
+    <string name="player_off">Выкл.</string>
+    <string name="player_effects">Визуальные эффекты</string>
+    <string name="player_effect_bars">Столбцы</string>
+    <string name="player_effect_wave">Волна</string>
+    <string name="player_effect_circle">Круг</string>
     <string name="ssl_warning_title">Недействительный сертификат</string>
     <string name="ssl_warning_message">Сертификат %1$s не является доверенным (самоподписанный, просроченный или выдан для другого адреса). Продолжайте, только если это ваше устройство, например сервер в домашней сети.</string>
+    <string name="ssl_warning_message_car">Сертификат %1$s не является доверенным. Продолжайте, только если это ваше устройство.</string>
     <string name="ssl_warning_proceed">Всё равно продолжить</string>
     <string name="ssl_warning_cancel">Отмена</string>
 </resources>

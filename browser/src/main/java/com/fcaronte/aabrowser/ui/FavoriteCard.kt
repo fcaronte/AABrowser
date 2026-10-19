@@ -68,10 +68,7 @@ fun FavoriteCard(
         }
     }
 
-    val faviconUrl = remember(site.url, site.faviconUrl) {
-        if (!site.faviconUrl.isNullOrEmpty()) site.faviconUrl
-        else "https://www.google.com/s2/favicons?domain=$domain&sz=128"
-    }
+    val iconModel = remember(site.url, site.faviconUrl) { siteIconModel(site.url, site.faviconUrl, domain) }
 
     Card(
         modifier = Modifier
@@ -102,7 +99,7 @@ fun FavoriteCard(
                 color = Color(site.color).copy(alpha = 0.25f),
             ) {
                 AsyncImage(
-                    model = faviconUrl,
+                    model = iconModel,
                     contentDescription = null,
                     modifier = Modifier.padding(6.dp),
                     error = rememberVectorPainter(Icons.Default.Language),

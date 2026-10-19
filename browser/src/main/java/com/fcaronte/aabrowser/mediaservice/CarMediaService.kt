@@ -38,6 +38,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
     var showingWeather = true
     var isUserPaused = false
 
+    // Stato e tasti mostrati nella notifica. La posizione arriva ogni mezzo secondo e non va ripubblicata:
+    // oltre 5 aggiornamenti al secondo il sistema li scarta, compresi quelli con titolo e copertina nuovi
+    private var notifiedState = -1
+    private var notifiedActions = -1L
+
     val serviceScope = CoroutineScope(Dispatchers.Main)
     private var weatherCheckJob: Job? = null
     private val settingsPreferences by lazy {
@@ -328,7 +333,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 val artist = extras.getString("artist")
                 AppLog.d(TAG, "onCustomAction PLAYBACK_STATE_COMPAT: state=${playbackStateCompat?.state}, title='$title', artist='$artist'")
                 if (playbackStateCompat != null) {
-                    update = true
+                    if (playbackStateCompat.state != notifiedState || playbackStateCompat.actions != notifiedActions) {
+                        notifiedState = playbackStateCompat.state
+                        notifiedActions = playbackStateCompat.actions
+                        update = true
+                    }
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
                     mMediasessioncompat!!.setPlaybackState(playbackStateCompat)

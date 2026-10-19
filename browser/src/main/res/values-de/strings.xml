@@ -252,8 +252,16 @@
     <string name="player_unplayable">Diese Datei kann nicht abgespielt werden: weiter zur nächsten.</string>
     <string name="player_tab_audio">Audio</string>
     <string name="player_tab_video">Video</string>
+    <string name="player_options">Optionen</string>
+    <string name="player_crossfade">Überblendung</string>
+    <string name="player_off">Aus</string>
+    <string name="player_effects">Visuelle Effekte</string>
+    <string name="player_effect_bars">Balken</string>
+    <string name="player_effect_wave">Welle</string>
+    <string name="player_effect_circle">Kreis</string>
     <string name="ssl_warning_title">Zertifikat ungültig</string>
     <string name="ssl_warning_message">Das Zertifikat von %1$s ist nicht vertrauenswürdig (selbstsigniert, abgelaufen oder für eine andere Adresse). Fahre nur fort, wenn es dein eigenes Gerät ist, z. B. ein Server in deinem Heimnetz.</string>
+    <string name="ssl_warning_message_car">Das Zertifikat von %1$s ist nicht vertrauenswürdig. Fahre nur fort, wenn es dein eigenes Gerät ist.</string>
     <string name="ssl_warning_proceed">Trotzdem fortfahren</string>
     <string name="ssl_warning_cancel">Abbrechen</string>
 </resources>

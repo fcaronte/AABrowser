@@ -1275,10 +1275,14 @@ object BrowserJavascript {
     """
 
     /*
-     * Siti a brani (Spotify, YouTube Music, SoundCloud, ...): registrano 'nexttrack'/'previoustrack'
+     * Siti a brani (Spotify, YouTube Music, SoundCloud, AAB Media, ...): registrano 'nexttrack'/'previoustrack'
      * nella Media Session. Li memorizziamo per i tasti avanti/indietro di Android Auto (NEXT_SCRIPT /
      * PREVIOUS_SCRIPT li usano per primi) e segnaliamo all'app di mostrare lo skip invece di +/-10 s.
      * Play/pausa non vengono toccati. Sui video di YouTube resta la logica delle playlist.
+     *
+     * La WebView di Android non ha l'API Media Session (navigator.mediaSession e MediaMetadata non esistono,
+     * verificato sulla WebView 153): qui la ricreiamo, così le pagine dichiarano brano, copertina e comandi
+     * e syncMetadata li trova. Senza, il player di Android Auto vedeva solo il titolo della pagina.
      */
     private const val MEDIA_SESSION_TRACKS_JS = """
     (function() {
@@ -1290,11 +1294,50 @@ object BrowserJavascript {
             host.includes('youtubekids.com');
         if (isYouTubeVideo) return;
 
+        if (!('mediaSession' in navigator)) {
+            const absoluteUrl = function(src) {
+                try { return new URL(String(src), document.baseURI).href; } catch (e) { return ''; }
+            };
+            const AabMediaMetadata = function MediaMetadata(init) {
+                const data = init || {};
+                this.title = data.title ? String(data.title) : '';
+                this.artist = data.artist ? String(data.artist) : '';
+                this.album = data.album ? String(data.album) : '';
+                this.artwork = (Array.isArray(data.artwork) ? data.artwork : [])
+                    .map(function(image) {
+                        return {
+                            src: image && image.src ? absoluteUrl(image.src) : '',
+                            sizes: (image && image.sizes) || '',
+                            type: (image && image.type) || ''
+                        };
+                    })
+                    .filter(function(image) { return image.src; });
+            };
+            // I comandi li chiama solo l'app (avanti/indietro qui sotto): il resto non fa nulla, come prima
+            const AabMediaSession = function MediaSession() {};
+            AabMediaSession.prototype.setActionHandler = function() {};
+            AabMediaSession.prototype.setPositionState = function() {};
+            AabMediaSession.prototype.setMicrophoneActive = function() {};
+            AabMediaSession.prototype.setCameraActive = function() {};
+            const session = new AabMediaSession();
+            session.metadata = null;
+            session.playbackState = 'none';
+            try {
+                Object.defineProperty(Navigator.prototype, 'mediaSession', {
+                    configurable: true,
+                    enumerable: true,
+                    get: function() { return session; }
+                });
+                window.MediaMetadata = AabMediaMetadata;
+                window.MediaSession = AabMediaSession;
+            } catch (e) {}
+        }
+
         window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
         const handlers = window.aabMediaSessionHandlers;
 
-        // Hanno sempre una coda di brani, anche prima di registrare i comandi
-        const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com');
+        // Hanno sempre una coda di brani, anche prima di registrare i comandi (player.local = AAB Media)
+        const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com') || host === 'player.local';
         let lastReport = null;
 
         function report() {
@@ -1306,6 +1349,13 @@ object BrowserJavascript {
             lastReport = key;
             AndroidBridge.updateMediaCapabilities(!(hasNext || hasPrevious), hasNext, hasPrevious);
         }
+
+        // A ogni avvio della riproduzione (MEDIA_LISTENERS_JS): l'app azzera i tasti a inizio pagina e quella
+        // segnalazione può arrivarle dopo quella fatta qui all'avvio dello script
+        window.aabReportTrackCapabilities = function() {
+            lastReport = null;
+            report();
+        };
 
         if (navigator.mediaSession && typeof navigator.mediaSession.setActionHandler === 'function') {
             const originalSetActionHandler = navigator.mediaSession.setActionHandler;
@@ -1482,6 +1532,11 @@ object BrowserJavascript {
 
         function reportMediaStarted(media) {
             media.aabReportedPlaying = true;
+
+            // Tasti skip o +/-10 s di questa pagina, già pronti quando la riproduzione prende il player
+            if (typeof window.aabReportTrackCapabilities === 'function') {
+                window.aabReportTrackCapabilities();
+            }
 
             if (window.AndroidBridge) {
                 AndroidBridge.onMediaStatusChanged(

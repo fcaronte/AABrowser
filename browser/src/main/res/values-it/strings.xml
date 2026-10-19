@@ -210,8 +210,16 @@
     <string name="player_unplayable">Questo file non si può riprodurre: passo al successivo.</string>
     <string name="player_tab_audio">Audio</string>
     <string name="player_tab_video">Video</string>
+    <string name="player_options">Opzioni</string>
+    <string name="player_crossfade">Dissolvenza tra i brani</string>
+    <string name="player_off">No</string>
+    <string name="player_effects">Effetti visivi</string>
+    <string name="player_effect_bars">Barre</string>
+    <string name="player_effect_wave">Onda</string>
+    <string name="player_effect_circle">Cerchio</string>
     <string name="ssl_warning_title">Certificato non valido</string>
     <string name="ssl_warning_message">Il certificato di %1$s non è attendibile (autofirmato, scaduto o di un altro indirizzo). Continua solo se è un tuo dispositivo, come un server della rete di casa.</string>
+    <string name="ssl_warning_message_car">Il certificato di %1$s non è attendibile. Continua solo se è un tuo dispositivo.</string>
     <string name="ssl_warning_proceed">Continua comunque</string>
     <string name="ssl_warning_cancel">Annulla</string>
 </resources>

@@ -245,12 +245,13 @@ fun BrowserScreen(
                     host == "www.youtube.com" ||
                     host.endsWith(".youtube.com")
 
-        // Siti con una coda di brani: skip avanti/indietro invece di +/-10 s
+        // Siti con una coda di brani (anche AAB Media, il lettore locale): skip avanti/indietro invece di +/-10 s
         val isTrackSite =
             host == "open.spotify.com" ||
                     host == "spotify.com" ||
                     host.endsWith(".spotify.com") ||
-                    host == "music.youtube.com"
+                    host == "music.youtube.com" ||
+                    LocalPlayer.isPlayerUrl(pageUrl)
 
         val isYouTubePlaylist =
             isYouTube &&
@@ -263,7 +264,7 @@ fun BrowserScreen(
             isTrackSite -> {
                 AppLog.d(
                     "AABrowserPlayback",
-                    "Media capabilities: track site (Spotify / YouTube Music) -> NEXT/PREVIOUS"
+                    "Media capabilities: track site (Spotify / YouTube Music / AAB Media) -> NEXT/PREVIOUS"
                 )
                 mediaSessionManager?.setPlaybackCapabilities(
                     canSeek = false,

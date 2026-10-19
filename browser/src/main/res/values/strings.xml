@@ -254,8 +254,16 @@
     <string name="player_unplayable">This file cannot be played: skipping to the next one.</string>
     <string name="player_tab_audio">Audio</string>
     <string name="player_tab_video">Video</string>
+    <string name="player_options">Options</string>
+    <string name="player_crossfade">Crossfade</string>
+    <string name="player_off">Off</string>
+    <string name="player_effects">Visual effects</string>
+    <string name="player_effect_bars">Bars</string>
+    <string name="player_effect_wave">Wave</string>
+    <string name="player_effect_circle">Circle</string>
     <string name="ssl_warning_title">Certificate not valid</string>
     <string name="ssl_warning_message">The certificate of %1$s is not trusted (self-signed, expired or issued for another address). Continue only if it is your own device, such as a server on your home network.</string>
+    <string name="ssl_warning_message_car">The certificate of %1$s is not trusted. Continue only if it is your own device.</string>
     <string name="ssl_warning_proceed">Continue anyway</string>
     <string name="ssl_warning_cancel">Cancel</string>
 </resources>

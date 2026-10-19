@@ -252,8 +252,16 @@
     <string name="player_unplayable">यह फ़ाइल नहीं चल सकती: अगली पर जा रहे हैं।</string>
     <string name="player_tab_audio">ऑडियो</string>
     <string name="player_tab_video">वीडियो</string>
+    <string name="player_options">विकल्प</string>
+    <string name="player_crossfade">क्रॉसफ़ेड</string>
+    <string name="player_off">बंद</string>
+    <string name="player_effects">दृश्य प्रभाव</string>
+    <string name="player_effect_bars">बार</string>
+    <string name="player_effect_wave">तरंग</string>
+    <string name="player_effect_circle">वृत्त</string>
     <string name="ssl_warning_title">प्रमाणपत्र मान्य नहीं है</string>
     <string name="ssl_warning_message">%1$s का प्रमाणपत्र भरोसेमंद नहीं है (स्व-हस्ताक्षरित, समाप्त या किसी दूसरे पते का)। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो, जैसे घर के नेटवर्क का सर्वर।</string>
+    <string name="ssl_warning_message_car">%1$s का प्रमाणपत्र भरोसेमंद नहीं है। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो।</string>
     <string name="ssl_warning_proceed">फिर भी जारी रखें</string>
     <string name="ssl_warning_cancel">रद्द करें</string>
 </resources>

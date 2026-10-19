@@ -252,8 +252,16 @@
     <string name="player_unplayable">Ez a fájl nem játszható le: ugrás a következőre.</string>
     <string name="player_tab_audio">Hang</string>
     <string name="player_tab_video">Videó</string>
+    <string name="player_options">Beállítások</string>
+    <string name="player_crossfade">Áttűnés</string>
+    <string name="player_off">Ki</string>
+    <string name="player_effects">Vizuális effektek</string>
+    <string name="player_effect_bars">Oszlopok</string>
+    <string name="player_effect_wave">Hullám</string>
+    <string name="player_effect_circle">Kör</string>
     <string name="ssl_warning_title">Érvénytelen tanúsítvány</string>
     <string name="ssl_warning_message">A(z) %1$s tanúsítványa nem megbízható (önaláírt, lejárt vagy más címre szól). Csak akkor folytasd, ha a saját eszközöd, például egy otthoni hálózaton lévő szerver.</string>
+    <string name="ssl_warning_message_car">A(z) %1$s tanúsítványa nem megbízható. Csak akkor folytasd, ha a saját eszközöd.</string>
     <string name="ssl_warning_proceed">Folytatás mégis</string>
     <string name="ssl_warning_cancel">Mégse</string>
 </resources>

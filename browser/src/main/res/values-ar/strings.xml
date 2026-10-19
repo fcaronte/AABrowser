@@ -256,8 +256,16 @@
     <string name="player_unplayable">لا يمكن تشغيل هذا الملف: الانتقال إلى التالي.</string>
     <string name="player_tab_audio">صوت</string>
     <string name="player_tab_video">فيديو</string>
+    <string name="player_options">الخيارات</string>
+    <string name="player_crossfade">التلاشي المتقاطع</string>
+    <string name="player_off">إيقاف</string>
+    <string name="player_effects">تأثيرات مرئية</string>
+    <string name="player_effect_bars">أعمدة</string>
+    <string name="player_effect_wave">موجة</string>
+    <string name="player_effect_circle">دائرة</string>
     <string name="ssl_warning_title">شهادة غير صالحة</string>
     <string name="ssl_warning_message">شهادة %1$s غير موثوقة (موقّعة ذاتيًا أو منتهية الصلاحية أو لعنوان آخر). تابع فقط إذا كان جهازك الخاص، مثل خادم على شبكتك المنزلية.</string>
+    <string name="ssl_warning_message_car">شهادة %1$s غير موثوقة. تابع فقط إذا كان جهازك الخاص.</string>
     <string name="ssl_warning_proceed">المتابعة على أي حال</string>
     <string name="ssl_warning_cancel">إلغاء</string>
 </resources>

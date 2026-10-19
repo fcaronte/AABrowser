@@ -133,10 +133,7 @@ fun TabCard(
         }
     }
 
-    val faviconUrl = remember(tab.url, tab.faviconUrl) {
-        if (!tab.faviconUrl.isNullOrEmpty()) tab.faviconUrl
-        else "https://www.google.com/s2/favicons?domain=$domain&sz=128"
-    }
+    val iconModel = remember(tab.url, tab.faviconUrl) { siteIconModel(tab.url, tab.faviconUrl, domain) }
 
     // Una scheda è considerata "Pronta/Caricata" se ha titolo e url assegnati
     val isLoaded = tab.title.isNotBlank() && tab.title != tab.url && tab.url.isNotBlank()
@@ -169,7 +166,7 @@ fun TabCard(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
             ) {
                 AsyncImage(
-                    model = faviconUrl,
+                    model = iconModel,
                     contentDescription = null,
                     modifier = Modifier.padding(7.dp),
                     error = rememberVectorPainter(Icons.Default.Language),

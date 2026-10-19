@@ -58,7 +58,8 @@ class WideSslWarningScreen(
             }
             .build()
 
-        return MessageTemplate.Builder(carContext.getString(R.string.ssl_warning_message, prompt.host))
+        // Testo corto: Android Auto mostra solo un paio di righe e taglierebbe il consiglio finale
+        return MessageTemplate.Builder(carContext.getString(R.string.ssl_warning_message_car, prompt.host))
             .setTitle(carContext.getString(R.string.ssl_warning_title))
             .setHeaderAction(Action.BACK)
             .setIcon(CarIcon.ALERT)

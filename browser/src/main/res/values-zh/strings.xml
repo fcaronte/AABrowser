@@ -251,8 +251,16 @@
     <string name="player_unplayable">无法播放此文件：跳到下一个。</string>
     <string name="player_tab_audio">音频</string>
     <string name="player_tab_video">视频</string>
+    <string name="player_options">选项</string>
+    <string name="player_crossfade">淡入淡出</string>
+    <string name="player_off">关</string>
+    <string name="player_effects">视觉效果</string>
+    <string name="player_effect_bars">条形</string>
+    <string name="player_effect_wave">波形</string>
+    <string name="player_effect_circle">圆环</string>
     <string name="ssl_warning_title">证书无效</string>
     <string name="ssl_warning_message">%1$s 的证书不受信任（自签名、已过期或属于其他地址）。仅当它是你自己的设备（例如家庭网络中的服务器）时才继续。</string>
+    <string name="ssl_warning_message_car">%1$s 的证书不受信任。仅当它是你自己的设备时才继续。</string>
     <string name="ssl_warning_proceed">仍然继续</string>
     <string name="ssl_warning_cancel">取消</string>
 </resources>

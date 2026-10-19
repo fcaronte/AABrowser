@@ -136,10 +136,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // così si corregge anche se i primi valori erano transitori.
         val STARTUP_REAPPLY_DELAYS_MS = longArrayOf(300L, 800L, 1500L, 3000L, 6000L)
 
-        // Fascia che l'host riserva ai tasti Google (nei tuoi log: 76 px). Viene imparata dai callback
-        // a tasti nascosti; questo valore serve solo finché non è stata vista quella situazione.
-        const val DEFAULT_BUTTONS_RESERVE_PX = 76
-
         // Legge il colore di sfondo della pagina per colorare le fasce libere attorno alla WebView
         const val BACKDROP_JS =
             "(function(){var b=document.body,d=document.documentElement;" +
@@ -188,9 +184,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
-    // Fascia riservata ai tasti Google su ciascun lato (-1 = non ancora imparata)
-    private var learnedReserveLeft = -1
-    private var learnedReserveRight = -1
+    // Fascia riservata ai tasti dell'host su ciascun lato, imparata per ogni disposizione (stable area)
+    private data class ButtonsReserve(val left: Int, val right: Int)
+    private val learnedReserves = HashMap<Rect, ButtonsReserve>()
     private var lastUrl: String? = null
 
     @Volatile
@@ -573,35 +569,34 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     /**
-     * L'host riserva una fascia (76 px nei tuoi log) ai tasti Google:
+     * L'host può riservare una fascia ai suoi tasti (action strip e tasti mappa):
      * - visible area = area libera in questo momento (si restringe quando i tasti compaiono);
      * - stable area  = area libera ANCHE a tasti visibili: è identica con tasti nascosti o visibili.
-     * Quindi: inset reale = inset della stable area - fascia dei tasti.
-     * Così il player in split a destra/sinistra (432 px) viene sempre rispettato, mentre i tasti
-     * (che si sovrappongono alla pagina) non cambiano mai la dimensione della WebView.
+     * Quindi: inset reale = inset della stable area - fascia dei tasti, così i tasti (che si sovrappongono
+     * alla pagina) non cambiano la dimensione della WebView, mentre il player o il menu in split sì.
      *
-     * La fascia si impara quando i tasti sono nascosti (visible più grande della stable in alto).
+     * La fascia si impara quando i tasti sono nascosti (visible più grande della stable in alto) e vale solo per
+     * quella disposizione dell'host (stable area): a schermo intero può esserci, in split col player o col menu
+     * no. Prima valeva per tutte e partiva da 76 px: in split la pagina finiva 76 px sotto il player.
+     * Disposizione mai vista: nessuna fascia, la pagina non va mai sotto la UI dell'host.
      */
     private fun learnButtonsReserve() {
         val v = visibleArea ?: return
         val st = stableArea ?: return
         if (v.top < st.top) {
-            learnedReserveRight = (v.right - st.right).coerceAtLeast(0)
-            learnedReserveLeft = (st.left - v.left).coerceAtLeast(0)
+            learnedReserves[Rect(st)] = ButtonsReserve(
+                left = (st.left - v.left).coerceAtLeast(0),
+                right = (v.right - st.right).coerceAtLeast(0)
+            )
         }
     }
 
-    private fun buttonsReserveRight(): Int = when {
-        learnedReserveRight >= 0 -> learnedReserveRight
-        !isRtl -> DEFAULT_BUTTONS_RESERVE_PX
-        else -> 0
-    }
+    private fun buttonsReserve(): ButtonsReserve =
+        stableArea?.let { learnedReserves[it] } ?: ButtonsReserve(0, 0)
 
-    private fun buttonsReserveLeft(): Int = when {
-        learnedReserveLeft >= 0 -> learnedReserveLeft
-        isRtl -> DEFAULT_BUTTONS_RESERVE_PX
-        else -> 0
-    }
+    private fun buttonsReserveRight(): Int = buttonsReserve().right
+
+    private fun buttonsReserveLeft(): Int = buttonsReserve().left
 
     /** Inset sinistro reale (player a sinistra incluso), senza la fascia dei tasti. */
     private fun leftInsetPx(): Int {
@@ -726,6 +721,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val fixed = sidebarFixedEnabled()
         val rtl = isRtl
 
+        // La fascia stretta sul bordo (angoli arrotondati dell'host) resta alla sidebar fissa; un pannello
+        // dell'host da quel lato (es. il menu delle app in split, con la Wide a destra) la sposta accanto a sé.
+        // Prima veniva ignorato: sidebar e pagina restavano sotto il menu
+        val sidebarStart = if (leftAreaM >= sidebarWidthPx) leftAreaM else 0
+
         Log.d(
             TAG,
             "layout raw=$visibleArea surface=${surfaceWidth}x$surfaceHeight " +
@@ -747,7 +747,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             } else {
                 sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
                     gravity = Gravity.TOP or Gravity.START
-                    leftMargin = 0
+                    leftMargin = sidebarStart
                     rightMargin = 0
                     topMargin = 0
                     bottomMargin = 0
@@ -763,10 +763,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.height = ViewGroup.LayoutParams.MATCH_PARENT
         if (fixed) {
             if (rtl) {
-                lp.leftMargin = 0
+                lp.leftMargin = leftAreaM
                 lp.rightMargin = sidebarWidthPx + rightAreaM
             } else {
-                lp.leftMargin = sidebarWidthPx
+                lp.leftMargin = sidebarStart + sidebarWidthPx
                 lp.rightMargin = rightAreaM
             }
         } else {

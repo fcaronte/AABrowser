@@ -4,8 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AAB Media</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%2300BCD4'/%3E%3Cpath d='M11 6v7.55A3 3 0 1 0 13 16.4V9h3V6z' fill='white'/%3E%3C/svg%3E">
+    <link rel="icon" href="icon.svg">
     <link rel="stylesheet" href="player.css">
+    <!-- Colori Material You del telefono, inseriti dall'app (vuoto = colori di player.css) -->
+    <style>/*AAB_THEME*/</style>
     <!-- Token e testi tradotti, inseriti dall'app quando serve la pagina (LocalPlayer) -->
     <script>/*AAB_CONFIG*/</script>
 </head>
@@ -13,6 +15,9 @@
 <header class="bar">
     <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
     <div class="folder" id="folderName"></div>
+    <button class="icon-button" id="optionsButton">
+        <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+    </button>
     <button class="text-button" id="pickFolder"></button>
     <input id="folderInput" type="file" webkitdirectory multiple hidden>
 </header>
@@ -25,6 +30,8 @@
                 <img id="artImage" alt="">
                 <svg class="note" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
             </div>
+            <!-- Effetti animati sopra la copertina (solo audio) -->
+            <canvas class="visual" id="visual" hidden></canvas>
         </div>
 
         <div class="info">
@@ -70,6 +77,17 @@
         <ul id="tracks"></ul>
     </section>
 </main>
+
+<!-- Opzioni: dissolvenza tra i brani ed effetti animati (salvate nella pagina) -->
+<div class="sheet" id="optionsSheet" hidden>
+    <div class="sheet-card">
+        <div class="sheet-title" id="optionsTitle"></div>
+        <div class="option-label" id="crossfadeLabel"></div>
+        <div class="choices" id="crossfadeChoices"></div>
+        <div class="option-label" id="effectsLabel"></div>
+        <div class="choices" id="effectsChoices"></div>
+    </div>
+</div>
 
 <script src="player.js"></script>
 </body>

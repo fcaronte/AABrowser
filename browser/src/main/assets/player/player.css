@@ -1,4 +1,7 @@
-/* Lettore locale di AABrowser: tema scuro, tocchi grandi, verticale sul telefono e orizzontale in auto */
+/*
+ * AAB Media: tema scuro, tocchi grandi, verticale sul telefono e orizzontale in auto.
+ * Tutti i colori sono variabili: con Material You l'app le sostituisce con i colori del telefono (LocalPlayer).
+ */
 :root {
     color-scheme: dark;
     --bg: #0f1115;
@@ -7,6 +10,14 @@
     --text: #f1f3f6;
     --muted: #9aa3b2;
     --accent: #00bcd4;
+    --on-accent: #001318;
+    --soft: #24303a;
+    --raised: #22262f;
+    --pressed: #232833;
+    --current: #162027;
+    --art-from: #1d2a33;
+    --art-to: #15171c;
+    --note: #3a4552;
 }
 
 * {
@@ -75,9 +86,29 @@ svg {
     min-height: 48px;
     padding: 0 18px;
     border-radius: 24px;
-    background: #24303a;
+    background: var(--soft);
     color: var(--accent);
     font-weight: 600;
+}
+
+.icon-button {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+}
+
+.icon-button svg {
+    width: 28px;
+    height: 28px;
+}
+
+.icon-button:active {
+    background: var(--pressed);
 }
 
 /* --- Brano in riproduzione --- */
@@ -120,7 +151,7 @@ svg {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #1d2a33, #15171c);
+    background: linear-gradient(135deg, var(--art-from), var(--art-to));
 }
 
 .art img {
@@ -133,7 +164,7 @@ svg {
 .art .note {
     width: 30%;
     height: 30%;
-    color: #3a4552;
+    color: var(--note);
 }
 
 .art.has-art img {
@@ -144,11 +175,24 @@ svg {
     display: none;
 }
 
+/* Effetti animati: sopra la copertina, che resta visibile sotto */
+.visual {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.visual[hidden] {
+    display: none;
+}
+
 body.video-mode .stage video {
     display: block;
 }
 
-body.video-mode .art {
+body.video-mode .art,
+body.video-mode .visual {
     display: none;
 }
 
@@ -215,14 +259,14 @@ body.video-mode .stage {
 }
 
 .control:active {
-    background: #232833;
+    background: var(--pressed);
 }
 
 .control.main {
     width: 72px;
     height: 72px;
     background: var(--accent);
-    color: #001318;
+    color: var(--on-accent);
 }
 
 .control.main svg {
@@ -261,7 +305,7 @@ body.is-playing .control.main .icon-stop {
 .message {
     padding: 10px 12px;
     border-radius: 10px;
-    background: #22262f;
+    background: var(--raised);
     color: var(--muted);
     line-height: 1.35;
 }
@@ -308,7 +352,7 @@ body.is-playing .control.main .icon-stop {
 }
 
 .tab.active {
-    background: #24303a;
+    background: var(--soft);
     color: var(--accent);
 }
 
@@ -329,12 +373,12 @@ body.is-playing .control.main .icon-stop {
 }
 
 .list li:active {
-    background: #1b1f27;
+    background: var(--pressed);
 }
 
 .list li.current {
     border-left-color: var(--accent);
-    background: #162027;
+    background: var(--current);
 }
 
 .track-name {
@@ -354,6 +398,67 @@ body.is-playing .control.main .icon-stop {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* --- Opzioni --- */
+
+.sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.sheet[hidden] {
+    display: none;
+}
+
+.sheet-card {
+    width: 100%;
+    max-width: 520px;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 18px;
+    border-radius: 24px;
+    background: var(--panel);
+}
+
+.sheet-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.option-label {
+    margin: 14px 0 8px;
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.choice {
+    flex: 1 1 0;
+    min-width: 64px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 24px;
+    background: var(--raised);
+    color: var(--text);
+    font-weight: 600;
+}
+
+.choice.active {
+    background: var(--accent);
+    color: var(--on-accent);
 }
 
 /* Auto (Main e Wide): pannello del brano a sinistra, elenco a destra */

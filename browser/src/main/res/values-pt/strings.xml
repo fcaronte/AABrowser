@@ -253,8 +253,16 @@
     <string name="player_unplayable">Não é possível reproduzir este arquivo: passando para o próximo.</string>
     <string name="player_tab_audio">Áudio</string>
     <string name="player_tab_video">Vídeo</string>
+    <string name="player_options">Opções</string>
+    <string name="player_crossfade">Transição suave</string>
+    <string name="player_off">Desligado</string>
+    <string name="player_effects">Efeitos visuais</string>
+    <string name="player_effect_bars">Barras</string>
+    <string name="player_effect_wave">Onda</string>
+    <string name="player_effect_circle">Círculo</string>
     <string name="ssl_warning_title">Certificado inválido</string>
     <string name="ssl_warning_message">O certificado de %1$s não é confiável (autoassinado, expirado ou de outro endereço). Continue apenas se for um dispositivo seu, como um servidor da sua rede doméstica.</string>
+    <string name="ssl_warning_message_car">O certificado de %1$s não é confiável. Continue apenas se for um dispositivo seu.</string>
     <string name="ssl_warning_proceed">Continuar mesmo assim</string>
     <string name="ssl_warning_cancel">Cancelar</string>
 </resources>
