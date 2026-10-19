@@ -19,8 +19,26 @@ import java.net.URL
  */
 object DaznProxy {
 
+    /** Domini DAZN: le uniche pagine che possono usare il proxy e gli unici indirizzi che può chiamare. */
+    fun isDaznHost(host: String?): Boolean {
+        val h = host?.lowercase() ?: return false
+        return h == "dazn.com" || h.endsWith(".dazn.com") || h == "indazn.com" || h.endsWith(".indazn.com")
+    }
+
+    private fun blocked(): String = JSONObject()
+        .put("status", 403)
+        .put("statusText", "Forbidden")
+        .put("text", "")
+        .toString()
+
+    /**
+     * [pageHost] = sito della pagina aperta nella WebView. Il ponte AndroidBridge è visibile a OGNI pagina e iframe:
+     * senza questi controlli qualunque sito poteva leggere altri siti (e i dispositivi di casa) coi cookie
+     * dell'utente, scavalcando le protezioni del browser.
+     */
     fun proxyFetch(
         context: Context,
+        pageHost: String?,
         urlString: String,
         method: String,
         headersJson: String,
@@ -30,6 +48,10 @@ object DaznProxy {
         val requestStartedAt = SystemClock.elapsedRealtime()
         return try {
             val url = URL(urlString)
+            if (!isDaznHost(pageHost) || url.protocol != "https" || !isDaznHost(url.host)) {
+                AppLog.w("ProxyFetch", "Blocked: page or target outside DAZN")
+                return blocked()
+            }
             val userAgent = requestUserAgent.ifBlank { WebSettings.getDefaultUserAgent(context) }
             var hasAuthorizationHeader = false
             var hasCookieHeader = false
@@ -99,6 +121,13 @@ object DaznProxy {
 
             val statusCode = conn.responseCode
             val statusText = conn.responseMessage ?: "OK"
+
+            // Reindirizzato fuori da DAZN: la risposta non torna alla pagina
+            if (!isDaznHost(conn.url.host)) {
+                conn.disconnect()
+                AppLog.w("ProxyFetch", "Blocked: redirect outside DAZN")
+                return blocked()
+            }
 
             val responseHeaders = JSONObject()
             try {

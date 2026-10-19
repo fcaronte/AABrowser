@@ -347,6 +347,7 @@
     fadeDeck.preload = 'auto';
     let fadeDeckUnlocked = false;
     let fadePrepared = false;
+    let fadeFailedSrc = '';
     let fading = null;
 
     function crossfadeSeconds() {
@@ -379,6 +380,8 @@
 
     function startFade(seconds) {
         if (fading || !fadeDeckUnlocked || !media.currentSrc) return;
+        // Già fallita per questo brano: niente nuovi tentativi a ogni timeupdate (riaprirebbero il file)
+        if (fadeFailedSrc === media.currentSrc) return;
         if (fadeDeck.currentSrc !== media.currentSrc) fadeDeck.src = media.currentSrc;
         fadeDeck.currentTime = media.currentTime;
         fadeDeck.volume = 1;
@@ -393,10 +396,14 @@
             setMainVolume(FADE_MIN_VOLUME);
             next(true, true);
         };
+        const failedSrc = media.currentSrc;
         const attempt = fadeDeck.play();
         if (attempt && attempt.then) {
             attempt.then(begin, () => {
-                if (fading === fade) fading = null;
+                if (fading !== fade) return;
+                // Il brano finisce senza dissolvenza, come se fosse spenta
+                fading = null;
+                fadeFailedSrc = failedSrc;
             });
         } else {
             begin();

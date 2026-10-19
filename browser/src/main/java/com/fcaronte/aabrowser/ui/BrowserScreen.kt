@@ -74,9 +74,11 @@ import com.fcaronte.aabrowser.utils.InactivityTracker
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
+import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.util.concurrent.atomic.AtomicReference
 
 private fun setDesktopUserAgent(webView: WebView, context: Context): String =
     WebViewScriptRouter.setDesktopUserAgent(webView, context)
@@ -484,6 +486,8 @@ fun BrowserScreen(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
+                // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
+                val pageHost = AtomicReference(Uri.parse(url).host)
                 val webView = object : WebView(context) {
                     override fun onPause() {
                         // Impedito il blocco forzato
@@ -800,6 +804,8 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun openInNewTab(url: String) {
+                                // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
+                                if (!UrlUtils.isWebUrl(url)) return
                                 post {
                                     AppLog.d("##BrowserScreen", "openInNewTab requested for host=${safeUrlForLog(url)}")
                                     TabManager.openOrSwitchTo(url = url)
@@ -823,6 +829,8 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun openPopup(url: String) {
+                                // Il popup ha l'accesso ai file attivo: solo pagine web
+                                if (!UrlUtils.isWebUrl(url)) return
                                 post {
                                     AppLog.d("##BrowserScreen", "openPopup requested for host=${safeUrlForLog(url)}")
                                     val popup = createPopupWebView(
@@ -842,7 +850,9 @@ fun BrowserScreen(
                                 headersJson: String,
                                 body: String?,
                                 requestUserAgent: String
-                            ): String = DaznProxy.proxyFetch(context, urlString, method, headersJson, body, requestUserAgent)
+                            ): String = DaznProxy.proxyFetch(
+                                context, pageHost.get(), urlString, method, headersJson, body, requestUserAgent
+                            )
 
                             @JavascriptInterface
                             @Suppress("unused")
@@ -962,6 +972,8 @@ fun BrowserScreen(
                             url: String?,
                             favicon: android.graphics.Bitmap?
                         ) {
+                            pageHost.set(url?.let { Uri.parse(it).host })
+
                             // Nuova pagina: il media della precedente non esiste più
                             mediaSessionManager?.releaseMediaFocus()
                             updateMediaCapabilities(url)
@@ -1041,6 +1053,9 @@ fun BrowserScreen(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
+                            // Prima che la pagina nuova esegua i suoi script (onPageStarted arriva dopo)
+                            if (request?.isForMainFrame == true) pageHost.set(request.url?.host)
+
                             // Lettore locale dell'app (https://player.local/): pagina e file della cartella scelta
                             LocalPlayer.intercept(context, request)?.let { return it }
 

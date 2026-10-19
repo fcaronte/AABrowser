@@ -28,6 +28,8 @@ object UpdateManager {
     private const val TAG = "UpdateManager"
     private const val REPO_URL = "https://api.github.com/repos/fcaronte/AABrowser/releases/latest"
     private const val DOWNLOAD_PAGE = "https://github.com/fcaronte/AABrowser/releases"
+    // browser_download_url degli APK delle release (API di GitHub)
+    private const val RELEASE_DOWNLOAD_PREFIX = "https://github.com/fcaronte/AABrowser/releases/download/"
     private const val CHANNEL_ID = "com.fcaronte.aabrowser.updates"
     private const val NOTIFICATION_ID = 1001
 
@@ -125,6 +127,13 @@ object UpdateManager {
             AppLog.e(TAG, "Cannot start download: downloadUrl is blank")
             return
         }
+        // Il ricevitore che avvia il download è esportato (serve per DOWNLOAD_COMPLETE): qualunque app potrebbe
+        // chiedergli di scaricare e far installare un APK qualsiasi. Si scaricano solo le release ufficiali
+        if (!info.downloadUrl.startsWith(RELEASE_DOWNLOAD_PREFIX)) {
+            AppLog.w(TAG, "Refusing download outside the official releases")
+            Toast.makeText(context, context.getString(R.string.update_download_failed), Toast.LENGTH_SHORT).show()
+            return
+        }
 
         try {
             val downloadManager =
@@ -217,6 +226,13 @@ object UpdateManager {
             if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
                 val apkFile = if (apkPath != null) File(apkPath) else null
 
+                // Deve essere AABrowser: KingInstaller installerebbe qualunque app, anche senza conferma
+                if (apkFile != null && apkFile.exists() && !isAppPackage(context, apkFile)) {
+                    AppLog.e(TAG, "Downloaded APK is not AABrowser: not installing")
+                    cursor.close()
+                    return
+                }
+
                 val apkUri: Uri? = if (apkFile != null && apkFile.exists()) {
                     try {
                         FileProvider.getUriForFile(
@@ -242,6 +258,14 @@ object UpdateManager {
             }
             cursor.close()
         }
+    }
+
+    // La firma la controlla Android installando l'aggiornamento; qui basta che sia lo stesso pacchetto
+    private fun isAppPackage(context: Context, apkFile: File): Boolean = try {
+        context.packageManager.getPackageArchiveInfo(apkFile.absolutePath, 0)?.packageName == context.packageName
+    } catch (e: Exception) {
+        AppLog.w(TAG, "Cannot read the downloaded APK: ${e.javaClass.simpleName}")
+        false
     }
 
     fun launchKingInstaller(context: Context, apkUri: Uri) {

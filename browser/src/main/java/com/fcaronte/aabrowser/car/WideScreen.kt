@@ -87,6 +87,7 @@ import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
+import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -194,6 +195,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private val mediaSessionManager = MediaSessionManager(carContext, MediaFocusManager.Source.WIDE_APP)
     private val handler = Handler(Looper.getMainLooper())
+
+    // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
+    @Volatile
+    private var pageHost: String? = null
 
     // Certificato non valido (es. server di casa autofirmato): conferma con una schermata di Android Auto
     private val sslPrompts = SslErrorPrompts(carContext) { handler.post { refreshSslWarning() } }
@@ -1209,7 +1214,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     body: String?,
                                     requestUserAgent: String
                                 ): String = DaznProxy.proxyFetch(
-                                    carContext, urlString, method, headersJson, body, requestUserAgent
+                                    carContext, pageHost, urlString, method, headersJson, body, requestUserAgent
                                 )
 
                                 // DAZN: al clic su un evento passa alla modalità desktop
@@ -1266,19 +1271,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openInNewTab(url: String) {
-                                    post { this@WideScreen.loadUrl(url) }
+                                    // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
+                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openLinkInNewTab(url: String) {
-                                    post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openPopup(url: String) {
-                                    post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
                                 }
                             },
                             "AndroidBridge"
@@ -1358,6 +1364,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): WebResourceResponse? {
+                                // Prima che la pagina nuova esegua i suoi script (onPageStarted arriva dopo)
+                                if (request?.isForMainFrame == true) pageHost = request.url?.host
+
                                 // Lettore locale dell'app (https://player.local/), lo stesso della Main
                                 LocalPlayer.intercept(carContext, request)?.let { return it }
 
@@ -1466,6 +1475,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             }
 
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                                pageHost = url?.let { Uri.parse(it).host }
                                 val isHomePage = url?.startsWith(HomePage.BASE_URL) == true
 
                                 // Nuova pagina (anche la home): il media della precedente non esiste più,

@@ -18,6 +18,11 @@ object DaznManager {
                     const parsedUrl = new URL(url, window.location.href);
                     const host = parsedUrl.hostname.toLowerCase();
                     const path = parsedUrl.pathname.toLowerCase();
+                    // Stessi domini di DaznProxy.isDaznHost: il proxy rifiuta gli altri (es. oauth2.googleapis.com),
+                    // che quindi passano dalla rete normale della WebView
+                    const isDaznHost = parsedUrl.protocol === 'https:' && (host === 'dazn.com' || host.endsWith('.dazn.com') ||
+                        host === 'indazn.com' || host.endsWith('.indazn.com'));
+                    if (!isDaznHost) return false;
                     const isAuthenticationRequest = host.includes('authentication-prod') ||
                         host.includes('auth') ||
                         path.includes('getpartneruserdetails') ||

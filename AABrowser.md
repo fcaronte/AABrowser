@@ -35,7 +35,7 @@
 
 \- \*\*Logging\*\*: Uses custom \`AppLog\` utility to strip/sanitize sensitive user data from logs prior to export or sharing
 
-\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.fcaronte.kinginstaller\`)
+\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`)
 
 \---
 

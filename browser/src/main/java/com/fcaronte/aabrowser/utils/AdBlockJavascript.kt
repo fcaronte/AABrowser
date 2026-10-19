@@ -138,6 +138,12 @@ object AdBlockJavascript {
             
             let skipBtn = skipBtnSelectors.map(s => document.querySelector(s)).find(isVisible);
 
+            // Durante la pubblicità il tasto vale anche se risulta nascosto: sta dentro .video-ads / .ytp-ad-module,
+            // che nascondiamo noi più sotto (hideSelectors), e così non veniva mai premuto. click() funziona lo stesso
+            if (!skipBtn && adShowing) {
+                skipBtn = skipBtnSelectors.map(s => document.querySelector(s)).find(Boolean);
+            }
+
             // Ricerca per testo (più pesante: legge tutti i pulsanti) solo durante una pubblicità
             if (!skipBtn && adShowing) {
                 const buttons = document.querySelectorAll('button, [role="button"], .ytmusic-skip-ad-button');

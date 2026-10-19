@@ -12,6 +12,12 @@ object UrlUtils {
         """^\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?(?:[/?#].*)?$"""
     )
 
+    /** Indirizzo web vero (http/https con un host): per gli URL che arrivano dalle pagine tramite AndroidBridge. */
+    fun isWebUrl(url: String?): Boolean {
+        val uri = url?.let { Uri.parse(it.trim()) } ?: return false
+        return (uri.scheme == "http" || uri.scheme == "https") && !uri.host.isNullOrBlank()
+    }
+
     private fun looksLikeUrl(input: String): Boolean {
         if (input.isBlank() || input.any { it.isWhitespace() }) return false
         return domainRegex.matches(input) || ipRegex.matches(input)
