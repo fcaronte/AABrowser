@@ -1814,6 +1814,51 @@ object BrowserJavascript {
         })();
     """
 
+    /**
+     * Scorrimento della Wide (Android Auto manda solo le distanze): pagina e contenitori scorrevoli. I contenitori
+     * si cercano al massimo ogni 1,5 s, perché cercarli legge lo stile di ogni elemento: prima succedeva a ogni
+     * onScroll (decine al secondo) e su pagine grandi come YouTube teneva occupata la pagina, tocchi compresi.
+     */
+    fun getWideScrollScript(dx: Int, dy: Int): String = """
+        (function(dx, dy) {
+            window.scrollBy(dx, dy);
+            const now = Date.now();
+            if (!window.__aabScrollables || now - (window.__aabScrollablesAt || 0) > 1500) {
+                const found = new Set();
+                const canScroll = el => el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
+                const selectors = [
+                    '#secondary', '#related', '.watch-sidebar', 'ytd-watch-flexy',
+                    '#panels', 'ytd-engagement-panel-section-list-renderer',
+                    '#contents', 'ytd-rich-grid-renderer', '[role="main"]',
+                    'div[id*="secondary"]', 'div[id*="related"]', 'div[class*="sidebar"]'
+                ];
+                selectors.forEach(sel => document.querySelectorAll(sel).forEach(el => {
+                    if (canScroll(el)) found.add(el);
+                }));
+                const all = document.querySelectorAll('*');
+                for (let i = 0; i < all.length; i++) {
+                    const el = all[i];
+                    if (found.has(el) || !canScroll(el)) continue;
+                    const style = getComputedStyle(el);
+                    const o = style.getPropertyValue('overflow');
+                    const oy = style.getPropertyValue('overflow-y');
+                    const ox = style.getPropertyValue('overflow-x');
+                    if (oy === 'auto' || oy === 'scroll' || ox === 'auto' || ox === 'scroll' || o === 'auto' || o === 'scroll') {
+                        found.add(el);
+                    }
+                }
+                window.__aabScrollables = Array.from(found);
+                window.__aabScrollablesAt = now;
+            }
+            window.__aabScrollables.forEach(el => {
+                if (el.isConnected) {
+                    el.scrollTop += dy;
+                    el.scrollLeft += dx;
+                }
+            });
+        })($dx, $dy);
+    """.trimIndent()
+
     fun getDisableDoubleTapScript(): String {
         return """
         (function() {

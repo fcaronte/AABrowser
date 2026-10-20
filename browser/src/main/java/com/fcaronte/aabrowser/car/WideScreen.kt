@@ -135,6 +135,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Attesa prima di navigationStarted(): il tocco sul player arriva con onNewIntent subito dopo l'avvio
         const val NAVIGATION_START_DELAY_MS = 1500L
 
+        // Scorrimento in attesa del fotogramma da più di così: si riposta (WebView ricreata nel frattempo)
+        const val SCROLL_FLUSH_STALE_MS = 500L
+
         // Debounce per i callback di visible area (i tasti mappa appaiono/scompaiono con animazione)
         const val VISIBLE_AREA_DEBOUNCE_MS = 50L
         // Secondo passaggio, per catturare lo stato finale dell'animazione dei tasti
@@ -187,6 +190,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var userAgentReloads = 0            // ricaricamenti per cambiare user agent dall'ultima pagina finita
     private var isNavigationStarted = false
     private val startNavigationRunnable = Runnable { startNavigation() }
+    private var pendingScrollX = 0f
+    private var pendingScrollY = 0f
+    private var isScrollFlushPosted = false
+    private var scrollFlushPostedAt = 0L
+    private val flushScrollRunnable = Runnable { flushScroll() }
 
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
@@ -983,47 +991,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null) return
-        webView?.scrollBy(distanceX.toInt(), distanceY.toInt())
-        webView?.evaluateJavascript("""
-            (function() {
-                const dx = ${distanceX.toInt()};
-                const dy = ${distanceY.toInt()};
-                
-                // 1. Scroll window / document root
-                window.scrollBy(dx, dy);
-                
-                // 2. Scroll specific YouTube and common scrollable containers
-                const selectors = [
-                    '#secondary', '#related', '.watch-sidebar', 'ytd-watch-flexy', 
-                    '#panels', 'ytd-engagement-panel-section-list-renderer',
-                    '#contents', 'ytd-rich-grid-renderer', '[role="main"]',
-                    'div[id*="secondary"]', 'div[id*="related"]', 'div[class*="sidebar"]'
-                ];
-                selectors.forEach(sel => {
-                    document.querySelectorAll(sel).forEach(el => {
-                        if (el && (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
-                            el.scrollTop += dy;
-                            el.scrollLeft += dx;
-                        }
-                    });
-                });
-                
-                // 3. Scroll any scrollable element in the DOM
-                const allElements = document.querySelectorAll('*');
-                for (let i = 0; i < allElements.length; i++) {
-                    const el = allElements[i];
-                    const style = window.getComputedStyle(el);
-                    const oy = style.getPropertyValue('overflow-y');
-                    const ox = style.getPropertyValue('overflow-x');
-                    const o = style.getPropertyValue('overflow');
-                    if ((oy === 'auto' || oy === 'scroll' || ox === 'auto' || ox === 'scroll' || o === 'auto' || o === 'scroll') && 
-                        (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
-                        el.scrollTop += dy;
-                        el.scrollLeft += dx;
-                    }
-                }
-            })()
-        """.trimIndent(), null)
+        val wv = webView ?: return
+        wv.scrollBy(distanceX.toInt(), distanceY.toInt())
+        // La parte JavaScript una volta per fotogramma con le distanze sommate: Android Auto manda molti
+        // onScroll piccoli e ognuno era uno script nella pagina
+        pendingScrollX += distanceX
+        pendingScrollY += distanceY
+        // Riposta anche se l'ultimo è rimasto in coda su una WebView ricreata
+        val now = SystemClock.uptimeMillis()
+        if (!isScrollFlushPosted || now - scrollFlushPostedAt > SCROLL_FLUSH_STALE_MS) {
+            isScrollFlushPosted = true
+            scrollFlushPostedAt = now
+            wv.postOnAnimation(flushScrollRunnable)
+        }
+    }
+
+    private fun flushScroll() {
+        isScrollFlushPosted = false
+        val dx = pendingScrollX.toInt()
+        val dy = pendingScrollY.toInt()
+        // Il resto sotto il pixel resta per il prossimo fotogramma
+        pendingScrollX -= dx
+        pendingScrollY -= dy
+        if (dx == 0 && dy == 0) return
+        webView?.evaluateJavascript(BrowserJavascript.getWideScrollScript(dx, dy), null)
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
