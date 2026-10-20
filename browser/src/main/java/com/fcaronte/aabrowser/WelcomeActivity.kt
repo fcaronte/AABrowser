@@ -24,7 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.utils.WebLocation
 
 class WelcomeActivity : ComponentActivity() {
 
@@ -80,16 +83,30 @@ class WelcomeActivity : ComponentActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Posizione precisa per i siti: con il permesso (anche solo approssimativo) l'opzione si accende
+        if (requestCode == REQUEST_WEB_LOCATION && grantResults.any { it == PackageManager.PERMISSION_GRANTED }) {
+            AppSettings.setWebLocation(this, true)
+        }
+    }
+
     @Composable
     private fun WelcomeContent() {
         var micGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.RECORD_AUDIO)) }
         var locGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) }
         var notifGranted by remember { mutableStateOf(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)) }
+        val localNetGranted = if (needsLocalNetworkPermission()) isLocalNetworkGranted() else null
+        val webLocationOn = AppSettings.webLocation.value && WebLocation.hasPreciseLocation(this)
 
         WelcomeScreen(
             micGranted = micGranted,
             locGranted = locGranted,
             notifGranted = notifGranted,
+            localNetGranted = localNetGranted,
+            webLocationOn = webLocationOn,
             onMicClick = {
                 requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1001)
             },
@@ -100,6 +117,14 @@ class WelcomeActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1003)
                 }
+            },
+            onLocalNetClick = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), 1004)
+                }
+            },
+            onWebLocationClick = {
+                requestPermissions(WebLocation.PERMISSIONS, REQUEST_WEB_LOCATION)
             },
             onStartClicked = {
                 AppSettings.setOnboardingCompleted(this, true)
@@ -118,13 +143,24 @@ class WelcomeActivity : ComponentActivity() {
         return checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     }
 
+    // Android 17+: senza, le pagine non raggiungono la rete di casa (Home Assistant, router, NAS)
+    private fun needsLocalNetworkPermission(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN
+
+    private fun isLocalNetworkGranted(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.CINNAMON_BUN ||
+                checkPermissionGranted(Manifest.permission.ACCESS_LOCAL_NETWORK)
+
+    // La posizione precisa per i siti è facoltativa: non serve per saltare il benvenuto
     private fun areAllPermissionsGranted(): Boolean {
         val mic = checkPermissionGranted(Manifest.permission.RECORD_AUDIO)
         val loc = checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
         val notif = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)
-        return mic && loc && notif
+        return mic && loc && notif && isLocalNetworkGranted()
     }
 
+    companion object {
+        private const val REQUEST_WEB_LOCATION = 1005
+    }
 }
 
 @Composable
@@ -132,9 +168,13 @@ fun WelcomeScreen(
     micGranted: Boolean,
     locGranted: Boolean,
     notifGranted: Boolean,
+    localNetGranted: Boolean?, // null: permesso che non esiste su questa versione di Android
+    webLocationOn: Boolean,
     onMicClick: () -> Unit,
     onLocClick: () -> Unit,
     onNotifClick: () -> Unit,
+    onLocalNetClick: () -> Unit,
+    onWebLocationClick: () -> Unit,
     onStartClicked: () -> Unit,
     onSkipClicked: () -> Unit
 ) {
@@ -191,6 +231,26 @@ fun WelcomeScreen(
                     description = stringResource(R.string.perm_notifications_desc),
                     isGranted = notifGranted,
                     onClick = onNotifClick
+                )
+
+                if (localNetGranted != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    PermissionExplanationItem(
+                        icon = Icons.Default.Router,
+                        title = stringResource(R.string.perm_local_network_title),
+                        description = stringResource(R.string.perm_local_network_desc),
+                        isGranted = localNetGranted,
+                        onClick = onLocalNetClick
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                PermissionExplanationItem(
+                    icon = Icons.Default.MyLocation,
+                    title = stringResource(R.string.perm_web_location_title),
+                    description = stringResource(R.string.perm_web_location_desc),
+                    isGranted = webLocationOn,
+                    onClick = onWebLocationClick
                 )
             }
 

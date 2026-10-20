@@ -80,6 +80,7 @@ import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.SslExceptions
+import com.fcaronte.aabrowser.utils.WebLocation
 import kotlinx.coroutines.delay
 import java.io.File
 
@@ -139,6 +140,7 @@ fun SettingsScreen(
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
+    val webLocation by AppSettings.webLocation
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -430,6 +432,7 @@ fun SettingsScreen(
                             }
 
                             val permissionToastMsg = stringResource(R.string.weather_permission_toast)
+                            val webLocationPhoneMsg = stringResource(R.string.web_location_phone_toast)
                             val mediaPlayerDisabledHint = stringResource(R.string.media_player_disabled_hint)
 
                             fun restartApp() {
@@ -491,6 +494,26 @@ fun SettingsScreen(
                                                         )
                                                     }
                                                 }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+
+                            // Posizione per i siti web (facoltativa): GPS preciso per le mappe nel browser
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.perm_web_location_title),
+                                    description = stringResource(R.string.perm_web_location_desc),
+                                    checked = webLocation,
+                                    onCheckedChange = { enabled ->
+                                        AppSettings.setWebLocation(context, enabled)
+                                        if (enabled && !WebLocation.hasPreciseLocation(context)) {
+                                            // In auto il sistema non mostra la richiesta: si concede dal telefono
+                                            if (isCarMode || activity == null) {
+                                                Toast.makeText(context, webLocationPhoneMsg, Toast.LENGTH_LONG).show()
+                                            } else {
+                                                activity.requestPermissions(WebLocation.PERMISSIONS, 1006)
                                             }
                                         }
                                     }

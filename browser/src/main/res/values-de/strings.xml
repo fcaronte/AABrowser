@@ -234,9 +234,14 @@
     <string name="perm_mic_title">Mikrofon</string>
     <string name="perm_mic_desc">Wird für Sprachdiktat und Sucheingaben auf Websites verwendet.</string>
     <string name="perm_location_title">Netzwerkstandort</string>
-    <string name="perm_location_desc">Wird ausschließlich zur Anzeige lokaler Wetteraktualisierungen auf Ihrem Auto-Display verwendet.</string>
+    <string name="perm_location_desc">Wird für das lokale Wetter auf Ihrem Auto-Display verwendet. Websites erhalten Ihren Standort nur mit der Option unten.</string>
     <string name="perm_notifications_title">Benachrichtigungen</string>
     <string name="perm_notifications_desc">Erforderlich für Hintergrund-Musikwiedergabesteuerung, Wetter-Widget und App-Updates.</string>
+    <string name="perm_local_network_title">Lokales Netzwerk</string>
+    <string name="perm_local_network_desc">Ermöglicht Seiten den Zugriff auf Websites und Geräte in Ihrem Heimnetz (Home Assistant, Router, NAS).</string>
+    <string name="perm_web_location_title">Standort für Websites (optional)</string>
+    <string name="perm_web_location_desc">Genaue GPS-Position für Karten im Browser, z. B. Google Maps, wenn Sie dort statt in einer App navigieren. Aus: Websites erhalten nie Ihren Standort.</string>
+    <string name="web_location_phone_toast">Erlauben Sie den genauen Standort auf dem Telefon, um ihn auf Websites zu nutzen</string>
     <string name="grant_permissions_button">Berechtigungen erteilen &amp; Starten</string>
     <string name="skip_onboarding_button">Ich weiß, was ich tue (Überspringen)</string>
     <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>

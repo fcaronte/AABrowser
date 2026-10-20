@@ -235,9 +235,14 @@
     <string name="perm_mic_title">Micrófono</string>
     <string name="perm_mic_desc">Se utiliza para dictado por voz y entrada de búsqueda dentro de sitios web.</string>
     <string name="perm_location_title">Ubicación de red</string>
-    <string name="perm_location_desc">Se utiliza exclusivamente para mostrar actualizaciones meteorológicas locales en la pantalla de tu coche.</string>
+    <string name="perm_location_desc">Se usa para el tiempo local en la pantalla de tu coche. Los sitios web solo reciben tu ubicación con la opción de abajo.</string>
     <string name="perm_notifications_title">Notificaciones</string>
     <string name="perm_notifications_desc">Necesario para controles de reproducción de música en segundo plano, widget del clima y actualizaciones de la aplicación.</string>
+    <string name="perm_local_network_title">Red local</string>
+    <string name="perm_local_network_desc">Permite que las páginas accedan a sitios y dispositivos de tu red doméstica (Home Assistant, router, NAS).</string>
+    <string name="perm_web_location_title">Ubicación para sitios web (opcional)</string>
+    <string name="perm_web_location_desc">Posición GPS precisa para los mapas en el navegador, como Google Maps, si navegas desde ahí en lugar de una app. Desactivada: los sitios web nunca reciben tu ubicación.</string>
+    <string name="web_location_phone_toast">Concede la ubicación precisa en el teléfono para usarla en los sitios web</string>
     <string name="grant_permissions_button">Conceder permisos e iniciar</string>
     <string name="skip_onboarding_button">Sé lo que hago (Omitir)</string>
     <string name="wide_reopen_last_page">Reabrir última página</string>

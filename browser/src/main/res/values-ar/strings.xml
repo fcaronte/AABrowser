@@ -238,9 +238,14 @@
     <string name="perm_mic_title">الميكروفون</string>
     <string name="perm_mic_desc">يستخدم للإملاء الصوتي وإدخال البحث داخل مواقع الويب.</string>
     <string name="perm_location_title">موقع الشبكة</string>
-    <string name="perm_location_desc">يستخدم حصرياً لعرض تحديثات الطقس المحلية على شاشة سيارتك.</string>
+    <string name="perm_location_desc">يُستخدم لعرض الطقس المحلي على شاشة سيارتك. لا تحصل المواقع على موقعك إلا مع الخيار أدناه.</string>
     <string name="perm_notifications_title">الإشعارات</string>
     <string name="perm_notifications_desc">مطلوبة للتحكم في تشغيل الموسيقى في الخلفية، أداة الطقس، وتحديثات التطبيق.</string>
+    <string name="perm_local_network_title">الشبكة المحلية</string>
+    <string name="perm_local_network_desc">يتيح للصفحات الوصول إلى المواقع والأجهزة في شبكتك المنزلية (Home Assistant، جهاز التوجيه، NAS).</string>
+    <string name="perm_web_location_title">الموقع لمواقع الويب (اختياري)</string>
+    <string name="perm_web_location_desc">موقع GPS دقيق للخرائط في المتصفح، مثل Google Maps، إذا كنت تتنقل منها بدلاً من تطبيق. عند الإيقاف: لا تحصل المواقع على موقعك أبداً.</string>
+    <string name="web_location_phone_toast">اسمح بالموقع الدقيق على الهاتف لاستخدامه في مواقع الويب</string>
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>

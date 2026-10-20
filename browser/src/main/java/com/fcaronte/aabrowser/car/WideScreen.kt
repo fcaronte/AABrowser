@@ -33,6 +33,7 @@ import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.RenderProcessGoneDetail
@@ -89,6 +90,7 @@ import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -1392,6 +1394,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     }
                                     ?.toTypedArray()
                                 if (allowed.isNullOrEmpty()) request?.deny() else request.grant(allowed)
+                            }
+
+                            // Posizione ai siti (es. Google Maps) solo con l'opzione "Posizione per i siti web"
+                            override fun onGeolocationPermissionsShowPrompt(
+                                origin: String?,
+                                callback: GeolocationPermissions.Callback?
+                            ) {
+                                WebLocation.answer(carContext, origin, callback)
                             }
 
                             override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {

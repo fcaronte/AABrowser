@@ -235,9 +235,14 @@
     <string name="perm_mic_title">Microphone</string>
     <string name="perm_mic_desc">Utilisé pour la dictée vocale et la saisie de recherche dans les sites Web.</string>
     <string name="perm_location_title">Localisation réseau</string>
-    <string name="perm_location_desc">Utilisé exclusivement pour afficher les mises à jour météo locales sur l\'écran de votre voiture.</string>
+    <string name="perm_location_desc">Utilisée pour la météo locale sur l\'écran de votre voiture. Les sites web ne reçoivent votre position qu\'avec l\'option ci-dessous.</string>
     <string name="perm_notifications_title">Notifications</string>
     <string name="perm_notifications_desc">Requis pour les contrôles de lecture de musique en arrière-plan, le widget météo et les mises à jour de l\'application.</string>
+    <string name="perm_local_network_title">Réseau local</string>
+    <string name="perm_local_network_desc">Permet aux pages d\'accéder aux sites et appareils de votre réseau domestique (Home Assistant, routeur, NAS).</string>
+    <string name="perm_web_location_title">Position pour les sites web (facultatif)</string>
+    <string name="perm_web_location_desc">Position GPS précise pour les cartes dans le navigateur, comme Google Maps, si vous naviguez ici plutôt qu\'avec une app. Désactivée : les sites web ne reçoivent jamais votre position.</string>
+    <string name="web_location_phone_toast">Autorisez la position précise sur le téléphone pour l\'utiliser sur les sites web</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>

@@ -14,6 +14,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.SslErrorHandler
@@ -75,6 +76,7 @@ import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -930,6 +932,14 @@ fun BrowserScreen(
                                 }
                             }
                             request.grant(resources)
+                        }
+
+                        // Posizione ai siti (es. Google Maps) solo con l'opzione "Posizione per i siti web"
+                        override fun onGeolocationPermissionsShowPrompt(
+                            origin: String?,
+                            callback: GeolocationPermissions.Callback?
+                        ) {
+                            WebLocation.answer(context, origin, callback)
                         }
 
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {

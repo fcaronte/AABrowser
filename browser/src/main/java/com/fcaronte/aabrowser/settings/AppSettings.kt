@@ -134,6 +134,10 @@ object AppSettings {
     private val _onboardingCompleted = mutableStateOf(false)
     val onboardingCompleted: State<Boolean> = _onboardingCompleted
 
+    // Posizione ai siti web (es. Google Maps nel browser): spenta, i siti non la ricevono mai
+    private val _webLocation = mutableStateOf(false)
+    val webLocation: State<Boolean> = _webLocation
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _forceTheme.value = prefs.getBoolean("force_theme", false)
@@ -174,6 +178,7 @@ object AppSettings {
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
+        _webLocation.value = prefs.getBoolean("web_location", false)
 
         enableWeatherByDefaultIfLocationGranted(context)
         if (_forceEnglish.value) updateLocale()
@@ -193,6 +198,11 @@ object AppSettings {
     fun setOnboardingCompleted(context: Context, completed: Boolean) {
         _onboardingCompleted.value = completed
         saveBoolean(context, "onboarding_completed", completed)
+    }
+
+    fun setWebLocation(context: Context, enabled: Boolean) {
+        _webLocation.value = enabled
+        saveBoolean(context, "web_location", enabled)
     }
 
     fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {

@@ -7,6 +7,8 @@
     <!-- Android 17+: senza questo le pagine non raggiungono gli indirizzi della rete di casa (Home Assistant, Proxmox, proxy) -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Facoltativo: posizione precisa per le mappe nei siti (opzione "Posizione per i siti web") -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicesPolicy" />

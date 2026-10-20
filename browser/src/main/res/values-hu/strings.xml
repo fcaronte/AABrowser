@@ -234,9 +234,14 @@
     <string name="perm_mic_title">Mikrofon</string>
     <string name="perm_mic_desc">Hangalapú diktáláshoz és webhelyeken belüli kereséshez használatos.</string>
     <string name="perm_location_title">Hálózati helymeghatározás</string>
-    <string name="perm_location_desc">Kizárólag a helyi időjárás-frissítések megjelenítésére szolgál az autó kijelzőjén.</string>
+    <string name="perm_location_desc">A helyi időjárás megjelenítésére szolgál az autó kijelzőjén. A weboldalak csak az alábbi beállítással kapják meg a tartózkodási helyet.</string>
     <string name="perm_notifications_title">Értesítések</string>
     <string name="perm_notifications_desc">Szükséges a háttérben történő zenelejátszás vezérléséhez, az időjárás widgethez és az alkalmazásfrissítésekhez.</string>
+    <string name="perm_local_network_title">Helyi hálózat</string>
+    <string name="perm_local_network_desc">Lehetővé teszi, hogy az oldalak elérjék az otthoni hálózat webhelyeit és eszközeit (Home Assistant, router, NAS).</string>
+    <string name="perm_web_location_title">Helymeghatározás weboldalaknak (opcionális)</string>
+    <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez, ha alkalmazás helyett ott navigálna. Kikapcsolva a weboldalak soha nem kapják meg a tartózkodási helyet.</string>
+    <string name="web_location_phone_toast">A weboldalakhoz engedélyezze a pontos helymeghatározást a telefonon</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>

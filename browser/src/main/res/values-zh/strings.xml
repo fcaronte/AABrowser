@@ -233,9 +233,14 @@
     <string name="perm_mic_title">麦克风</string>
     <string name="perm_mic_desc">用于网站内的语音听写和搜索输入。</string>
     <string name="perm_location_title">网络定位</string>
-    <string name="perm_location_desc">专用于在您的车载屏幕上显示本地天气更新。</string>
+    <string name="perm_location_desc">用于在车载屏幕上显示本地天气。只有开启下方选项后，网站才能获取您的位置。</string>
     <string name="perm_notifications_title">通知</string>
     <string name="perm_notifications_desc">后台音乐播放控制、天气小部件和应用更新所必需。</string>
+    <string name="perm_local_network_title">本地网络</string>
+    <string name="perm_local_network_desc">允许网页访问家庭网络中的网站和设备（Home Assistant、路由器、NAS）。</string>
+    <string name="perm_web_location_title">网站位置（可选）</string>
+    <string name="perm_web_location_desc">为浏览器中的地图（如 Google 地图）提供精确 GPS 位置，适合不用应用而直接在网页中导航。关闭时，网站永远无法获取您的位置。</string>
+    <string name="web_location_phone_toast">请在手机上授予精确位置权限，以便网站使用</string>
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
     <string name="wide_reopen_last_page">重新打开最后一页</string>
