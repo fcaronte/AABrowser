@@ -70,14 +70,10 @@ class WelcomeActivity : ComponentActivity() {
         }
     }
 
+    // Di ritorno da una richiesta di permesso si aggiorna solo la schermata: andando avanti da soli, dopo i
+    // permessi base non restava il tempo di attivare la posizione per i siti (facoltativa). Avanti con "Inizia"
     override fun onResume() {
         super.onResume()
-        if (areAllPermissionsGranted()) {
-            AppSettings.setOnboardingCompleted(this, true)
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-            return
-        }
         setContent {
             WelcomeContent()
         }
