@@ -3,6 +3,8 @@ package com.fcaronte.aabrowser.utils
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.core.content.edit
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import java.util.concurrent.CopyOnWriteArraySet
@@ -96,6 +98,10 @@ object AdBlockHost {
     private val whitelist = CopyOnWriteArraySet<String>()
     private var prefs: SharedPreferences? = null
 
+    // Cambia a ogni modifica della whitelist: gli scudi della Main (barra schede e menu) si aggiornano insieme
+    private val _whitelistVersion = mutableIntStateOf(0)
+    val whitelistVersion: State<Int> = _whitelistVersion
+
     fun init(context: Context) {
         blockedHosts.addAll(defaultAdHosts)
         prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).also {
@@ -135,6 +141,7 @@ object AdBlockHost {
 
     private fun saveWhitelist() {
         prefs?.edit { putStringSet(KEY_WHITELIST, HashSet(whitelist)) }
+        _whitelistVersion.intValue++
     }
 
     private fun matches(host: String?, hosts: Collection<String>): Boolean =

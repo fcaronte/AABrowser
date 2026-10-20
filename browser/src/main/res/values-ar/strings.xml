@@ -248,6 +248,7 @@
     <string name="web_location_phone_toast">اسمح بالموقع الدقيق على الهاتف لاستخدامه في مواقع الويب</string>
     <string name="adblock_site_off">تم إيقاف AdBlock على %1$s</string>
     <string name="adblock_site_on">تم تشغيل AdBlock على %1$s</string>
+    <string name="adblock_this_site">AdBlock على هذا الموقع</string>
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>

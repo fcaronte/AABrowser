@@ -246,6 +246,7 @@
     <string name="web_location_phone_toast">Grant precise location on the phone to use it on websites</string>
     <string name="adblock_site_off">AdBlock off on %1$s</string>
     <string name="adblock_site_on">AdBlock on for %1$s</string>
+    <string name="adblock_this_site">AdBlock on this site</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
     <string name="wide_reopen_last_page">Reopen last page</string>

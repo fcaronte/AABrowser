@@ -20,6 +20,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.RemoveModerator
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +50,9 @@ fun PersistentTabBar(
     onCloseTab: (Int) -> Unit,
     onAddTab: () -> Unit,
     onGoBack: () -> Unit,
-    onGoForward: () -> Unit
+    onGoForward: () -> Unit,
+    adBlockOff: Boolean? = null, // null: niente sito (pagina locale), true: sito nella whitelist dell'AdBlock
+    onToggleAdBlock: () -> Unit = {}
 ) {
     val tabs = TabManager.tabs
     val activeIndex = TabManager.activeTabIndex
@@ -120,6 +124,20 @@ fun PersistentTabBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 4.dp)
             ) {
+                // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
+                IconButton(
+                    onClick = onToggleAdBlock,
+                    enabled = adBlockOff != null,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Icon(
+                        imageVector = if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
+                        contentDescription = stringResource(R.string.adblock_this_site),
+                        tint = if (adBlockOff != null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                }
+
                 IconButton(
                     onClick = onGoBack,
                     modifier = Modifier.size(44.dp)

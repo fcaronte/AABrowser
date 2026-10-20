@@ -245,6 +245,7 @@
     <string name="web_location_phone_toast">Autorisez la position précise sur le téléphone pour l\'utiliser sur les sites web</string>
     <string name="adblock_site_off">AdBlock désactivé sur %1$s</string>
     <string name="adblock_site_on">AdBlock activé sur %1$s</string>
+    <string name="adblock_this_site">AdBlock sur ce site</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>

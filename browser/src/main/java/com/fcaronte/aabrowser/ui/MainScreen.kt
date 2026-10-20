@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
@@ -62,6 +63,8 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -498,6 +501,27 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                         Box(modifier = Modifier.fillMaxSize().zIndex(10f)) {
                             val homeUrlRes = stringResource(AppSettings.effectiveSearchEngine.homeUrlRes)
                             val baseUrlRes = stringResource(AppSettings.effectiveSearchEngine.baseUrlRes)
+
+                            // Scudo dell'AdBlock per il sito della scheda attiva (barra schede e menu), come nella Wide:
+                            // null = niente sito (pagina locale), true = sito in whitelist (AdBlock spento)
+                            val adBlockSite = activeTab?.url
+                                ?.takeIf { UrlUtils.isWebUrl(it) && !LocalPlayer.isPlayerUrl(it) }
+                                ?.let { AdBlockHost.siteKey(it.toUri().host) }
+                            val whitelistVersion by AdBlockHost.whitelistVersion
+                            val adBlockOff = remember(adBlockSite, whitelistVersion) {
+                                adBlockSite?.let { AdBlockHost.isWhitelisted(it) }
+                            }
+                            val adBlockOffMsg = adBlockSite?.let { stringResource(R.string.adblock_site_off, it) }
+                            val adBlockOnMsg = adBlockSite?.let { stringResource(R.string.adblock_site_on, it) }
+                            val toggleAdBlock: () -> Unit = {
+                                adBlockSite?.let { site ->
+                                    val disable = !AdBlockHost.isWhitelisted(site)
+                                    if (disable) AdBlockHost.addToWhitelist(site) else AdBlockHost.removeFromWhitelist(site)
+                                    feedbackMessage = if (disable) adBlockOffMsg else adBlockOnMsg
+                                    reloadTrigger++
+                                }
+                                onInteraction()
+                            }
                             if (isTabBarVisible) {
                                 PersistentTabBar(
                                     modifier = Modifier.align(Alignment.TopCenter),
@@ -529,7 +553,9 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                     onGoForward = {
                                         forwardTrigger++
                                         onInteraction()
-                                    }
+                                    },
+                                    adBlockOff = adBlockOff,
+                                    onToggleAdBlock = toggleAdBlock
                                 )
                             }
 
@@ -551,6 +577,8 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                     reloadTrigger++
                                     onInteraction()
                                 },
+                                adBlockOff = adBlockOff,
+                                onToggleAdBlock = toggleAdBlock,
                                 onOpenSettings = {
                                     previousScreen = Screen.Browser
                                     currentScreen = Screen.Settings

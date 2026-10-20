@@ -243,6 +243,7 @@
     <string name="web_location_phone_toast">请在手机上授予精确位置权限，以便网站使用</string>
     <string name="adblock_site_off">已在 %1$s 关闭 AdBlock</string>
     <string name="adblock_site_on">已在 %1$s 开启 AdBlock</string>
+    <string name="adblock_this_site">此网站的 AdBlock</string>
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
     <string name="wide_reopen_last_page">重新打开最后一页</string>

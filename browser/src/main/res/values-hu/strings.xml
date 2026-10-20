@@ -244,6 +244,7 @@
     <string name="web_location_phone_toast">A weboldalakhoz engedélyezze a pontos helymeghatározást a telefonon</string>
     <string name="adblock_site_off">AdBlock kikapcsolva: %1$s</string>
     <string name="adblock_site_on">AdBlock bekapcsolva: %1$s</string>
+    <string name="adblock_this_site">AdBlock ezen a webhelyen</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>

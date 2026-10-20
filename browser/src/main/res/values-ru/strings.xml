@@ -246,6 +246,7 @@
     <string name="web_location_phone_toast">Разрешите точное местоположение на телефоне, чтобы использовать его на сайтах</string>
     <string name="adblock_site_off">AdBlock выключен на %1$s</string>
     <string name="adblock_site_on">AdBlock включён на %1$s</string>
+    <string name="adblock_this_site">AdBlock на этом сайте</string>
     <string name="grant_permissions_button">Предоставить разрешения и начать</string>
     <string name="skip_onboarding_button">Я знаю, что делаю (Пропустить)</string>
     <string name="wide_reopen_last_page">Открыть последнюю страницу</string>

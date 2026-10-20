@@ -26,10 +26,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +73,8 @@ fun NavigationOverlay(
     onGoForward: () -> Unit,
     onGoHome: () -> Unit,
     onReload: () -> Unit,
+    adBlockOff: Boolean? = null, // null: niente sito (pagina locale), true: sito nella whitelist dell'AdBlock
+    onToggleAdBlock: () -> Unit = {},
     onOpenSettings: () -> Unit,
     onOpenTabManager: () -> Unit,
     onSearch: (String) -> Unit,
@@ -162,7 +166,7 @@ fun NavigationOverlay(
                     .padding(16.dp)
             ) {
                 Box {
-                    val menuItems = remember(currentUrl) {
+                    val menuItems = remember(currentUrl, adBlockOff) {
                         listOf(
                             MenuItem(Icons.AutoMirrored.Filled.ArrowBack, R.string.back_button) { onInteraction(); onGoBack(); onShowMenuChange(false) },
                             MenuItem(Icons.AutoMirrored.Filled.ArrowForward, R.string.forward_button) { onInteraction(); onGoForward(); onShowMenuChange(false) },
@@ -170,6 +174,11 @@ fun NavigationOverlay(
                             MenuItem(Icons.Default.Layers, R.string.tabs_button) { onInteraction(); onOpenTabManager(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Star, R.string.add_to_favorites) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Refresh, R.string.reload_button) { onInteraction(); onReload(); onShowMenuChange(false) },
+                            // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
+                            MenuItem(
+                                if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
+                                R.string.adblock_this_site
+                            ) { onInteraction(); onToggleAdBlock(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Search, R.string.search_button) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Share, R.string.share_button) { onInteraction(); showQRCode = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Settings, R.string.settings_button) { onInteraction(); onOpenSettings(); onShowMenuChange(false) },
@@ -183,13 +192,16 @@ fun NavigationOverlay(
 
                     val sweepAngle = 90f
                     val innerRadius = 105.dp
-                    val outerRadius = 180.dp
+                    // Arco esterno: con 7 tasti (c'è anche lo scudo dell'AdBlock) un po' più largo, così i tasti
+                    // da 46 dp non si toccano
+                    val outerCount = menuItems.size - 4
+                    val outerRadius = if (outerCount > 6) 200.dp else 180.dp
 
                     menuItems.forEachIndexed { index, item ->
                         val isOuter = index >= 4
                         val radius = if (isOuter) outerRadius else innerRadius
                         val arcIndex = if (isOuter) index - 4 else index
-                        val arcTotal = if (isOuter) 6 else 4
+                        val arcTotal = if (isOuter) outerCount else 4
 
                         val angle = startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
                         val angleRad = Math.toRadians(angle.toDouble())

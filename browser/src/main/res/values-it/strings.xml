@@ -202,6 +202,7 @@
     <string name="web_location_phone_toast">Concedi la posizione precisa dal telefono per usarla nei siti</string>
     <string name="adblock_site_off">AdBlock spento su %1$s</string>
     <string name="adblock_site_on">AdBlock attivo su %1$s</string>
+    <string name="adblock_this_site">AdBlock su questo sito</string>
     <string name="grant_permissions_button">Concedi Permessi e Inizia</string>
     <string name="skip_onboarding_button">So quello che faccio (Salta)</string>
     <string name="wide_reopen_last_page">Riapri ultima pagina</string>
