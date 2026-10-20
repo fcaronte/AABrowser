@@ -106,6 +106,16 @@
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
 
+        <!-- Activity vuota della sessione media quando la Wide non è in uso: il tocco sulla scheda del player
+             di Android Auto non apre niente (vedi CarMediaService.setWideActive) -->
+        <activity
+            android:name=".mediaservice.NoOpActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <service
             android:name=".mediaservice.CarMediaService"
             android:enabled="true"

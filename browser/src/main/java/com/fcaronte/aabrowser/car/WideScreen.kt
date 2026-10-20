@@ -258,14 +258,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
+                mediaSessionManager.setWideActive(true)
             }
 
             override fun onPause(owner: LifecycleOwner) {
                 isWideResumed = false
+                mediaSessionManager.setWideActive(false)
             }
 
             override fun onDestroy(owner: LifecycleOwner) {
                 isWideResumed = false
+                mediaSessionManager.setWideActive(false)
                 if (activeInstance == this@WideScreen) {
                     activeInstance = null
                 }

@@ -209,6 +209,14 @@ class MediaSessionManager(
         }
     }
 
+    /**
+     * La Wide è in primo piano (true) o no (false). Non in uso: il tocco sulla scheda del player di Android Auto
+     * non apre niente invece della Wide (vedi CarMediaService.setWideActive).
+     */
+    fun setWideActive(isActive: Boolean) {
+        runOnMain { CarMediaService.setWideActive(isActive) }
+    }
+
     fun disconnect() {
         runOnMain {
             AppLog.d(TAG, "Disconnecting MediaBrowser for $source...")
