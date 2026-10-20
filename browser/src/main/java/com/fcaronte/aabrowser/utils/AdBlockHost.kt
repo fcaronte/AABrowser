@@ -1,8 +1,8 @@
 package com.fcaronte.aabrowser.utils
 
 import android.content.Context
+import android.net.Uri
 import com.fcaronte.aabrowser.settings.AdBlockSettings
-import java.net.URL
 
 /**
  * Gestore leggero per il blocco delle pubblicità basato su liste di host.
@@ -79,21 +79,27 @@ object AdBlockHost {
         "gads.spotify.com"
     )
 
+    // YouTube gestisce le pubblicità dentro il player: se la rete le blocca (doubleclick, googlesyndication...)
+    // il player va in errore e non mette "ad-showing", e lo script (AdBlockJavascript) non le salta più.
+    // Sulle pagine di YouTube, e per le sue risorse ovunque, decide solo lo script
+    private val scriptManagedHosts = setOf("youtube.com", "youtu.be", "youtubekids.com", "googlevideo.com", "ytimg.com")
+
     fun init(context: Context) {
         blockedHosts.addAll(defaultAdHosts)
     }
 
-    fun shouldBlock(url: String): Boolean {
-        return AdBlockSettings.isEnabled.value && try {
-            val host = URL(url).host.lowercase()
-            // Controlla se l'host o i suoi sottodomini sono nella lista nera
-            blockedHosts.any { adHost ->
-                host == adHost || host.endsWith(".$adHost")
-            }
-        } catch (e: Exception) {
-            false
-        }
+    /** [pageHost] = sito della pagina principale della WebView (null se non si sa). */
+    fun shouldBlock(url: String, pageHost: String? = null): Boolean {
+        if (!AdBlockSettings.isEnabled.value) return false
+        // Uri e non URL: niente eccezioni con blob:, data:, about: e javascript:
+        val host = Uri.parse(url).host?.lowercase() ?: return false
+        if (matches(host, scriptManagedHosts) || matches(pageHost?.lowercase(), scriptManagedHosts)) return false
+        // L'host o un suo sottodominio è nella lista nera
+        return matches(host, blockedHosts)
     }
+
+    private fun matches(host: String?, hosts: Collection<String>): Boolean =
+        host != null && hosts.any { host == it || host.endsWith(".$it") }
 
     /**
      * Permette di aggiungere dinamicamente nuovi host alla lista di blocco.

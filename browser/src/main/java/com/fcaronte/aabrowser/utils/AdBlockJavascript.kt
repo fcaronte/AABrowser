@@ -9,8 +9,17 @@ object AdBlockJavascript {
             window.aabIntervals.forEach(clearInterval);
         }
         window.aabIntervals = [];
+        // Lo script si inietta a ogni pagina finita: via l'observer e gli eventi messi la volta prima
+        if (window.aabAdObserver) window.aabAdObserver.disconnect();
+        window.aabAdObserver = null;
+        if (window.aabAdNavHandler) {
+            ['yt-navigate-finish', 'spfdone', 'popstate'].forEach(name => {
+                window.removeEventListener(name, window.aabAdNavHandler);
+                document.removeEventListener(name, window.aabAdNavHandler);
+            });
+        }
 
-        console.log("AABrowser: YouTube AdBlock Active (v11)");
+        console.log("AABrowser: YouTube AdBlock Active (v12)");
 
         // Non offsetParent: è null anche dentro i contenitori "fixed", come il player di m.youtube.com,
         // e il tasto "Salta" non veniva mai trovato
@@ -111,7 +120,8 @@ object AdBlockJavascript {
             });
         }
 
-        const mainLoop = setInterval(() => {
+        // Controllo della pubblicità: lo chiamano l'observer (subito), gli eventi di navigazione e il giro ogni 500 ms
+        function checkAds() {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be') && !window.location.host.includes('youtubekids.com')) return;
             const isMusic = window.location.host.includes('music.youtube.com');
             const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player') || document.querySelector('ytmusic-player');
@@ -179,7 +189,9 @@ object AdBlockJavascript {
 
                 if (skipBtn) {
                     const isDisabled = skipBtn.disabled || skipBtn.getAttribute('aria-disabled') === 'true';
-                    if (!isDisabled) {
+                    // Al massimo ogni 300 ms: l'observer richiama il controllo a ogni modifica del player
+                    if (!isDisabled && Date.now() - (window.aabLastSkipPress || 0) > 300) {
+                        window.aabLastSkipPress = Date.now();
                         pressButton(skipBtn);
                         // Trovato il contenitore: va premuto anche il pulsante vero e proprio
                         const inner = skipBtn.querySelector('button');
@@ -222,7 +234,49 @@ object AdBlockJavascript {
                 });
             });
             document.querySelectorAll('.ytp-ad-overlay-close-button, .ytp-ad-overlay-close-container').forEach(b => b.click());
+        }
 
+        // Reazione immediata: il player riceve la classe "ad-showing" appena parte una pubblicità e il tasto
+        // "Salta" compare nel suo modulo. Col solo giro ogni 500 ms i bumper da 5 s partivano con l'audio
+        let checkScheduled = false;
+        function scheduleCheck() {
+            if (checkScheduled) return;
+            checkScheduled = true;
+            // Una volta sola per gruppo di modifiche
+            Promise.resolve().then(() => {
+                checkScheduled = false;
+                checkAds();
+            });
+        }
+
+        let observedPlayer = null;
+        function attachObserver() {
+            const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player') || document.querySelector('ytmusic-player');
+            if (!player || player === observedPlayer) return;
+            if (window.aabAdObserver) window.aabAdObserver.disconnect();
+            observedPlayer = player;
+            window.aabAdObserver = new MutationObserver(scheduleCheck);
+            window.aabAdObserver.observe(player, {
+                attributes: true, attributeFilter: ['class'], childList: true, subtree: true
+            });
+            scheduleCheck();
+        }
+
+        // YouTube cambia video senza ricaricare la pagina (SPA): il player può essere un elemento nuovo
+        window.aabAdNavHandler = () => {
+            attachObserver();
+            scheduleCheck();
+        };
+        ['yt-navigate-finish', 'spfdone', 'popstate'].forEach(name => {
+            window.addEventListener(name, window.aabAdNavHandler);
+            document.addEventListener(name, window.aabAdNavHandler);
+        });
+        attachObserver();
+
+        // Riserva: ricollega l'observer se il player è cambiato e controlla comunque
+        const mainLoop = setInterval(() => {
+            attachObserver();
+            checkAds();
         }, 500);
         window.aabIntervals.push(mainLoop);
 

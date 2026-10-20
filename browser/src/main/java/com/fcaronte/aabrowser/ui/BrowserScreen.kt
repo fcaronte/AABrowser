@@ -1071,7 +1071,7 @@ fun BrowserScreen(
 
                             val urlString = request?.url?.toString() ?: ""
                             val requestUrl = request?.url
-                            if (AdBlockHost.shouldBlock(urlString)) {
+                            if (AdBlockHost.shouldBlock(urlString, pageHost.get())) {
                                 return WebResourceResponse(
                                     "text/plain",
                                     "utf-8",

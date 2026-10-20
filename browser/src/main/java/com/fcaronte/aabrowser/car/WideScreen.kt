@@ -1475,7 +1475,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     )
                                 }
 
-                                if (AdBlockHost.shouldBlock(urlString)) {
+                                if (AdBlockHost.shouldBlock(urlString, pageHost)) {
                                     return WebResourceResponse(
                                         "text/plain",
                                         "utf-8",
