@@ -130,6 +130,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Ricaricamenti di fila per cambiare user agent (desktop/mobile): oltre, niente più (evita i loop)
         const val MAX_USER_AGENT_RELOADS = 3
 
+        // Attesa prima di navigationStarted(): il tocco sul player arriva con onNewIntent subito dopo l'avvio
+        const val NAVIGATION_START_DELAY_MS = 1500L
+
         // Debounce per i callback di visible area (i tasti mappa appaiono/scompaiono con animazione)
         const val VISIBLE_AREA_DEBOUNCE_MS = 50L
         // Secondo passaggio, per catturare lo stato finale dell'animazione dei tasti
@@ -180,6 +183,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var favoritesCache: List<FavoriteSite>? = null
     private var favoritesReadAt = 0L
     private var userAgentReloads = 0            // ricaricamenti per cambiare user agent dall'ultima pagina finita
+    private var isNavigationStarted = false
+    private val startNavigationRunnable = Runnable { startNavigation() }
 
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
@@ -243,7 +248,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                 override fun onAutoDriveEnabled() {}
             })
-            navManager.navigationStarted()
+            // navigationStarted() chiude la navigazione di un'altra app (Maps). Parte poco dopo: se la Wide è
+            // stata aperta dal tocco sul player (onNewIntent subito dopo l'avvio) fa in tempo a chiudersi
+            handler.postDelayed(startNavigationRunnable, NAVIGATION_START_DELAY_MS)
         } catch (e: Exception) {
             Log.e(TAG, "Init failed", e)
         }
@@ -263,6 +270,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     activeInstance = null
                 }
                 TabManager.removeWideTab()
+                handler.removeCallbacks(startNavigationRunnable)
                 handler.removeCallbacks(applyAreaRunnable)
                 handler.removeCallbacks(applyAreaSettledRunnable)
                 handler.removeCallbacks(startupReapplyRunnable)
@@ -445,12 +453,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun closeApp() {
+        handler.removeCallbacks(startNavigationRunnable)
         try {
             carContext.getCarService(NavigationManager::class.java).navigationEnded()
         } catch (e: Exception) {
             Log.w(TAG, "navigationEnded failed", e)
         }
         carContext.finishCarApp()
+    }
+
+    private fun startNavigation() {
+        if (isNavigationStarted || lifecycle.currentState == Lifecycle.State.DESTROYED) return
+        try {
+            carContext.getCarService(NavigationManager::class.java).navigationStarted()
+            isNavigationStarted = true
+        } catch (e: Exception) {
+            Log.e(TAG, "navigationStarted failed", e)
+        }
+    }
+
+    /**
+     * Android Auto ha aperto l'app dal tocco sul player. Se la Wide è partita proprio per questo (non è ancora il
+     * navigatore attivo) si chiude, così resta la navigazione in corso; se era già aperta resta com'è.
+     */
+    fun onMediaCardLaunch() {
+        if (isNavigationStarted) {
+            AppLog.d(TAG, "Player card tap: Wide already open, kept")
+            return
+        }
+        AppLog.d(TAG, "Player card tap: Wide just started for it, closing")
+        closeApp()
     }
 
     // ------------------------------------------------------------------

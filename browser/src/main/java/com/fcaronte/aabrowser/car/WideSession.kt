@@ -12,19 +12,24 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 
 class WideSession : Session() {
+    private var wideScreen: WideScreen? = null
+
     override fun onCreateScreen(intent: Intent): Screen {
         AppLog.d(TAG, "onCreateScreen: ${describe(intent)}")
         // Tocco sulla scheda del player di Android Auto: il pacchetto ha anche il servizio media, quindi Android
         // Auto apre la Wide come se fosse il suo player. La Wide però è un navigatore: partendo chiamerebbe
         // navigationStarted() e chiuderebbe la navigazione in corso (Maps). Qui si chiude subito e resta l'app di prima
-        if (intent.action == ACTION_SHOW_MEDIA_PLAYBACK) return CloseImmediatelyScreen(carContext)
-        return WideScreen(carContext)
+        if (isMediaCardLaunch(intent)) return CloseImmediatelyScreen(carContext)
+        return WideScreen(carContext).also { wideScreen = it }
     }
 
     override fun onNewIntent(intent: Intent) {
-        // Wide già aperta: il tocco sulla scheda del player la lascia com'è
         AppLog.d(TAG, "onNewIntent: ${describe(intent)}")
+        // Android Auto può avviare la sessione normalmente e mandare il tocco sul player subito dopo
+        if (isMediaCardLaunch(intent)) wideScreen?.onMediaCardLaunch()
     }
+
+    private fun isMediaCardLaunch(intent: Intent): Boolean = intent.action in MEDIA_CARD_ACTIONS
 
     private fun describe(intent: Intent): String =
         "action=${intent.action} categories=${intent.categories} extras=${intent.extras?.keySet()}"
@@ -46,7 +51,11 @@ class WideSession : Session() {
     companion object {
         private const val TAG = "WideSession"
 
-        // Azione con cui Android Auto apre un'app da una superficie del media in riproduzione (scheda del player)
-        private const val ACTION_SHOW_MEDIA_PLAYBACK = "androidx.car.app.media.action.SHOW_MEDIA_PLAYBACK"
+        // Azioni con cui Android Auto apre l'app dalla scheda del player: quella documentata della Car App Library
+        // e quella che arriva davvero (vista nei log, Android Auto 2026)
+        private val MEDIA_CARD_ACTIONS = setOf(
+            "androidx.car.app.media.action.SHOW_MEDIA_PLAYBACK",
+            "MEDIA_SHOW_PLAYBACK_VIEW"
+        )
     }
 }
