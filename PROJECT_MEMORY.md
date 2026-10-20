@@ -1,8 +1,9 @@
 # PROJECT MEMORY - AABrowser
 
 ## 1. Current Status
-- **Version / Milestone**: 2.3 (versionCode 14) ready for release
+- **Version / Milestone**: 2.3 (versionCode 14) released; working on 2.4
 - **Recent Updates**:
+  - **Wide: site and favorite settings (WhatsApp Web not in desktop)**: the Wide home tiles are plain links, so the navigation left with the user agent of the previous page (mobile) and the desktop one was set only in `onPageStarted`, after the request: WhatsApp Web got the mobile version. Now `shouldOverrideUrlLoading` (main frame GETs) reloads the URL with `loadUrl()` when the page needs the other identity (`needsDesktopForUrl` vs `WebViewScriptRouter.hasDesktopUserAgent`), at most `MAX_USER_AGENT_RELOADS` in a row (reset on page finished). The full desktop spoof (`navigator.platform`, `userAgentData`...) is a document start script gated on the desktop UA (`BrowserJavascript.getDesktopSpoofScriptForDesktopUa`), because from `onPageStarted` it ran too late. The favorite of the page's site (`favoriteFor`: same host without "www." or a subdomain, most specific wins; list cached 2 s) now applies in the Wide too: `isDesktopMode` replaces the global desktop setting (sites that require desktop stay desktop, as in the Main), `mobileZoom`/`desktopZoom` replace the Wide's 1.0 scales.
   - **Security review of the pre-existing code (compiled, not tested)**:
     - **DAZN proxy (critical)**: `AndroidBridge.proxyFetch` is visible to every page and iframe (Main and Wide) and made native requests with the user's cookies, without CORS, to any address (other sites, home devices). Now `DaznProxy.proxyFetch(context, pageHost, ...)` answers 403 unless the main-frame page and the target are DAZN (`isDaznHost`: `dazn.com`, `indazn.com` and subdomains) over https, also after redirects (`conn.url.host`). The page host is tracked per WebView (`pageHost`: `onPageStarted` + main-frame `shouldInterceptRequest`). `DaznManager.AUTH_PROXY_JS` sends only DAZN https URLs to the proxy (before, any URL with "auth" in host or path, e.g. `oauth2.googleapis.com`), so the others use the normal WebView network instead of getting the 403.
     - **Updater (serious)**: the update receiver is exported (needed for `DOWNLOAD_COMPLETE`), so any app could make it download and hand an arbitrary APK to KingInstaller (silent install). `UpdateManager.startDownload` accepts only `https://github.com/fcaronte/AABrowser/releases/download/...`, and the downloaded APK is installed only if its package is `com.fcaronte.aabrowser` (`isAppPackage`; the signature is checked by Android on install).
@@ -75,6 +76,9 @@
   - **Wide double-tap-zoom block on YouTube**: `getDisableDoubleTapScript()` used `style.innerHTML`, blocked by YouTube's Trusted Types ("This document requires 'TrustedHTML' assignment" in logcat), so the style never applied there. Now uses `style.textContent`.
 
 ## 2. Modified / Created Files
+- `browser/src/main/java/com/fcaronte/aabrowser/car/WideScreen.kt`: `favoriteFor()` / `favorites()` cache, favorite desktop + zoom, user agent switch in `shouldOverrideUrlLoading`, gated desktop spoof at document start.
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/WebViewScriptRouter.kt`: `hasDesktopUserAgent()`, `installedChromeVersion()`, `DESKTOP_UA_PLATFORM`.
+- `browser/src/main/java/com/fcaronte/aabrowser/utils/BrowserJavascript.kt`: `getDesktopSpoofScriptForDesktopUa()`.
 - `browser/src/main/java/com/fcaronte/aabrowser/utils/DaznProxy.kt`: `isDaznHost()`, `pageHost` parameter, 403 for non-DAZN pages/targets/redirects.
 - `browser/src/main/java/com/fcaronte/aabrowser/utils/DaznManager.kt`: `shouldProxyDaznApiRequest` only for DAZN https hosts.
 - `browser/src/main/java/com/fcaronte/aabrowser/ui/BrowserScreen.kt`, `car/WideScreen.kt`: main-frame `pageHost` tracking for the proxy; bridge open methods limited to web URLs.
@@ -138,6 +142,7 @@
 - `browser/src/main/java/com/fcaronte/aabrowser/utils/BrowserJavascript.kt`: `MEDIA_LISTENERS_JS` reports only audible media (muted previews / background videos can't steal the player), unmute while playing counts as a start, media already playing when listeners attach is reported; `getDisableDoubleTapScript()` uses `textContent` (Trusted Types safe).
 
 ## 3. Architectural Decisions
+- **User agent before the request**: the server picks desktop/mobile from the request headers, so the UA must be set before the navigation starts (`loadUrl` after setting it, or a reload from `shouldOverrideUrlLoading`); setting it in `onPageStarted` only affects the next request. Navigator spoofing must be a document start script, gated on the UA the page was requested with.
 - **Wide layout = per host layout**: anything learned from the visible/stable areas (buttons band) belongs to that stable area (full screen, split with the player, split with the menu are different layouts). Unknown layout = no assumptions: the page must never end up under the host UI.
 - **AAB Media audio graph**: `createMediaElementSource(#media)` only inside a user tap (silence otherwise) and it cannot be undone for the page; the crossfade's second player stays detached from the DOM so the AA integration only ever sees `#media`.
 - **Streams returned by `shouldInterceptRequest` must start at byte 0**: the WebView applies the request's Range itself (skip + read to EOF) and uses `available()` as the total size (an int: ranges starting beyond 2 GB cannot be served). Bound the stream at the end of the range, never pre-skip, and let the WebView set `Content-Length`.
@@ -161,6 +166,7 @@
 - **Never request Android audio focus from the app side** (`CarMediaService` or elsewhere): each WebView requests it through Chromium when its media really starts; any other request from our package takes it away and Chromium pauses the page. The WebViews also pause each other natively through audio focus, which is consistent with "last started wins".
 
 ## 4. Next Steps (TODO)
+- Verify in the Wide: WhatsApp Web from the home tile opens the desktop QR page; a favorite with "desktop" on/off and a zoom gets them in the Wide (also global desktop on + favorite off = mobile); going back from a desktop site to a mobile one reloads with the mobile user agent.
 - Verify after the security review: DAZN login and playback (Main phone, Main car, Wide); Google login popup and "open in new tab" links (Main and Wide); update banner -> download -> KingInstaller install; a **release** build in the car: the Wide must still appear in Android Auto (if not, `CarServiceWide` host validator).
 - Verify before publishing 2.3: certificate accepted once is not asked again after closing the app, and "Accepted certificates" in Settings forgets it; AAB Media colors in light, dark (dynamic) and AMOLED, phone and car; YouTube ads (pre-roll, mid-roll, skippable and not) on phone, Main car and Wide; muted YouTube previews stay muted.
 - Verify in the real car: Wide in split with the player (page no longer under the card), with the app menu (sidebar and page in the right pane), back to full screen; the phone logs showed 800x420 and 2217x1052 head units.

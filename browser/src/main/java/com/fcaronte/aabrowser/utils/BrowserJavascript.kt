@@ -277,6 +277,13 @@ object BrowserJavascript {
         """.trimIndent()
     }
 
+    /**
+     * [getDesktopSpoofScript] da registrare all'inizio di ogni documento di una WebView che cambia sito:
+     * agisce solo sulle pagine chieste con lo user agent desktop, le altre restano mobile.
+     */
+    fun getDesktopSpoofScriptForDesktopUa(chromeVersion: String): String =
+        "if (navigator.userAgent.indexOf('Windows NT') !== -1) {\n${getDesktopSpoofScript(chromeVersion)}\n}"
+
     const val PLAY_SCRIPT = """
         (function() {
             window.isMediaPlaying = true;

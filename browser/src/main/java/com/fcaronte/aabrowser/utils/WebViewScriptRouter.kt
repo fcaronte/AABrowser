@@ -30,6 +30,17 @@ object WebViewScriptRouter {
                 lowUrl.contains("oauth")
     }
 
+    // Piattaforma dello user agent desktop: serve anche a riconoscerlo (hasDesktopUserAgent)
+    private const val DESKTOP_UA_PLATFORM = "Windows NT 10.0; Win64; x64"
+
+    /** true se la WebView usa già lo user agent desktop di [setDesktopUserAgent]. */
+    fun hasDesktopUserAgent(webView: WebView): Boolean =
+        webView.settings.userAgentString?.contains(DESKTOP_UA_PLATFORM) == true
+
+    /** Versione di Chrome della WebView installata, null se non si riesce a leggerla. */
+    fun installedChromeVersion(context: Context): String? =
+        Regex("Chrome/([0-9.]+)").find(WebSettings.getDefaultUserAgent(context))?.groupValues?.get(1)
+
     fun setDesktopUserAgent(webView: WebView, context: Context): String {
         val defaultUserAgent = WebSettings.getDefaultUserAgent(context)
         val version = Regex("Chrome/([0-9.]+)").find(defaultUserAgent)?.groupValues?.get(1)
@@ -40,7 +51,7 @@ object WebViewScriptRouter {
         }
 
         val userAgent =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
+            "Mozilla/5.0 ($DESKTOP_UA_PLATFORM) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
         webView.settings.userAgentString = userAgent
         setUserAgentMetadata(
             webView,

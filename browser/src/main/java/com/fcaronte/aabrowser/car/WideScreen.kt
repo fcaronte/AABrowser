@@ -74,6 +74,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
+import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
@@ -116,9 +117,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             }
 
         // Scale passate a WebViewScriptRouter.routeAndInject (1.0 = nessuna modifica).
-        // Le scale dell'app principale sono pensate per il telefono: qui si regolano a parte.
+        // Le scale generali dell'app principale sono pensate per il telefono: qui non valgono.
+        // Valgono invece quelle di un preferito, scelte per quel sito.
         const val WIDE_DISPLAY_SCALE = 1.0f
         const val WIDE_DESKTOP_SCALE = 1.0f
+
+        // I preferiti letti restano validi per questo tempo (servono più volte per ogni pagina)
+        const val FAVORITES_CACHE_MS = 2000L
+
+        // Ricaricamenti di fila per cambiare user agent (desktop/mobile): oltre, niente più (evita i loop)
+        const val MAX_USER_AGENT_RELOADS = 3
 
         // Debounce per i callback di visible area (i tasti mappa appaiono/scompaiono con animazione)
         const val VISIBLE_AREA_DEBOUNCE_MS = 50L
@@ -167,6 +175,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private var lastRenderCrash = 0L
     private var daznDesktopForced = false       // DAZN: dopo il clic su un evento serve la modalità desktop
+    private var favoritesCache: List<FavoriteSite>? = null
+    private var favoritesReadAt = 0L
+    private var userAgentReloads = 0            // ricaricamenti per cambiare user agent dall'ultima pagina finita
 
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
@@ -327,12 +338,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     private fun buildHomeHtml(): String {
-        val items = try {
-            FavoritesRepository(carContext).loadFavorites().map { HomePage.Item(it.name, it.url) }
-        } catch (e: Exception) {
-            Log.e(TAG, "Errore lettura preferiti", e)
-            emptyList()
-        }
+        favoritesCache = null
+        val items = favorites().map { HomePage.Item(it.name, it.url) }
         return HomePage.build(carContext, items, reopenEnabled(), sidebarFixedEnabled())
     }
 
@@ -454,7 +461,42 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun needsDesktopForUrl(url: String?): Boolean {
         if (url != null && url.startsWith(HomePage.BASE_URL)) return false
-        return AppSettings.desktopMode.value || WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+        // Come nel Main: la scelta del preferito sostituisce quella generale, i siti "solo desktop" restano desktop
+        val desktopPreferred = favoriteFor(url)?.isDesktopMode ?: AppSettings.desktopMode.value
+        return desktopPreferred || WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+    }
+
+    /** Host senza "www.": "https://www.dazn.com/it" e "https://dazn.com" sono lo stesso sito. */
+    private fun siteHost(url: String?): String? =
+        url?.let { Uri.parse(it).host }?.lowercase()?.removePrefix("www.")?.takeIf { it.isNotEmpty() }
+
+    // I preferiti si leggono più volte per ogni pagina: basta rileggerli ogni tanto (si modificano dal telefono)
+    private fun favorites(): List<FavoriteSite> {
+        val now = SystemClock.uptimeMillis()
+        favoritesCache?.takeIf { now - favoritesReadAt < FAVORITES_CACHE_MS }?.let { return it }
+        val list = try {
+            FavoritesRepository(carContext).loadFavorites()
+        } catch (e: Exception) {
+            Log.e(TAG, "Errore lettura preferiti", e)
+            emptyList()
+        }
+        favoritesCache = list
+        favoritesReadAt = now
+        return list
+    }
+
+    /**
+     * Preferito del sito della pagina: le sue impostazioni (desktop, zoom) valgono anche nella Wide, che a
+     * differenza del Main non apre una scheda per preferito. Stesso host o un suo sottodominio
+     * (preferito facebook.com, pagina m.facebook.com); vince il più specifico.
+     */
+    private fun favoriteFor(url: String?): FavoriteSite? {
+        val host = siteHost(url) ?: return null
+        return favorites()
+            .mapNotNull { fav -> siteHost(fav.url)?.let { fav to it } }
+            .filter { (_, favHost) -> host == favHost || host.endsWith(".$favHost") }
+            .maxByOrNull { (_, favHost) -> favHost.length }
+            ?.first
     }
 
     private fun applyUserAgent(view: WebView, url: String?) {
@@ -1110,6 +1152,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
                             // Blocca il doppio tap to zoom in tutte le pagine
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getDisableDoubleTapScript(), setOf("*"))
+                            // Identità desktop completa (platform, userAgentData, ...) prima degli script del sito,
+                            // solo sulle pagine chieste con lo user agent desktop: la Wide cambia sito nella stessa
+                            // WebView e da onPageStarted lo script arriva tardi (WhatsApp Web lo controlla subito)
+                            WebViewScriptRouter.installedChromeVersion(ctx)?.let { chromeVersion ->
+                                WebViewCompat.addDocumentStartJavaScript(
+                                    this,
+                                    BrowserJavascript.getDesktopSpoofScriptForDesktopUa(chromeVersion),
+                                    setOf("*")
+                                )
+                            }
                         }
 
                         addJavascriptInterface(
@@ -1469,9 +1521,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     return true
                                 }
 
-                                // Blocca market:// e ogni altro schema non web
                                 val scheme = request?.url?.scheme
-                                return scheme != "http" && scheme != "https"
+                                val isWeb = scheme == "http" || scheme == "https"
+
+                                // Il sito vuole l'altra identità (desktop o mobile): la richiesta deve partire già con lo
+                                // user agent giusto, altrimenti il server manda la versione sbagliata (es. WhatsApp Web
+                                // aperto dalla home). Qui arrivano solo le GET: ricaricarle non perde dati
+                                if (isWeb && request?.isForMainFrame == true && view != null &&
+                                    !url.startsWith(HomePage.BASE_URL) &&
+                                    userAgentReloads < MAX_USER_AGENT_RELOADS &&
+                                    needsDesktopForUrl(url) != WebViewScriptRouter.hasDesktopUserAgent(view)
+                                ) {
+                                    userAgentReloads++
+                                    this@WideScreen.loadUrl(url)
+                                    return true
+                                }
+
+                                // Blocca market:// e ogni altro schema non web
+                                return !isWeb
                             }
 
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -1513,6 +1580,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url.isNullOrEmpty()) return
+                                userAgentReloads = 0
 
                                 view?.evaluateJavascript(BrowserJavascript.getDisableDoubleTapScript(), null)
 
@@ -1529,14 +1597,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         if (isDazn(url)) {
                                             it.evaluateJavascript(DaznManager.getClickInterceptorScript(), null)
                                         }
+                                        val favorite = favoriteFor(url)
                                         WebViewScriptRouter.routeAndInject(
                                             webView = it,
                                             urlString = url,
                                             isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value,
                                             forceMaxYouTubeQuality = AppSettings.forceMaxYouTubeQuality.value,
                                             autoplayMedia = AppSettings.autoplayMedia.value,
-                                            displayScale = WIDE_DISPLAY_SCALE,
-                                            desktopScale = WIDE_DESKTOP_SCALE,
+                                            displayScale = favorite?.mobileZoom ?: WIDE_DISPLAY_SCALE,
+                                            desktopScale = favorite?.desktopZoom ?: WIDE_DESKTOP_SCALE,
                                             isDesktopMode = needsDesktopForUrl(url),
                                             isTabActive = true
                                         )
