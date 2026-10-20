@@ -138,7 +138,7 @@
     <string name="voice_search">Recherche vocale</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_name">AAB Media</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio du navigateur</string>
     <string name="media_browser_subtitle">Lire l\'audio actuel</string>
@@ -241,7 +241,7 @@
     <string name="perm_local_network_title">Réseau local</string>
     <string name="perm_local_network_desc">Permet aux pages d\'accéder aux sites et appareils de votre réseau domestique (Home Assistant, routeur, NAS).</string>
     <string name="perm_web_location_title">Position pour les sites web (facultatif)</string>
-    <string name="perm_web_location_desc">Position GPS précise pour les cartes dans le navigateur, comme Google Maps, si vous naviguez ici plutôt qu\'avec une app. Désactivée : les sites web ne reçoivent jamais votre position.</string>
+    <string name="perm_web_location_desc">Position GPS précise pour les cartes dans le navigateur, comme Google Maps. En voiture (téléphone verrouillé), Android demande aussi « Toujours autoriser ». Désactivée : les sites web ne reçoivent jamais votre position.</string>
     <string name="web_location_phone_toast">Autorisez la position précise sur le téléphone pour l\'utiliser sur les sites web</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>

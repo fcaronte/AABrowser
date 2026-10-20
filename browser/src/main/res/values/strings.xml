@@ -139,7 +139,7 @@
     <string name="voice_search">Voice Search</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_name">AAB Media</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio from Browser</string>
     <string name="media_browser_subtitle">Play current audio</string>
@@ -242,7 +242,7 @@
     <string name="perm_local_network_title">Local network</string>
     <string name="perm_local_network_desc">Lets pages reach sites and devices on your home network (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Location for websites (optional)</string>
-    <string name="perm_web_location_desc">Precise GPS position for maps in the browser, such as Google Maps, if you navigate there instead of an app. Off: websites never get your position.</string>
+    <string name="perm_web_location_desc">Precise GPS position for maps in the browser, such as Google Maps. In the car (phone locked) Android also needs “Allow all the time”. Off: websites never get your position.</string>
     <string name="web_location_phone_toast">Grant precise location on the phone to use it on websites</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>

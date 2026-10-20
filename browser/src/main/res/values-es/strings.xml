@@ -138,7 +138,7 @@
     <string name="voice_search">Búsqueda por voz</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_name">AAB Media</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Audio del navegador</string>
     <string name="media_browser_subtitle">Reproducir audio actual</string>
@@ -241,7 +241,7 @@
     <string name="perm_local_network_title">Red local</string>
     <string name="perm_local_network_desc">Permite que las páginas accedan a sitios y dispositivos de tu red doméstica (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Ubicación para sitios web (opcional)</string>
-    <string name="perm_web_location_desc">Posición GPS precisa para los mapas en el navegador, como Google Maps, si navegas desde ahí en lugar de una app. Desactivada: los sitios web nunca reciben tu ubicación.</string>
+    <string name="perm_web_location_desc">Posición GPS precisa para los mapas en el navegador, como Google Maps. En el coche (teléfono bloqueado) Android también necesita «Permitir todo el tiempo». Desactivada: los sitios web nunca reciben tu ubicación.</string>
     <string name="web_location_phone_toast">Concede la ubicación precisa en el teléfono para usarla en los sitios web</string>
     <string name="grant_permissions_button">Conceder permisos e iniciar</string>
     <string name="skip_onboarding_button">Sé lo que hago (Omitir)</string>

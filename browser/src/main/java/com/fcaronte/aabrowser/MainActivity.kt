@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
+import com.fcaronte.aabrowser.utils.WebLocation
 
 class MainActivity : ComponentActivity() {
 
@@ -38,6 +39,14 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         AppSettings.enableWeatherByDefaultIfLocationGranted(this)
+    }
+
+    @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Posizione per i siti (da Impostazioni): dopo quella precisa chiede subito "Consenti sempre" (serve in auto)
+        WebLocation.onPermissionResult(this, requestCode)
     }
 
     private fun checkAndRequestAppPermissions() {

@@ -138,7 +138,7 @@
     <string name="voice_search">Hangalapú keresés</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_name">AAB Media</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">Hang a böngészőből</string>
     <string name="media_browser_subtitle">Aktuális hang lejátszása</string>
@@ -240,7 +240,7 @@
     <string name="perm_local_network_title">Helyi hálózat</string>
     <string name="perm_local_network_desc">Lehetővé teszi, hogy az oldalak elérjék az otthoni hálózat webhelyeit és eszközeit (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Helymeghatározás weboldalaknak (opcionális)</string>
-    <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez, ha alkalmazás helyett ott navigálna. Kikapcsolva a weboldalak soha nem kapják meg a tartózkodási helyet.</string>
+    <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez. Autóban (zárolt telefonnal) az Android a „Mindig engedélyezett” beállítást is kéri. Kikapcsolva a weboldalak soha nem kapják meg a tartózkodási helyet.</string>
     <string name="web_location_phone_toast">A weboldalakhoz engedélyezze a pontos helymeghatározást a telefonon</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>

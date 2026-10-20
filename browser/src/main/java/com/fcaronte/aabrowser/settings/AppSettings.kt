@@ -134,8 +134,9 @@ object AppSettings {
     private val _onboardingCompleted = mutableStateOf(false)
     val onboardingCompleted: State<Boolean> = _onboardingCompleted
 
-    // Posizione ai siti web (es. Google Maps nel browser): spenta, i siti non la ricevono mai
-    private val _webLocation = mutableStateOf(false)
+    // Posizione ai siti web (es. Google Maps nel browser). Serve anche il permesso di posizione precisa,
+    // che l'app chiede solo per questo: l'opzione permette di spegnerla senza toglierlo
+    private val _webLocation = mutableStateOf(true)
     val webLocation: State<Boolean> = _webLocation
 
     fun init(context: Context) {
@@ -178,7 +179,7 @@ object AppSettings {
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
-        _webLocation.value = prefs.getBoolean("web_location", false)
+        _webLocation.value = prefs.getBoolean("web_location", true)
 
         enableWeatherByDefaultIfLocationGranted(context)
         if (_forceEnglish.value) updateLocale()

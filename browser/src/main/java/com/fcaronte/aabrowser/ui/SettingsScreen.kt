@@ -69,6 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
@@ -141,6 +142,12 @@ fun SettingsScreen(
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val webLocation by AppSettings.webLocation
+    // Il permesso si concede da una finestra di sistema: si rilegge ogni volta che si torna qui
+    var webLocationAllowed by remember { mutableStateOf(WebLocation.isAllowed(context)) }
+    LifecycleResumeEffect(webLocation) {
+        webLocationAllowed = WebLocation.isAllowed(context)
+        onPauseOrDispose { }
+    }
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -505,15 +512,15 @@ fun SettingsScreen(
                                 SettingsSwitchItem(
                                     label = stringResource(R.string.perm_web_location_title),
                                     description = stringResource(R.string.perm_web_location_desc),
-                                    checked = webLocation,
+                                    checked = webLocationAllowed,
                                     onCheckedChange = { enabled ->
                                         AppSettings.setWebLocation(context, enabled)
-                                        if (enabled && !WebLocation.hasPreciseLocation(context)) {
+                                        if (enabled && !WebLocation.isReadyForCar(context)) {
                                             // In auto il sistema non mostra la richiesta: si concede dal telefono
                                             if (isCarMode || activity == null) {
                                                 Toast.makeText(context, webLocationPhoneMsg, Toast.LENGTH_LONG).show()
                                             } else {
-                                                activity.requestPermissions(WebLocation.PERMISSIONS, 1006)
+                                                WebLocation.requestMissing(activity)
                                             }
                                         }
                                     }

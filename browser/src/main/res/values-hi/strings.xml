@@ -138,7 +138,7 @@
     <string name="voice_search">वॉयस सर्च</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AABrowser</string>
+    <string name="media_session_channel_name">AAB Media</string>
     <string name="media_session_channel_desc">AABrowser MediaSession</string>
     <string name="media_browser_title">ब्राउज़र से ऑडियो</string>
     <string name="media_browser_subtitle">वर्तमान ऑडियो चलाएं</string>
@@ -240,7 +240,7 @@
     <string name="perm_local_network_title">लोकल नेटवर्क</string>
     <string name="perm_local_network_desc">पेजों को आपके होम नेटवर्क की साइटों और डिवाइस (Home Assistant, राउटर, NAS) तक पहुंचने देता है।</string>
     <string name="perm_web_location_title">वेबसाइटों के लिए स्थान (वैकल्पिक)</string>
-    <string name="perm_web_location_desc">ब्राउज़र में मैप्स, जैसे Google Maps, के लिए सटीक GPS स्थान, अगर आप ऐप की जगह वहीं से नेविगेट करते हैं। बंद होने पर वेबसाइटों को आपका स्थान कभी नहीं मिलता।</string>
+    <string name="perm_web_location_desc">ब्राउज़र में मैप्स, जैसे Google Maps, के लिए सटीक GPS स्थान। कार में (फ़ोन लॉक होने पर) Android को “हर समय अनुमति दें” भी चाहिए। बंद होने पर वेबसाइटों को आपका स्थान कभी नहीं मिलता।</string>
     <string name="web_location_phone_toast">वेबसाइटों पर उपयोग करने के लिए फ़ोन पर सटीक स्थान की अनुमति दें</string>
     <string name="grant_permissions_button">अनुमतियां दें और शुरू करें</string>
     <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>

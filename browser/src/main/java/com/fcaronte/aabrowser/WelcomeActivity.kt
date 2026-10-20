@@ -87,10 +87,8 @@ class WelcomeActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Posizione precisa per i siti: con il permesso (anche solo approssimativo) l'opzione si accende
-        if (requestCode == REQUEST_WEB_LOCATION && grantResults.any { it == PackageManager.PERMISSION_GRANTED }) {
-            AppSettings.setWebLocation(this, true)
-        }
+        // Posizione per i siti: dopo quella precisa chiede subito "Consenti sempre" (serve in auto)
+        WebLocation.onPermissionResult(this, requestCode)
     }
 
     @Composable
@@ -99,7 +97,7 @@ class WelcomeActivity : ComponentActivity() {
         var locGranted by remember { mutableStateOf(checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) }
         var notifGranted by remember { mutableStateOf(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)) }
         val localNetGranted = if (needsLocalNetworkPermission()) isLocalNetworkGranted() else null
-        val webLocationOn = AppSettings.webLocation.value && WebLocation.hasPreciseLocation(this)
+        val webLocationOn = WebLocation.isReadyForCar(this)
 
         WelcomeScreen(
             micGranted = micGranted,
@@ -124,7 +122,8 @@ class WelcomeActivity : ComponentActivity() {
                 }
             },
             onWebLocationClick = {
-                requestPermissions(WebLocation.PERMISSIONS, REQUEST_WEB_LOCATION)
+                AppSettings.setWebLocation(this, true)
+                WebLocation.requestMissing(this)
             },
             onStartClicked = {
                 AppSettings.setOnboardingCompleted(this, true)
@@ -156,10 +155,6 @@ class WelcomeActivity : ComponentActivity() {
         val loc = checkPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
         val notif = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkPermissionGranted(Manifest.permission.POST_NOTIFICATIONS)
         return mic && loc && notif && isLocalNetworkGranted()
-    }
-
-    companion object {
-        private const val REQUEST_WEB_LOCATION = 1005
     }
 }
 
