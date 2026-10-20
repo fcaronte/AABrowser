@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import java.util.UUID
 
 class FavoritesRepository(private val context: Context) {
     private val prefs: SharedPreferences =
@@ -23,7 +24,7 @@ class FavoritesRepository(private val context: Context) {
 
         for (i in 0 until count) {
             val idFromPrefs = prefs.getString("BookmarkId$i", null)
-            val id = idFromPrefs ?: java.util.UUID.randomUUID().toString()
+            val id = idFromPrefs ?: UUID.randomUUID().toString()
             if (idFromPrefs == null) migrationNeeded = true
             
             var name = prefs.getString("BookmarkName$i", "") ?: ""
@@ -51,19 +52,42 @@ class FavoritesRepository(private val context: Context) {
             list.add(FavoriteSite(id, name, url, color, faviconUrl, isDesktopMode, mobileZoom, desktopZoom))
         }
 
-        if (migrationNeeded && list.isNotEmpty()) {
-            saveFavorites(list)
-        }
-
         // If empty, provide defaults
         if (list.isEmpty()) {
             val defaults = getDefaultFavorites()
-            saveFavorites(defaults)
+            save(defaults, DEFAULTS_VERSION)
             return defaults
+        }
+
+        val knownVersion = storedDefaultsVersion()
+        val defaultsAdded = addNewDefaults(list, knownVersion)
+        if (migrationNeeded || defaultsAdded || knownVersion < DEFAULTS_VERSION) {
+            save(list, maxOf(knownVersion, DEFAULTS_VERSION))
         }
 
         return list
     }
+
+    /**
+     * Preferiti predefiniti arrivati con gli aggiornamenti: chi ha già la sua lista se li trova una volta in fondo
+     * (se poi li toglie non tornano). I preferiti fissi ([isFixed]) invece tornano sempre. true se ha aggiunto.
+     */
+    private fun addNewDefaults(list: MutableList<FavoriteSite>, knownVersion: Int): Boolean {
+        val present = list.map { normalizeUrl(it.url) }.toMutableSet()
+        var added = false
+        getDefaultFavorites().forEach { default ->
+            val isNew = (DEFAULTS_ADDED_IN[default.id] ?: FIRST_DEFAULTS_VERSION) > knownVersion
+            if ((isNew || isFixed(default)) && present.add(normalizeUrl(default.url))) {
+                // Id nuovo: quello del predefinito può già esistere tra i preferiti dell'utente
+                list.add(default.copy(id = UUID.randomUUID().toString()))
+                added = true
+            }
+        }
+        return added
+    }
+
+    private fun storedDefaultsVersion(): Int =
+        (prefs.all[KEY_DEFAULTS_VERSION] as? Number)?.toInt() ?: FIRST_DEFAULTS_VERSION
 
     fun getDefaultFavorites(): List<FavoriteSite> {
         return listOf(
@@ -82,9 +106,12 @@ class FavoritesRepository(private val context: Context) {
         )
     }
 
-    fun saveFavorites(favorites: List<FavoriteSite>) {
+    fun saveFavorites(favorites: List<FavoriteSite>) = save(favorites, storedDefaultsVersion())
+
+    private fun save(favorites: List<FavoriteSite>, defaultsVersion: Int) {
         prefs.edit().apply {
             clear()
+            putInt(KEY_DEFAULTS_VERSION, defaultsVersion)
             putInt("BookmarksCount", favorites.size)
             favorites.forEachIndexed { i, site ->
                 putString("BookmarkId$i", site.id)
@@ -102,12 +129,32 @@ class FavoritesRepository(private val context: Context) {
 
     fun resetToDefaults(): List<FavoriteSite> {
         val defaults = getDefaultFavorites()
-        saveFavorites(defaults)
+        save(defaults, DEFAULTS_VERSION)
         return defaults
     }
 
     companion object {
         private const val TEST_PLAYER_URL = "https://web-player.streamlit.app"
         private const val OLD_PLAYER_NAME = "AABrowser Player"
+
+        // Nuovo preferito predefinito: aggiungilo in getDefaultFavorites() con un id nuovo, segnalo qui sotto con
+        // DEFAULTS_VERSION + 1 e alza DEFAULTS_VERSION. Chi aggiorna l'app lo trova una volta in fondo ai preferiti
+        private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
+        private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
+        private const val DEFAULTS_VERSION = 2
+        private val DEFAULTS_ADDED_IN = mapOf(
+            "11" to 2 // AAB Media (2.3)
+        )
+
+        /** AAB Media è fisso: non si può eliminare né cambiare indirizzo, e se manca torna. */
+        fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)
+
+        fun normalizeUrl(url: String): String {
+            return url.lowercase()
+                .replace("https://", "")
+                .replace("http://", "")
+                .replace("www.", "")
+                .trimEnd('/')
+        }
     }
 }

@@ -39,6 +39,7 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun removeFavorite(site: FavoriteSite) {
+        if (FavoritesRepository.isFixed(site)) return
         favorites.remove(site)
         repository.saveFavorites(favorites)
     }
@@ -57,7 +58,8 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         if (index != -1) {
             favorites[index] = site.copy(
                 name = name,
-                url = url,
+                // Un preferito fisso resta sul suo indirizzo
+                url = if (FavoritesRepository.isFixed(site)) site.url else url,
                 color = color,
                 faviconUrl = faviconUrl,
                 isDesktopMode = isDesktopMode,
@@ -91,11 +93,11 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun addMissingDefaults(): Int {
-        val currentUrls = favorites.map { normalizeUrl(it.url) }
+        val currentUrls = favorites.map { FavoritesRepository.normalizeUrl(it.url) }
         val defaults = repository.getDefaultFavorites()
         var addedCount = 0
         defaults.forEach { default ->
-            val normalizedDefaultUrl = normalizeUrl(default.url)
+            val normalizedDefaultUrl = FavoritesRepository.normalizeUrl(default.url)
             if (!currentUrls.contains(normalizedDefaultUrl)) {
                 // Genera un nuovo ID unico per evitare conflitti con quelli esistenti
                 favorites.add(default.copy(id = UUID.randomUUID().toString()))
@@ -106,13 +108,5 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
             repository.saveFavorites(favorites)
         }
         return addedCount
-    }
-
-    private fun normalizeUrl(url: String): String {
-        return url.lowercase()
-            .replace("https://", "")
-            .replace("http://", "")
-            .replace("www.", "")
-            .trimEnd('/')
     }
 }

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.model.FavoriteSite
+import com.fcaronte.aabrowser.model.FavoritesRepository
 import java.net.URI
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -117,13 +118,16 @@ fun FavoriteCard(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                        Icon(
-                            Icons.Default.Delete,
-                            null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    // AAB Media è fisso: si può modificare e spostare, non eliminare
+                    if (!FavoritesRepository.isFixed(site)) {
+                        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                Icons.Default.Delete,
+                                null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
                 Row(modifier = Modifier.align(Alignment.BottomEnd)) {

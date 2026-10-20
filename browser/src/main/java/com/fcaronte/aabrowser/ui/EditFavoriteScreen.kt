@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
+import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AppSettings
 import java.net.URI
 
@@ -242,6 +243,8 @@ fun EditFavoriteScreen(
                                 OutlinedTextField(
                                     value = urlValue,
                                     onValueChange = { urlValue = it },
+                                    // AAB Media è fisso: l'indirizzo non si cambia
+                                    enabled = site == null || !FavoritesRepository.isFixed(site),
                                     label = { Text(stringResource(R.string.field_url)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
