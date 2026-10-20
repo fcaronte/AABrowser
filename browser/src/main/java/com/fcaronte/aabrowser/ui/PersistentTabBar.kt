@@ -36,7 +36,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.model.TabState
@@ -183,9 +182,8 @@ fun TabItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            AsyncImage(
+            SiteIconImage(
                 model = iconModel,
-                contentDescription = null,
                 modifier = Modifier
                     .size(20.dp)
                     .clip(RoundedCornerShape(4.dp)),

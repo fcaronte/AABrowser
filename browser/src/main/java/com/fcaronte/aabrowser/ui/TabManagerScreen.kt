@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.model.TabState
@@ -165,12 +164,10 @@ fun TabCard(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
             ) {
-                AsyncImage(
+                SiteIconImage(
                     model = iconModel,
-                    contentDescription = null,
                     modifier = Modifier.padding(7.dp),
-                    error = rememberVectorPainter(Icons.Default.Language),
-                    placeholder = rememberVectorPainter(Icons.Default.Language)
+                    fallback = rememberVectorPainter(Icons.Default.Language)
                 )
             }
 

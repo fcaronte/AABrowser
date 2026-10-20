@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import java.net.URI
@@ -99,12 +98,10 @@ fun FavoriteCard(
                 shape = CircleShape,
                 color = Color(site.color).copy(alpha = 0.25f),
             ) {
-                AsyncImage(
+                SiteIconImage(
                     model = iconModel,
-                    contentDescription = null,
                     modifier = Modifier.padding(6.dp),
-                    error = rememberVectorPainter(Icons.Default.Language),
-                    placeholder = rememberVectorPainter(Icons.Default.Language),
+                    fallback = rememberVectorPainter(Icons.Default.Language)
                 )
             }
 
