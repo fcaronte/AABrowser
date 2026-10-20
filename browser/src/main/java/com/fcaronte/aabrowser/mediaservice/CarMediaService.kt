@@ -16,6 +16,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.car.app.connection.CarConnection
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
@@ -65,6 +68,26 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private var connectivityManager: android.net.ConnectivityManager? = null
     private var networkCallback: android.net.ConnectivityManager.NetworkCallback? = null
+
+    // Il servizio resta vivo tra un viaggio e l'altro, e con lui la pausa (di Android Auto anche allo spegnimento
+    // dell'auto): al viaggio dopo il meteo restava nascosto finché "Esci" non chiudeva il processo
+    private var carConnectionType: LiveData<Int>? = null
+    private var wasConnectedToCar: Boolean? = null
+    private val carConnectionObserver = Observer<Int> { type ->
+        val connected = type != CarConnection.CONNECTION_TYPE_NOT_CONNECTED
+        if (connected && wasConnectedToCar == false) onNewCarConnection()
+        wasConnectedToCar = connected
+    }
+
+    /** Nuovo collegamento all'auto: se non sta suonando niente si torna al meteo. */
+    private fun onNewCarConnection() {
+        val state = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+        AppLog.d(TAG, "New car connection (playback state=$state)")
+        if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING) return
+        isUserPaused = false
+        showingWeather = true
+        checkAndUpdateWeatherMetadata()
+    }
 
     private fun registerNetworkCallback() {
         try {
@@ -126,6 +149,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
         settingsPreferences.registerOnSharedPreferenceChangeListener(settingsListener)
         registerNetworkCallback()
+        carConnectionType = CarConnection(this).type.also { it.observeForever(carConnectionObserver) }
         checkAndUpdateWeatherMetadata()
         updateNotification()
     }
@@ -238,6 +262,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         settingsPreferences.unregisterOnSharedPreferenceChangeListener(settingsListener)
         unregisterNetworkCallback()
+        carConnectionType?.removeObserver(carConnectionObserver)
         weatherCheckJob?.cancel()
         abandonAudioFocus()
         mCarmedianotificationmanager?.cancel()
@@ -290,15 +315,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
         
         mMediasessioncompat?.isActive = true
+        // Una volta sola: ogni chiamata annulla il recupero del meteo già partito
         checkAndUpdateWeatherMetadata()
         updateNotification()
-        
-        if (!mediaPlayerEnabled) {
-            result.detach()
-            return
-        }
-        
-        checkAndUpdateWeatherMetadata()
 
         val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem?>()
 
