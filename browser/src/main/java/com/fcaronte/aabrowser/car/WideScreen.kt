@@ -1349,6 +1349,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     carContext, pageHost, urlString, method, headersJson, body, requestUserAgent
                                 )
 
+                                // Velocità di YouTube scelta dall'utente: la stessa della Main (che a ogni pagina
+                                // YouTube la rimette nel localStorage, condiviso tra le due WebView)
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun saveYouTubeSpeed(speed: Float) {
+                                    AppSettings.setYouTubeSpeed(carContext, speed)
+                                }
+
                                 // DAZN: al clic su un evento passa alla modalità desktop
                                 @JavascriptInterface
                                 @Suppress("unused")
@@ -1685,6 +1693,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     view?.let {
                                         if (isDazn(url)) {
                                             it.evaluateJavascript(DaznManager.getClickInterceptorScript(), null)
+                                        }
+                                        // Velocità YouTube salvata lato Android, come nella Main
+                                        if (url.contains("youtube.com", ignoreCase = true) &&
+                                            !url.contains("music.youtube.com", ignoreCase = true)
+                                        ) {
+                                            val savedSpeed = AppSettings.getYouTubeSpeed(carContext)
+                                            it.evaluateJavascript("localStorage.setItem('yt-custom-speed', '$savedSpeed');", null)
                                         }
                                         val favorite = favoriteFor(url)
                                         WebViewScriptRouter.routeAndInject(
