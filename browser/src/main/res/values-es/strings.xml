@@ -243,6 +243,8 @@
     <string name="perm_web_location_title">Ubicación para sitios web (opcional)</string>
     <string name="perm_web_location_desc">Posición GPS precisa para los mapas en el navegador, como Google Maps. En el coche (teléfono bloqueado) Android también necesita «Permitir todo el tiempo». Desactivada: los sitios web nunca reciben tu ubicación.</string>
     <string name="web_location_phone_toast">Concede la ubicación precisa en el teléfono para usarla en los sitios web</string>
+    <string name="adblock_site_off">AdBlock desactivado en %1$s</string>
+    <string name="adblock_site_on">AdBlock activado en %1$s</string>
     <string name="grant_permissions_button">Conceder permisos e iniciar</string>
     <string name="skip_onboarding_button">Sé lo que hago (Omitir)</string>
     <string name="wide_reopen_last_page">Reabrir última página</string>

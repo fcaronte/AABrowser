@@ -244,6 +244,8 @@
     <string name="perm_web_location_title">Location for websites (optional)</string>
     <string name="perm_web_location_desc">Precise GPS position for maps in the browser, such as Google Maps. In the car (phone locked) Android also needs “Allow all the time”. Off: websites never get your position.</string>
     <string name="web_location_phone_toast">Grant precise location on the phone to use it on websites</string>
+    <string name="adblock_site_off">AdBlock off on %1$s</string>
+    <string name="adblock_site_on">AdBlock on for %1$s</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
     <string name="wide_reopen_last_page">Reopen last page</string>

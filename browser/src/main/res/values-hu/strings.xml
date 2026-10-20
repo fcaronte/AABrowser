@@ -242,6 +242,8 @@
     <string name="perm_web_location_title">Helymeghatározás weboldalaknak (opcionális)</string>
     <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez. Autóban (zárolt telefonnal) az Android a „Mindig engedélyezett” beállítást is kéri. Kikapcsolva a weboldalak soha nem kapják meg a tartózkodási helyet.</string>
     <string name="web_location_phone_toast">A weboldalakhoz engedélyezze a pontos helymeghatározást a telefonon</string>
+    <string name="adblock_site_off">AdBlock kikapcsolva: %1$s</string>
+    <string name="adblock_site_on">AdBlock bekapcsolva: %1$s</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>

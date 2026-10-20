@@ -241,6 +241,8 @@
     <string name="perm_web_location_title">网站位置（可选）</string>
     <string name="perm_web_location_desc">为浏览器中的地图（如 Google 地图）提供精确 GPS 位置。在车上（手机锁屏时）Android 还需要“始终允许”。关闭时，网站永远无法获取您的位置。</string>
     <string name="web_location_phone_toast">请在手机上授予精确位置权限，以便网站使用</string>
+    <string name="adblock_site_off">已在 %1$s 关闭 AdBlock</string>
+    <string name="adblock_site_on">已在 %1$s 开启 AdBlock</string>
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
     <string name="wide_reopen_last_page">重新打开最后一页</string>

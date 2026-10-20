@@ -246,6 +246,8 @@
     <string name="perm_web_location_title">الموقع لمواقع الويب (اختياري)</string>
     <string name="perm_web_location_desc">موقع GPS دقيق للخرائط في المتصفح، مثل Google Maps. في السيارة (الهاتف مقفل) يحتاج Android أيضاً إلى «السماح طوال الوقت». عند الإيقاف: لا تحصل المواقع على موقعك أبداً.</string>
     <string name="web_location_phone_toast">اسمح بالموقع الدقيق على الهاتف لاستخدامه في مواقع الويب</string>
+    <string name="adblock_site_off">تم إيقاف AdBlock على %1$s</string>
+    <string name="adblock_site_on">تم تشغيل AdBlock على %1$s</string>
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>

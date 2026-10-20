@@ -211,7 +211,8 @@ object WebViewScriptRouter {
 
             isYouTube -> {
                 // YouTube / YouTube Music: Solo script AdBlock YouTube + Metadata Lifecycle YouTube/HTML5
-                if (isYouTubeAdBlockEnabled) {
+                // Sito in whitelist ("AdBlock spento su questo sito"): niente script anti-pubblicità
+                if (isYouTubeAdBlockEnabled && !AdBlockHost.isWhitelisted(host)) {
                     webView.evaluateJavascript(AdBlockJavascript.getYouTubeAdBlockScript(), null)
                 }
 
@@ -332,6 +333,7 @@ object WebViewScriptRouter {
         isTabActive: Boolean = true
     ) {
         if (webView == null || urlString.isNullOrBlank() || !isYouTubeAdBlockEnabled) return
+        if (AdBlockHost.isWhitelisted(urlString.toUri().host)) return
 
         val lowUrl = urlString.lowercase()
         val isYouTube = lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be") || lowUrl.contains("youtubekids.com")

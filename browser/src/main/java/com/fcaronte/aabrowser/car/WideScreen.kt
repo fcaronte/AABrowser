@@ -52,6 +52,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
+import androidx.car.app.CarToast
 import androidx.car.app.Screen
 import androidx.car.app.SurfaceCallback
 import androidx.car.app.SurfaceContainer
@@ -73,6 +74,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoriteSite
@@ -234,6 +236,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val iconHome: CarIcon by lazy { buildHomeIcon() }
     private val iconSearch: CarIcon by lazy { buildSearchIcon() }
     private val iconReload: CarIcon by lazy { buildReloadIcon() }
+    private val iconAdBlockOn: CarIcon by lazy { buildShieldIcon(crossed = false) }
+    private val iconAdBlockOff: CarIcon by lazy { buildShieldIcon(crossed = true) }
+    private var shownAdBlockState: String? = null   // sito e stato mostrati dallo scudo nell'ultimo template
 
     init {
         activeInstance = this
@@ -300,7 +305,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     override fun onGetTemplate(): Template {
         val fixed = sidebarFixedEnabled()
 
+        // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist. Sempre presente
+        // (spento sulla home), così la barra non cambia larghezza e la pagina non si ridimensiona
+        val site = currentAdBlockSite()
+        val siteWhitelisted = site != null && AdBlockHost.isWhitelisted(site)
+        shownAdBlockState = adBlockState(site)
+
         val strip = ActionStrip.Builder()
+            .addAction(
+                Action.Builder()
+                    .setIcon(if (siteWhitelisted) iconAdBlockOff else iconAdBlockOn)
+                    .setEnabled(site != null)
+                    .setOnClickListener { toggleAdBlockForSite() }
+                    .build()
+            )
             .addAction(
                 Action.Builder()
                     .setIcon(iconReload)
@@ -344,6 +362,31 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .setActionStrip(strip)
             .setMapActionStrip(mapStripBuilder.build())
             .build()
+    }
+
+    /** Sito della pagina aperta per lo scudo dell'AdBlock; null sulla home e su AAB Media. */
+    private fun currentAdBlockSite(): String? {
+        val url = (webView?.url ?: lastUrl)?.takeUnless { it == HOME } ?: return null
+        if (url.startsWith(HomePage.BASE_URL) || LocalPlayer.isPlayerUrl(url) || !UrlUtils.isWebUrl(url)) return null
+        return AdBlockHost.siteKey(Uri.parse(url).host)
+    }
+
+    private fun adBlockState(site: String?): String = "$site|${site != null && AdBlockHost.isWhitelisted(site)}"
+
+    /** Aggiunge o toglie il sito dalla whitelist dell'AdBlock e ricarica la pagina. */
+    private fun toggleAdBlockForSite() {
+        val site = currentAdBlockSite() ?: return
+        val disable = !AdBlockHost.isWhitelisted(site)
+        if (disable) AdBlockHost.addToWhitelist(site) else AdBlockHost.removeFromWhitelist(site)
+        val message = carContext.getString(if (disable) R.string.adblock_site_off else R.string.adblock_site_on, site)
+        CarToast.makeText(carContext, message, CarToast.LENGTH_SHORT).show()
+        invalidate()
+        webView?.reload()
+    }
+
+    /** Cambiato sito (o stato): lo scudo va ridisegnato. */
+    private fun refreshAdBlockAction() {
+        if (adBlockState(currentAdBlockSite()) != shownAdBlockState) invalidate()
     }
 
     // ------------------------------------------------------------------
@@ -1626,6 +1669,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url.isNullOrEmpty()) return
                                 userAgentReloads = 0
+                                refreshAdBlockAction()
 
                                 view?.evaluateJavascript(BrowserJavascript.getDisableDoubleTapScript(), null)
 
@@ -1902,6 +1946,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             close()
         }
         c.drawPath(head, fill)
+    }
+
+    // Scudo dell'AdBlock: con la spunta attivo sul sito, barrato se il sito è in whitelist
+    private fun buildShieldIcon(crossed: Boolean): CarIcon = maskIcon { c, p, s ->
+        val shield = Path().apply {
+            moveTo(s * 0.50f, s * 0.16f)
+            lineTo(s * 0.78f, s * 0.27f)
+            lineTo(s * 0.78f, s * 0.48f)
+            quadTo(s * 0.78f, s * 0.72f, s * 0.50f, s * 0.84f)
+            quadTo(s * 0.22f, s * 0.72f, s * 0.22f, s * 0.48f)
+            lineTo(s * 0.22f, s * 0.27f)
+            close()
+        }
+        c.drawPath(shield, p)
+        if (crossed) {
+            c.drawLine(s * 0.16f, s * 0.84f, s * 0.84f, s * 0.16f, p)
+        } else {
+            val check = Path().apply {
+                moveTo(s * 0.37f, s * 0.50f)
+                lineTo(s * 0.47f, s * 0.60f)
+                lineTo(s * 0.64f, s * 0.41f)
+            }
+            c.drawPath(check, p)
+        }
     }
 
     private fun buildSearchIcon(): CarIcon = maskIcon { c, p, s ->

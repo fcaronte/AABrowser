@@ -243,6 +243,8 @@
     <string name="perm_web_location_title">Position pour les sites web (facultatif)</string>
     <string name="perm_web_location_desc">Position GPS précise pour les cartes dans le navigateur, comme Google Maps. En voiture (téléphone verrouillé), Android demande aussi « Toujours autoriser ». Désactivée : les sites web ne reçoivent jamais votre position.</string>
     <string name="web_location_phone_toast">Autorisez la position précise sur le téléphone pour l\'utiliser sur les sites web</string>
+    <string name="adblock_site_off">AdBlock désactivé sur %1$s</string>
+    <string name="adblock_site_on">AdBlock activé sur %1$s</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>
