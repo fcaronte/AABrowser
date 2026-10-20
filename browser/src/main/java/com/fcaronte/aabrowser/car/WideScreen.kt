@@ -324,7 +324,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val siteWhitelisted = site != null && AdBlockHost.isWhitelisted(site)
         shownAdBlockState = adBlockState(site)
 
-        val strip = ActionStrip.Builder()
+        val searchAction = Action.Builder()
+            .setIcon(iconSearch)
+            .setOnClickListener { openSearch() }
+            .build()
+
+        // In alto a destra un tasto solo, lo scudo (Android Auto ne vuole almeno uno nell'angolo). Senza sidebar
+        // anche il cerca, alla sua sinistra: in basso non ci sta
+        val stripBuilder = ActionStrip.Builder()
+        if (!fixed) stripBuilder.addAction(searchAction)
+        val strip = stripBuilder
             .addAction(
                 Action.Builder()
                     .setIcon(if (siteWhitelisted) iconAdBlockOff else iconAdBlockOn)
@@ -332,35 +341,25 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     .setOnClickListener { toggleAdBlockForSite() }
                     .build()
             )
-            .addAction(
-                Action.Builder()
-                    .setIcon(iconReload)
-                    .setOnClickListener { webView?.reload() }
-                    .build()
-            )
             .build()
 
+        // In basso al massimo 4 tasti, e PAN serve: senza, l'host non manda lo scorrimento (onScroll)
         val mapStripBuilder = ActionStrip.Builder()
             .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
 
         if (!fixed) {
+            // Dal basso: home, indietro, ricarica
             mapStripBuilder
                 .addAction(
                     Action.Builder()
-                        .setIcon(CarIcon.BACK)
-                        .setOnClickListener {
-                            if (customView != null) {
-                                hideCustomView()
-                            } else {
-                                webView?.let { if (it.canGoBack()) it.goBack() }
-                            }
-                        }
+                        .setIcon(iconReload)
+                        .setOnClickListener { webView?.reload() }
                         .build()
                 )
                 .addAction(
                     Action.Builder()
-                        .setIcon(iconSearch)
-                        .setOnClickListener { openSearch() }
+                        .setIcon(CarIcon.BACK)
+                        .setOnClickListener { goBack() }
                         .build()
                 )
                 .addAction(
@@ -375,6 +374,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .setActionStrip(strip)
             .setMapActionStrip(mapStripBuilder.build())
             .build()
+    }
+
+    /** Indietro: chiude il video a schermo intero, altrimenti la pagina precedente. */
+    private fun goBack() {
+        if (customView != null) {
+            hideCustomView()
+        } else {
+            webView?.let { if (it.canGoBack()) it.goBack() }
+        }
     }
 
     /** Sito della pagina aperta per lo scudo dell'AdBlock; null sulla home e su AAB Media. */
@@ -1751,7 +1759,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     webView = wv
 
                     val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
-                    val totalButtonsHeight = 3 * iconSize + 4 * 20
+                    val totalButtonsHeight = 4 * iconSize + 5 * 20
                     val topOffset = ((surfaceHeight - totalButtonsHeight) / 2).coerceAtLeast(10)
 
                     val sidebarContainer = LinearLayout(ctx).apply {
@@ -1776,13 +1784,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     val btnBack = ImageButton(ctx).apply {
                         setImageBitmap(buildBackBitmap())
                         btnSidebarStyle(this)
-                        setOnClickListener {
-                            if (customView != null) {
-                                hideCustomView()
-                            } else {
-                                webView?.let { if (it.canGoBack()) it.goBack() }
-                            }
-                        }
+                        setOnClickListener { goBack() }
+                    }
+                    // Il ricarica era in alto a destra: lì ora c'è lo scudo dell'AdBlock
+                    val btnReload = ImageButton(ctx).apply {
+                        setImageBitmap(buildReloadBitmap())
+                        btnSidebarStyle(this)
+                        setOnClickListener { webView?.reload() }
                     }
                     val btnSearch = ImageButton(ctx).apply {
                         setImageBitmap(buildSearchBitmap())
@@ -1803,6 +1811,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     sidebarContainer.addView(btnHome, homeLp)
                     sidebarContainer.addView(btnBack, buttonLp)
+                    sidebarContainer.addView(btnReload, buttonLp)
                     sidebarContainer.addView(btnSearch, buttonLp)
 
                     frame.addView(
@@ -1946,7 +1955,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
     }
 
-    private fun buildReloadIcon(): CarIcon = maskIcon { c, p, s ->
+    // Ricarica: tasto in basso (senza sidebar) e nella sidebar fissa, stesso disegno
+    private fun buildReloadIcon(): CarIcon = maskIcon(::drawReload)
+
+    private fun buildReloadBitmap(): Bitmap = maskBitmap(::drawReload)
+
+    private fun drawReload(c: Canvas, p: Paint, s: Float) {
         val cx = s / 2f
         val cy = s / 2f
         val r = s * 0.30f
