@@ -135,6 +135,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Attesa prima di navigationStarted(): il tocco sul player arriva con onNewIntent subito dopo l'avvio
         const val NAVIGATION_START_DELAY_MS = 1500L
 
+        // Tocco sul player: la Wide è "in uso" se era in primo piano da almeno così (non riportata dal tocco)
+        const val MEDIA_CARD_IN_USE_MS = 1000L
+
         // Scorrimento in attesa del fotogramma da più di così: si riposta (WebView ricreata nel frattempo)
         const val SCROLL_FLUSH_STALE_MS = 500L
 
@@ -189,6 +192,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var favoritesReadAt = 0L
     private var userAgentReloads = 0            // ricaricamenti per cambiare user agent dall'ultima pagina finita
     private var isNavigationStarted = false
+    private var resumedAt = 0L
     private val startNavigationRunnable = Runnable { startNavigation() }
     private var pendingScrollX = 0f
     private var pendingScrollY = 0f
@@ -271,6 +275,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
+                resumedAt = SystemClock.uptimeMillis()
                 mediaSessionManager.setWideActive(true)
             }
 
@@ -531,11 +536,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      * navigatore attivo) si chiude, così resta la navigazione in corso; se era già aperta resta com'è.
      */
     fun onMediaCardLaunch() {
-        if (isNavigationStarted) {
-            AppLog.d(TAG, "Player card tap: Wide already open, kept")
-            return
-        }
-        AppLog.d(TAG, "Player card tap: Wide just started for it, closing")
+        // In uso: in primo piano già da prima del tocco (es. nella mappa della dashboard), oppure è suo
+        // quello che il player mostra. Altrimenti il tocco non deve aprire niente: anche se la Wide era rimasta
+        // aperta dietro (sessione viva) si chiude, così non prende lo schermo né la navigazione
+        val now = SystemClock.uptimeMillis()
+        val visibleBefore = isWideResumed && now - resumedAt > MEDIA_CARD_IN_USE_MS
+        val ownsPlayer = MediaFocusManager.getActiveSource() == MediaFocusManager.Source.WIDE_APP
+        AppLog.d(
+            TAG,
+            "Player card tap: visibleBefore=$visibleBefore ownsPlayer=$ownsPlayer navigationStarted=$isNavigationStarted"
+        )
+        if (visibleBefore || ownsPlayer) return
         closeApp()
     }
 

@@ -31,8 +31,12 @@ class WideSession : Session() {
 
     private fun isMediaCardLaunch(intent: Intent): Boolean = intent.action in MEDIA_CARD_ACTIONS
 
-    private fun describe(intent: Intent): String =
-        "action=${intent.action} categories=${intent.categories} extras=${intent.extras?.keySet()}"
+    // Anche i valori degli extra: GH.TargetComponent dice quale componente Android Auto voleva aprire
+    @Suppress("DEPRECATION")
+    private fun describe(intent: Intent): String {
+        val extras = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } }
+        return "action=${intent.action} categories=${intent.categories} extras=[$extras]"
+    }
 
     /** Chiude l'app appena parte, senza diventare il navigatore attivo. */
     private class CloseImmediatelyScreen(carContext: CarContext) : Screen(carContext) {
