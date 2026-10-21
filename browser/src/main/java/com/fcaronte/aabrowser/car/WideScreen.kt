@@ -143,6 +143,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
         const val INPUT_POPUP_SUPPRESS_MS = 1500L
 
+        // Popup tastiera/microfono aperto per così, se non si tocca niente: con 3 s su uno schermo grande
+        // spesso spariva prima di arrivare al tasto. Un tocco fuori dalla scheda lo chiude subito
+        const val INPUT_POPUP_TIMEOUT_MS = 6000L
+
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
 
@@ -902,23 +906,27 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         updatePopupPosition()
     }
 
+    /**
+     * Popup tastiera/microfono al centro dell'area libera dall'interfaccia di Android Auto, tutto dentro.
+     * La scheda si misura subito: alla prima apertura era GONE e la sua larghezza valeva 0, quindi finiva
+     * spostata di mezza scheda, e su schermi grandi in parte sotto i tasti dell'host (non toccabile).
+     */
     private fun updatePopupPosition() {
         val overlay = popupOverlayReference ?: return
-        val r = visibleArea
-        if (r == null || r.isEmpty) return
-
         val card = overlay.getChildAt(0) as? LinearLayout ?: return
         val lp = card.layoutParams as? FrameLayout.LayoutParams ?: return
+        val r = visibleArea?.takeUnless { it.isEmpty } ?: Rect(0, 0, surfaceWidth, surfaceHeight)
 
-        val centerX = r.left + r.width() / 2
-        val centerY = r.top + r.height() / 2
-
+        card.measure(
+            View.MeasureSpec.makeMeasureSpec(r.width(), View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(r.height(), View.MeasureSpec.AT_MOST)
+        )
+        val w = card.measuredWidth
+        val h = card.measuredHeight
         lp.gravity = Gravity.TOP or Gravity.START
-        card.post {
-            lp.leftMargin = centerX - card.width / 2
-            lp.topMargin = centerY - card.height / 2
-            card.layoutParams = lp
-        }
+        lp.leftMargin = (r.centerX() - w / 2).coerceIn(r.left, maxOf(r.left, r.right - w))
+        lp.topMargin = (r.centerY() - h / 2).coerceIn(r.top, maxOf(r.top, r.bottom - h))
+        card.layoutParams = lp
     }
 
     override fun onClick(x: Float, y: Float) {
@@ -1098,7 +1106,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
                     backdrop = frame
 
-                    // Popup compatto (tastiera e microfono)
+                    // Popup compatto (tastiera e microfono). Misure in dp: in pixel fissi sugli schermi grandi e
+                    // ad alta densità (14") i tasti venivano piccoli. Un tocco fuori dalla scheda lo chiude subito
+                    val dp = ctx.resources.displayMetrics.density
                     val popupOverlay = FrameLayout(ctx).apply {
                         layoutParams = FrameLayout.LayoutParams(-1, -1)
                         visibility = View.GONE
@@ -1113,23 +1123,26 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     val inputCard = LinearLayout(ctx).apply {
                         orientation = LinearLayout.HORIZONTAL
-                        setPadding(16, 16, 16, 16) // Più compatto
+                        val pad = (12 * dp).toInt()
+                        setPadding(pad, pad, pad, pad)
                         gravity = Gravity.CENTER
                         background = GradientDrawable().apply {
-                            setColor("#202124".toColorInt()) // Torniamo al tuo colore originale, più scuro
-                            cornerRadius = 20f
-                            setStroke(1, "#44464A".toColorInt()) // Bordo più sottile
+                            setColor("#202124".toColorInt())
+                            cornerRadius = 16 * dp
+                            setStroke(1, "#44464A".toColorInt())
                         }
                     }
 
                     val btnStyle = { btn: Button, color: String ->
-                        btn.textSize = 18f
+                        btn.textSize = 22f
                         btn.setTextColor(Color.WHITE)
                         btn.background = GradientDrawable().apply {
                             setColor(color.toColorInt())
-                            cornerRadius = 16f
+                            cornerRadius = 12 * dp
                         }
-                        btn.setPadding(32, 16, 32, 16) // Padding ridotto
+                        btn.minWidth = (72 * dp).toInt()
+                        btn.minHeight = (56 * dp).toInt()
+                        btn.setPadding((20 * dp).toInt(), (10 * dp).toInt(), (20 * dp).toInt(), (10 * dp).toInt())
                     }
 
                     val btnKeyboard = Button(ctx).apply {
@@ -1153,7 +1166,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         }
                     }
 
-                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = 24 })
+                    inputCard.addView(btnKeyboard, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = (16 * dp).toInt() })
                     inputCard.addView(btnMic, LinearLayout.LayoutParams(-2, -2))
 
                     val cardLp = FrameLayout.LayoutParams(-2, -2).apply {
@@ -1365,7 +1378,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         isInputPopupVisible = true
                                         updatePopupPosition()
                                         handler.removeCallbacks(hidePopupRunnable)
-                                        handler.postDelayed(hidePopupRunnable, 3000)
+                                        handler.postDelayed(hidePopupRunnable, INPUT_POPUP_TIMEOUT_MS)
                                     }
                                 }
 
