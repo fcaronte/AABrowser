@@ -143,9 +143,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
         const val INPUT_POPUP_SUPPRESS_MS = 1500L
 
-        // Popup tastiera/microfono aperto per così, se non si tocca niente: con 3 s su uno schermo grande
-        // spesso spariva prima di arrivare al tasto. Un tocco fuori dalla scheda lo chiude subito
-        const val INPUT_POPUP_TIMEOUT_MS = 6000L
+        // Popup tastiera/microfono aperto per così, se non si tocca niente: 3 s, scelta dell'utente (lo vuole
+        // poco sullo schermo; provati anche 6 s). Un tocco fuori dalla scheda lo chiude subito
+        const val INPUT_POPUP_TIMEOUT_MS = 3000L
 
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
