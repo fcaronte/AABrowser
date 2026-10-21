@@ -19,7 +19,7 @@ object AdBlockJavascript {
             });
         }
 
-        console.log("AABrowser: YouTube AdBlock Active (v12)");
+        console.log("AABrowser: YouTube AdBlock Active (v13)");
 
         // Non offsetParent: è null anche dentro i contenitori "fixed", come il player di m.youtube.com,
         // e il tasto "Salta" non veniva mai trovato
@@ -186,6 +186,15 @@ object AdBlockJavascript {
                     video.dataset.aabAdMuted = 'true';
                 }
                 video.playbackRate = 16.0;
+
+                // Pubblicità lunghe non saltabili: anche a 16x durano minuti, o si fermano a caricare perché il
+                // buffer non tiene il passo. Il video della pubblicità va alla fine e YouTube passa a quello vero.
+                // Solo se lo dice il player stesso (classe letta adesso), mai su un video che non è pubblicità
+                const classAd = player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting'));
+                const adDuration = video.duration;
+                if (classAd && isFinite(adDuration) && adDuration > 1 && video.currentTime < adDuration - 1) {
+                    try { video.currentTime = adDuration - 0.1; } catch (e) {}
+                }
 
                 if (skipBtn) {
                     const isDisabled = skipBtn.disabled || skipBtn.getAttribute('aria-disabled') === 'true';
