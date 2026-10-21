@@ -1676,6 +1676,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                             urlString = url,
                                             isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value,
                                             forceMaxYouTubeQuality = AppSettings.forceMaxYouTubeQuality.value,
+                                            youtubeQuality = AppSettings.youtubeQuality.value,
                                             autoplayMedia = AppSettings.autoplayMedia.value,
                                             displayScale = favorite?.mobileZoom ?: WIDE_DISPLAY_SCALE,
                                             desktopScale = favorite?.desktopZoom ?: WIDE_DESKTOP_SCALE,

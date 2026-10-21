@@ -91,8 +91,9 @@
     <string name="adblock_desc">Bloquear anúncios intrusivos e rastreadores</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Saltar anúncios do YouTube automaticamente (Beta: pode deixar de funcionar a qualquer momento)</string>
-    <string name="force_max_youtube_quality_label">Qualidade Máxima do YouTube (Rede)</string>
-    <string name="force_max_youtube_quality_desc">Selecionar automaticamente a qualidade máxima de vídeo do YouTube com base na velocidade da rede</string>
+    <string name="force_max_youtube_quality_label">Qualidade de vídeo do YouTube</string>
+    <string name="force_max_youtube_quality_desc">Usa a qualidade escolhida quando o vídeo a tiver (mais baixa com uma ligação lenta)</string>
+    <string name="youtube_quality_selected_label">Qualidade escolhida</string>
     <string name="multi_window_label">Múltiplas janelas (Popups)</string>
     <string name="multi_window_desc">Permitir que os sites abram novos separadores ou janelas pop-up (ex. páginas de início de sessão)</string>
     <string name="force_english_label">Forçar o idioma inglês</string>

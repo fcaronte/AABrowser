@@ -60,6 +60,20 @@ object AppSettings {
     private val _forceMaxYouTubeQuality = mutableStateOf(false)
     val forceMaxYouTubeQuality: State<Boolean> = _forceMaxYouTubeQuality
 
+    // Qualità massima di YouTube con forceMaxYouTubeQuality attiva: livello del player (hd1080, hd1440, ...)
+    const val DEFAULT_YOUTUBE_QUALITY = "hd1440"
+    private val _youtubeQuality = mutableStateOf(DEFAULT_YOUTUBE_QUALITY)
+    val youtubeQuality: State<String> = _youtubeQuality
+
+    // Livelli offerti nelle impostazioni, con l'etichetta mostrata (uguale in tutte le lingue)
+    val youtubeQualityOptions = listOf(
+        "large" to "480p",
+        "hd720" to "720p",
+        "hd1080" to "1080p",
+        "hd1440" to "1440p",
+        "hd2160" to "2160p (4K)"
+    )
+
     // Precaricamento schede preferiti all'avvio
     private val _preloadFavorites = mutableStateOf(false)
     val preloadFavorites: State<Boolean> = _preloadFavorites
@@ -149,6 +163,9 @@ object AppSettings {
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
         _forceMaxYouTubeQuality.value = prefs.getBoolean("force_max_youtube_quality", false)
+        _youtubeQuality.value = prefs.getString("youtube_quality", DEFAULT_YOUTUBE_QUALITY)
+            ?.takeIf { level -> youtubeQualityOptions.any { it.first == level } }
+            ?: DEFAULT_YOUTUBE_QUALITY
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
@@ -246,6 +263,11 @@ object AppSettings {
     fun setForceMaxYouTubeQuality(context: Context, enabled: Boolean) {
         _forceMaxYouTubeQuality.value = enabled
         saveBoolean(context, "force_max_youtube_quality", enabled)
+    }
+
+    fun setYouTubeQuality(context: Context, level: String) {
+        _youtubeQuality.value = level
+        saveString(context, "youtube_quality", level)
     }
 
     fun setWideReopenLastPage(context: Context, enabled: Boolean) {

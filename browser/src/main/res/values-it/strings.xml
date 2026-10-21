@@ -95,8 +95,9 @@
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Salta pubblicità YouTube (Beta: può smettere di funzionare da un momento all\'altro)</string>
-    <string name="force_max_youtube_quality_label">Qualità YouTube Massima (Rete)</string>
-    <string name="force_max_youtube_quality_desc">Seleziona automaticamente la massima qualità video su YouTube in base alla velocità della rete</string>
+    <string name="force_max_youtube_quality_label">Qualità video YouTube</string>
+    <string name="force_max_youtube_quality_desc">Usa la qualità scelta quando il video ce l\'ha (più bassa con una connessione lenta)</string>
+    <string name="youtube_quality_selected_label">Qualità scelta</string>
     <string name="multi_window_label">Finestre Multiple (Popup)</string>
     <string name="multi_window_desc">Consente ai siti web di aprire nuove schede o finestre popup (es. per il login)</string>
     <string name="force_english_label">Forza lingua inglese</string>

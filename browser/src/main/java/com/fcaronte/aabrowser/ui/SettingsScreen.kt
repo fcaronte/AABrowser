@@ -324,97 +324,14 @@ fun SettingsScreen(
                                     )
 
                                     if (autoOpenFavoriteId != null && favorites.isNotEmpty()) {
-                                        val selectedFavorite = favorites.find { it.id == autoOpenFavoriteId } ?: favorites.firstOrNull()
-
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                                        ) {
-                                            Card(
-                                                onClick = { expandedAutoOpenFavorite = !expandedAutoOpenFavorite },
-                                                modifier = Modifier.fillMaxWidth(),
-                                                colors = CardDefaults.cardColors(
-                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                                                ),
-                                                shape = RoundedCornerShape(12.dp)
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(12.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Column(modifier = Modifier.weight(1f)) {
-                                                        Text(
-                                                            text = stringResource(R.string.selected_favorite_label),
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                                        )
-                                                        Text(
-                                                            text = selectedFavorite?.name ?: "",
-                                                            style = MaterialTheme.typography.bodyLarge,
-                                                            fontWeight = FontWeight.Medium,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis
-                                                        )
-                                                    }
-                                                    Icon(
-                                                        imageVector = if (expandedAutoOpenFavorite) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        AnimatedVisibility(visible = expandedAutoOpenFavorite) {
-                                            Column(
-                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                favorites.forEach { favorite ->
-                                                    val isSelected = autoOpenFavoriteId == favorite.id
-                                                    Card(
-                                                        onClick = {
-                                                            AppSettings.setAutoOpenFavoriteId(
-                                                                context,
-                                                                favorite.id
-                                                            )
-                                                            expandedAutoOpenFavorite = false
-                                                        },
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        colors = CardDefaults.cardColors(
-                                                            containerColor = if (isSelected)
-                                                                MaterialTheme.colorScheme.primaryContainer
-                                                            else MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                                alpha = 0.5f
-                                                            )
-                                                        ),
-                                                        shape = RoundedCornerShape(12.dp)
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier.padding(12.dp),
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
-                                                            RadioButton(
-                                                                selected = isSelected,
-                                                                onClick = null
-                                                            )
-                                                            Text(
-                                                                favorite.name,
-                                                                modifier = Modifier.padding(start = 12.dp),
-                                                                style = MaterialTheme.typography.bodyLarge,
-                                                                maxLines = 1,
-                                                                overflow = TextOverflow.Ellipsis
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.selected_favorite_label),
+                                            options = favorites.map { it.id to it.name },
+                                            selectedKey = autoOpenFavoriteId,
+                                            expanded = expandedAutoOpenFavorite,
+                                            onExpandedChange = { expandedAutoOpenFavorite = it },
+                                            onSelect = { AppSettings.setAutoOpenFavoriteId(context, it) }
+                                        )
                                     }
                                 }
                             }
@@ -429,13 +346,32 @@ fun SettingsScreen(
                                 )
                             }
 
+                            // Qualità YouTube: accesa, si sceglie fino a quale qualità arrivare
+                            val youtubeQuality by AppSettings.youtubeQuality
+                            var expandedYouTubeQuality by remember { mutableStateOf(false) }
                             SettingsCard {
-                                SettingsSwitchItem(
-                                    label = stringResource(R.string.force_max_youtube_quality_label),
-                                    description = stringResource(R.string.force_max_youtube_quality_desc),
-                                    checked = forceMaxYouTubeQuality,
-                                    onCheckedChange = { AppSettings.setForceMaxYouTubeQuality(context, it) }
-                                )
+                                Column(modifier = Modifier.padding(bottom = if (forceMaxYouTubeQuality && expandedYouTubeQuality) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.force_max_youtube_quality_label),
+                                        description = stringResource(R.string.force_max_youtube_quality_desc),
+                                        checked = forceMaxYouTubeQuality,
+                                        onCheckedChange = { enabled ->
+                                            AppSettings.setForceMaxYouTubeQuality(context, enabled)
+                                            expandedYouTubeQuality = enabled
+                                        }
+                                    )
+
+                                    if (forceMaxYouTubeQuality) {
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.youtube_quality_selected_label),
+                                            options = AppSettings.youtubeQualityOptions,
+                                            selectedKey = youtubeQuality,
+                                            expanded = expandedYouTubeQuality,
+                                            onExpandedChange = { expandedYouTubeQuality = it },
+                                            onSelect = { AppSettings.setYouTubeQuality(context, it) }
+                                        )
+                                    }
+                                }
                             }
 
                             val permissionToastMsg = stringResource(R.string.weather_permission_toast)
@@ -1396,6 +1332,107 @@ fun SettingsSwitchItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
         )
+    }
+}
+
+/**
+ * Scelta sotto un interruttore: il valore scelto e, toccandolo, l'elenco dei valori
+ * (preferito come pagina iniziale, qualità di YouTube). [options] = chiave e etichetta.
+ */
+@Composable
+fun ColumnScope.SettingsChoiceList(
+    title: String,
+    options: List<Pair<String, String>>,
+    selectedKey: String?,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onSelect: (String) -> Unit
+) {
+    val selectedLabel = options.firstOrNull { it.first == selectedKey }?.second ?: options.firstOrNull()?.second.orEmpty()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Card(
+            onClick = { onExpandedChange(!expanded) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = selectedLabel,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    AnimatedVisibility(visible = expanded) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            options.forEach { (key, label) ->
+                val isSelected = selectedKey == key
+                Card(
+                    onClick = {
+                        onSelect(key)
+                        onExpandedChange(false)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = null
+                        )
+                        Text(
+                            label,
+                            modifier = Modifier.padding(start = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

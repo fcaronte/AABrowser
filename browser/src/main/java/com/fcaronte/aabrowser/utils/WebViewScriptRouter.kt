@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import com.fcaronte.aabrowser.settings.AppSettings
 
 object WebViewScriptRouter {
 
@@ -173,7 +174,8 @@ object WebViewScriptRouter {
         displayScale: Float,
         desktopScale: Float,
         isDesktopMode: Boolean,
-        isTabActive: Boolean = true
+        isTabActive: Boolean = true,
+        youtubeQuality: String = AppSettings.DEFAULT_YOUTUBE_QUALITY
     ) {
         val lowUrl = urlString.lowercase()
         val isSpotify = lowUrl.contains("spotify.com")
@@ -220,47 +222,7 @@ object WebViewScriptRouter {
                 webView.evaluateJavascript(YouTubeManager.getTapToSeekScript(), null)
 
                 if (forceMaxYouTubeQuality) {
-                    webView.evaluateJavascript("""
-                        (function() {
-                            if (!window.location.host.includes('youtube.com')) return;
-                            const setMaxQuality = function() {
-                                const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
-                                if (player && typeof player.getAvailableQualityLevels === 'function' && typeof player.setPlaybackQualityRange === 'function') {
-                                    const levels = player.getAvailableQualityLevels();
-                                    if (levels && levels.length > 0) {
-                                        // Cap max quality at Full HD (1440p) to save mobile data and prevent buffering in car
-                                        const getBestQualityUnder1440 = function(arr) {
-                                            const allowed = ['hd1440', 'hd1080', 'hd720', 'large', 'medium', 'small'];
-                                            for (let i = 0; i < allowed.length; i++) {
-                                                if (arr.includes(allowed[i])) return allowed[i];
-                                            }
-                                            const filtered = arr.filter(l => l !== 'highres' && l !== 'hd2160' && l !== 'hd1440');
-                                            return filtered.length > 0 ? filtered[0] : arr[arr.length - 1];
-                                        };
-
-                                        let targetQuality = getBestQualityUnder1440(levels);
-                                        if (navigator.connection) {
-                                            const conn = navigator.connection;
-                                            const downlink = conn.downlink || 10;
-                                            const effectiveType = conn.effectiveType || '4g';
-                                            if (effectiveType === 'slow-2g' || effectiveType === '2g' || downlink < 1.0) {
-                                                targetQuality = levels[levels.length - 1];
-                                            } else if (effectiveType === '3g' || (downlink >= 1.0 && downlink < 3.0)) {
-                                                targetQuality = levels.find(l => l === 'hd720' || l === 'large') || levels[Math.floor(levels.length / 2)];
-                                            }
-                                        }
-                                        const current = player.getPlaybackQuality();
-                                        if (current !== targetQuality) {
-                                            player.setPlaybackQualityRange(targetQuality);
-                                            player.setPlaybackQuality(targetQuality);
-                                        }
-                                    }
-                                }
-                            };
-                            setInterval(setMaxQuality, 3000);
-                            setTimeout(setMaxQuality, 1000);
-                        })();
-                    """.trimIndent(), null)
+                    webView.evaluateJavascript(getYouTubeQualityScript(youtubeQuality), null)
                 }
 
                 if (!autoplayMedia) {
@@ -322,6 +284,46 @@ object WebViewScriptRouter {
 
         CookieManager.getInstance().flush()
     }
+
+    /**
+     * Qualità di YouTube: la migliore del video senza superare [maxLevel] (livello del player scelto nelle
+     * impostazioni, es. hd1080). Con una connessione lenta scende comunque, per non fermarsi a caricare.
+     */
+    private fun getYouTubeQualityScript(maxLevel: String): String = """
+        (function() {
+            if (!window.location.host.includes('youtube.com')) return;
+            // Un solo controllo attivo anche se lo script arriva a ogni pagina finita
+            if (window.aabQualityInterval) clearInterval(window.aabQualityInterval);
+            const ORDER = ['highres', 'hd2880', 'hd2160', 'hd1440', 'hd1080', 'hd720', 'large', 'medium', 'small', 'tiny'];
+            const maxIndex = Math.max(0, ORDER.indexOf('$maxLevel'));
+            const applyQuality = function() {
+                const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+                if (!player || typeof player.getAvailableQualityLevels !== 'function' ||
+                    typeof player.setPlaybackQualityRange !== 'function') return;
+                const levels = (player.getAvailableQualityLevels() || []).filter(l => ORDER.indexOf(l) !== -1);
+                if (levels.length === 0) return;
+                // La più alta del video non oltre quella scelta
+                let target = ORDER.slice(maxIndex).find(l => levels.includes(l)) || levels[levels.length - 1];
+                const conn = navigator.connection;
+                if (conn) {
+                    const downlink = conn.downlink || 10;
+                    const type = conn.effectiveType || '4g';
+                    if (type === 'slow-2g' || type === '2g' || downlink < 1.0) {
+                        target = levels[levels.length - 1];
+                    } else if (type === '3g' || downlink < 3.0) {
+                        const slow = ORDER.slice(Math.max(maxIndex, ORDER.indexOf('hd720'))).find(l => levels.includes(l));
+                        if (slow) target = slow;
+                    }
+                }
+                if (player.getPlaybackQuality() !== target) {
+                    player.setPlaybackQualityRange(target, target);
+                    if (typeof player.setPlaybackQuality === 'function') player.setPlaybackQuality(target);
+                }
+            };
+            window.aabQualityInterval = setInterval(applyQuality, 3000);
+            setTimeout(applyQuality, 1000);
+        })();
+    """.trimIndent()
 
     /**
      * Inietta lo script AdBlock solo se l'URL appartiene a YouTube/YouTube Music.

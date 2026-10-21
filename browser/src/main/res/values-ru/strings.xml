@@ -94,8 +94,9 @@
     <string name="adblock_desc">Блокировка навязчивой рекламы и трекеров</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Автопропуск рекламы YouTube (Бета: может перестать работать в любой момент)</string>
-    <string name="force_max_youtube_quality_label">Максимальное качество YouTube (Сеть)</string>
-    <string name="force_max_youtube_quality_desc">Автоматически выбирать максимальное качество видео YouTube в зависимости от скорости сети</string>
+    <string name="force_max_youtube_quality_label">Качество видео YouTube</string>
+    <string name="force_max_youtube_quality_desc">Выбранное качество, если оно есть у видео (ниже при медленном соединении)</string>
+    <string name="youtube_quality_selected_label">Выбранное качество</string>
     <string name="multi_window_label">Множественные окна (Всплывающие)</string>
     <string name="multi_window_desc">Разрешить сайтам открывать новые вкладки или всплывающие окна (например, для входа)</string>
     <string name="force_english_label">Принудительно английский язык</string>

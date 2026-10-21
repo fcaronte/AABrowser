@@ -94,8 +94,9 @@
     <string name="adblock_desc">Aufdringliche Werbung und Tracker blockieren</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube-Werbung automatisch überspringen (Beta: funktioniert möglicherweise jederzeit nicht mehr)</string>
-    <string name="force_max_youtube_quality_label">YouTube Maximale Qualität (Netzwerk)</string>
-    <string name="force_max_youtube_quality_desc">Automatisch maximale YouTube-Videoqualität basierend auf der Netzwerkgeschwindigkeit auswählen</string>
+    <string name="force_max_youtube_quality_label">YouTube-Videoqualität</string>
+    <string name="force_max_youtube_quality_desc">Die gewählte Qualität verwenden, wenn das Video sie hat (niedriger bei langsamer Verbindung)</string>
+    <string name="youtube_quality_selected_label">Gewählte Qualität</string>
     <string name="multi_window_label">Mehrere Fenster (Popups)</string>
     <string name="multi_window_desc">Websites erlauben, neue Tabs oder Popups zu öffnen (z. B. Login-Seiten)</string>
     <string name="force_english_label">Englische Sprache erzwingen</string>
