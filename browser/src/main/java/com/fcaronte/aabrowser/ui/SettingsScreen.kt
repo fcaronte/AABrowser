@@ -346,36 +346,7 @@ fun SettingsScreen(
                                 )
                             }
 
-                            // Qualità YouTube: accesa, si sceglie fino a quale qualità arrivare
-                            val youtubeQuality by AppSettings.youtubeQuality
-                            var expandedYouTubeQuality by remember { mutableStateOf(false) }
-                            SettingsCard {
-                                Column(modifier = Modifier.padding(bottom = if (forceMaxYouTubeQuality && expandedYouTubeQuality) 16.dp else 0.dp)) {
-                                    SettingsSwitchItem(
-                                        label = stringResource(R.string.force_max_youtube_quality_label),
-                                        description = stringResource(R.string.force_max_youtube_quality_desc),
-                                        checked = forceMaxYouTubeQuality,
-                                        onCheckedChange = { enabled ->
-                                            AppSettings.setForceMaxYouTubeQuality(context, enabled)
-                                            expandedYouTubeQuality = enabled
-                                        }
-                                    )
-
-                                    if (forceMaxYouTubeQuality) {
-                                        SettingsChoiceList(
-                                            title = stringResource(R.string.youtube_quality_selected_label),
-                                            options = AppSettings.youtubeQualityOptions,
-                                            selectedKey = youtubeQuality,
-                                            expanded = expandedYouTubeQuality,
-                                            onExpandedChange = { expandedYouTubeQuality = it },
-                                            onSelect = { AppSettings.setYouTubeQuality(context, it) }
-                                        )
-                                    }
-                                }
-                            }
-
                             val permissionToastMsg = stringResource(R.string.weather_permission_toast)
-                            val webLocationPhoneMsg = stringResource(R.string.web_location_phone_toast)
                             val mediaPlayerDisabledHint = stringResource(R.string.media_player_disabled_hint)
 
                             fun restartApp() {
@@ -437,26 +408,6 @@ fun SettingsScreen(
                                                         )
                                                     }
                                                 }
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-
-                            // Posizione per i siti web (facoltativa): GPS preciso per le mappe nel browser
-                            SettingsCard {
-                                SettingsSwitchItem(
-                                    label = stringResource(R.string.perm_web_location_title),
-                                    description = stringResource(R.string.perm_web_location_desc),
-                                    checked = webLocationAllowed,
-                                    onCheckedChange = { enabled ->
-                                        AppSettings.setWebLocation(context, enabled)
-                                        if (enabled && !WebLocation.isReadyForCar(context)) {
-                                            // In auto il sistema non mostra la richiesta: si concede dal telefono
-                                            if (isCarMode || activity == null) {
-                                                Toast.makeText(context, webLocationPhoneMsg, Toast.LENGTH_LONG).show()
-                                            } else {
-                                                WebLocation.requestMissing(activity)
                                             }
                                         }
                                     }
@@ -959,6 +910,34 @@ fun SettingsScreen(
                                 }
                             }
 
+                            // Qualità YouTube: accesa, si sceglie fino a quale qualità arrivare
+                            val youtubeQuality by AppSettings.youtubeQuality
+                            var expandedYouTubeQuality by remember { mutableStateOf(false) }
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(bottom = if (forceMaxYouTubeQuality && expandedYouTubeQuality) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.force_max_youtube_quality_label),
+                                        description = stringResource(R.string.force_max_youtube_quality_desc),
+                                        checked = forceMaxYouTubeQuality,
+                                        onCheckedChange = { enabled ->
+                                            AppSettings.setForceMaxYouTubeQuality(context, enabled)
+                                            expandedYouTubeQuality = enabled
+                                        }
+                                    )
+
+                                    if (forceMaxYouTubeQuality) {
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.youtube_quality_selected_label),
+                                            options = AppSettings.youtubeQualityOptions,
+                                            selectedKey = youtubeQuality,
+                                            expanded = expandedYouTubeQuality,
+                                            onExpandedChange = { expandedYouTubeQuality = it },
+                                            onSelect = { AppSettings.setYouTubeQuality(context, it) }
+                                        )
+                                    }
+                                }
+                            }
+
                             // Multiple Windows (Popups)
                             SettingsCard {
                                 SettingsSwitchItem(
@@ -966,6 +945,27 @@ fun SettingsScreen(
                                     description = stringResource(R.string.multi_window_desc),
                                     checked = multiWindow,
                                     onCheckedChange = { AppSettings.setMultiWindow(context, it) }
+                                )
+                            }
+
+                            // Posizione per i siti web (facoltativa): GPS preciso per le mappe nel browser
+                            val webLocationPhoneMsg = stringResource(R.string.web_location_phone_toast)
+                            SettingsCard {
+                                SettingsSwitchItem(
+                                    label = stringResource(R.string.perm_web_location_title),
+                                    description = stringResource(R.string.perm_web_location_desc),
+                                    checked = webLocationAllowed,
+                                    onCheckedChange = { enabled ->
+                                        AppSettings.setWebLocation(context, enabled)
+                                        if (enabled && !WebLocation.isReadyForCar(context)) {
+                                            // In auto il sistema non mostra la richiesta: si concede dal telefono
+                                            if (isCarMode || activity == null) {
+                                                Toast.makeText(context, webLocationPhoneMsg, Toast.LENGTH_LONG).show()
+                                            } else {
+                                                WebLocation.requestMissing(activity)
+                                            }
+                                        }
+                                    }
                                 )
                             }
 
