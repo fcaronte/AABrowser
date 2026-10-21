@@ -1208,10 +1208,9 @@ fun BrowserScreen(
                     webViewReference = webView
                 }
                 webView?.let {
-                    if (it.tag != reloadTrigger) {
-                        it.reload()
-                        it.tag = reloadTrigger
-                    }
+                    // Niente reload() qui: lo fa LaunchedEffect(reloadTrigger), solo per la scheda attiva. Questo
+                    // confrontava il tag con reloadTrigger, che per le schede inattive vale 0: aprendo una scheda
+                    // nuova quella che stava suonando si ricaricava (video fermo, player di nuovo sul meteo)
                     val needsDesktop = needsDesktopForUrl(it.url)
                     it.settings.mediaPlaybackRequiresUserGesture =
                         !autoplayMedia && !isDaznUrl(it.url)
