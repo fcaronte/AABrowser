@@ -439,16 +439,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      * intero (SearchTemplate) e mentre è aperta la pagina perde il focus: il campo viene memorizzato prima
      * di aprirla (precompilandola col suo testo) e al ritorno il testo viene scritto lì.
      */
+    /** Risultato di [BrowserJavascript.getCaptureInputTargetScript]: valore e suggerimento del campo, o null. */
+    private fun parseCapturedField(result: String?): JSONObject? =
+        result?.takeIf { it.startsWith("{") }?.let {
+            try {
+                JSONObject(it)
+            } catch (_: Exception) {
+                null
+            }
+        }
+
     private fun openFieldInput() {
         val wv = webView ?: return
         wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
-            val field = result?.takeIf { it.startsWith("{") }?.let {
-                try {
-                    JSONObject(it)
-                } catch (_: Exception) {
-                    null
-                }
-            }
+            val field = parseCapturedField(result)
             val hint = field?.optString("hint")?.takeIf { it.isNotBlank() } ?: "Scrivi nel campo"
 
             screenManager.push(
@@ -1809,7 +1813,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    /**
+     * Dettatura nel campo della pagina, con lo stesso metodo della tastiera: il campo si memorizza prima di
+     * ascoltare e il testo si scrive con un input vero, in coda a quello che c'era. Prima si scriveva in
+     * activeElement con innerText e un Event generico, che l'editor dei messaggi di WhatsApp Web ignora.
+     */
     private fun startVoiceListening(context: Context, targetWebView: WebView?, btnMic: Button) {
+        val wv = targetWebView ?: return
+        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
+            val field = parseCapturedField(result)
+            val existing = if (field?.optBoolean("password") == true) "" else field?.optString("value").orEmpty()
+            listenForSpeech(context, wv, btnMic, existing.trimEnd())
+        }
+    }
+
+    private fun listenForSpeech(context: Context, targetWebView: WebView, btnMic: Button, existingText: String) {
         try {
             val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -1843,8 +1861,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 }
                 override fun onResults(results: Bundle?) {
                     val spokenText = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
-                    if (!spokenText.isNullOrEmpty() && targetWebView != null) {
-                        targetWebView.evaluateJavascript(BrowserJavascript.getInjectTextScript(spokenText), null)
+                    if (!spokenText.isNullOrEmpty()) {
+                        val text = if (existingText.isEmpty()) spokenText else "$existingText $spokenText"
+                        // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
+                        suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
+                        targetWebView.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text), null)
                     }
                     try { speechRecognizer.destroy() } catch (_: Exception) {}
                     handler.post {
