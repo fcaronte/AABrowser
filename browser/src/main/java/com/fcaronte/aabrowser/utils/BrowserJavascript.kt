@@ -159,25 +159,50 @@ object BrowserJavascript {
     /**
      * Scrive [text] nel campo memorizzato da [getCaptureInputTargetScript] come un input vero e, visto che
      * il tasto della tastiera di Android Auto è "Cerca", invia il modulo solo se è un campo di ricerca.
+     * [append] (dettatura): il testo va in fondo a quello che c'è, con uno spazio; altrimenti lo sostituisce.
      */
-    fun getSetInputTextScript(text: String): String {
+    fun getSetInputTextScript(text: String, append: Boolean = false): String {
         return """
-        (function(text) {
+        (function(text, append) {
             $EDITABLE_FIELD_JS
             const el = [window.__aabTypingTarget, document.activeElement, window.__savedInputElement].find(isEditable);
             if (!el) return 'no-target';
 
+            function fireInput(value) {
+                el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: value }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
             el.focus();
+            let value = text;
             if (el.isContentEditable) {
-                el.textContent = text;
+                // Gli editor fatti in JavaScript (Lexical di WhatsApp Web, ...) annullano un textContent cambiato
+                // da fuori e ignorano un InputEvent finto: si seleziona e si scrive come la tastiera del browser.
+                // selectionchange subito, altrimenti l'editor usa ancora la selezione di prima (provato su Lexical)
+                const current = (el.innerText || '').replace(/\s+$/, '');
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                if (append) range.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.dispatchEvent(new Event('selectionchange'));
+                const insert = append && current && text ? ' ' + text : text;
+                value = append ? current + insert : text;
+                const written = insert ? document.execCommand('insertText', false, insert) : document.execCommand('delete');
+                if (!written) {
+                    el.textContent = value;
+                    fireInput(value);
+                }
             } else {
+                const current = (el.value || '').replace(/\s+$/, '');
+                if (append && current && text) value = current + ' ' + text;
                 // Setter nativo: i siti React ignorano un semplice el.value = ...
                 const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-                Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, text);
-                try { el.setSelectionRange(text.length, text.length); } catch (e) {}
+                Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
+                try { el.setSelectionRange(value.length, value.length); } catch (e) {}
+                fireInput(value);
             }
-            el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
 
             const name = (el.getAttribute('name') || '').toLowerCase();
             const isSearch = el.type === 'search' ||
@@ -195,7 +220,7 @@ object BrowserJavascript {
                 el.dispatchEvent(new KeyboardEvent('keyup', keyInit));
             }
             return 'submitted';
-        })(${JSONObject.quote(text)});
+        })(${JSONObject.quote(text)}, $append);
         """.trimIndent()
     }
 

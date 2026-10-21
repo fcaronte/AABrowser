@@ -1827,20 +1827,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     /**
-     * Dettatura nel campo della pagina, con lo stesso metodo della tastiera: il campo si memorizza prima di
-     * ascoltare e il testo si scrive con un input vero, in coda a quello che c'era. Prima si scriveva in
-     * activeElement con innerText e un Event generico, che l'editor dei messaggi di WhatsApp Web ignora.
+     * Dettatura nel campo della pagina, con lo stesso script della tastiera: il campo si memorizza prima di
+     * ascoltare, poi il testo dettato va in fondo a quello che c'è (vedi getSetInputTextScript, che negli editor
+     * come quello di WhatsApp Web scrive come la tastiera del browser: textContent e un Event finto li ignorano).
      */
     private fun startVoiceListening(context: Context, targetWebView: WebView?, btnMic: Button) {
         val wv = targetWebView ?: return
-        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
-            val field = parseCapturedField(result)
-            val existing = if (field?.optBoolean("password") == true) "" else field?.optString("value").orEmpty()
-            listenForSpeech(context, wv, btnMic, existing.trimEnd())
+        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { _ ->
+            listenForSpeech(context, wv, btnMic)
         }
     }
 
-    private fun listenForSpeech(context: Context, targetWebView: WebView, btnMic: Button, existingText: String) {
+    private fun listenForSpeech(context: Context, targetWebView: WebView, btnMic: Button) {
         try {
             val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -1875,10 +1873,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 override fun onResults(results: Bundle?) {
                     val spokenText = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
                     if (!spokenText.isNullOrEmpty()) {
-                        val text = if (existingText.isEmpty()) spokenText else "$existingText $spokenText"
                         // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
                         suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
-                        targetWebView.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text), null)
+                        targetWebView.evaluateJavascript(BrowserJavascript.getSetInputTextScript(spokenText, append = true)) { result ->
+                            AppLog.d(TAG, "Voice input written: $result")
+                        }
                     }
                     try { speechRecognizer.destroy() } catch (_: Exception) {}
                     handler.post {
