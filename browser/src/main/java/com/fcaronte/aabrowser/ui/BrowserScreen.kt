@@ -64,8 +64,10 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
+import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
@@ -595,6 +597,12 @@ fun BrowserScreen(
                             GoogleLoginManager.getPopupInterceptorScript(),
                             setOf("*")
                         )
+                        // Prima del player di YouTube: toglie i dati delle pubblicità (riserva: lo script a pagina finita)
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            AdBlockJavascript.getYouTubeAdPruneScript(),
+                            AdBlockJavascript.YOUTUBE_ORIGINS
+                        )
                     }
 
                     val needsDesktop = actualDesktopMode || isDesktopRequired(url)
@@ -863,6 +871,12 @@ fun BrowserScreen(
                                 AppSettings.setYouTubeSpeed(context, speed)
                                 AppLog.d("YouTubeSpeed", "Saved playback speed = $speed")
                             }
+
+                            // Lo chiede lo script dei dati del player di YouTube all'inizio della pagina
+                            @JavascriptInterface
+                            @Suppress("unused")
+                            fun isYouTubeAdBlockOn(): Boolean =
+                                AdBlockSettings.isYouTubeEnabled.value && !AdBlockHost.isWhitelisted(pageHost.get())
                         },
                         "AndroidBridge",
                     )

@@ -83,6 +83,7 @@ import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
@@ -1213,6 +1214,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getLifecycleAndMetadataScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getGoogleOauthFixScript(), setOf("*"))
                             WebViewCompat.addDocumentStartJavaScript(this, GoogleLoginManager.getPopupInterceptorScript(), setOf("*"))
+                            // Prima del player di YouTube: toglie i dati delle pubblicità (riserva: lo script a pagina finita)
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                AdBlockJavascript.getYouTubeAdPruneScript(),
+                                AdBlockJavascript.YOUTUBE_ORIGINS
+                            )
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
                             // Aggiungi anche lo script per salvare l'elemento attivo
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
@@ -1342,6 +1349,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 fun saveYouTubeSpeed(speed: Float) {
                                     AppSettings.setYouTubeSpeed(carContext, speed)
                                 }
+
+                                // Lo chiede lo script dei dati del player di YouTube all'inizio della pagina
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun isYouTubeAdBlockOn(): Boolean =
+                                    AdBlockSettings.isYouTubeEnabled.value && !AdBlockHost.isWhitelisted(pageHost)
 
                                 // DAZN: al clic su un evento passa alla modalità desktop
                                 @JavascriptInterface

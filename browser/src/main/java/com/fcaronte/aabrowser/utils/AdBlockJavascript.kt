@@ -2,6 +2,145 @@ package com.fcaronte.aabrowser.utils
 
 object AdBlockJavascript {
 
+    /** Origini dello script che toglie le pubblicità dai dati del player (inizio documento). */
+    val YOUTUBE_ORIGINS = setOf(
+        "https://youtube.com", "https://*.youtube.com",
+        "https://youtubekids.com", "https://*.youtubekids.com"
+    )
+
+    /**
+     * Prima difesa contro le pubblicità di YouTube, all'inizio di ogni documento: toglie i dati delle pubblicità
+     * dalle risposte del player (dati iniziali della pagina, fetch e XMLHttpRequest di /youtubei/v1/player,
+     * get_watch, pbj=1), così il player non sa di averne e non le carica. Le pubblicità che passano lo stesso
+     * (per esempio unite al video dal server) restano allo script di [getYouTubeAdBlockScript]: 16x, muto, Salta.
+     * Si attiva solo con l'AdBlock di YouTube acceso e il sito fuori dalla whitelist (AndroidBridge.isYouTubeAdBlockOn).
+     */
+    fun getYouTubeAdPruneScript(): String = """
+    (function() {
+        if (window.__aabAdPrune) return;
+        window.__aabAdPrune = true;
+        try {
+            const bridge = window.AndroidBridge;
+            if (!bridge || typeof bridge.isYouTubeAdBlockOn !== 'function' || !bridge.isYouTubeAdBlockOn()) return;
+        } catch (e) {
+            return;
+        }
+
+        const AD_KEYS = ['adPlacements', 'adSlots', 'playerAds', 'adBreakHeartbeatParams'];
+
+        function pruneObject(o) {
+            if (!o || typeof o !== 'object') return;
+            for (const key of AD_KEYS) {
+                if (Object.prototype.hasOwnProperty.call(o, key)) delete o[key];
+            }
+            // Avviso "gli adblocker non sono consentiti", che arriva insieme ai dati del player
+            const renderers = o.auxiliaryUi && o.auxiliaryUi.messageRenderers;
+            if (renderers && typeof renderers === 'object') {
+                delete renderers.bkaEnforcementMessageViewModel;
+                delete renderers.enforcementMessageViewModel;
+            }
+        }
+
+        // Risposta del player in cima, dentro playerResponse o in un elenco (get_watch, pbj=1)
+        function prune(data) {
+            if (!data || typeof data !== 'object') return data;
+            if (Array.isArray(data)) {
+                data.forEach(prune);
+                return data;
+            }
+            pruneObject(data);
+            if (data.playerResponse) pruneObject(data.playerResponse);
+            return data;
+        }
+
+        function pruneText(text) {
+            try {
+                return JSON.stringify(prune(JSON.parse(text)));
+            } catch (e) {
+                return text;
+            }
+        }
+
+        // 1. Dati iniziali scritti nell'HTML della pagina (var ytInitialPlayerResponse = {...})
+        let initialPlayerResponse;
+        try {
+            Object.defineProperty(window, 'ytInitialPlayerResponse', {
+                configurable: true,
+                get: function() { return initialPlayerResponse; },
+                set: function(value) { initialPlayerResponse = prune(value); }
+            });
+        } catch (e) {}
+
+        const PLAYER_URL = /\/youtubei\/v1\/(player|get_watch)\b|[?&]pbj=1/;
+
+        // 2. fetch: la risposta del player si legge, si ripulisce e si ricrea uguale
+        const originalFetch = window.fetch;
+        if (typeof originalFetch === 'function') {
+            window.fetch = function(input) {
+                const url = typeof input === 'string' ? input : ((input && input.url) || String(input || ''));
+                const pending = originalFetch.apply(this, arguments);
+                if (!PLAYER_URL.test(url)) return pending;
+                return pending.then(function(response) {
+                    const type = response.headers.get('content-type') || '';
+                    if (!response.ok || type.indexOf('json') === -1) return response;
+                    return response.clone().text().then(function(text) {
+                        const headers = new Headers(response.headers);
+                        headers.delete('content-length');
+                        headers.delete('content-encoding');
+                        const cleaned = new Response(pruneText(text), {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: headers
+                        });
+                        Object.defineProperty(cleaned, 'url', { value: response.url });
+                        return cleaned;
+                    }, function() { return response; });
+                });
+            };
+        }
+
+        // 3. Le stesse richieste fatte con XMLHttpRequest
+        const xhrProto = XMLHttpRequest.prototype;
+        const originalOpen = xhrProto.open;
+        xhrProto.open = function(method, url) {
+            this.__aabPrune = PLAYER_URL.test(String(url || ''));
+            return originalOpen.apply(this, arguments);
+        };
+
+        function cleanedText(xhr, raw) {
+            if (!xhr.__aabPrune || xhr.readyState !== 4 || typeof raw !== 'string') return raw;
+            if (xhr.__aabRaw !== raw) {
+                xhr.__aabRaw = raw;
+                xhr.__aabCleaned = pruneText(raw);
+            }
+            return xhr.__aabCleaned;
+        }
+
+        const textGetter = (Object.getOwnPropertyDescriptor(xhrProto, 'responseText') || {}).get;
+        if (textGetter) {
+            Object.defineProperty(xhrProto, 'responseText', {
+                configurable: true,
+                get: function() { return cleanedText(this, textGetter.call(this)); }
+            });
+        }
+        const responseGetter = (Object.getOwnPropertyDescriptor(xhrProto, 'response') || {}).get;
+        if (responseGetter) {
+            Object.defineProperty(xhrProto, 'response', {
+                configurable: true,
+                get: function() {
+                    const raw = responseGetter.call(this);
+                    if (!this.__aabPrune || this.readyState !== 4) return raw;
+                    if (typeof raw === 'string') return cleanedText(this, raw);
+                    if (raw && typeof raw === 'object' && this.responseType === 'json') return prune(raw);
+                    return raw;
+                }
+            });
+        }
+
+        console.log('AABrowser: YouTube ad data pruning active');
+    })();
+    """.trimIndent()
+
     fun getYouTubeAdBlockScript(): String {
         return """
     (function() {
