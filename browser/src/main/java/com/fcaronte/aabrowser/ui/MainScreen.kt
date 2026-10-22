@@ -59,7 +59,6 @@ import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
-import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
@@ -209,8 +208,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
     }
 
     LaunchedEffect(Unit) {
-        AdBlockSettings.init(context)
-
         // Aspetta che i preferiti siano caricati dal repository
         var attempts = 0
         while (favoritesViewModel.favorites.isEmpty() && attempts < 20) {
