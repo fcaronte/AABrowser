@@ -276,4 +276,17 @@
     <string name="ssl_warning_message_car">The certificate of %1$s is not trusted. Continue only if it is your own device.</string>
     <string name="ssl_warning_proceed">Continue anyway</string>
     <string name="ssl_warning_cancel">Cancel</string>
+    <string name="voice_command_button">Voice command</string>
+    <string name="voice_command_hint">Try: “play … on YouTube”, “open …”, “take me to …”, “pause”</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">Searching: %1$s</string>
+    <string name="voice_command_site">Searching %1$s: %2$s</string>
+    <string name="voice_command_open">Opening %1$s</string>
+    <string name="voice_command_navigate">Directions to %1$s</string>
+    <string name="voice_command_not_heard">I didn\'t hear anything, try again</string>
+    <string name="voice_command_unavailable">Speech recognition is not available</string>
+    <string name="voice_command_mic_permission">AABrowser needs the microphone permission: allow it on the phone</string>
+    <string name="voice_command_open_app">Open AABrowser (Main or Wide) to use voice commands</string>
+    <string name="voice_command_navigate_failed">No navigation app available</string>
 </resources>

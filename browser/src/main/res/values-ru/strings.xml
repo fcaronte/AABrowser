@@ -276,4 +276,17 @@
     <string name="ssl_warning_message_car">Сертификат %1$s не является доверенным. Продолжайте, только если это ваше устройство.</string>
     <string name="ssl_warning_proceed">Всё равно продолжить</string>
     <string name="ssl_warning_cancel">Отмена</string>
+    <string name="voice_command_button">Голосовая команда</string>
+    <string name="voice_command_hint">Например: «включи … на YouTube», «открой …», «проложи маршрут до …», «пауза»</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">Поиск: %1$s</string>
+    <string name="voice_command_site">Поиск на %1$s: %2$s</string>
+    <string name="voice_command_open">Открываю %1$s</string>
+    <string name="voice_command_navigate">Маршрут до %1$s</string>
+    <string name="voice_command_not_heard">Ничего не слышно, попробуйте ещё раз</string>
+    <string name="voice_command_unavailable">Распознавание речи недоступно</string>
+    <string name="voice_command_mic_permission">AABrowser нужен доступ к микрофону: разрешите его на телефоне</string>
+    <string name="voice_command_open_app">Откройте AABrowser (Main или Wide), чтобы пользоваться голосовыми командами</string>
+    <string name="voice_command_navigate_failed">Нет доступного навигатора</string>
 </resources>

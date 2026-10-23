@@ -275,4 +275,17 @@
     <string name="ssl_warning_message_car">O certificado de %1$s não é confiável. Continue apenas se for um dispositivo seu.</string>
     <string name="ssl_warning_proceed">Continuar mesmo assim</string>
     <string name="ssl_warning_cancel">Cancelar</string>
+    <string name="voice_command_button">Comando de voz</string>
+    <string name="voice_command_hint">Experimente: «toca … no YouTube», «abre …», «leva-me a …», «pausa»</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">A pesquisar: %1$s</string>
+    <string name="voice_command_site">A pesquisar em %1$s: %2$s</string>
+    <string name="voice_command_open">A abrir %1$s</string>
+    <string name="voice_command_navigate">Percurso para %1$s</string>
+    <string name="voice_command_not_heard">Não ouvi nada, tente novamente</string>
+    <string name="voice_command_unavailable">O reconhecimento de voz não está disponível</string>
+    <string name="voice_command_mic_permission">O AABrowser precisa da autorização do microfone: conceda-a no telemóvel</string>
+    <string name="voice_command_open_app">Abra o AABrowser (Main ou Wide) para usar os comandos de voz</string>
+    <string name="voice_command_navigate_failed">Nenhuma app de navegação disponível</string>
 </resources>

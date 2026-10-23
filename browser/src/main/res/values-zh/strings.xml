@@ -273,4 +273,17 @@
     <string name="ssl_warning_message_car">%1$s 的证书不受信任。仅当它是你自己的设备时才继续。</string>
     <string name="ssl_warning_proceed">仍然继续</string>
     <string name="ssl_warning_cancel">取消</string>
+    <string name="voice_command_button">语音命令</string>
+    <string name="voice_command_hint">试试：“在 YouTube 上播放 …”、“打开 …”、“导航到 …”、“暂停”</string>
+    <string name="voice_command_youtube">YouTube：%1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music：%1$s</string>
+    <string name="voice_command_search">搜索：%1$s</string>
+    <string name="voice_command_site">在 %1$s 上搜索：%2$s</string>
+    <string name="voice_command_open">正在打开 %1$s</string>
+    <string name="voice_command_navigate">前往 %1$s 的路线</string>
+    <string name="voice_command_not_heard">没有听到声音，请重试</string>
+    <string name="voice_command_unavailable">语音识别不可用</string>
+    <string name="voice_command_mic_permission">AABrowser 需要麦克风权限：请在手机上授予</string>
+    <string name="voice_command_open_app">打开 AABrowser（Main 或 Wide）以使用语音命令</string>
+    <string name="voice_command_navigate_failed">没有可用的导航应用</string>
 </resources>

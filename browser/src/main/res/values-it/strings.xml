@@ -232,4 +232,17 @@
     <string name="ssl_warning_message_car">Il certificato di %1$s non è attendibile. Continua solo se è un tuo dispositivo.</string>
     <string name="ssl_warning_proceed">Continua comunque</string>
     <string name="ssl_warning_cancel">Annulla</string>
+    <string name="voice_command_button">Comando vocale</string>
+    <string name="voice_command_hint">Prova: «metti … su YouTube», «apri …», «portami a …», «pausa»</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">Cerco: %1$s</string>
+    <string name="voice_command_site">Cerco su %1$s: %2$s</string>
+    <string name="voice_command_open">Apro %1$s</string>
+    <string name="voice_command_navigate">Navigazione verso %1$s</string>
+    <string name="voice_command_not_heard">Non ho sentito nulla, riprova</string>
+    <string name="voice_command_unavailable">Riconoscimento vocale non disponibile</string>
+    <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad AABrowser sul telefono</string>
+    <string name="voice_command_open_app">Apri AABrowser (Main o Wide) per usare i comandi vocali</string>
+    <string name="voice_command_navigate_failed">Nessun navigatore disponibile</string>
 </resources>

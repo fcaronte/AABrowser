@@ -278,4 +278,17 @@
     <string name="ssl_warning_message_car">شهادة %1$s غير موثوقة. تابع فقط إذا كان جهازك الخاص.</string>
     <string name="ssl_warning_proceed">المتابعة على أي حال</string>
     <string name="ssl_warning_cancel">إلغاء</string>
+    <string name="voice_command_button">أمر صوتي</string>
+    <string name="voice_command_hint">جرّب: «شغّل … على YouTube»، «افتح …»، «خذني إلى …»، «إيقاف مؤقت»</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">جارٍ البحث: %1$s</string>
+    <string name="voice_command_site">جارٍ البحث في %1$s: %2$s</string>
+    <string name="voice_command_open">جارٍ فتح %1$s</string>
+    <string name="voice_command_navigate">الاتجاهات إلى %1$s</string>
+    <string name="voice_command_not_heard">لم أسمع شيئاً، حاول مرة أخرى</string>
+    <string name="voice_command_unavailable">التعرّف على الكلام غير متاح</string>
+    <string name="voice_command_mic_permission">يحتاج AABrowser إلى إذن الميكروفون: امنحه من الهاتف</string>
+    <string name="voice_command_open_app">افتح AABrowser (Main أو Wide) لاستخدام الأوامر الصوتية</string>
+    <string name="voice_command_navigate_failed">لا يوجد تطبيق ملاحة متاح</string>
 </resources>

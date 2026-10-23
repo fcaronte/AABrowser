@@ -274,4 +274,17 @@
     <string name="ssl_warning_message_car">Das Zertifikat von %1$s ist nicht vertrauenswürdig. Fahre nur fort, wenn es dein eigenes Gerät ist.</string>
     <string name="ssl_warning_proceed">Trotzdem fortfahren</string>
     <string name="ssl_warning_cancel">Abbrechen</string>
+    <string name="voice_command_button">Sprachbefehl</string>
+    <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „öffne …“, „navigiere zu …“, „Pause“</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">Suche: %1$s</string>
+    <string name="voice_command_site">Suche auf %1$s: %2$s</string>
+    <string name="voice_command_open">Öffne %1$s</string>
+    <string name="voice_command_navigate">Route nach %1$s</string>
+    <string name="voice_command_not_heard">Nichts gehört, bitte erneut versuchen</string>
+    <string name="voice_command_unavailable">Spracherkennung ist nicht verfügbar</string>
+    <string name="voice_command_mic_permission">AABrowser braucht die Mikrofonberechtigung: Erteilen Sie sie auf dem Handy</string>
+    <string name="voice_command_open_app">Öffnen Sie AABrowser (Main oder Wide), um Sprachbefehle zu nutzen</string>
+    <string name="voice_command_navigate_failed">Keine Navigations-App verfügbar</string>
 </resources>

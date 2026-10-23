@@ -23,6 +23,7 @@ import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -583,6 +584,17 @@ class CarMediaService : MediaBrowserServiceCompat() {
             if (wideActive == active) return
             wideActive = active
             runningService?.get()?.applySessionActivity()
+        }
+
+        /** Comandi vocali "pausa", "riprendi", "prossimo", "precedente": come i tasti del player di Android Auto. */
+        fun sendPlayerCommand(action: VoiceCommands.PlayerAction) {
+            val controls = runningService?.get()?.mMediacontrollercompat?.transportControls ?: return
+            when (action) {
+                VoiceCommands.PlayerAction.PLAY -> controls.play()
+                VoiceCommands.PlayerAction.PAUSE -> controls.pause()
+                VoiceCommands.PlayerAction.NEXT -> controls.skipToNext()
+                VoiceCommands.PlayerAction.PREVIOUS -> controls.skipToPrevious()
+            }
         }
 
         fun startServiceIfEnabled(context: Context) {

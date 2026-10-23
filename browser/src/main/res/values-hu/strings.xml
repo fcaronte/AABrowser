@@ -274,4 +274,17 @@
     <string name="ssl_warning_message_car">A(z) %1$s tanúsítványa nem megbízható. Csak akkor folytasd, ha a saját eszközöd.</string>
     <string name="ssl_warning_proceed">Folytatás mégis</string>
     <string name="ssl_warning_cancel">Mégse</string>
+    <string name="voice_command_button">Hangparancs</string>
+    <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „nyisd meg …”, „navigálj ide …”, „szünet”</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">Keresés: %1$s</string>
+    <string name="voice_command_site">Keresés (%1$s): %2$s</string>
+    <string name="voice_command_open">Megnyitás: %1$s</string>
+    <string name="voice_command_navigate">Útvonal ide: %1$s</string>
+    <string name="voice_command_not_heard">Nem hallottam semmit, próbáld újra</string>
+    <string name="voice_command_unavailable">A hangfelismerés nem érhető el</string>
+    <string name="voice_command_mic_permission">Az AABrowsernek mikrofonengedély kell: add meg a telefonon</string>
+    <string name="voice_command_open_app">Nyisd meg az AABrowsert (Main vagy Wide) a hangparancsokhoz</string>
+    <string name="voice_command_navigate_failed">Nincs elérhető navigációs alkalmazás</string>
 </resources>

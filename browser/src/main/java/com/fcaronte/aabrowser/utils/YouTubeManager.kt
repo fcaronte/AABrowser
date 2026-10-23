@@ -55,6 +55,49 @@ object YouTubeManager {
     }
 
     /**
+     * Comando vocale "metti …" (VoiceCommands): nella pagina dei risultati di YouTube o YouTube Music apre il
+     * primo risultato, che parte da solo. Mai i risultati sponsorizzati; dopo 15 s senza risultati lascia stare.
+     */
+    fun getPlayFirstResultScript(): String {
+        return """
+        (function() {
+            if (window.aabPlayFirstTimer) clearInterval(window.aabPlayFirstTimer);
+            const startedAt = Date.now();
+            const isMusic = location.host.indexOf('music.youtube.com') !== -1;
+            const SKIP = 'ytm-promoted-video-renderer, ytm-promoted-sparkles-web-renderer, ytm-companion-ad-renderer, ' +
+                'ad-slot-renderer, ytm-ad-slot-renderer, ytd-ad-slot-renderer, ytd-promoted-video-renderer, ' +
+                'ytd-promoted-sparkles-web-renderer, ytd-in-feed-ad-layout-renderer';
+
+            function isVisible(el) {
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+            }
+
+            // YouTube Music usa link relativi ("watch?v="), YouTube "/watch?v=" (gli Shorts sono "/shorts/")
+            function firstResult() {
+                const links = document.querySelectorAll(isMusic ? 'a[href*="watch?v="]' : 'a[href*="/watch?v="]');
+                for (const link of links) {
+                    if (!link.closest(SKIP) && isVisible(link)) return link;
+                }
+                return null;
+            }
+
+            window.aabPlayFirstTimer = setInterval(function() {
+                if (Date.now() - startedAt > 15000) {
+                    clearInterval(window.aabPlayFirstTimer);
+                    return;
+                }
+                const link = firstResult();
+                if (!link) return;
+                clearInterval(window.aabPlayFirstTimer);
+                console.log('AABrowser: voice command opens the first result');
+                link.click();
+            }, 300);
+        })();
+        """.trimIndent()
+    }
+
+    /**
      * Sul player mobile di YouTube la barra di avanzamento si può solo trascinare: un tap non sposta il video.
      * Questo script fa saltare il video nel punto toccato (Main e Wide; nella Wide i trascinamenti
      * diventano scroll della pagina, quindi il tap è l'unico modo per spostarsi nel video).

@@ -126,4 +126,7 @@ dependencies {
     implementation libs.androidx.car.app.projected
 
     implementation libs.kotlin.stdlib
+
+    // Test sulla JVM (frasi dei comandi vocali)
+    testImplementation libs.junit
 }

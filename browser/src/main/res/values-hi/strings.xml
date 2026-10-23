@@ -274,4 +274,17 @@
     <string name="ssl_warning_message_car">%1$s का प्रमाणपत्र भरोसेमंद नहीं है। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो।</string>
     <string name="ssl_warning_proceed">फिर भी जारी रखें</string>
     <string name="ssl_warning_cancel">रद्द करें</string>
+    <string name="voice_command_button">वॉइस कमांड</string>
+    <string name="voice_command_hint">आज़माएँ: «YouTube पर … चलाओ», «… खोलो», «… ले चलो», «रोको»</string>
+    <string name="voice_command_youtube">YouTube: %1$s</string>
+    <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
+    <string name="voice_command_search">खोज रहे हैं: %1$s</string>
+    <string name="voice_command_site">%1$s पर खोज रहे हैं: %2$s</string>
+    <string name="voice_command_open">%1$s खोल रहे हैं</string>
+    <string name="voice_command_navigate">%1$s के लिए रास्ता</string>
+    <string name="voice_command_not_heard">कुछ सुनाई नहीं दिया, फिर से कोशिश करें</string>
+    <string name="voice_command_unavailable">आवाज़ पहचान उपलब्ध नहीं है</string>
+    <string name="voice_command_mic_permission">AABrowser को माइक्रोफ़ोन की अनुमति चाहिए: फ़ोन पर दें</string>
+    <string name="voice_command_open_app">वॉइस कमांड के लिए AABrowser (Main या Wide) खोलें</string>
+    <string name="voice_command_navigate_failed">कोई नेविगेशन ऐप उपलब्ध नहीं है</string>
 </resources>
