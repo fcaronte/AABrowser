@@ -94,6 +94,8 @@
     <string name="adblock_desc">घुसपैठिए विज्ञापनों और ट्रैकर्स को ब्लॉक करें</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube विज्ञापन स्वतः छोड़ें (बीटा: किसी भी समय काम करना बंद कर सकता है)</string>
+    <string name="adblock_youtube_prune_label">विज्ञापन पहले ही हटाएँ</string>
+    <string name="adblock_youtube_prune_desc">YouTube विज्ञापनों को शुरू होने से पहले ही हटा देता है। अगर वीडियो विज्ञापन जितनी देर काला रहे (YouTube द्वारा वीडियो के अंदर जोड़े गए विज्ञापन), तो इसे बंद करें: विज्ञापन फिर से तेज़ करके छोड़ दिए जाएँगे।</string>
     <string name="force_max_youtube_quality_label">YouTube वीडियो गुणवत्ता</string>
     <string name="force_max_youtube_quality_desc">वीडियो में उपलब्ध होने पर चुनी गई गुणवत्ता (धीमे कनेक्शन पर कम)</string>
     <string name="youtube_quality_selected_label">चुनी गई गुणवत्ता</string>

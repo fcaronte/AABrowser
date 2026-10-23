@@ -13,7 +13,10 @@ object AdBlockJavascript {
      * dalle risposte del player (dati iniziali della pagina, fetch e XMLHttpRequest di /youtubei/v1/player,
      * get_watch, pbj=1), così il player non sa di averne e non le carica. Le pubblicità che passano lo stesso
      * (per esempio unite al video dal server) restano allo script di [getYouTubeAdBlockScript]: 16x, muto, Salta.
-     * Si attiva solo con l'AdBlock di YouTube acceso e il sito fuori dalla whitelist (AndroidBridge.isYouTubeAdBlockOn).
+     * Si attiva solo con l'AdBlock di YouTube e la rimozione anticipata accesi e il sito fuori dalla whitelist
+     * (AndroidBridge.isYouTubeAdPruneOn). Con le pubblicità che YouTube inserisce nel video dal server, toglierne i dati
+     * lascia lo schermo nero per la loro durata (succede anche con uBlock Origin): per questo si può spegnere.
+     * Diagnostica nel logcat ("chromium"): cosa è stato tolto e dopo quanto parte il video.
      */
     fun getYouTubeAdPruneScript(): String = """
     (function() {
@@ -21,15 +24,43 @@ object AdBlockJavascript {
         window.__aabAdPrune = true;
         try {
             const bridge = window.AndroidBridge;
-            if (!bridge || typeof bridge.isYouTubeAdBlockOn !== 'function' || !bridge.isYouTubeAdBlockOn()) return;
+            if (!bridge || typeof bridge.isYouTubeAdPruneOn !== 'function' || !bridge.isYouTubeAdPruneOn()) return;
         } catch (e) {
             return;
         }
 
         const AD_KEYS = ['adPlacements', 'adSlots', 'playerAds', 'adBreakHeartbeatParams'];
 
-        function pruneObject(o) {
+        // Cosa c'era (solo per il log): numero di pubblicità, tipi di posizionamento e di slot. Mai un errore qui:
+        // la rimozione deve avvenire comunque
+        function describe(o, found) {
+            try {
+                describeAds(o, found);
+            } catch (e) {}
+        }
+
+        function describeAds(o, found) {
+            (o.adPlacements || []).forEach(function(item) {
+                const renderer = item && item.adPlacementRenderer;
+                const kind = renderer && renderer.config && renderer.config.adPlacementConfig &&
+                    renderer.config.adPlacementConfig.kind;
+                found.placements.push((kind || '?').replace('AD_PLACEMENT_KIND_', '') + ':' +
+                    Object.keys((renderer && renderer.renderer) || {}).join('+'));
+            });
+            (o.adSlots || []).forEach(function(item) {
+                const slot = item && item.adSlotRenderer;
+                const type = slot && slot.adSlotMetadata && slot.adSlotMetadata.slotType;
+                const layout = slot && slot.fulfillmentContent && slot.fulfillmentContent.fulfilledLayout;
+                found.slots.push((type || '?').replace('SLOT_TYPE_', '') + ':' + Object.keys(layout || {}).join('+'));
+            });
+            if (o.playerAds) found.playerAds += o.playerAds.length || 1;
+            if (o.streamingData && o.streamingData.serverAbrStreamingUrl) found.sabr = true;
+            if (o.videoDetails && o.videoDetails.videoId) found.video = o.videoDetails.videoId;
+        }
+
+        function pruneObject(o, found) {
             if (!o || typeof o !== 'object') return;
+            if (found) describe(o, found);
             for (const key of AD_KEYS) {
                 if (Object.prototype.hasOwnProperty.call(o, key)) delete o[key];
             }
@@ -42,15 +73,67 @@ object AdBlockJavascript {
         }
 
         // Risposta del player in cima, dentro playerResponse o in un elenco (get_watch, pbj=1)
-        function prune(data) {
-            if (!data || typeof data !== 'object') return data;
+        function pruneInto(data, found) {
+            if (!data || typeof data !== 'object') return;
             if (Array.isArray(data)) {
-                data.forEach(prune);
-                return data;
+                data.forEach(function(item) { pruneInto(item, found); });
+                return;
             }
-            pruneObject(data);
-            if (data.playerResponse) pruneObject(data.playerResponse);
+            pruneObject(data, found);
+            if (data.playerResponse) pruneObject(data.playerResponse, found);
+        }
+
+        function prune(data) {
+            const found = { placements: [], slots: [], playerAds: 0, sabr: false, video: '' };
+            pruneInto(data, found);
+            if (found.placements.length || found.slots.length || found.playerAds) {
+                console.log('AABrowser: ad data removed video=' + found.video + ' sabr=' + found.sabr +
+                    ' placements=[' + found.placements.join(', ') + '] slots=[' + found.slots.join(', ') +
+                    '] playerAds=' + found.playerAds);
+                watchStart(found.video);
+            }
             return data;
+        }
+
+        // Dopo una rimozione: quando parte davvero il video. Righe solo ai cambi (stato del player, media fermo o in
+        // movimento), poi "content playing after N s": un nero lungo qui è la pubblicità inserita nel video
+        let watchTimer = null;
+        function watchStart(videoId) {
+            if (watchTimer) clearInterval(watchTimer);
+            const startedAt = Date.now();
+            let lastKey = '';
+            let lastMedia = -1;
+            let lastContent = -1;
+            watchTimer = setInterval(function() {
+                const elapsed = Math.round((Date.now() - startedAt) / 1000);
+                const player = document.querySelector('#movie_player');
+                const video = document.querySelector('#movie_player video') || document.querySelector('video');
+                if (!player || !video) {
+                    if (elapsed > 45) clearInterval(watchTimer);
+                    return;
+                }
+                const content = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : -1;
+                const state = typeof player.getPlayerState === 'function' ? player.getPlayerState() : -9;
+                const ad = player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting');
+                const mediaMoving = lastMedia >= 0 && video.currentTime > lastMedia + 0.3;
+                const contentMoving = lastContent >= 0 && content > lastContent + 0.3;
+                lastMedia = video.currentTime;
+                lastContent = content;
+                const key = [state, ad, video.paused, video.readyState, mediaMoving, contentMoving].join(',');
+                if (key !== lastKey) {
+                    lastKey = key;
+                    console.log('AABrowser: after ad removal +' + elapsed + 's state=' + state + ' ad=' + ad +
+                        ' paused=' + video.paused + ' ready=' + video.readyState +
+                        ' media=' + video.currentTime.toFixed(1) + '/' + Math.round(video.duration || 0) +
+                        (mediaMoving ? ' moving' : ' still') + ' content=' + content.toFixed(1) +
+                        (contentMoving ? ' moving' : ' still'));
+                }
+                if (contentMoving || elapsed > 45) {
+                    console.log('AABrowser: content ' + (contentMoving ? 'playing after ' + elapsed + ' s' :
+                        'not playing after 45 s') + ' video=' + videoId);
+                    clearInterval(watchTimer);
+                }
+            }, 1000);
         }
 
         function pruneText(text) {

@@ -94,6 +94,8 @@
     <string name="adblock_desc">Bloquer les publicités intrusives et les traqueurs</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Passer automatiquement les pubs YouTube (Beta : peut cesser de fonctionner à tout moment)</string>
+    <string name="adblock_youtube_prune_label">Supprimer les pubs à l\'avance</string>
+    <string name="adblock_youtube_prune_desc">Retire les pubs YouTube avant qu\'elles ne commencent. Si une vidéo reste noire pendant la durée de la pub (pubs que YouTube insère dans la vidéo), désactivez cette option : les pubs seront de nouveau accélérées et passées.</string>
     <string name="force_max_youtube_quality_label">Qualité vidéo YouTube</string>
     <string name="force_max_youtube_quality_desc">Utilise la qualité choisie quand la vidéo la propose (plus basse avec une connexion lente)</string>
     <string name="youtube_quality_selected_label">Qualité choisie</string>

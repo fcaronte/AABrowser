@@ -94,6 +94,8 @@
     <string name="adblock_desc">Tolakodó hirdetések és nyomkövetők blokkolása</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube hirdetések automatikus átugrása (Béta: bármikor leállhat)</string>
+    <string name="adblock_youtube_prune_label">Hirdetések előzetes eltávolítása</string>
+    <string name="adblock_youtube_prune_desc">Eltávolítja a YouTube-hirdetéseket, mielőtt elindulnának. Ha egy videó a hirdetés idejére fekete marad (a YouTube által a videóba illesztett hirdetések), kapcsold ki: a hirdetések újra gyorsítva és átugorva lesznek.</string>
     <string name="force_max_youtube_quality_label">YouTube-videóminőség</string>
     <string name="force_max_youtube_quality_desc">A választott minőség, ha a videó elérhető benne (lassú kapcsolaton alacsonyabb)</string>
     <string name="youtube_quality_selected_label">Választott minőség</string>

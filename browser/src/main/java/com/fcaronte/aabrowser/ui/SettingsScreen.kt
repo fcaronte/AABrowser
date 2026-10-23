@@ -124,6 +124,7 @@ fun SettingsScreen(
     val displayScale by AppSettings.displayScale
     val isAdBlockEnabled by AdBlockSettings.isEnabled
     val isYouTubeAdBlockEnabled by AdBlockSettings.isYouTubeEnabled
+    val isYouTubePruneEnabled by AdBlockSettings.isYouTubePruneEnabled
     val isDarkPagesEnabled by AppSettings.darkPages
     val forceTheme by AppSettings.forceTheme
     val themeMode by AppSettings.themeMode
@@ -907,6 +908,15 @@ fun SettingsScreen(
                                             )
                                         }
                                     )
+                                    // Rimozione anticipata: spenta, le pubblicità si saltano solo con 16x e Salta
+                                    if (isYouTubeAdBlockEnabled) {
+                                        SettingsSwitchItem(
+                                            label = stringResource(R.string.adblock_youtube_prune_label),
+                                            description = stringResource(R.string.adblock_youtube_prune_desc),
+                                            checked = isYouTubePruneEnabled,
+                                            onCheckedChange = { AdBlockSettings.setYouTubePruneEnabled(context, it) }
+                                        )
+                                    }
                                 }
                             }
 

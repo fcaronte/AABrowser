@@ -1418,8 +1418,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 // Lo chiede lo script dei dati del player di YouTube all'inizio della pagina
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun isYouTubeAdBlockOn(): Boolean =
-                                    AdBlockSettings.isYouTubeEnabled.value && !AdBlockHost.isWhitelisted(pageHost)
+                                fun isYouTubeAdPruneOn(): Boolean = AdBlockSettings.isYouTubePruneOn(pageHost)
 
                                 // DAZN: al clic su un evento passa alla modalità desktop
                                 @JavascriptInterface

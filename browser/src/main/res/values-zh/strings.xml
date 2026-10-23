@@ -94,6 +94,8 @@
     <string name="adblock_desc">拦截干扰性广告和追踪器</string>
     <string name="adblock_youtube_label">YouTube 广告拦截与加速</string>
     <string name="adblock_youtube_desc">自动跳过 YouTube 广告（Beta：可能随时失效）</string>
+    <string name="adblock_youtube_prune_label">提前移除广告</string>
+    <string name="adblock_youtube_prune_desc">在 YouTube 广告开始前将其移除。如果视频在广告时长内一直黑屏（YouTube 插入视频中的广告），请关闭此项：广告将重新被加速并跳过。</string>
     <string name="force_max_youtube_quality_label">YouTube 视频画质</string>
     <string name="force_max_youtube_quality_desc">视频有所选画质时使用（网络较慢时会降低）</string>
     <string name="youtube_quality_selected_label">所选画质</string>

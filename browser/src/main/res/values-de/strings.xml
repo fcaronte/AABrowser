@@ -94,6 +94,8 @@
     <string name="adblock_desc">Aufdringliche Werbung und Tracker blockieren</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">YouTube-Werbung automatisch überspringen (Beta: funktioniert möglicherweise jederzeit nicht mehr)</string>
+    <string name="adblock_youtube_prune_label">Werbung vorab entfernen</string>
+    <string name="adblock_youtube_prune_desc">Entfernt YouTube-Werbung, bevor sie startet. Bleibt ein Video so lange schwarz, wie die Werbung dauern würde (Werbung, die YouTube ins Video einfügt), schalten Sie dies aus: Die Werbung wird dann wieder beschleunigt und übersprungen.</string>
     <string name="force_max_youtube_quality_label">YouTube-Videoqualität</string>
     <string name="force_max_youtube_quality_desc">Die gewählte Qualität verwenden, wenn das Video sie hat (niedriger bei langsamer Verbindung)</string>
     <string name="youtube_quality_selected_label">Gewählte Qualität</string>

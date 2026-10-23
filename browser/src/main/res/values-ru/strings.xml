@@ -94,6 +94,8 @@
     <string name="adblock_desc">Блокировка навязчивой рекламы и трекеров</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Автопропуск рекламы YouTube (Бета: может перестать работать в любой момент)</string>
+    <string name="adblock_youtube_prune_label">Удалять рекламу заранее</string>
+    <string name="adblock_youtube_prune_desc">Убирает рекламу YouTube до её начала. Если видео остаётся чёрным на время рекламы (реклама, которую YouTube встраивает в видео), выключите: реклама снова будет ускоряться и пропускаться.</string>
     <string name="force_max_youtube_quality_label">Качество видео YouTube</string>
     <string name="force_max_youtube_quality_desc">Выбранное качество, если оно есть у видео (ниже при медленном соединении)</string>
     <string name="youtube_quality_selected_label">Выбранное качество</string>

@@ -95,6 +95,8 @@
     <string name="adblock_desc">Blocca annunci intrusivi e tracker</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Salta pubblicità YouTube (Beta: può smettere di funzionare da un momento all\'altro)</string>
+    <string name="adblock_youtube_prune_label">Rimozione anticipata delle pubblicità</string>
+    <string name="adblock_youtube_prune_desc">Toglie le pubblicità di YouTube prima che partano. Se un video resta nero per la durata della pubblicità (pubblicità che YouTube inserisce nel video), spegnila: le pubblicità torneranno a essere velocizzate e saltate.</string>
     <string name="force_max_youtube_quality_label">Qualità video YouTube</string>
     <string name="force_max_youtube_quality_desc">Usa la qualità scelta quando il video ce l\'ha (più bassa con una connessione lenta)</string>
     <string name="youtube_quality_selected_label">Qualità scelta</string>

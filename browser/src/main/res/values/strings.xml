@@ -95,6 +95,8 @@
     <string name="adblock_desc">Block intrusive ads and trackers</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Auto-skip YouTube ads (Beta: may stop working at any time)</string>
+    <string name="adblock_youtube_prune_label">Remove ads in advance</string>
+    <string name="adblock_youtube_prune_desc">Removes YouTube ads before they start. If a video stays black for as long as the ad would last (ads that YouTube puts inside the video), turn this off: ads will be sped up and skipped again.</string>
     <string name="force_max_youtube_quality_label">YouTube video quality</string>
     <string name="force_max_youtube_quality_desc">Use the chosen quality whenever the video has it (lower on a slow connection)</string>
     <string name="youtube_quality_selected_label">Chosen quality</string>

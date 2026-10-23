@@ -94,6 +94,8 @@
     <string name="adblock_desc">حظر الإعلانات المزعجة والمتعقبات</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">تخطي إعلانات يوتيوب تلقائياً (تجريبي: قد يتوقف عن العمل في أي وقت)</string>
+    <string name="adblock_youtube_prune_label">إزالة الإعلانات مسبقاً</string>
+    <string name="adblock_youtube_prune_desc">يزيل إعلانات YouTube قبل أن تبدأ. إذا بقي الفيديو أسود طوال مدة الإعلان (إعلانات يدرجها YouTube داخل الفيديو)، فأوقف هذا الخيار: ستعود الإعلانات إلى التسريع والتخطي.</string>
     <string name="force_max_youtube_quality_label">جودة فيديو YouTube</string>
     <string name="force_max_youtube_quality_desc">استخدام الجودة المختارة عندما يتوفر بها الفيديو (أقل مع اتصال بطيء)</string>
     <string name="youtube_quality_selected_label">الجودة المختارة</string>

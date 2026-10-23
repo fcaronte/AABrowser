@@ -91,6 +91,8 @@
     <string name="adblock_desc">Bloquear anúncios intrusivos e rastreadores</string>
     <string name="adblock_youtube_label">YouTube AdBlock &amp; Speed</string>
     <string name="adblock_youtube_desc">Saltar anúncios do YouTube automaticamente (Beta: pode deixar de funcionar a qualquer momento)</string>
+    <string name="adblock_youtube_prune_label">Remover anúncios antecipadamente</string>
+    <string name="adblock_youtube_prune_desc">Retira os anúncios do YouTube antes de começarem. Se um vídeo ficar preto durante o tempo do anúncio (anúncios que o YouTube insere no vídeo), desative: os anúncios voltam a ser acelerados e saltados.</string>
     <string name="force_max_youtube_quality_label">Qualidade de vídeo do YouTube</string>
     <string name="force_max_youtube_quality_desc">Usa a qualidade escolhida quando o vídeo a tiver (mais baixa com uma ligação lenta)</string>
     <string name="youtube_quality_selected_label">Qualidade escolhida</string>

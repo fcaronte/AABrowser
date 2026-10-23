@@ -880,8 +880,7 @@ fun BrowserScreen(
                             // Lo chiede lo script dei dati del player di YouTube all'inizio della pagina
                             @JavascriptInterface
                             @Suppress("unused")
-                            fun isYouTubeAdBlockOn(): Boolean =
-                                AdBlockSettings.isYouTubeEnabled.value && !AdBlockHost.isWhitelisted(pageHost.get())
+                            fun isYouTubeAdPruneOn(): Boolean = AdBlockSettings.isYouTubePruneOn(pageHost.get())
                         },
                         "AndroidBridge",
                     )
