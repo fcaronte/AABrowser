@@ -1,9 +1,11 @@
 package com.fcaronte.aabrowser.car
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Presentation
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -50,6 +52,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
 import androidx.car.app.CarToast
@@ -64,6 +67,7 @@ import androidx.car.app.model.Template
 import androidx.car.app.navigation.NavigationManager
 import androidx.car.app.navigation.NavigationManagerCallback
 import androidx.car.app.navigation.model.NavigationTemplate
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.toColorInt
@@ -75,6 +79,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.mediaservice.CarMediaService
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoriteSite
@@ -93,8 +98,11 @@ import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.VoiceCommandRouter
+import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
+import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import kotlin.math.abs
@@ -198,6 +206,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
+
+    // Comandi vocali: scheda "In ascolto…" sulla superficie, tasto della sidebar (rosso mentre ascolta)
+    private var voiceCardReference: LinearLayout? = null
+    private var voiceDetailReference: TextView? = null
+    private var sidebarVoiceButton: ImageButton? = null
+    private var voiceRecognizer: SpeechRecognizer? = null
+    private var isVoiceListening = false
+    // "Metti …": su YouTube il video parte anche con l'autoplay spento, finché si resta su YouTube
+    private var voiceAutoplay = false
+    private val voiceExecutor = VoiceCommandRouter.Executor { command -> runVoiceCommand(command) }
     private var isInputPopupVisible = false
     private var suppressInputPopupUntil = 0L
     private val hidePopupRunnable = Runnable {
@@ -246,6 +264,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val iconReload: CarIcon by lazy { buildReloadIcon() }
     private val iconAdBlockOn: CarIcon by lazy { buildShieldIcon(crossed = false) }
     private val iconAdBlockOff: CarIcon by lazy { buildShieldIcon(crossed = true) }
+    private val iconMic: CarIcon by lazy { maskIcon(::drawMic) }
     private var shownAdBlockState: String? = null   // sito e stato mostrati dallo scudo nell'ultimo template
 
     init {
@@ -269,6 +288,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onCreate(owner: LifecycleOwner) {
+                // "Ok Google, metti … su AABrowser" arriva qui finché la Wide è aperta
+                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor)
+            }
+
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
                 mediaSessionManager.setWideActive(true)
@@ -282,6 +306,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             override fun onDestroy(owner: LifecycleOwner) {
                 isWideResumed = false
                 mediaSessionManager.setWideActive(false)
+                VoiceCommandRouter.unregister(VoiceCommandRouter.Target.WIDE, voiceExecutor)
+                stopVoiceCommand()
+                try {
+                    voiceRecognizer?.destroy()
+                } catch (_: Exception) {}
+                voiceRecognizer = null
                 if (activeInstance == this@WideScreen) {
                     activeInstance = null
                 }
@@ -322,11 +352,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .setIcon(iconSearch)
             .setOnClickListener { openSearch() }
             .build()
+        val voiceAction = Action.Builder()
+            .setIcon(iconMic)
+            .setOnClickListener { toggleVoiceCommand() }
+            .build()
 
         // In alto a destra un tasto solo, lo scudo (Android Auto ne vuole almeno uno nell'angolo). Senza sidebar
-        // anche il cerca, alla sua sinistra: in basso non ci sta
+        // anche cerca e microfono, alla sua sinistra: in basso non ci stanno
         val stripBuilder = ActionStrip.Builder()
-        if (!fixed) stripBuilder.addAction(searchAction)
+        if (!fixed) stripBuilder.addAction(searchAction).addAction(voiceAction)
         val strip = stripBuilder
             .addAction(
                 Action.Builder()
@@ -909,6 +943,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         customView?.let { applyMargins(it, lp) }
 
         updatePopupPosition()
+        updateVoiceCardPosition()
     }
 
     /**
@@ -1178,6 +1213,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         gravity = Gravity.CENTER
                     }
                     popupOverlay.addView(inputCard, cardLp)
+
+                    // Comando vocale in ascolto: in alto nell'area libera, con quello che si sta capendo.
+                    // Non riceve tocchi (vanno sempre alla pagina); il microfono lo chiude di nuovo
+                    val voiceCard = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        visibility = View.GONE
+                        val pad = (12 * dp).toInt()
+                        setPadding(pad * 2, pad, pad * 2, pad)
+                        background = GradientDrawable().apply {
+                            setColor("#E6202124".toColorInt())
+                            cornerRadius = 16 * dp
+                            setStroke(1, "#44464A".toColorInt())
+                        }
+                    }
+                    val voiceTitle = TextView(ctx).apply {
+                        text = "🎤 ${ctx.getString(R.string.voice_listening)}"
+                        textSize = 20f
+                        setTextColor(Color.WHITE)
+                        gravity = Gravity.CENTER
+                    }
+                    val voiceDetail = TextView(ctx).apply {
+                        textSize = 16f
+                        setTextColor("#BDC1C6".toColorInt())
+                        gravity = Gravity.CENTER
+                    }
+                    voiceCard.addView(voiceTitle, LinearLayout.LayoutParams(-1, -2))
+                    voiceCard.addView(voiceDetail, LinearLayout.LayoutParams(-1, -2).apply { topMargin = (4 * dp).toInt() })
+                    voiceCardReference = voiceCard
+                    voiceDetailReference = voiceDetail
 
                     val wv = WebView(ctx).apply {
                         settings.apply {
@@ -1652,9 +1717,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 // Applica modalità scura in base alle impostazioni
                                 view?.settings?.let { applyDarkMode(it) }
 
-                                // Autoplay: su DAZN sempre consentito
+                                // Autoplay: su DAZN sempre consentito, e su YouTube dopo il comando vocale "metti …"
+                                if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
                                 view?.settings?.mediaPlaybackRequiresUserGesture =
-                                    !AppSettings.autoplayMedia.value && !isDazn(url)
+                                    !AppSettings.autoplayMedia.value && !isDazn(url) && !voiceAutoplay
 
                                 // Uscendo da DAZN si torna alla modalità normale
                                 if (!isHomePage && !isDazn(url)) daznDesktopForced = false
@@ -1700,6 +1766,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                             val savedSpeed = AppSettings.getYouTubeSpeed(carContext)
                                             it.evaluateJavascript("localStorage.setItem('yt-custom-speed', '$savedSpeed');", null)
                                         }
+                                        // Ricerca del comando vocale "metti …": parte il primo risultato
+                                        if (VoiceCommandRouter.consumePlayFirstResult(VoiceCommandRouter.Target.WIDE, url)) {
+                                            it.evaluateJavascript(YouTubeManager.getPlayFirstResultScript(), null)
+                                        }
                                         val favorite = favoriteFor(url)
                                         WebViewScriptRouter.routeAndInject(
                                             webView = it,
@@ -1707,7 +1777,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                             isYouTubeAdBlockEnabled = AdBlockSettings.isYouTubeEnabled.value,
                                             forceMaxYouTubeQuality = AppSettings.forceMaxYouTubeQuality.value,
                                             youtubeQuality = AppSettings.youtubeQuality.value,
-                                            autoplayMedia = AppSettings.autoplayMedia.value,
+                                            autoplayMedia = AppSettings.autoplayMedia.value || voiceAutoplay,
                                             displayScale = favorite?.mobileZoom ?: WIDE_DISPLAY_SCALE,
                                             desktopScale = favorite?.desktopZoom ?: WIDE_DESKTOP_SCALE,
                                             isDesktopMode = needsDesktopForUrl(url),
@@ -1749,7 +1819,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     webView = wv
 
                     val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
-                    val totalButtonsHeight = 4 * iconSize + 5 * 20
+                    val totalButtonsHeight = 5 * iconSize + 6 * 20
                     val topOffset = ((surfaceHeight - totalButtonsHeight) / 2).coerceAtLeast(10)
 
                     val sidebarContainer = LinearLayout(ctx).apply {
@@ -1787,6 +1857,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         btnSidebarStyle(this)
                         setOnClickListener { openSearch() }
                     }
+                    val btnVoice = ImageButton(ctx).apply {
+                        setImageBitmap(buildMicBitmap())
+                        btnSidebarStyle(this)
+                        setOnClickListener { toggleVoiceCommand() }
+                    }
+                    sidebarVoiceButton = btnVoice
 
                     val homeLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
                         topMargin = topOffset
@@ -1803,6 +1879,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     sidebarContainer.addView(btnBack, buttonLp)
                     sidebarContainer.addView(btnReload, buttonLp)
                     sidebarContainer.addView(btnSearch, buttonLp)
+                    sidebarContainer.addView(btnVoice, buttonLp)
 
                     frame.addView(
                         wv,
@@ -1813,6 +1890,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     )
                     frame.addView(sidebarContainer, FrameLayout.LayoutParams(52, ViewGroup.LayoutParams.MATCH_PARENT))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
+                    frame.addView(voiceCard, FrameLayout.LayoutParams(-1, -2).apply { gravity = Gravity.TOP })
 
                     setContentView(frame)
                     applyVisibleArea()
@@ -1824,6 +1902,184 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         } catch (e: Exception) {
             Log.e(TAG, "Creazione display/presentation fallita", e)
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Comandi vocali (tasto microfono, "Ok Google, metti … su AABrowser")
+    // ------------------------------------------------------------------
+
+    /** Tasto microfono (sidebar o in alto): ascolta una frase e la esegue come comando (VoiceCommands). */
+    private fun toggleVoiceCommand() {
+        if (isVoiceListening) {
+            stopVoiceCommand()
+            return
+        }
+        val granted = ContextCompat.checkSelfPermission(carContext, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            showVoiceToast(carContext.getString(R.string.voice_command_mic_permission))
+            return
+        }
+        if (!SpeechRecognizer.isRecognitionAvailable(carContext)) {
+            showVoiceToast(carContext.getString(R.string.voice_command_unavailable))
+            return
+        }
+        val recognizer = voiceRecognizer ?: SpeechRecognizer.createSpeechRecognizer(carContext).also { voiceRecognizer = it }
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+        }
+        isVoiceListening = true
+        showVoiceCard(carContext.getString(R.string.voice_command_hint))
+        try {
+            recognizer.cancel()
+            recognizer.setRecognitionListener(voiceListener)
+            recognizer.startListening(intent)
+        } catch (e: Exception) {
+            AppLog.e(TAG, "Voice command: startListening failed", e)
+            isVoiceListening = false
+            hideVoiceCard()
+            showVoiceToast(carContext.getString(R.string.voice_command_unavailable))
+        }
+    }
+
+    private fun stopVoiceCommand() {
+        isVoiceListening = false
+        hideVoiceCard()
+        try {
+            voiceRecognizer?.cancel()
+        } catch (_: Exception) {}
+    }
+
+    private val voiceListener = object : RecognitionListener {
+        override fun onReadyForSpeech(params: Bundle?) {}
+        override fun onBeginningOfSpeech() {}
+        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onBufferReceived(buffer: ByteArray?) {}
+        override fun onEndOfSpeech() {}
+
+        override fun onError(error: Int) {
+            // Annullato da noi (secondo tocco sul microfono, Wide chiusa): niente avvisi
+            if (!isVoiceListening) return
+            isVoiceListening = false
+            hideVoiceCard()
+            val message = when (error) {
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> R.string.voice_command_mic_permission
+                SpeechRecognizer.ERROR_CLIENT -> R.string.voice_command_unavailable
+                else -> R.string.voice_command_not_heard
+            }
+            showVoiceToast(carContext.getString(message))
+        }
+
+        override fun onResults(results: Bundle?) {
+            if (!isVoiceListening) return
+            isVoiceListening = false
+            hideVoiceCard()
+            val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
+                .filter { it.isNotBlank() }
+            if (texts.isEmpty()) {
+                showVoiceToast(carContext.getString(R.string.voice_command_not_heard))
+            } else {
+                runVoiceCommand(VoiceCommands.parse(texts))
+            }
+        }
+
+        override fun onPartialResults(partialResults: Bundle?) {
+            partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                ?.firstOrNull { it.isNotBlank() }
+                ?.let { voiceDetailReference?.text = it }
+        }
+
+        override fun onEvent(eventType: Int, params: Bundle?) {}
+    }
+
+    /**
+     * Esegue un comando vocale (anche quelli di "Ok Google, metti … su AABrowser"). Il piano è lo stesso della
+     * Main; qui la ricerca segue il sito aperto come la lente (SiteSearch) e "portami a …" usa il navigatore.
+     */
+    private fun runVoiceCommand(command: VoiceCommands.Command) {
+        val from = (webView?.url ?: lastUrl)?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
+        val plan = VoiceCommands.plan(
+            command,
+            from,
+            favorites(),
+            webSearchUrl = { query ->
+                carContext.getString(AppSettings.effectiveSearchEngine.baseUrlRes) + Uri.encode(query)
+            },
+            siteSearchUrl = { query -> SiteSearch.resolve(carContext, from, query) }
+        )
+        when (plan) {
+            is VoiceCommands.Plan.Load -> {
+                if (plan.playFirst) {
+                    voiceAutoplay = true
+                    webView?.settings?.mediaPlaybackRequiresUserGesture = false
+                    VoiceCommandRouter.requestPlayFirstResult(VoiceCommandRouter.Target.WIDE)
+                }
+                hideCustomView()
+                loadUrl(plan.url)
+                val message = when (plan.kind) {
+                    VoiceCommands.LoadKind.YOUTUBE -> carContext.getString(R.string.voice_command_youtube, plan.label)
+                    VoiceCommands.LoadKind.YOUTUBE_MUSIC -> carContext.getString(R.string.voice_command_youtube_music, plan.label)
+                    VoiceCommands.LoadKind.SEARCH -> carContext.getString(R.string.voice_command_search, plan.label)
+                    VoiceCommands.LoadKind.SITE ->
+                        carContext.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
+                    VoiceCommands.LoadKind.PAGE -> carContext.getString(R.string.voice_command_open, plan.label)
+                }
+                showVoiceToast(message)
+            }
+            is VoiceCommands.Plan.Navigate -> startNavigation(plan.destination)
+            VoiceCommands.Plan.Back -> goBack()
+            VoiceCommands.Plan.Reload -> webView?.reload()
+            VoiceCommands.Plan.Home -> showHome()
+            is VoiceCommands.Plan.Player -> CarMediaService.sendPlayerCommand(plan.action)
+        }
+    }
+
+    /** "Portami a …": la destinazione al navigatore di Android Auto (Maps, Waze, ...). */
+    private fun startNavigation(destination: String) {
+        try {
+            carContext.startCarApp(
+                Intent(CarContext.ACTION_NAVIGATE, Uri.parse(VoiceCommands.navigationGeoUri(destination)))
+            )
+            showVoiceToast(carContext.getString(R.string.voice_command_navigate, destination))
+        } catch (e: Exception) {
+            AppLog.e(TAG, "Voice command: navigation not started", e)
+            showVoiceToast(carContext.getString(R.string.voice_command_navigate_failed))
+        }
+    }
+
+    private fun showVoiceToast(message: String) {
+        try {
+            CarToast.makeText(carContext, message, CarToast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Voice command toast not shown: ${e.message}")
+        }
+    }
+
+    private fun showVoiceCard(detail: String) {
+        voiceDetailReference?.text = detail
+        updateVoiceCardPosition()
+        voiceCardReference?.visibility = View.VISIBLE
+        sidebarVoiceButton?.setColorFilter("#EF4444".toColorInt())
+    }
+
+    private fun hideVoiceCard() {
+        voiceCardReference?.visibility = View.GONE
+        sidebarVoiceButton?.clearColorFilter()
+    }
+
+    // In alto nell'area libera dall'interfaccia di Android Auto, larga quanto l'area meno i margini
+    private fun updateVoiceCardPosition() {
+        val card = voiceCardReference ?: return
+        val lp = card.layoutParams as? FrameLayout.LayoutParams ?: return
+        val r = visibleArea?.takeUnless { it.isEmpty } ?: Rect(0, 0, surfaceWidth, surfaceHeight)
+        val margin = (16 * card.resources.displayMetrics.density).toInt()
+        lp.gravity = Gravity.TOP or Gravity.START
+        lp.width = (r.width() - 2 * margin).coerceAtLeast(0)
+        lp.leftMargin = r.left + margin
+        lp.topMargin = r.top + margin
+        card.layoutParams = lp
     }
 
     /**
@@ -1903,6 +2159,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         handler.removeCallbacks(applyAreaSettledRunnable)
         popupOverlayReference = null
         sidebarContainerReference = null
+        voiceCardReference = null
+        voiceDetailReference = null
+        sidebarVoiceButton = null
         isInputPopupVisible = false
 
         // Esce dal video a schermo intero prima di distruggere la WebView
@@ -2007,6 +2266,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             }
             c.drawPath(check, p)
         }
+    }
+
+    // Microfono dei comandi vocali: tasto in alto (senza sidebar) e nella sidebar fissa, stesso disegno
+    private fun buildMicBitmap(): Bitmap = maskBitmap(::drawMic)
+
+    private fun drawMic(c: Canvas, p: Paint, s: Float) {
+        c.drawRoundRect(RectF(s * 0.38f, s * 0.14f, s * 0.62f, s * 0.56f), s * 0.12f, s * 0.12f, p)
+        c.drawArc(RectF(s * 0.26f, s * 0.30f, s * 0.74f, s * 0.70f), 0f, 180f, false, p)
+        c.drawLine(s * 0.50f, s * 0.70f, s * 0.50f, s * 0.84f, p)
+        c.drawLine(s * 0.36f, s * 0.84f, s * 0.64f, s * 0.84f, p)
     }
 
     private fun buildSearchIcon(): CarIcon = maskIcon { c, p, s ->
