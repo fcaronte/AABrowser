@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Keyboard
@@ -29,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fcaronte.aabrowser.R
 import kotlinx.coroutines.delay
@@ -87,9 +90,11 @@ fun InputSelectionPopup(
     }
 }
 
+/** [text]: sotto "In ascolto…" (comandi vocali: quello che si sta capendo, o qualche esempio). */
 @Composable
 fun VoiceListeningPopup(
     onDismiss: () -> Unit,
+    text: String? = null,
 ) {
     Box(
         modifier = Modifier
@@ -103,7 +108,10 @@ fun VoiceListeningPopup(
     ) {
         Card(
             modifier = Modifier
-                .size(200.dp)
+                .then(
+                    if (text == null) Modifier.size(200.dp)
+                    else Modifier.widthIn(min = 200.dp, max = 420.dp).heightIn(min = 200.dp)
+                )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -112,7 +120,7 @@ fun VoiceListeningPopup(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         ) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = if (text == null) Modifier.fillMaxSize() else Modifier.heightIn(min = 200.dp).padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -128,6 +136,15 @@ fun VoiceListeningPopup(
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    if (text != null) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = text,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }

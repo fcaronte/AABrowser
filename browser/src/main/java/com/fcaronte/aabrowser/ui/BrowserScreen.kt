@@ -78,8 +78,11 @@ import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.VoiceCommandRouter
+import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
+import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.util.concurrent.atomic.AtomicReference
@@ -493,6 +496,8 @@ fun BrowserScreen(
             factory = { context ->
                 // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
                 val pageHost = AtomicReference(Uri.parse(url).host)
+                // Comando vocale "metti …" su questa scheda: su YouTube il video parte anche con l'autoplay spento
+                var voiceAutoplay = false
                 val webView = object : WebView(context) {
                     override fun onPause() {
                         // Impedito il blocco forzato
@@ -1005,8 +1010,9 @@ fun BrowserScreen(
                             // e neanche le sue richieste in attesa di un avviso di certificato
                             sslPrompts.cancelAll()
 
+                            if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
                             view?.settings?.mediaPlaybackRequiresUserGesture =
-                                !autoplayMedia && !isDaznUrl(url)
+                                !autoplayMedia && !isDaznUrl(url) && !voiceAutoplay
                             if (needsDesktopForUrl(url)) {
                                 view?.let { webView ->
                                     val ua = setDesktopUserAgent(webView, context)
@@ -1190,13 +1196,22 @@ fun BrowserScreen(
                                         )
                                         AppLog.d("YouTubeSpeed", "Restored playback speed = $savedSpeed")
                                     }
+                                    // Ricerca del comando vocale "metti …": parte il primo risultato
+                                    if (currentIsTabActive && VoiceCommandRouter.consumePlayFirstResult(
+                                            VoiceCommandRouter.Target.MAIN, url
+                                        )
+                                    ) {
+                                        voiceAutoplay = true
+                                        webView.settings.mediaPlaybackRequiresUserGesture = false
+                                        webView.evaluateJavascript(YouTubeManager.getPlayFirstResultScript(), null)
+                                    }
                                     WebViewScriptRouter.routeAndInject(
                                         webView = webView,
                                         urlString = url,
                                         isYouTubeAdBlockEnabled = isYouTubeAdBlockEnabled,
                                         forceMaxYouTubeQuality = forceMaxYouTubeQuality,
                                         youtubeQuality = youtubeQuality,
-                                        autoplayMedia = autoplayMedia,
+                                        autoplayMedia = autoplayMedia || voiceAutoplay,
                                         displayScale = actualDisplayScale,
                                         desktopScale = actualDesktopScale,
                                         isDesktopMode = needsDesktopForUrl(url),

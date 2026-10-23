@@ -1,7 +1,9 @@
 package com.fcaronte.aabrowser.ui
 
+import android.Manifest
 import android.app.Activity
 import android.os.Process
+import android.speech.SpeechRecognizer
 import android.webkit.WebView
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.LocalActivityResultRegistryOwner
@@ -32,12 +34,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,10 +57,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.mediaservice.CarMediaService
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -65,9 +72,14 @@ import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.VoiceCommandRouter
+import com.fcaronte.aabrowser.utils.VoiceCommands
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+
+// Richiesta del permesso del microfono dal tasto dei comandi vocali (MainActivity non ne usa il risultato)
+private const val VOICE_PERMISSION_REQUEST = 1008
 
 sealed class Screen {
     object Splash : Screen()
@@ -296,6 +308,92 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         localized.setTheme(R.style.AppTheme)
         localized
     }
+    // Comandi vocali: tasto microfono (barra delle schede e menu) e "Ok Google, metti … su AABrowser".
+    // Il comando diventa un piano (VoiceCommands, uguale per la Wide) e qui si esegue con le schede
+    fun runVoiceCommand(command: VoiceCommands.Command) {
+        val currentUrl = TabManager.activeTab?.url?.takeIf { currentScreen == Screen.Browser }
+        val searchBase = localizedContext.getString(AppSettings.effectiveSearchEngine.baseUrlRes)
+        val plan = VoiceCommands.plan(
+            command,
+            currentUrl,
+            favoritesViewModel.favorites.toList(),
+            webSearchUrl = { query -> UrlUtils.normalizeInput(query, searchBase) }
+        )
+        when (plan) {
+            is VoiceCommands.Plan.Load -> {
+                val favorite = plan.favorite
+                when {
+                    favorite != null -> TabManager.openOrSwitchTo(
+                        url = favorite.url,
+                        title = favorite.name,
+                        faviconUrl = favorite.faviconUrl,
+                        desktopModeOverride = favorite.isDesktopMode,
+                        mobileZoomOverride = favorite.mobileZoom,
+                        desktopZoomOverride = favorite.desktopZoom
+                    )
+
+                    // YouTube e YouTube Music: nella scheda che c'è già, così non se ne aprono di nuove a ogni comando
+                    plan.kind == VoiceCommands.LoadKind.YOUTUBE || plan.kind == VoiceCommands.LoadKind.YOUTUBE_MUSIC -> {
+                        val index = TabManager.findTabIndexByUrlOrHost(plan.url)
+                        if (index == -1) {
+                            TabManager.addTab(url = plan.url, title = plan.label, setActive = true)
+                        } else {
+                            val tab = TabManager.tabs[index]
+                            TabManager.switchTab(index)
+                            if (tab.url == plan.url) reloadTrigger++ else TabManager.updateTabUrl(tab.id, plan.url)
+                        }
+                    }
+
+                    else -> TabManager.addTab(url = plan.url, title = plan.label, setActive = true)
+                }
+                if (plan.playFirst) VoiceCommandRouter.requestPlayFirstResult(VoiceCommandRouter.Target.MAIN)
+                currentScreen = Screen.Browser
+                feedbackMessage = when (plan.kind) {
+                    VoiceCommands.LoadKind.YOUTUBE -> localizedContext.getString(R.string.voice_command_youtube, plan.label)
+                    VoiceCommands.LoadKind.YOUTUBE_MUSIC ->
+                        localizedContext.getString(R.string.voice_command_youtube_music, plan.label)
+                    VoiceCommands.LoadKind.SEARCH -> localizedContext.getString(R.string.voice_command_search, plan.label)
+                    VoiceCommands.LoadKind.SITE ->
+                        localizedContext.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
+                    VoiceCommands.LoadKind.PAGE -> localizedContext.getString(R.string.voice_command_open, plan.label)
+                }
+            }
+
+            // Indicazioni di Google Maps nel browser (la Main non può avviare il navigatore di Android Auto)
+            is VoiceCommands.Plan.Navigate -> {
+                TabManager.addTab(
+                    url = VoiceCommands.mapsDirectionsUrl(plan.destination),
+                    title = plan.destination,
+                    setActive = true
+                )
+                currentScreen = Screen.Browser
+                feedbackMessage = localizedContext.getString(R.string.voice_command_navigate, plan.destination)
+            }
+
+            VoiceCommands.Plan.Back ->
+                if (currentScreen == Screen.Browser) backTrigger++
+                else if (TabManager.activeTab != null) currentScreen = Screen.Browser
+
+            VoiceCommands.Plan.Reload -> if (currentScreen == Screen.Browser) reloadTrigger++
+            VoiceCommands.Plan.Home -> currentScreen = Screen.Dashboard
+            is VoiceCommands.Plan.Player -> CarMediaService.sendPlayerCommand(plan.action)
+        }
+        onInteraction()
+    }
+
+    // "Ok Google, metti … su AABrowser": arriva da CarMediaService finché la Main è aperta
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentRunVoiceCommand by rememberUpdatedState<(VoiceCommands.Command) -> Unit> { runVoiceCommand(it) }
+    val voiceExecutor = remember { VoiceCommandRouter.Executor { command -> currentRunVoiceCommand(command) } }
+    DisposableEffect(voiceExecutor) {
+        VoiceCommandRouter.register(
+            VoiceCommandRouter.Target.MAIN,
+            isInForeground = { lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) },
+            executor = voiceExecutor
+        )
+        onDispose { VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor) }
+    }
+
     // Il contesto localizzato non risale più all'Activity: Activity e registro dei risultati
     // (selettore di file e cartelle delle pagine) vanno ripassati a parte. Sull'auto non ci sono.
     val activity = LocalActivity.current
@@ -310,6 +408,27 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         *activityLocals.toTypedArray(),
     ) {
         AABrowserTheme(themeMode = themeMode) {
+            val voiceInput = rememberVoiceCommandInput(
+                onResult = { texts -> runVoiceCommand(VoiceCommands.parse(texts)) },
+                onError = { code ->
+                    feedbackMessage = localizedContext.getString(
+                        when (code) {
+                            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> R.string.voice_command_mic_permission
+                            SpeechRecognizer.ERROR_CLIENT -> R.string.voice_command_unavailable
+                            else -> R.string.voice_command_not_heard
+                        }
+                    )
+                    // Sul telefono si può chiedere subito; in auto il sistema non mostra la richiesta
+                    if (code == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS && !isAutomotive) {
+                        activity?.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), VOICE_PERMISSION_REQUEST)
+                    }
+                }
+            )
+            val voiceHint = stringResource(R.string.voice_command_hint)
+            val toggleVoiceCommand: () -> Unit = {
+                voiceInput.toggle()
+                onInteraction()
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -552,7 +671,9 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                         onInteraction()
                                     },
                                     adBlockOff = adBlockOff,
-                                    onToggleAdBlock = toggleAdBlock
+                                    onToggleAdBlock = toggleAdBlock,
+                                    isVoiceListening = voiceInput.isListening,
+                                    onVoiceCommand = toggleVoiceCommand
                                 )
                             }
 
@@ -592,6 +713,7 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                     currentScreen = Screen.Browser
                                     onInteraction()
                                 },
+                                onVoiceCommand = toggleVoiceCommand,
                                 onAddToFavorites = {
                                     TabManager.activeTab?.let { activeTab ->
                                         favoritesViewModel.addFavorite(
@@ -676,6 +798,16 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                             color = MaterialTheme.colorScheme.inverseOnSurface,
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                             style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+
+                // Comando vocale in ascolto: quello che si sta capendo, altrimenti qualche esempio
+                if (voiceInput.isListening) {
+                    Box(modifier = Modifier.fillMaxSize().zIndex(98f)) {
+                        VoiceListeningPopup(
+                            onDismiss = { voiceInput.cancel() },
+                            text = voiceInput.partialText ?: voiceHint
                         )
                     }
                 }

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Search
@@ -78,6 +79,7 @@ fun NavigationOverlay(
     onOpenSettings: () -> Unit,
     onOpenTabManager: () -> Unit,
     onSearch: (String) -> Unit,
+    onVoiceCommand: () -> Unit = {},
     onExit: () -> Unit,
     onAddToFavorites: () -> Unit = {},
     carInputManager: CarInputManager? = null,
@@ -180,6 +182,8 @@ fun NavigationOverlay(
                                 R.string.adblock_this_site
                             ) { onInteraction(); onToggleAdBlock(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Search, R.string.search_button) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
+                            // Comando vocale: "metti … su YouTube", "apri …", "portami a …", "pausa"...
+                            MenuItem(Icons.Default.Mic, R.string.voice_command_button) { onInteraction(); onVoiceCommand(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Share, R.string.share_button) { onInteraction(); showQRCode = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Settings, R.string.settings_button) { onInteraction(); onOpenSettings(); onShowMenuChange(false) },
                             MenuItem(Icons.AutoMirrored.Filled.ExitToApp, R.string.exit_button) {
@@ -192,10 +196,14 @@ fun NavigationOverlay(
 
                     val sweepAngle = 90f
                     val innerRadius = 105.dp
-                    // Arco esterno: con 7 tasti (c'è anche lo scudo dell'AdBlock) un po' più largo, così i tasti
+                    // Arco esterno: più tasti (scudo dell'AdBlock, comando vocale) = arco più largo, così i tasti
                     // da 46 dp non si toccano
                     val outerCount = menuItems.size - 4
-                    val outerRadius = if (outerCount > 6) 200.dp else 180.dp
+                    val outerRadius = when {
+                        outerCount > 7 -> 225.dp
+                        outerCount > 6 -> 200.dp
+                        else -> 180.dp
+                    }
 
                     menuItems.forEachIndexed { index, item ->
                         val isOuter = index >= 4

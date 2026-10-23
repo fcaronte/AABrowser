@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
@@ -52,7 +53,9 @@ fun PersistentTabBar(
     onGoBack: () -> Unit,
     onGoForward: () -> Unit,
     adBlockOff: Boolean? = null, // null: niente sito (pagina locale), true: sito nella whitelist dell'AdBlock
-    onToggleAdBlock: () -> Unit = {}
+    onToggleAdBlock: () -> Unit = {},
+    isVoiceListening: Boolean = false,
+    onVoiceCommand: (() -> Unit)? = null
 ) {
     val tabs = TabManager.tabs
     val activeIndex = TabManager.activeTabIndex
@@ -124,6 +127,21 @@ fun PersistentTabBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 4.dp)
             ) {
+                // Comando vocale: "metti … su YouTube", "apri …", "portami a …", "pausa"... (rosso mentre ascolta)
+                if (onVoiceCommand != null) {
+                    IconButton(
+                        onClick = onVoiceCommand,
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = stringResource(R.string.voice_command_button),
+                            tint = if (isVoiceListening) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
                 // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
                 IconButton(
                     onClick = onToggleAdBlock,
