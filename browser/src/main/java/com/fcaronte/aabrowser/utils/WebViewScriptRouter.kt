@@ -221,6 +221,9 @@ object WebViewScriptRouter {
                 // Tap sulla barra di avanzamento = salto in quel punto (YouTube mobile permette solo il trascinamento)
                 webView.evaluateJavascript(YouTubeManager.getTapToSeekScript(), null)
 
+                // Impedisce lo scroll/focus automatico verso la playlist in basso al cambio brano su piccolo schermo
+                webView.evaluateJavascript(YouTubeManager.getPreventPlaylistScrollScript(), null)
+
                 if (forceMaxYouTubeQuality) {
                     webView.evaluateJavascript(getYouTubeQualityScript(youtubeQuality), null)
                 }

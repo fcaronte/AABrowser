@@ -1286,6 +1286,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 AdBlockJavascript.getYouTubeAdPruneScript(),
                                 AdBlockJavascript.YOUTUBE_ORIGINS
                             )
+                            // Previene lo scroll/focus automatico verso la playlist in basso su piccolo schermo
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                YouTubeManager.getPreventPlaylistScrollScript(),
+                                AdBlockJavascript.YOUTUBE_ORIGINS
+                            )
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
                             // Aggiungi anche lo script per salvare l'elemento attivo
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))

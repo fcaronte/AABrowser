@@ -152,4 +152,113 @@ object YouTubeManager {
         })();
         """.trimIndent()
     }
+
+    /**
+     * Su schermo piccolo / mobile, la playlist di YouTube si trova in basso sotto il video.
+     * Quando il brano cambia, YouTube focalizza o fa lo scroll della canzone nella playlist,
+     * spostando lo schermo verso il basso e nascondendo il video in alto.
+     * Questo script intercetta scrollIntoView, focus e scrollTo sugli elementi della playlist
+     * per mantenere il video visibile in alto quando l'utente si trova a inizio pagina.
+     */
+    fun getPreventPlaylistScrollScript(): String {
+        return """
+        (function() {
+            if (window.aabPreventPlaylistScrollInitialized) return;
+            window.aabPreventPlaylistScrollInitialized = true;
+
+            const host = (window.location.host || '').toLowerCase();
+            const isYT = host.includes('youtube.com') || host.includes('youtu.be') || host.includes('youtubekids.com');
+            if (!isYT) return;
+
+            const PLAYLIST_SELECTOR = '#playlist, [id*="playlist"], ytm-playlist, ytm-playlist-panel-renderer, ' +
+                'ytm-playlist-video-renderer, ytm-playlist-panel-video-renderer, ytd-playlist-panel-renderer, ' +
+                'ytd-playlist-panel-video-renderer, ytmusic-player-queue, ytmusic-player-queue-item, ' +
+                'ytm-item-section-renderer, .playlist-items, [class*="playlist"], [class*="queue"]';
+
+            function isPlaylistElement(el) {
+                try {
+                    return el && el.closest && el.closest(PLAYLIST_SELECTOR) !== null;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // 1. Intercetta scrollIntoView per elementi della playlist
+            const origScrollIntoView = Element.prototype.scrollIntoView;
+            Element.prototype.scrollIntoView = function(arg) {
+                if (isPlaylistElement(this)) {
+                    const wasAtTop = window.scrollY < 120;
+                    const res = origScrollIntoView.apply(this, arguments);
+                    if (wasAtTop && window.scrollY > 0) {
+                        window.scrollTo(0, 0);
+                    }
+                    return res;
+                }
+                return origScrollIntoView.apply(this, arguments);
+            };
+
+            // 2. Intercetta focus per elementi della playlist (passa preventScroll: true)
+            const origFocus = HTMLElement.prototype.focus;
+            HTMLElement.prototype.focus = function(options) {
+                if (isPlaylistElement(this)) {
+                    let opts = options || {};
+                    if (typeof opts === 'object') {
+                        opts = Object.assign({}, opts, { preventScroll: true });
+                    } else {
+                        opts = { preventScroll: true };
+                    }
+                    const wasAtTop = window.scrollY < 120;
+                    const res = origFocus.call(this, opts);
+                    if (wasAtTop && window.scrollY > 0) {
+                        window.scrollTo(0, 0);
+                    }
+                    return res;
+                }
+                return origFocus.apply(this, arguments);
+            };
+
+            // 3. Intercetta window.scrollTo se l'elemento attivo/focalizzato fa parte della playlist
+            const origWindowScrollTo = window.scrollTo;
+            window.scrollTo = function() {
+                let y = 0;
+                if (arguments.length === 1 && typeof arguments[0] === 'object' && arguments[0] !== null) {
+                    y = arguments[0].top || 0;
+                } else if (arguments.length >= 2) {
+                    y = arguments[1] || 0;
+                }
+                if (y > 0 && window.scrollY < 120 && isPlaylistElement(document.activeElement)) {
+                    return;
+                }
+                return origWindowScrollTo.apply(this, arguments);
+            };
+
+            // 4. Ripristina lo scroll in cima sui cambi brano se l'utente era sul video
+            function keepVideoInView() {
+                if (window.scrollY < 120 && window.scrollY > 0) {
+                    origWindowScrollTo.call(window, 0, 0);
+                }
+            }
+
+            function onTrackChange() {
+                if (window.scrollY < 120) {
+                    keepVideoInView();
+                    [50, 100, 200, 350, 500, 750, 1000, 1500].forEach(function(delay) {
+                        setTimeout(keepVideoInView, delay);
+                    });
+                }
+            }
+
+            window.addEventListener('yt-navigate-finish', onTrackChange);
+            window.addEventListener('ytmusic-navigate-finish', onTrackChange);
+            window.addEventListener('popstate', onTrackChange);
+
+            document.addEventListener('play', function(e) {
+                if (e.target && (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+                    onTrackChange();
+                }
+            }, true);
+        })();
+        """.trimIndent()
+    }
 }
+

@@ -608,6 +608,12 @@ fun BrowserScreen(
                             AdBlockJavascript.getYouTubeAdPruneScript(),
                             AdBlockJavascript.YOUTUBE_ORIGINS
                         )
+                        // Previene lo scroll/focus automatico verso la playlist in basso su piccolo schermo
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
+                            YouTubeManager.getPreventPlaylistScrollScript(),
+                            AdBlockJavascript.YOUTUBE_ORIGINS
+                        )
                     }
 
                     val needsDesktop = actualDesktopMode || isDesktopRequired(url)
