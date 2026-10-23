@@ -54,6 +54,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- "Ok Google, metti … su AABrowser" sul telefono, per i sistemi che usano ancora l'intent
+                 (in auto il comando arriva alla sessione media di CarMediaService) -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity

@@ -1,15 +1,18 @@
 package com.fcaronte.aabrowser
 
 import android.Manifest
+import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
+import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.WebLocation
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +36,22 @@ class MainActivity : ComponentActivity() {
             MainScreen()
         }
 
+        // Solo al primo avvio dell'activity: ricreata (rotazione) ripeterebbe il comando
+        if (savedInstanceState == null) handleVoiceSearch(intent)
+
         checkAndRequestAppPermissions()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleVoiceSearch(intent)
+    }
+
+    // "Ok Google, metti … su AABrowser" sul telefono, sui sistemi che aprono l'app con l'intent invece di usare la
+    // sessione media (CarMediaService). Il comando aspetta che la Main sia pronta (VoiceCommandRouter)
+    private fun handleVoiceSearch(intent: Intent?) {
+        if (intent?.action != MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) return
+        VoiceCommandRouter.fromAssistant(intent.getStringExtra(SearchManager.QUERY))
     }
 
     override fun onResume() {

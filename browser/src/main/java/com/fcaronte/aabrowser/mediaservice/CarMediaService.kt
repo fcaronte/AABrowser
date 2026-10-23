@@ -23,6 +23,7 @@ import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.fetchWeather
 import kotlinx.coroutines.CoroutineScope
@@ -136,7 +137,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
                     PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
                     PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                    PlaybackStateCompat.ACTION_SEEK_TO
+                    PlaybackStateCompat.ACTION_SEEK_TO or
+                    VOICE_SEARCH_ACTIONS
         )
         builder.setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
 
@@ -213,7 +215,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
                             .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
                             .build()
-                        mMediasessioncompat?.setPlaybackState(state)
+                        publishPlaybackState(state)
 
                         updateNotification()
                         AppLog.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
@@ -226,7 +228,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             val state = PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
                 .build()
-            mMediasessioncompat?.setPlaybackState(state)
+            publishPlaybackState(state)
             try {
                 stopForeground(STOP_FOREGROUND_DETACH)
             } catch (_: Exception) {}
@@ -365,7 +367,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     }
                     cancel = (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE)
 
-                    mMediasessioncompat!!.setPlaybackState(playbackStateCompat)
+                    publishPlaybackState(playbackStateCompat)
 
                     if (!title.isNullOrBlank()) {
                         showingWeather = false
@@ -417,6 +419,26 @@ class CarMediaService : MediaBrowserServiceCompat() {
             }
         }
         result.sendResult(null)
+    }
+
+    // Ogni stato pubblicato dichiara anche la ricerca vocale: senza, l'Assistente (e Gemini) non manda
+    // "metti … su AABrowser" all'app
+    private fun publishPlaybackState(state: PlaybackStateCompat) {
+        val withVoiceSearch = PlaybackStateCompat.Builder(state)
+            .setActions(state.actions or VOICE_SEARCH_ACTIONS)
+            .build()
+        mMediasessioncompat?.setPlaybackState(withVoiceSearch)
+    }
+
+    /** Comando vocale senza nessuna schermata aperta: Android Auto mostra l'avviso, lo stato resta com'è. */
+    private fun showVoiceCommandNeedsApp() {
+        val current = mMediacontrollercompat?.playbackState
+        val builder = current?.let { PlaybackStateCompat.Builder(it) }
+            ?: PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+        publishPlaybackState(
+            builder.setErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, getString(R.string.voice_command_open_app))
+                .build()
+        )
     }
 
     private fun broadcastPlaybackAction(action: Long) {
@@ -476,7 +498,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
                             .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
                             .build()
-                        service.mMediasessioncompat?.setPlaybackState(state)
+                        service.publishPlaybackState(state)
                         service.updateNotification()
                         AppLog.d(TAG, "Weather refreshed successfully via Play button: $titleStr")
                     }
@@ -510,6 +532,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
         override fun onSkipToNext() {
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+        }
+
+        // "Ok Google, metti … su AABrowser" (Assistente o Gemini): va alla Wide o alla Main aperta, che cerca
+        // su YouTube e fa partire il primo risultato. Richiesta vuota ("metti la musica su AABrowser") = riprendi
+        override fun onPlayFromSearch(query: String?, extras: Bundle?) {
+            AppLog.d(TAG, "onPlayFromSearch (empty=${query.isNullOrBlank()})")
+            if (!VoiceCommandRouter.fromAssistant(query)) service.showVoiceCommandNeedsApp()
         }
 
         override fun onSeekTo(pos: Long) {
@@ -574,6 +603,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val MEDIA_METADATA_COMPAT = "MediaMetadataCompat"
         private const val PLAYBACK_ACTION = "PlaybackAction"
         private const val REQUEST_NO_OP_ACTIVITY = 2001
+        private const val VOICE_SEARCH_ACTIONS = PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
         @Volatile
         private var wideActive = false
@@ -595,6 +625,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 VoiceCommands.PlayerAction.NEXT -> controls.skipToNext()
                 VoiceCommands.PlayerAction.PREVIOUS -> controls.skipToPrevious()
             }
+        }
+
+        /** Prove (build di debug): la stessa chiamata che fa l'Assistente per "metti [query] su AABrowser". */
+        fun simulateVoiceSearch(query: String): Boolean {
+            val controls = runningService?.get()?.mMediacontrollercompat?.transportControls ?: return false
+            controls.playFromSearch(query, Bundle())
+            return true
         }
 
         fun startServiceIfEnabled(context: Context) {

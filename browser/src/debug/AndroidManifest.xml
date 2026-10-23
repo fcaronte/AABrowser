@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Solo build di debug: comandi vocali da adb senza parlare. Permesso DUMP: lo ha solo la shell -->
+        <receiver
+            android:name=".debug.VoiceCommandDebugReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+    </application>
+</manifest>
