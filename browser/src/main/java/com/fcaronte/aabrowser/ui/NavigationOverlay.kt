@@ -170,19 +170,20 @@ fun NavigationOverlay(
                 Box {
                     val menuItems = remember(currentUrl, adBlockOff) {
                         listOf(
+                            // Inner Ring (5 items: Back, Forward, Home, Tabs, Refresh)
                             MenuItem(Icons.AutoMirrored.Filled.ArrowBack, R.string.back_button) { onInteraction(); onGoBack(); onShowMenuChange(false) },
                             MenuItem(Icons.AutoMirrored.Filled.ArrowForward, R.string.forward_button) { onInteraction(); onGoForward(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Home, R.string.home_button) { onInteraction(); onGoHome(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Layers, R.string.tabs_button) { onInteraction(); onOpenTabManager(); onShowMenuChange(false) },
-                            MenuItem(Icons.Default.Star, R.string.add_to_favorites) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Refresh, R.string.reload_button) { onInteraction(); onReload(); onShowMenuChange(false) },
-                            // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
+
+                            // Outer Ring (7 items)
+                            MenuItem(Icons.Default.Search, R.string.search_button) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
+                            MenuItem(Icons.Default.Star, R.string.add_to_favorites) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
                             MenuItem(
                                 if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
                                 R.string.adblock_this_site
                             ) { onInteraction(); onToggleAdBlock(); onShowMenuChange(false) },
-                            MenuItem(Icons.Default.Search, R.string.search_button) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
-                            // Comando vocale: "metti … su YouTube", "apri …", "portami a …", "pausa"...
                             MenuItem(Icons.Default.Mic, R.string.voice_command_button) { onInteraction(); onVoiceCommand(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Share, R.string.share_button) { onInteraction(); showQRCode = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Settings, R.string.settings_button) { onInteraction(); onOpenSettings(); onShowMenuChange(false) },
@@ -195,21 +196,20 @@ fun NavigationOverlay(
                     }
 
                     val sweepAngle = 90f
-                    val innerRadius = 105.dp
-                    // Arco esterno: più tasti (scudo dell'AdBlock, comando vocale) = arco più largo, così i tasti
-                    // da 46 dp non si toccano
-                    val outerCount = menuItems.size - 4
+                    val innerRadius = 125.dp
+                    val innerCount = 5
+                    val outerCount = menuItems.size - innerCount
                     val outerRadius = when {
                         outerCount > 7 -> 225.dp
                         outerCount > 6 -> 200.dp
-                        else -> 180.dp
+                        else -> 190.dp
                     }
 
                     menuItems.forEachIndexed { index, item ->
-                        val isOuter = index >= 4
+                        val isOuter = index >= innerCount
                         val radius = if (isOuter) outerRadius else innerRadius
-                        val arcIndex = if (isOuter) index - 4 else index
-                        val arcTotal = if (isOuter) outerCount else 4
+                        val arcIndex = if (isOuter) index - innerCount else index
+                        val arcTotal = if (isOuter) outerCount else innerCount
 
                         val angle = startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
                         val angleRad = Math.toRadians(angle.toDouble())
