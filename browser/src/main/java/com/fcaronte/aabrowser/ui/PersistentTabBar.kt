@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -202,7 +202,7 @@ fun TabItem(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .widthIn(max = 200.dp)
+            .width(160.dp)
             .fillMaxHeight(),
         shape = RoundedCornerShape(12.dp),
         color = when {
@@ -239,7 +239,7 @@ fun TabItem(
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
+                modifier = Modifier.weight(1f),
                 color = when {
                     isActive && tab.isWideTab -> MaterialTheme.colorScheme.onTertiaryContainer
                     isActive -> MaterialTheme.colorScheme.onPrimaryContainer
