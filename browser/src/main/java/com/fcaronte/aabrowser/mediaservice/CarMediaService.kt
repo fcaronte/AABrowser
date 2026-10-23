@@ -17,7 +17,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.view.KeyEvent
 import androidx.car.app.connection.CarConnection
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
@@ -527,11 +529,35 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
 
         override fun onSkipToPrevious() {
+            AppLog.d(TAG, "Transport: skip to previous")
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
         }
 
         override fun onSkipToNext() {
+            AppLog.d(TAG, "Transport: skip to next")
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+        }
+
+        // Tasti multimediali (anche quelli al volante): solo un log di cosa manda l'auto, per capire se una pressione
+        // lunga si riconosce (comando vocale dal volante). La gestione resta quella di MediaSessionCompat
+        override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+            val event = mediaButtonEvent?.let { IntentCompat.getParcelableExtra(it, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java) }
+            if (event != null) {
+                AppLog.d(
+                    TAG,
+                    "Media button: ${KeyEvent.keyCodeToString(event.keyCode)} action=${event.action} " +
+                            "repeat=${event.repeatCount} held=${event.eventTime - event.downTime} ms long=${event.isLongPress}"
+                )
+            }
+            return super.onMediaButtonEvent(mediaButtonEvent)
+        }
+
+        override fun onFastForward() {
+            AppLog.d(TAG, "Transport: fast forward")
+        }
+
+        override fun onRewind() {
+            AppLog.d(TAG, "Transport: rewind")
         }
 
         // "Ok Google, metti … su AABrowser" (Assistente o Gemini): va alla Wide o alla Main aperta, che cerca
