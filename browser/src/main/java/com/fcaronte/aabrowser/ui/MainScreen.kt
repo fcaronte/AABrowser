@@ -594,6 +594,7 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                                 currentScreen = Screen.Settings
                             },
                             onOpenSearch = { showDashboardSearch = true },
+                            onVoiceCommand = toggleVoiceCommand,
                             onShowFeedback = { feedbackMessage = it }
                         )
 

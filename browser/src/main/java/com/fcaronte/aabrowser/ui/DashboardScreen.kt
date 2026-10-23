@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -75,6 +76,7 @@ fun DashboardScreen(
     onOpenTabManager: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenSearch: () -> Unit = {},
+    onVoiceCommand: () -> Unit = {},
     onShowFeedback: (String) -> Unit = {},
 ) {
     val favorites = viewModel.favorites
@@ -192,6 +194,13 @@ fun DashboardScreen(
                     }
 
                     Row {
+                        IconButton(onClick = onVoiceCommand) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.voice_command_button),
+                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                            )
+                        }
                         IconButton(onClick = onOpenSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
