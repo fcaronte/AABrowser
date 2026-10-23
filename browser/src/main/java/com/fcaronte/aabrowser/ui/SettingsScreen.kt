@@ -2,6 +2,9 @@ package com.fcaronte.aabrowser.ui
 
 import android.Manifest
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.core.content.FileProvider
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -1125,8 +1128,15 @@ fun SettingsScreen(
                             Surface(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .clickable {
-                                        handleExternalLink(context, githubUrl, isCarMode) { qrUrlToShow = it }
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = {
+                                                handleExternalLink(context, githubUrl, isCarMode) { qrUrlToShow = it }
+                                            },
+                                            onLongPress = {
+                                                exportAndShareLogs(context)
+                                            }
+                                        )
                                     },
                                 shape = RoundedCornerShape(10.dp),
                                 color = Color.White,
@@ -1484,5 +1494,31 @@ fun SettingsButtonItem(
         ) {
             Text(buttonText)
         }
+    }
+}
+
+private fun exportAndShareLogs(context: Context) {
+    try {
+        val logFile = java.io.File(context.cacheDir, "AABrowser_logs.txt")
+        val process = Runtime.getRuntime().exec("logcat -d --pid=${android.os.Process.myPid()}")
+        val logText = process.inputStream.bufferedReader().use { it.readText() }
+        logFile.writeText(logText.ifBlank { "No logs captured." })
+
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            logFile
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(intent, "Share Logs").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(chooser)
+    } catch (e: Exception) {
+        Toast.makeText(context, "Failed to export logs: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
