@@ -446,9 +446,8 @@ object AdBlockJavascript {
                         }
                     }, 350);
                 }
-                // Audio di nuovo attivo solo se l'avevamo tolto noi per la pubblicità: non i video che l'utente
-                // ha messo in muto e non le anteprime mute (si sentirebbero e prenderebbero il player dell'auto)
-                if (video.dataset.aabAdMuted === 'true') {
+                // Audio di nuovo attivo se l'avevamo tolto noi per la pubblicità o se YouTube si è messo in muto da solo al refresh/avvio
+                if (video.dataset.aabAdMuted === 'true' || (video.muted && !video.paused)) {
                     video.muted = false;
                     delete video.dataset.aabAdMuted;
                 }
