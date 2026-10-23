@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.mediaservice
 
+import android.Manifest
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -9,6 +10,10 @@ import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
@@ -18,6 +23,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
+import androidx.annotation.RequiresPermission
 import androidx.car.app.connection.CarConnection
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.LiveData
@@ -97,11 +103,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun registerNetworkCallback() {
         try {
-            connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-            val builder = android.net.NetworkRequest.Builder()
-                .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: android.net.Network) {
+            connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+            val builder = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
                     AppLog.d(TAG, "Network available, triggering weather check...")
                     serviceScope.launch {
                         checkAndUpdateWeatherMetadata()
@@ -538,8 +544,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
             service.broadcastPlaybackAction(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
         }
 
-        // Tasti multimediali (anche quelli al volante): solo un log di cosa manda l'auto, per capire se una pressione
-        // lunga si riconosce (comando vocale dal volante). La gestione resta quella di MediaSessionCompat
+        private var lastPreviousDownTime = 0L
+
+        // Tasti multimediali (anche quelli al volante): gestisce il doppio tocco sul tasto "Indietro" per avviare l'assistente vocale
         override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
             val event = mediaButtonEvent?.let { IntentCompat.getParcelableExtra(it, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java) }
             if (event != null) {
@@ -548,6 +555,22 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     "Media button: ${KeyEvent.keyCodeToString(event.keyCode)} action=${event.action} " +
                             "repeat=${event.repeatCount} held=${event.eventTime - event.downTime} ms long=${event.isLongPress}"
                 )
+
+                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS) {
+                    if (event.action == KeyEvent.ACTION_DOWN) {
+                        val now = event.eventTime
+                        val isDouble = (now - lastPreviousDownTime) < 400L
+
+                        if (isDouble) {
+                            AppLog.d(TAG, "Media button: Previous double-click detected -> triggering voice assistant")
+                            lastPreviousDownTime = 0L
+                            service.mMediasessioncompat?.sendSessionEvent("TriggerVoice", null)
+                            return true
+                        } else {
+                            lastPreviousDownTime = now
+                        }
+                    }
+                }
             }
             return super.onMediaButtonEvent(mediaButtonEvent)
         }

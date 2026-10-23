@@ -63,6 +63,7 @@ class MediaSessionManager(
     var onSkipToPrevious: (() -> Unit)? = null
     var onSeekTo: ((Long) -> Unit)? = null
     var onHeartTapped: (() -> Unit)? = null
+    var onTriggerVoice: (() -> Unit)? = null
 
     // false quando la pagina non è visibile (scheda in background): una riproduzione partita da sola
     // non può prendersi il player e viene messa in pausa
@@ -136,6 +137,15 @@ class MediaSessionManager(
     private val controllerCallback = object : MediaControllerCompat.Callback() {
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
+
+            if (event == "TriggerVoice") {
+                if (!MediaFocusManager.isFocusOwner(this@MediaSessionManager)) {
+                    AppLog.d(TAG, "Ignoring TriggerVoice for $source: focus owned by ${MediaFocusManager.getActiveSource()}")
+                    return
+                }
+                metadataScope.launch(Dispatchers.Main) { onTriggerVoice?.invoke() }
+                return
+            }
 
             if (event == "PlaybackAction") {
 

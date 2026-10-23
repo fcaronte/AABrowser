@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.fcaronte.aabrowser">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Android 17+: senza questo le pagine non raggiungono gli indirizzi della rete di casa (Home Assistant, Proxmox, proxy) -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
