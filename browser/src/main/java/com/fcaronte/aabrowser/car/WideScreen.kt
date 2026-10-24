@@ -642,19 +642,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Video a schermo intero
     // ------------------------------------------------------------------
 
-    private fun applyMargins(target: View, source: FrameLayout.LayoutParams?) {
-        val lp = (target.layoutParams as? FrameLayout.LayoutParams)
-            ?: FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        if (source != null) {
-            lp.leftMargin = source.leftMargin
-            lp.rightMargin = source.rightMargin
-            lp.topMargin = source.topMargin
-            lp.bottomMargin = source.bottomMargin
-        }
-        target.layoutParams = lp
+    /**
+     * Video a schermo intero: margini laterali della pagina (sidebar, colonne dell'host) e anche quelli in alto e in
+     * basso dell'area visibile, che la pagina invece ignora (es. una chiamata di Android Auto: il video restava sotto).
+     * Prima entrava sempre a tutta superficie, anche sotto la UI dell'host, fino al cambio d'area successivo.
+     */
+    private fun layoutCustomView(view: View, pageLp: FrameLayout.LayoutParams?) {
+        val area = visibleArea?.takeUnless { it.isEmpty }
+        val lp = (view.layoutParams as? FrameLayout.LayoutParams)
+            ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        lp.leftMargin = pageLp?.leftMargin ?: 0
+        lp.rightMargin = pageLp?.rightMargin ?: 0
+        lp.topMargin = (area?.top ?: 0).coerceIn(0, surfaceHeight / 2)
+        lp.bottomMargin = (area?.let { surfaceHeight - it.bottom } ?: 0).coerceIn(0, surfaceHeight / 2)
+        view.layoutParams = lp
+        Log.d(TAG, "Fullscreen video margins l=${lp.leftMargin} t=${lp.topMargin} r=${lp.rightMargin} b=${lp.bottomMargin}")
     }
 
     private fun showCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
@@ -672,16 +674,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         )
-        val fullLp = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        ).apply {
-            leftMargin = 0
-            rightMargin = 0
-            topMargin = 0
-            bottomMargin = 0
-        }
-        applyMargins(view, fullLp)
+        layoutCustomView(view, webView?.layoutParams as? FrameLayout.LayoutParams)
         popupOverlayReference?.bringToFront()
         customView = view
         customViewCallback = callback
@@ -945,7 +938,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         "backdropWidth=${backdrop?.width} marginL=${lp.leftMargin} marginR=${lp.rightMargin}"
             )
         }
-        customView?.let { applyMargins(it, lp) }
+        customView?.let { layoutCustomView(it, lp) }
 
         updatePopupPosition()
         updateVoiceCardPosition()
