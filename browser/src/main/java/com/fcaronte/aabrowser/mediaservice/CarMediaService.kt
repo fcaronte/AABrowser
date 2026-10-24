@@ -105,11 +105,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private fun onNewCarConnection() {
         val state = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
         AppLog.d(TAG, "New car connection (playback state=$state)")
-        if (isPlayingState(state)) {
-            // Resta quello che suona, col tasto 🎤 da auto
-            mMediacontrollercompat?.playbackState?.let { publishPlaybackState(it) }
-            return
-        }
+        if (isPlayingState(state)) return
         isUserPaused = false
         showingWeather = true
         checkAndUpdateWeatherMetadata()
@@ -128,9 +124,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
             clearPlayer()
             showingWeather = true
             isUserPaused = false
-        } else {
-            // Senza il tasto 🎤, che serve solo in auto
-            mMediacontrollercompat?.playbackState?.let { publishPlaybackState(it) }
         }
         updateNotification()
     }
@@ -218,13 +211,21 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun isWeatherEnabled(): Boolean = settingsPreferences.getBoolean("weather_widget_enabled", false)
 
-    // Player col meteo: in pausa (Android Auto mostra la scheda senza far partire audio), sempre col solo ▶ che lo
-    // aggiorna. ⏮ ⏭ non servono: i tasti al volante non arrivano alla scheda mostrata ma all'ultima app che ha
-    // riprodotto audio, e il meteo apposta non ne riproduce (toglierebbe l'audio alla radio). Quando AABrowser ha
-    // suonato per ultimo arrivano qui anche col meteo, e il doppio tocco su ⏮ apre il microfono lo stesso
+    // Player col meteo: in pausa (Android Auto mostra la scheda senza far partire audio), col ▶ che lo aggiorna e il
+    // tasto 🎤 dei comandi vocali. ⏮ ⏭ non servono: i tasti al volante non arrivano alla scheda mostrata ma all'ultima
+    // app che ha riprodotto audio, e il meteo apposta non ne riproduce (toglierebbe l'audio alla radio). I tocchi sulla
+    // scheda invece arrivano sempre, quindi il 🎤 funziona anche quando in AABrowser non ha ancora suonato niente.
+    // Solo sul meteo: con una pagina Android Auto lo metterebbe al posto dei suoi ±10 s, e lì va il doppio tocco
     private fun weatherPlaybackState(): PlaybackStateCompat = PlaybackStateCompat.Builder()
         .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
         .setActions(WEATHER_ACTIONS)
+        .addCustomAction(
+            PlaybackStateCompat.CustomAction.Builder(
+                VOICE_CUSTOM_ACTION,
+                getString(R.string.voice_command_button),
+                R.drawable.ic_voice_command
+            ).build()
+        )
         .build()
 
     fun checkAndUpdateWeatherMetadata() {
@@ -500,29 +501,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
         result.sendResult(null)
     }
 
-    // Ogni stato pubblicato dichiara anche la ricerca vocale (senza, l'Assistente non manda "metti … su AABrowser"
-    // all'app) e in auto ha il tasto 🎤 dei comandi vocali: i tocchi sulla scheda del player arrivano sempre qui,
-    // anche quando i tasti al volante vanno all'ultima app che ha suonato. Lo stato si ricostruisce da capo perché
-    // il tasto di uno stato pubblicato in auto non resti dopo
+    // Ogni stato pubblicato dichiara anche la ricerca vocale: senza, l'Assistente (e Gemini) non manda
+    // "metti … su AABrowser" all'app
     private fun publishPlaybackState(state: PlaybackStateCompat) {
-        val builder = PlaybackStateCompat.Builder()
-            .setState(state.state, state.position, state.playbackSpeed, state.lastPositionUpdateTime)
+        val withVoiceSearch = PlaybackStateCompat.Builder(state)
             .setActions(state.actions or VOICE_SEARCH_ACTIONS)
-            .setBufferedPosition(state.bufferedPosition)
-            .setActiveQueueItemId(state.activeQueueItemId)
-            .setExtras(state.extras)
-        state.errorMessage?.let { builder.setErrorMessage(state.errorCode, it) }
-        state.customActions.orEmpty().filter { it.action != VOICE_CUSTOM_ACTION }.forEach { builder.addCustomAction(it) }
-        if (isInCar()) {
-            builder.addCustomAction(
-                PlaybackStateCompat.CustomAction.Builder(
-                    VOICE_CUSTOM_ACTION,
-                    getString(R.string.voice_command_button),
-                    R.drawable.ic_voice_command
-                ).build()
-            )
-        }
-        mMediasessioncompat?.setPlaybackState(builder.build())
+            .build()
+        mMediasessioncompat?.setPlaybackState(withVoiceSearch)
     }
 
     // Microfono dei comandi vocali in ascolto (anche col doppio tocco su ⏮ e l'app dietro): in auto il player mostra
@@ -733,8 +718,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
             if (!VoiceCommandRouter.fromAssistant(query)) service.showVoiceCommandNeedsApp()
         }
 
-        // Tasto 🎤 del player di Android Auto: il microfono della schermata aperta, come il doppio tocco su ⏮ ma
-        // anche quando in AABrowser non ha ancora suonato niente
+        // Tasto 🎤 del player col meteo: il microfono della schermata aperta, come il doppio tocco su ⏮ ma anche
+        // quando in AABrowser non ha ancora suonato niente
         override fun onCustomAction(action: String?, extras: Bundle?) {
             if (action != VOICE_CUSTOM_ACTION) return
             AppLog.d(TAG, "Player button: voice command")
