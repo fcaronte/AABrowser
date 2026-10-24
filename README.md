@@ -72,6 +72,8 @@ from the misuse of this application. Use at your own risk.
   playing, the keys go to them (for example the radio changes station). A single press still means
   "previous", after a short wait.
 * While listening, the Android Auto player shows "🎤 Listening…" with the words understood so far.
+* Commands work with the app behind too: the player ones ("pause", "next"…) stay in the background, the others
+  bring the app back to the front to show and play what you asked.
 
 The first time, allow the microphone on the phone: the car screen cannot show the permission request.
 
@@ -210,6 +212,8 @@ proprio rischio e pericolo.
   un'altra app, i tasti vanno a loro (per esempio la radio cambia stazione). Un tocco singolo resta
   "indietro", dopo un attimo di attesa.
 * Durante l'ascolto il player di Android Auto mostra "🎤 In ascolto…" con le parole capite fin lì.
+* I comandi funzionano anche con l'app dietro: quelli del player ("pausa", "prossimo"…) restano in secondo
+  piano, gli altri riportano l'app in primo piano per mostrare e far partire quello che hai chiesto.
 
 La prima volta consenti il microfono sul telefono: lo schermo dell'auto non può mostrare la richiesta.
 
