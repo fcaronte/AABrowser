@@ -1840,13 +1840,18 @@ object BrowserJavascript {
     """
 
     /**
-     * Scorrimento della Wide (Android Auto manda solo le distanze): pagina e contenitori scorrevoli. I contenitori
-     * si cercano al massimo ogni 1,5 s, perché cercarli legge lo stile di ogni elemento: prima succedeva a ogni
-     * onScroll (decine al secondo) e su pagine grandi come YouTube teneva occupata la pagina, tocchi compresi.
+     * Scorrimento della Wide (una volta per fotogramma, distanze sommate; [smooth] per il fling). Android Auto non dice
+     * dove sta il dito: scorrono la pagina e le colonne scorrevoli insieme. Sulla pagina di un video di YouTube invece
+     * prima le colonne (correlati, playlist, pannelli) e la pagina resta ferma, così il video resta in alto: la pagina
+     * scorre solo se nessuna colonna può farlo (la Wide lì non fa lo scorrimento nativo). Le colonne si cercano al
+     * massimo ogni 1,5 s, perché cercarle legge lo stile di ogni elemento.
      */
-    fun getWideScrollScript(dx: Int, dy: Int): String = """
-        (function(dx, dy) {
-            window.scrollBy(dx, dy);
+    fun getWideScrollScript(dx: Int, dy: Int, smooth: Boolean = false): String = """
+        (function(dx, dy, smooth) {
+            const host = location.host;
+            const pinPage = (host === 'youtube.com' || host.endsWith('.youtube.com')) && location.pathname === '/watch';
+            const by = (target, x, y) => smooth ? target.scrollBy({ left: x, top: y, behavior: 'smooth' }) : target.scrollBy(x, y);
+            if (!pinPage) by(window, dx, dy);
             const now = Date.now();
             if (!window.__aabScrollables || now - (window.__aabScrollablesAt || 0) > 1500) {
                 const found = new Set();
@@ -1875,13 +1880,24 @@ object BrowserJavascript {
                 window.__aabScrollables = Array.from(found);
                 window.__aabScrollablesAt = now;
             }
+            let moved = false;
             window.__aabScrollables.forEach(el => {
-                if (el.isConnected) {
-                    el.scrollTop += dy;
-                    el.scrollLeft += dx;
-                }
+                if (!el.isConnected) return;
+                const canY = dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : dy < 0 && el.scrollTop > 0;
+                const canX = dx > 0 ? el.scrollLeft + el.clientWidth < el.scrollWidth - 1 : dx < 0 && el.scrollLeft > 0;
+                if (!canY && !canX) return;
+                moved = true;
+                by(el, canX ? dx : 0, canY ? dy : 0);
             });
-        })($dx, $dy);
+            if (pinPage) {
+                if (!moved) {
+                    by(window, dx, dy);
+                } else if (window.scrollY > 0 && window.scrollY < 200) {
+                    // Poco sotto l'inizio (es. uno scorrimento di prima): il video torna tutto in vista
+                    window.scrollTo(0, 0);
+                }
+            }
+        })($dx, $dy, $smooth);
     """.trimIndent()
 
     fun getDisableDoubleTapScript(): String {
