@@ -290,8 +290,8 @@
     <string name="ssl_warning_proceed">仍然继续</string>
     <string name="ssl_warning_cancel">取消</string>
     <string name="voice_command_button">语音命令</string>
-    <string name="voice_command_hint">试试：“在 YouTube 上播放 …”、“打开 …”、“导航到 …”、“暂停”</string>
-    <string name="voice_command_hint_wheel">无需触摸屏幕：在方向盘上连按两次 ⏮</string>
+    <string name="voice_command_hint">试试：“在 YouTube 上播放 …”、“在亚马逊上搜索 …”、“打开 …”、“暂停”</string>
+    <string name="voice_command_hint_wheel">在 AABrowser 中播放过内容后：在方向盘上连按两次 ⏮</string>
     <string name="voice_command_youtube">YouTube：%1$s</string>
     <string name="voice_command_youtube_music">YouTube Music：%1$s</string>
     <string name="voice_command_search">搜索：%1$s</string>

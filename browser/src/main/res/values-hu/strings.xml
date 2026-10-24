@@ -291,8 +291,8 @@
     <string name="ssl_warning_proceed">Folytatás mégis</string>
     <string name="ssl_warning_cancel">Mégse</string>
     <string name="voice_command_button">Hangparancs</string>
-    <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „nyisd meg …”, „navigálj ide …”, „szünet”</string>
-    <string name="voice_command_hint_wheel">A képernyő érintése nélkül: nyomd meg kétszer a ⏮ gombot a kormányon</string>
+    <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „keresd meg … az Amazon oldalon”, „nyisd meg …”, „szünet”</string>
+    <string name="voice_command_hint_wheel">Miután az AABrowserben lejátszottál valamit: nyomd meg kétszer a ⏮ gombot a kormányon</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Keresés: %1$s</string>

@@ -291,8 +291,8 @@
     <string name="ssl_warning_proceed">Trotzdem fortfahren</string>
     <string name="ssl_warning_cancel">Abbrechen</string>
     <string name="voice_command_button">Sprachbefehl</string>
-    <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „öffne …“, „navigiere zu …“, „Pause“</string>
-    <string name="voice_command_hint_wheel">Ohne den Bildschirm zu berühren: drücken Sie zweimal ⏮ am Lenkrad</string>
+    <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „suche … auf Amazon“, „öffne …“, „Pause“</string>
+    <string name="voice_command_hint_wheel">Nachdem in AABrowser etwas abgespielt wurde: drücken Sie zweimal ⏮ am Lenkrad</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Suche: %1$s</string>

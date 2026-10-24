@@ -292,8 +292,8 @@
     <string name="ssl_warning_proceed">Continuer quand même</string>
     <string name="ssl_warning_cancel">Annuler</string>
     <string name="voice_command_button">Commande vocale</string>
-    <string name="voice_command_hint">Essayez : « mets … sur YouTube », « ouvre … », « emmène-moi à … », « pause »</string>
-    <string name="voice_command_hint_wheel">Sans toucher l\'écran : appuyez deux fois sur ⏮ au volant</string>
+    <string name="voice_command_hint">Essayez : « mets … sur YouTube », « cherche … sur Amazon », « ouvre … », « pause »</string>
+    <string name="voice_command_hint_wheel">Après avoir lu quelque chose dans AABrowser : appuyez deux fois sur ⏮ au volant</string>
     <string name="voice_command_youtube">YouTube : %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music : %1$s</string>
     <string name="voice_command_search">Recherche : %1$s</string>

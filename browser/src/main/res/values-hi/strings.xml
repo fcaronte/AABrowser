@@ -291,8 +291,8 @@
     <string name="ssl_warning_proceed">फिर भी जारी रखें</string>
     <string name="ssl_warning_cancel">रद्द करें</string>
     <string name="voice_command_button">वॉइस कमांड</string>
-    <string name="voice_command_hint">आज़माएँ: «YouTube पर … चलाओ», «… खोलो», «… ले चलो», «रोको»</string>
-    <string name="voice_command_hint_wheel">स्क्रीन छुए बिना: स्टीयरिंग पर ⏮ दो बार दबाएँ</string>
+    <string name="voice_command_hint">आज़माएँ: «YouTube पर … चलाओ», «Amazon पर … खोजो», «… खोलो», «रोको»</string>
+    <string name="voice_command_hint_wheel">AABrowser में कुछ चलाने के बाद: स्टीयरिंग पर ⏮ दो बार दबाएँ</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">खोज रहे हैं: %1$s</string>
