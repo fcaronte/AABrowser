@@ -446,10 +446,20 @@ object AdBlockJavascript {
                         }
                     }, 350);
                 }
-                // Audio di nuovo attivo se l'avevamo tolto noi per la pubblicità o se YouTube si è messo in muto da solo al refresh/avvio
-                if (video.dataset.aabAdMuted === 'true' || (video.muted && !video.paused)) {
+                // Audio di nuovo attivo se l'avevamo tolto noi per la pubblicità
+                if (video.dataset.aabAdMuted === 'true') {
                     video.muted = false;
                     delete video.dataset.aabAdMuted;
+                } else if (!video.paused && window.location.pathname === '/watch' &&
+                    video.dataset.aabStartAudioKey !== videoKey(video)) {
+                    // YouTube fa partire in muto il video aperto senza un tocco (ricaricamento, comando vocale): si
+                    // controlla una volta sola per video, all'inizio e solo nella pagina del video. Mai le anteprime
+                    // mute della home (prenderebbero il player dell'auto) e mai un muto messo dall'utente dopo
+                    video.dataset.aabStartAudioKey = videoKey(video);
+                    if (video.muted && video.currentTime < 5) {
+                        if (player && typeof player.unMute === 'function') player.unMute();
+                        video.muted = false;
+                    }
                 }
             }
 
