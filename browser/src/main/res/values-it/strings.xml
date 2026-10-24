@@ -236,6 +236,7 @@
     <string name="ssl_warning_cancel">Annulla</string>
     <string name="voice_command_button">Comando vocale</string>
     <string name="voice_command_hint">Prova: «metti … su YouTube», «apri …», «portami a …», «pausa»</string>
+    <string name="voice_command_hint_wheel">Senza toccare lo schermo: doppio tocco su ⏮ al volante</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Cerco: %1$s</string>

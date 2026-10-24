@@ -1949,7 +1949,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
         }
         isVoiceListening = true
-        showVoiceCard(carContext.getString(R.string.voice_command_hint))
+        showVoiceCard(voiceHintText())
         try {
             recognizer.cancel()
             recognizer.setRecognitionListener(voiceListener)
@@ -2079,6 +2079,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // Anche il player di Android Auto mostra "In ascolto…": si vede pure con la Wide dietro (doppio tocco su ⏮)
+    // Esempi; col player di Android Auto attivo anche il doppio tocco su ⏮ al volante, che apre il microfono
+    private fun voiceHintText(): String {
+        val hint = carContext.getString(R.string.voice_command_hint)
+        if (!AppSettings.mediaPlayerEnabled.value) return hint
+        return hint + "\n" + carContext.getString(R.string.voice_command_hint_wheel)
+    }
+
     private fun showVoiceCard(detail: String) {
         voiceDetailReference?.text = detail
         updateVoiceCardPosition()

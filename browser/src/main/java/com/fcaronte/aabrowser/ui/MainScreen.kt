@@ -415,7 +415,10 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                     }
                 }
             )
-            val voiceHint = stringResource(R.string.voice_command_hint)
+            // Col player di Android Auto attivo il microfono si apre anche col doppio tocco su ⏮ al volante
+            val voiceWheelHint = stringResource(R.string.voice_command_hint_wheel)
+            val voiceHint = stringResource(R.string.voice_command_hint) +
+                    if (AppSettings.mediaPlayerEnabled.value) "\n\n$voiceWheelHint" else ""
             val toggleVoiceCommand: () -> Unit = {
                 voiceInput.toggle()
                 onInteraction()

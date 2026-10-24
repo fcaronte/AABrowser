@@ -282,6 +282,7 @@
     <string name="ssl_warning_cancel">إلغاء</string>
     <string name="voice_command_button">أمر صوتي</string>
     <string name="voice_command_hint">جرّب: «شغّل … على YouTube»، «افتح …»، «خذني إلى …»، «إيقاف مؤقت»</string>
+    <string name="voice_command_hint_wheel">دون لمس الشاشة: اضغط مرتين على ⏮ في المقود</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">جارٍ البحث: %1$s</string>

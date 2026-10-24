@@ -279,6 +279,7 @@
     <string name="ssl_warning_cancel">Cancelar</string>
     <string name="voice_command_button">Comando de voz</string>
     <string name="voice_command_hint">Experimente: «toca … no YouTube», «abre …», «leva-me a …», «pausa»</string>
+    <string name="voice_command_hint_wheel">Sem tocar no ecrã: prima duas vezes ⏮ no volante</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">A pesquisar: %1$s</string>

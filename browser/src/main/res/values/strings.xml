@@ -280,6 +280,7 @@
     <string name="ssl_warning_cancel">Cancel</string>
     <string name="voice_command_button">Voice command</string>
     <string name="voice_command_hint">Try: “play … on YouTube”, “open …”, “take me to …”, “pause”</string>
+    <string name="voice_command_hint_wheel">Without touching the screen: double tap ⏮ on the steering wheel</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Searching: %1$s</string>
