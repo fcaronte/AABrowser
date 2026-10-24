@@ -34,22 +34,26 @@ from the misuse of this application. Use at your own risk.
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
-* **AAB Media (new in 2.3):** player for the audio and video files of a folder on the phone, with separate
+* **AAB Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
-* **YouTube:** ad skipping, remembered playback speed (ads and music excluded), tap on the progress
-  bar to seek.
-* **Voice commands (new in 2.4):** a microphone button in both apps and on the Android Auto player, or a
-  double tap on ⏮ at the steering wheel, to play songs and videos, search, open favorites and sites and control
-  the player.
-  See [Voice commands](#voice-commands).
+* **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
+  tab bar and the navigation menu of AABrowser, at the top right of the Widescreen).
+* **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
+  speed (ads and music excluded), tap on the progress bar to seek.
+* **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
+  shows the weather), or a double tap on ⏮ at the steering wheel, to play songs and videos, search, open
+  favorites and sites and control the player. See [Voice commands](#voice-commands).
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
-* **Home network sites (new in 2.3):** sites with a self-signed or invalid certificate (Home Assistant,
+* **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
   certificate; local network permission on Android 17.
 * **Files for web pages:** file and folder picker without storage permissions.
-* **And more:** DRM (Widevine L3), weather on the Android Auto player when nothing plays, pause on
-  reverse gear, 11 languages, updates through KingInstaller.
+* **Location for websites (new in 2.4, optional):** Google Maps and the other sites in the browser can see
+  where you are.
+* **And more:** DRM (Widevine L3), weather on the Android Auto player when nothing plays (only in the car),
+  pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
+  through KingInstaller.
 
 ## Voice commands
 
@@ -175,21 +179,27 @@ proprio rischio e pericolo.
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
-* **AAB Media (novità 2.3):** lettore per i file audio e video di una cartella del telefono, con code
+* **AAB Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
-* **YouTube:** salto delle pubblicità, velocità di riproduzione ricordata (pubblicità e musica escluse),
-  tocco sulla barra di avanzamento per spostarsi nel video.
-* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app e sul player di Android Auto, o doppio
-  tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti e comandare il
-  player. Vedi [Comandi vocali](#comandi-vocali).
+* **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
+  2.4: nella barra delle schede e nel menu di navigazione di AABrowser, in alto a destra nella Widescreen).
+* **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
+  riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
+  video.
+* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
+  il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti
+  e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
-* **Siti della rete di casa (novità 2.3):** i siti con certificato autofirmato o non valido (Home
+* **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
   sito e quel certificato; permesso rete locale su Android 17.
 * **File per le pagine web:** scelta di file e cartelle senza permessi di archiviazione.
-* **E poi:** DRM (Widevine L3), meteo sul player di Android Auto quando non suona nulla, pausa con la
-  retromarcia, 11 lingue, aggiornamenti tramite KingInstaller.
+* **Posizione per i siti web (novità 2.4, facoltativa):** Google Maps e gli altri siti nel browser possono
+  vedere dove sei.
+* **E poi:** DRM (Widevine L3), meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
+  con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
+  aggiornamenti tramite KingInstaller.
 
 ## Comandi vocali
 
