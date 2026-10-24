@@ -38,6 +38,9 @@ from the misuse of this application. Use at your own risk.
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
 * **YouTube:** ad skipping, remembered playback speed (ads and music excluded), tap on the progress
   bar to seek.
+* **Voice commands (new in 2.4):** a microphone button in both apps, or a double tap on ⏮ at the steering
+  wheel, to play songs and videos, search, open favorites and sites, get directions and control the player.
+  See [Voice commands](#voice-commands).
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites (new in 2.3):** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -45,6 +48,47 @@ from the misuse of this application. Use at your own risk.
 * **Files for web pages:** file and folder picker without storage permissions.
 * **And more:** DRM (Widevine L3), weather on the Android Auto player when nothing plays, pause on
   reverse gear, 11 languages, updates through KingInstaller.
+
+## Voice commands
+
+*New in 2.4.* Say what you want instead of typing it.
+
+**How to start listening**
+
+* **AABrowser:** the 🎤 button in the tab bar (left of the shield), in the round navigation menu and next to
+  search on the home page.
+* **AAWBrowser (Widescreen, Beta):** the 🎤 button in the fixed side menu, or at the top right next to search
+  when the side menu is off.
+* **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (AABrowser or
+  Widescreen, also in the background). It needs the Android Auto player enabled in Settings and AABrowser as
+  the media source of Android Auto (the "AAB Media" card shows the weather or what is playing): when the car
+  radio or another app is playing, the keys go to them (for example the radio changes station). A single
+  press still means "previous", after a short wait.
+* While listening, the Android Auto player shows "🎤 Listening…" with the words understood so far.
+
+The first time, allow the microphone on the phone: the car screen cannot show the permission request.
+
+**What you can say** (examples: the commands are understood in all 11 app languages, whatever language the
+app is set to)
+
+| Say | What happens |
+|---|---|
+| "play *song* on YouTube", "play *song* on YouTube Music" | searches and plays the first result |
+| "play *song*" | the same, on YouTube Music if it is open, otherwise on YouTube |
+| "search *something* on YouTube" | YouTube results |
+| "search *shoes* on Amazon", "search Google Maps for *pizzeria*" | the site's own search: Amazon and eBay of your country, Wikipedia in your language, Reddit, IMDb, Twitch, Netflix, Google Maps, DAZN, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, or one of your favorites |
+| "search *something*" | search on the open site (YouTube, YouTube Music) or with your search engine |
+| "search *something* on Google" | search with your search engine |
+| "open *favorite*", "open repubblica dot it" | opens a favorite (by name or site) or a spoken address |
+| "take me to *address*" | AABrowser: Google Maps directions in a new tab; Widescreen: Android Auto navigation (Maps or Waze) |
+| "back", "reload", "home" | page navigation |
+| "pause", "resume", "next", "previous" | the Android Auto player |
+
+Anything else is searched on the open site or with your search engine.
+
+**Google Assistant and Gemini:** the app also accepts the standard Android media voice search ("Ok Google,
+play *song* on AABrowser"), but for now Gemini replies that the app does not support its commands: use the
+🎤 button or the double tap on ⏮.
 
 ## The "Gemini-Powered" Development
 
@@ -128,6 +172,9 @@ proprio rischio e pericolo.
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
 * **YouTube:** salto delle pubblicità, velocità di riproduzione ricordata (pubblicità e musica escluse),
   tocco sulla barra di avanzamento per spostarsi nel video.
+* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app, o doppio tocco su ⏮ al volante, per far
+  partire canzoni e video, cercare, aprire preferiti e siti, farsi portare a un indirizzo e comandare il
+  player. Vedi [Comandi vocali](#comandi-vocali).
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa (novità 2.3):** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
@@ -135,6 +182,47 @@ proprio rischio e pericolo.
 * **File per le pagine web:** scelta di file e cartelle senza permessi di archiviazione.
 * **E poi:** DRM (Widevine L3), meteo sul player di Android Auto quando non suona nulla, pausa con la
   retromarcia, 11 lingue, aggiornamenti tramite KingInstaller.
+
+## Comandi vocali
+
+*Novità 2.4.* Dì quello che vuoi invece di scriverlo.
+
+**Come avviare l'ascolto**
+
+* **AABrowser:** il pulsante 🎤 nella barra delle schede (a sinistra dello scudo), nel menu di navigazione
+  rotondo e accanto alla ricerca nella pagina iniziale.
+* **AAWBrowser (Widescreen, Beta):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
+  alla ricerca se il menu laterale è spento.
+* **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (AABrowser o
+  Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni e AABrowser
+  come sorgente multimediale di Android Auto (la scheda "AAB Media" mostra il meteo o quello che suona): se
+  suonano la radio dell'auto o un'altra app, i tasti vanno a loro (per esempio la radio cambia stazione). Un
+  tocco singolo resta "indietro", dopo un attimo di attesa.
+* Durante l'ascolto il player di Android Auto mostra "🎤 In ascolto…" con le parole capite fin lì.
+
+La prima volta consenti il microfono sul telefono: lo schermo dell'auto non può mostrare la richiesta.
+
+**Cosa puoi dire** (esempi: i comandi si capiscono in tutte le 11 lingue dell'app, qualunque sia la lingua
+impostata)
+
+| Frase | Cosa succede |
+|---|---|
+| "metti *canzone* su YouTube", "metti *canzone* su YouTube Music" | cerca e fa partire il primo risultato |
+| "metti *canzone*" | lo stesso, su YouTube Music se è aperto, altrimenti su YouTube |
+| "cerca *qualcosa* su YouTube" | risultati di YouTube |
+| "cerca *scarpe* su Amazon", "cerca su Google Maps *pizzeria*" | la ricerca del sito: Amazon ed eBay del tuo paese, Wikipedia nella tua lingua, Reddit, IMDb, Twitch, Netflix, Google Maps, DAZN, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, o un tuo preferito |
+| "cerca *qualcosa*" | ricerca sul sito aperto (YouTube, YouTube Music) o col motore di ricerca |
+| "cerca *qualcosa* su Google" | ricerca col motore di ricerca scelto |
+| "apri *preferito*", "apri repubblica punto it" | apre un preferito (per nome o sito) o un indirizzo detto a voce |
+| "portami a *indirizzo*" | AABrowser: indicazioni di Google Maps in una nuova scheda; Widescreen: navigazione di Android Auto (Maps o Waze) |
+| "indietro", "ricarica", "home" | navigazione della pagina |
+| "pausa", "riprendi", "prossimo", "precedente" | il player di Android Auto |
+
+Tutto il resto viene cercato sul sito aperto o col motore di ricerca.
+
+**Assistente Google e Gemini:** l'app accetta anche la ricerca vocale standard dei player di Android ("Ok
+Google, metti *canzone* su AABrowser"), ma per ora Gemini risponde che l'app non supporta i suoi comandi: usa
+il pulsante 🎤 o il doppio tocco su ⏮.
 
 ## Sviluppo "Gemini-Powered"
 
