@@ -63,9 +63,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private val settingsPreferences by lazy {
         getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
     }
+    // Meteo acceso o spento dalle impostazioni: spento toglie subito scheda e notifica
     private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == "weather_widget_enabled" && settingsPreferences.getBoolean(key, false)) {
-            serviceScope.launch { checkAndUpdateWeatherMetadata() }
+        if (key == "weather_widget_enabled") {
+            serviceScope.launch {
+                checkAndUpdateWeatherMetadata()
+                updateNotification()
+            }
         }
     }
 
@@ -82,24 +86,60 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private var networkCallback: android.net.ConnectivityManager.NetworkCallback? = null
 
     // Il servizio resta vivo tra un viaggio e l'altro, e con lui la pausa (di Android Auto anche allo spegnimento
-    // dell'auto): al viaggio dopo il meteo restava nascosto finché "Esci" non chiudeva il processo
+    // dell'auto): al viaggio dopo il meteo restava nascosto finché "Esci" non chiudeva il processo.
+    // Il meteo c'è solo in auto: il servizio parte anche sul telefono (la Main si collega a ogni scheda) e il meteo
+    // restava lì, con la sua notifica, anche fuori dall'auto. null = collegamento non ancora noto (servizio appena creato)
     private var carConnectionType: LiveData<Int>? = null
     private var wasConnectedToCar: Boolean? = null
     private val carConnectionObserver = Observer<Int> { type ->
         val connected = type != CarConnection.CONNECTION_TYPE_NOT_CONNECTED
-        if (connected && wasConnectedToCar == false) onNewCarConnection()
+        val wasConnected = wasConnectedToCar
         wasConnectedToCar = connected
+        if (connected && wasConnected != true) onNewCarConnection()
+        else if (!connected && wasConnected == true) onCarDisconnected()
     }
 
-    /** Nuovo collegamento all'auto: se non sta suonando niente si torna al meteo. */
+    private fun isInCar(): Boolean = wasConnectedToCar == true
+
+    /** Collegamento all'auto (anche col servizio appena creato in auto): se non sta suonando niente si torna al meteo. */
     private fun onNewCarConnection() {
         val state = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
         AppLog.d(TAG, "New car connection (playback state=$state)")
-        if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING) return
+        if (isPlayingState(state)) return
         isUserPaused = false
         showingWeather = true
         checkAndUpdateWeatherMetadata()
     }
+
+    /**
+     * Auto scollegata: via il meteo e la notifica, anche di una pagina in pausa. Resta solo una pagina che suona
+     * ancora sul telefono.
+     */
+    private fun onCarDisconnected() {
+        weatherCheckJob?.cancel()
+        endVoiceOverlay()
+        val state = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+        AppLog.d(TAG, "Car disconnected (playback state=$state)")
+        if (!isPlayingState(state)) {
+            clearPlayer()
+            showingWeather = true
+            isUserPaused = false
+        }
+        updateNotification()
+    }
+
+    // Player vuoto: Android Auto non mostra schede vuote
+    private fun clearPlayer() {
+        setSessionMetadata(MediaMetadataCompat.Builder().build())
+        publishPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+                .build()
+        )
+    }
+
+    private fun isPlayingState(state: Int): Boolean =
+        state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING
 
     private fun registerNetworkCallback() {
         try {
@@ -184,9 +224,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
         val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
         val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
         val currentState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
-        val isWeatherMode = weatherEnabled && (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
+        val inCar = isInCar()
+        val isWeatherMode = weatherEnabled && inCar && (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
 
-        AppLog.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
+        AppLog.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, inCar=$inCar, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
 
         if (isWeatherMode) {
             // Il player ora mostra il meteo: il caricamento qui sotto lo mette in pausa (non più "nessuno"), e il meteo
@@ -217,7 +258,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
                 if (weather != null && mMediasessioncompat != null) {
                     val currentPlayState = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
-                    val stillWeatherNode = (showingWeather || currentPlayState == PlaybackStateCompat.STATE_NONE) && !isUserPaused
+                    val stillWeatherNode = (showingWeather || currentPlayState == PlaybackStateCompat.STATE_NONE) &&
+                            !isUserPaused && isInCar() && isWeatherEnabled()
 
                     if (stillWeatherNode) {
                         showingWeather = true
@@ -241,16 +283,12 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     }
                 }
             }
-        } else if (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) {
-            // Se il meteo non è abilitato ed è inattivo, resetta a STATE_NONE per non mostrare schede vuote
-            setSessionMetadata(MediaMetadataCompat.Builder().build())
-            val state = PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
-                .build()
-            publishPlaybackState(state)
-            try {
-                stopForeground(STOP_FOREGROUND_DETACH)
-            } catch (_: Exception) {}
+        } else if ((showingWeather || currentState == PlaybackStateCompat.STATE_NONE) && !isPlayingState(currentState)) {
+            // Meteo spento o fuori dall'auto: player vuoto e niente notifica. Prima la notifica restava (staccata
+            // dal servizio ma visibile)
+            weatherCheckJob?.cancel()
+            clearPlayer()
+            removeNotification()
         }
     }
 
@@ -275,6 +313,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
         focusRequest?.let {
             audioManager.abandonAudioFocusRequest(it)
         }
+    }
+
+    // Avviato con startForegroundService (Main in auto e servizio in primo piano): Android vuole startForeground anche
+    // quando il player non ha niente da mostrare, altrimenti chiude l'app. In quel caso la notifica sparisce subito
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (playerNotification() == null) {
+            mCarmedianotificationmanager?.getPlaceholderNotification()?.let { startForegroundWith(it) }
+        }
+        updateNotification()
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -310,9 +358,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
         clientPackageName: String,
         clientUid: Int,
         rootHints: Bundle?
-    ): BrowserRoot {
+    ): BrowserRoot? {
         AppLog.d(TAG, "onGetRoot: client=$clientPackageName")
-        
+
+        // Riproduzione recente: il telefono la chiede per mostrare un player "da riprendere" anche fuori dall'auto.
+        // Non c'è (una pagina web non riparte da lì) e la richiesta non deve toccare player e notifica
+        if (rootHints?.getBoolean(BrowserRoot.EXTRA_RECENT) == true && clientPackageName != ANDROID_AUTO_PACKAGE) {
+            AppLog.d(TAG, "onGetRoot: recent media not supported")
+            return null
+        }
+
         val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
         val mediaPlayerEnabled = prefs.getBoolean("media_player_enabled", true)
         
@@ -431,11 +486,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
                     }
                 }
             }
-            if (cancel && mCarmedianotificationmanager != null) {
-                mCarmedianotificationmanager!!.cancel()
-            } else if (update) {
-                updateNotification()
-            }
+            // Senza più niente da mostrare updateNotification toglie la notifica: cancel() da solo non toglie
+            // quella del servizio in primo piano
+            if (cancel || update) updateNotification()
         }
         result.sendResult(null)
     }
@@ -460,17 +513,22 @@ class CarMediaService : MediaBrowserServiceCompat() {
         if (voiceListening) metadataUnderVoice = metadata else mMediasessioncompat?.setMetadata(metadata)
     }
 
+    // Toglie "In ascolto…" e rimette i metadati tenuti da parte. false = non era in ascolto
+    private fun endVoiceOverlay(): Boolean {
+        if (!voiceListening) return false
+        voiceListening = false
+        mMediasessioncompat?.setMetadata(metadataUnderVoice ?: MediaMetadataCompat.Builder().build())
+        metadataUnderVoice = null
+        return true
+    }
+
     private fun applyVoiceListening(listening: Boolean, text: String?) {
         if (!listening) {
-            if (!voiceListening) return
-            voiceListening = false
-            mMediasessioncompat?.setMetadata(metadataUnderVoice ?: MediaMetadataCompat.Builder().build())
-            metadataUnderVoice = null
-            updateNotification()
+            if (endVoiceOverlay()) updateNotification()
             return
         }
         // Solo in auto: sul telefono l'ascolto si vede già nell'app
-        if (!voiceListening && wasConnectedToCar != true) return
+        if (!voiceListening && !isInCar()) return
         if (!voiceListening) {
             metadataUnderVoice = mMediacontrollercompat?.metadata
             voiceListening = true
@@ -510,8 +568,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         MediaSessionCompat.Callback() {
         override fun onPlay() {
             val currentTitle = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
-            // Scheda del meteo, anche mentre carica o mentre il player mostra "In ascolto…": ▶ aggiorna il meteo
-            val weatherCard = service.isWeatherEnabled() &&
+            // Scheda del meteo, anche mentre carica o mentre il player mostra "In ascolto…": ▶ aggiorna il meteo.
+            // Fuori dall'auto il meteo non c'è: ▶ (es. cuffie) va alla pagina
+            val weatherCard = service.isWeatherEnabled() && service.isInCar() &&
                     (service.showingWeather || currentTitle.contains("°C") || currentTitle.contains("aggiornando"))
             if (weatherCard) {
                 AppLog.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
@@ -538,9 +597,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 service.setSessionMetadata(updatingMetadata)
                 service.updateNotification()
 
-                service.serviceScope.launch {
+                // Nel lavoro del meteo: scollegando l'auto si annulla anche questo
+                service.weatherCheckJob?.cancel()
+                service.weatherCheckJob = service.serviceScope.launch {
                     val weather = fetchWeather(service.applicationContext)
-                    if (weather != null && service.mMediasessioncompat != null) {
+                    if (weather != null && service.mMediasessioncompat != null && service.isInCar()) {
                         service.showingWeather = true
                         val titleStr = "${weather.temperature.toInt()}°C • ${weather.description}"
                         val newArtistStr = weather.locationName
@@ -657,33 +718,45 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
     }
 
-    val notification: Notification?
-        get() {
-            if (mCarmedianotificationmanager == null || mMediacontrollercompat == null) return null
-            return mCarmedianotificationmanager!!.getNotification(
-                mMediacontrollercompat!!.metadata,
-                mMediacontrollercompat?.playbackState,
-                sessionToken
-            )
-        }
+    // Notifica del player; null se non c'è niente da mostrare (nessuna pagina col player e niente meteo)
+    private fun playerNotification(): Notification? {
+        val state = mMediacontrollercompat?.playbackState?.state ?: PlaybackStateCompat.STATE_NONE
+        if (state == PlaybackStateCompat.STATE_NONE || state == PlaybackStateCompat.STATE_STOPPED) return null
+        if (mCarmedianotificationmanager == null || mMediacontrollercompat == null) return null
+        return mCarmedianotificationmanager!!.getNotification(
+            mMediacontrollercompat!!.metadata,
+            mMediacontrollercompat?.playbackState,
+            sessionToken
+        )
+    }
 
     private fun updateNotification() {
-        val notification = this.notification
+        val notification = playerNotification()
         val currentTitle = mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         val currentState = mMediacontrollercompat?.playbackState?.state
         AppLog.d(TAG, "updateNotification: state=$currentState, title='$currentTitle'")
-        if (notification != null && mCarmedianotificationmanager != null) {
-            try {
-                startForeground(
-                    600,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-                )
-            } catch (e: Exception) {
-                AppLog.e(TAG, "Error in startForeground: ${e.message}", e)
-            }
-            mCarmedianotificationmanager!!.notify(notification)
+        if (notification == null) {
+            removeNotification()
+            return
         }
+        startForegroundWith(notification)
+        mCarmedianotificationmanager?.notify(notification)
+    }
+
+    private fun startForegroundWith(notification: Notification) {
+        try {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } catch (e: Exception) {
+            AppLog.e(TAG, "Error in startForeground: ${e.message}", e)
+        }
+    }
+
+    // La notifica del servizio in primo piano si toglie con stopForeground: cancel() da solo la lascia
+    private fun removeNotification() {
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } catch (_: Exception) {}
+        mCarmedianotificationmanager?.cancel()
     }
 
     fun stateChanged(playbackStateCompat: PlaybackStateCompat): Boolean {
@@ -710,6 +783,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val MEDIA_METADATA_COMPAT = "MediaMetadataCompat"
         private const val PLAYBACK_ACTION = "PlaybackAction"
         private const val REQUEST_NO_OP_ACTIVITY = 2001
+        // Stesso id di CarMediaNotificationManager
+        private const val NOTIFICATION_ID = 600
+        private const val ANDROID_AUTO_PACKAGE = "com.google.android.projection.gearhead"
         private const val VOICE_SEARCH_ACTIONS = PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
         // Due tocchi su ⏮ entro questo tempo = comando vocale (il primo da solo va al precedente dopo l'attesa)
         private const val DOUBLE_TAP_MS = 400L

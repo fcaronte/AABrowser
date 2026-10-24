@@ -101,6 +101,16 @@ internal class CarMediaNotificationManager {
         return builder.build()
     }
 
+    /** Notifica minima per startForeground quando il player non ha niente da mostrare: il servizio la toglie subito. */
+    fun getPlaceholderNotification(): Notification? {
+        val service = mCarmediaservice ?: return null
+        createChannel()
+        return NotificationCompat.Builder(service, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification_car)
+            .setContentTitle(service.getString(R.string.service_name))
+            .build()
+    }
+
     private fun buildNotification(
         state: PlaybackStateCompat,
         token: MediaSessionCompat.Token?,
