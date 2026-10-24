@@ -169,6 +169,17 @@ class CarMediaService : MediaBrowserServiceCompat() {
         updateNotification()
     }
 
+    private fun isWeatherEnabled(): Boolean = settingsPreferences.getBoolean("weather_widget_enabled", false)
+
+    // Player col meteo: in pausa (Android Auto mostra la scheda senza far partire audio) e con ⏮ ⏭, così i tasti al
+    // volante arrivano anche qui: doppio tocco su ⏮ = comando vocale, un tocco solo non fa niente. Non toglie i tasti
+    // alle altre app: Android Auto li manda all'app della sua scheda multimediale, e una radio o un'app che suona ha
+    // la scheda sua. Prima, dopo ▶ (aggiornamento) e durante il caricamento, ⏮ spariva
+    private fun weatherPlaybackState(): PlaybackStateCompat = PlaybackStateCompat.Builder()
+        .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+        .setActions(WEATHER_ACTIONS)
+        .build()
+
     fun checkAndUpdateWeatherMetadata() {
         val prefs = getSharedPreferences("aa_browser_settings", MODE_PRIVATE)
         val weatherEnabled = prefs.getBoolean("weather_widget_enabled", false)
@@ -178,6 +189,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
         AppLog.d(TAG, "checkAndUpdateWeatherMetadata: weatherEnabled=$weatherEnabled, showingWeather=$showingWeather, isUserPaused=$isUserPaused, isWeatherMode=$isWeatherMode")
 
         if (isWeatherMode) {
+            // Il player ora mostra il meteo: il caricamento qui sotto lo mette in pausa (non più "nessuno"), e il meteo
+            // arrivato si mostra solo se showingWeather è vero
+            showingWeather = true
             // Mostra subito uno stato di caricamento per dare feedback all'utente
             val loadingTitle = "Meteo: recupero posizione..."
             val loadingMetadata = MediaMetadataCompat.Builder()
@@ -185,6 +199,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "AABrowser")
                 .build()
             setSessionMetadata(loadingMetadata)
+            // Già coi tasti mentre carica: se la posizione tarda il player restava senza ⏮ (niente doppio tocco)
+            publishPlaybackState(weatherPlaybackState())
 
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
@@ -218,12 +234,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .build()
                         setSessionMetadata(metadata)
 
-                        // STATE_PAUSED garantisce che Android Auto mostri la barra del player in auto senza avviare audio
-                        val state = PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
-                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
-                            .build()
-                        publishPlaybackState(state)
+                        publishPlaybackState(weatherPlaybackState())
 
                         updateNotification()
                         AppLog.d(TAG, "CarMediaService metadata & state updated with weather: $titleStr at $artistStr (STATE_PAUSED)")
@@ -499,7 +510,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
         MediaSessionCompat.Callback() {
         override fun onPlay() {
             val currentTitle = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
-            if (currentTitle.contains("°C") || currentTitle.contains("aggiornando")) {
+            // Scheda del meteo, anche mentre carica o mentre il player mostra "In ascolto…": ▶ aggiorna il meteo
+            val weatherCard = service.isWeatherEnabled() &&
+                    (service.showingWeather || currentTitle.contains("°C") || currentTitle.contains("aggiornando"))
+            if (weatherCard) {
                 AppLog.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
                 
                 service.showingWeather = true
@@ -541,11 +555,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .build()
                         service.setSessionMetadata(metadata)
 
-                        val state = PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
-                            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
-                            .build()
-                        service.publishPlaybackState(state)
+                        service.publishPlaybackState(service.weatherPlaybackState())
                         service.updateNotification()
                         AppLog.d(TAG, "Weather refreshed successfully via Play button: $titleStr")
                     }
@@ -703,6 +713,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val VOICE_SEARCH_ACTIONS = PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
         // Due tocchi su ⏮ entro questo tempo = comando vocale (il primo da solo va al precedente dopo l'attesa)
         private const val DOUBLE_TAP_MS = 400L
+        private const val WEATHER_ACTIONS = PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
 
         @Volatile
         private var wideActive = false
