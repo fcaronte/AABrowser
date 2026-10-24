@@ -1105,8 +1105,14 @@ fun BrowserScreen(
                                 )
                             }
 
-                            // Handling CORS OPTIONS preflight for cross-origin API calls
-                            if (request != null && request.method?.equals("OPTIONS", ignoreCase = true) == true) {
+                            // DAZN: risposta alle richieste CORS "OPTIONS" delle sue chiamate (come nella Wide). Solo DAZN, con il
+                            // dominio esatto: rispondere "ok" al posto del server per tutti i siti permetteva a qualsiasi pagina
+                            // richieste con i cookie verso altri siti e i dispositivi di casa, che il browser avrebbe bloccato
+                            val origin = request?.requestHeaders?.get("Origin")
+                            if (
+                                request != null && request.method?.equals("OPTIONS", ignoreCase = true) == true &&
+                                (DaznProxy.isDaznHost(requestUrl?.host) || DaznProxy.isDaznHost(origin?.let { Uri.parse(it).host }))
+                            ) {
                                 val isDaznPlaybackPreflight =
                                     requestUrl?.host.equals("api.playback.indazn.com", ignoreCase = true) &&
                                             requestUrl?.path.equals("/v5/Playback", ignoreCase = true)
@@ -1114,7 +1120,7 @@ fun BrowserScreen(
                                     AppLog.d("DaznPlayback", "Passing playback CORS preflight to WebView network stack")
                                     return super.shouldInterceptRequest(view, request)
                                 }
-                                val reqOrigin = request.requestHeaders["Origin"] ?: "https://www.dazn.com"
+                                val reqOrigin = origin ?: "https://www.dazn.com"
                                 val reqHeaders = request.requestHeaders["Access-Control-Request-Headers"] ?: "*"
                                 val corsHeaders = mapOf(
                                     "Access-Control-Allow-Origin" to reqOrigin,

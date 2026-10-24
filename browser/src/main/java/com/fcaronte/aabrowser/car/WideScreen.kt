@@ -1619,10 +1619,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         ByteArrayInputStream("".toByteArray())
                                     )
                                 }
-                                // DAZN: risposta alle richieste CORS "OPTIONS" (solo per i domini DAZN)
+                                // DAZN: risposta alle richieste CORS "OPTIONS" (solo per i domini DAZN, col dominio esatto: con "contiene
+                                // dazn.com" valeva anche per siti come notdazn.com)
                                 if (request != null && request.method.equals("OPTIONS", ignoreCase = true)) {
                                     val origin = request.requestHeaders["Origin"] ?: ""
-                                    val isDaznRequest = isDazn(urlString) || isDazn(origin)
+                                    val isDaznRequest = DaznProxy.isDaznHost(request.url.host) ||
+                                            DaznProxy.isDaznHost(Uri.parse(origin).host)
                                     val isPlaybackPreflight =
                                         request.url.host.equals("api.playback.indazn.com", ignoreCase = true) &&
                                                 request.url.path.equals("/v5/Playback", ignoreCase = true)
