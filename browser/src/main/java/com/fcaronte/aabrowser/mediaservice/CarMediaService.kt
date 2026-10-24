@@ -211,10 +211,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     private fun isWeatherEnabled(): Boolean = settingsPreferences.getBoolean("weather_widget_enabled", false)
 
-    // Player col meteo: in pausa (Android Auto mostra la scheda senza far partire audio) e con ⏮ ⏭, così i tasti al
-    // volante arrivano anche qui: doppio tocco su ⏮ = comando vocale, un tocco solo non fa niente. Non toglie i tasti
-    // alle altre app: Android Auto li manda all'app della sua scheda multimediale, e una radio o un'app che suona ha
-    // la scheda sua. Prima, dopo ▶ (aggiornamento) e durante il caricamento, ⏮ spariva
+    // Player col meteo: in pausa (Android Auto mostra la scheda senza far partire audio), sempre col solo ▶ che lo
+    // aggiorna. ⏮ ⏭ non servono: i tasti al volante non arrivano alla scheda mostrata ma all'ultima app che ha
+    // riprodotto audio, e il meteo apposta non ne riproduce (toglierebbe l'audio alla radio). Quando AABrowser ha
+    // suonato per ultimo arrivano qui anche col meteo, e il doppio tocco su ⏮ apre il microfono lo stesso
     private fun weatherPlaybackState(): PlaybackStateCompat = PlaybackStateCompat.Builder()
         .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
         .setActions(WEATHER_ACTIONS)
@@ -790,8 +790,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val VOICE_SEARCH_ACTIONS = PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
         // Due tocchi su ⏮ entro questo tempo = comando vocale (il primo da solo va al precedente dopo l'attesa)
         private const val DOUBLE_TAP_MS = 400L
-        private const val WEATHER_ACTIONS = PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or
-                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+        private const val WEATHER_ACTIONS = PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE
 
         @Volatile
         private var wideActive = false
