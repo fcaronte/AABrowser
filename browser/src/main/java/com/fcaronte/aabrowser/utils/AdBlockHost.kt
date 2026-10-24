@@ -93,6 +93,11 @@ object AdBlockHost {
     // Sulle pagine di YouTube, e per le sue risorse ovunque, decide solo lo script
     private val scriptManagedHosts = setOf("youtube.com", "youtu.be", "youtubekids.com", "googlevideo.com", "ytimg.com")
 
+    // Anche DAZN ha la pubblicità dentro il video: bloccarne le richieste può mandare il player in errore come
+    // su YouTube (segnalazione dell'utente: finita la pubblicità la diretta non ripartiva, la licenza veniva chiesta
+    // di continuo). Sulle sue pagine la rete non blocca niente; lo scudo serve solo per gli altri siti
+    private val playerAdSites = setOf("dazn.com", "indazn.com")
+
     // Siti in cui l'utente ha spento l'AdBlock: host senza "www.", vale anche per i sottodomini.
     // Letta dal thread di rete delle WebView, cambiata dal thread principale
     private val whitelist = CopyOnWriteArraySet<String>()
@@ -115,6 +120,7 @@ object AdBlockHost {
         // Uri e non URL: niente eccezioni con blob:, data:, about: e javascript:
         val host = Uri.parse(url).host?.lowercase() ?: return false
         if (matches(host, scriptManagedHosts) || matches(pageHost?.lowercase(), scriptManagedHosts)) return false
+        if (matches(pageHost?.lowercase(), playerAdSites)) return false
         if (isWhitelisted(pageHost) || isWhitelisted(host)) return false
         // L'host o un suo sottodominio è nella lista nera
         return matches(host, blockedHosts)
