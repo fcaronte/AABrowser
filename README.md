@@ -38,8 +38,9 @@ from the misuse of this application. Use at your own risk.
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
 * **YouTube:** ad skipping, remembered playback speed (ads and music excluded), tap on the progress
   bar to seek.
-* **Voice commands (new in 2.4):** a microphone button in both apps, or a double tap on ⏮ at the steering
-  wheel, to play songs and videos, search, open favorites and sites and control the player.
+* **Voice commands (new in 2.4):** a microphone button in both apps and on the Android Auto player, or a
+  double tap on ⏮ at the steering wheel, to play songs and videos, search, open favorites and sites and control
+  the player.
   See [Voice commands](#voice-commands).
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites (new in 2.3):** sites with a self-signed or invalid certificate (Home Assistant,
@@ -59,6 +60,8 @@ from the misuse of this application. Use at your own risk.
   search on the home page.
 * **AAWBrowser (Widescreen, Beta):** the 🎤 button in the fixed side menu, or at the top right next to search
   when the side menu is off.
+* **Android Auto player:** in the car the "AAB Media" player has a 🎤 button, which works even when nothing has
+  played yet.
 * **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (AABrowser or
   Widescreen, also in the background). It needs the Android Auto player enabled in Settings, and it works
   once something has played in AABrowser (also if paused afterwards): Android sends the media keys to the app
@@ -173,8 +176,9 @@ proprio rischio e pericolo.
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
 * **YouTube:** salto delle pubblicità, velocità di riproduzione ricordata (pubblicità e musica escluse),
   tocco sulla barra di avanzamento per spostarsi nel video.
-* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app, o doppio tocco su ⏮ al volante, per far
-  partire canzoni e video, cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
+* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app e sul player di Android Auto, o doppio
+  tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti e comandare il
+  player. Vedi [Comandi vocali](#comandi-vocali).
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa (novità 2.3):** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
@@ -193,6 +197,8 @@ proprio rischio e pericolo.
   rotondo e accanto alla ricerca nella pagina iniziale.
 * **AAWBrowser (Widescreen, Beta):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
   alla ricerca se il menu laterale è spento.
+* **Player di Android Auto:** in auto il player "AAB Media" ha un tasto 🎤, che funziona anche quando non ha
+  ancora suonato niente.
 * **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (AABrowser o
   Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni, e funziona
   dopo che in AABrowser ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti
