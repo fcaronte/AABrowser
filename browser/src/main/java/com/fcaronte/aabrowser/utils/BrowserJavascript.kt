@@ -948,6 +948,9 @@ object BrowserJavascript {
      * DRM L3 Enforcer script.
      * Patches navigator.requestMediaKeySystemAccess to enforce SW_SECURE_DECODE (DRM L3)
      * for Widevine compatibility on streaming platforms.
+     * Anche quando la pagina non chiede nessun livello (DAZN, log del 24/10/2026): Chromium usava il predefinito, L1
+     * sui telefoni L1, coi decoder normali, e la licenza arrivava ma le sue chiavi non si potevano usare ("requested
+     * key has not been loaded", errore DAZN COR-25000 su dirette e video protetti; gli highlights in chiaro andavano).
      * Credits/Inspired by: https://github.com/kododake/AABrowser/
      */
     private const val DRM_L3_ENFORCER_JS = """
@@ -971,28 +974,30 @@ object BrowserJavascript {
             if (navigator[patchKey]) return;
 
             const originalRequest = navigator.requestMediaKeySystemAccess;
+            // Livello hardware -> software; nessun livello -> quello software indicato (per l'audio il minimo,
+            // SW_SECURE_CRYPTO, che Widevine accetta sempre)
+            function softwareCapability(cap, emptyRobustness) {
+                const newCap = Object.assign({}, cap);
+                const robustness = typeof newCap.robustness === 'string' ? newCap.robustness : '';
+                if (robustness === '') {
+                    newCap.robustness = emptyRobustness;
+                } else if (robustness.startsWith('HW_SECURE')) {
+                    newCap.robustness = 'SW_SECURE_DECODE';
+                }
+                return newCap;
+            }
             const patchedRequest = function requestMediaKeySystemAccess(keySystem, configs) {
                 if (keySystem === 'com.widevine.alpha' && configs) {
                     try {
                         const newConfigs = Array.from(configs).map(config => {
                             const newConfig = Object.assign({}, config);
                             if (config.videoCapabilities) {
-                                newConfig.videoCapabilities = Array.from(config.videoCapabilities).map(cap => {
-                                    const newCap = Object.assign({}, cap);
-                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
-                                        newCap.robustness = 'SW_SECURE_DECODE';
-                                    }
-                                    return newCap;
-                                });
+                                newConfig.videoCapabilities = Array.from(config.videoCapabilities)
+                                    .map(cap => softwareCapability(cap, 'SW_SECURE_DECODE'));
                             }
                             if (config.audioCapabilities) {
-                                newConfig.audioCapabilities = Array.from(config.audioCapabilities).map(cap => {
-                                    const newCap = Object.assign({}, cap);
-                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
-                                        newCap.robustness = 'SW_SECURE_DECODE';
-                                    }
-                                    return newCap;
-                                });
+                                newConfig.audioCapabilities = Array.from(config.audioCapabilities)
+                                    .map(cap => softwareCapability(cap, 'SW_SECURE_CRYPTO'));
                             }
                             return newConfig;
                         });
