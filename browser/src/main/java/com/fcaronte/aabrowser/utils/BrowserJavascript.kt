@@ -948,12 +948,17 @@ object BrowserJavascript {
      * DRM L3 Enforcer script.
      * Patches navigator.requestMediaKeySystemAccess to enforce SW_SECURE_DECODE (DRM L3)
      * for Widevine compatibility on streaming platforms.
+     * DAZN fa eccezione: con la licenza software (L3, "level 1" nel log di Chromium) non dà la chiave del video e il
+     * player si ferma con COR-25000 (log dell'utente del 24/10/2026); lì il video chiede il livello hardware (L1,
+     * HW_SECURE_ALL) e l'audio SW_SECURE_CRYPTO. Se la WebView non lo accetta resta la richiesta della pagina.
+     * Righe "AABrowser DRM:" nella console: livelli chiesti dalla pagina, mandati, risultato e quelli usati davvero.
      * Credits/Inspired by: https://github.com/kododake/AABrowser/
      */
     private const val DRM_L3_ENFORCER_JS = """
         (function() {
+            let host = '';
             try {
-                const host = window.location.hostname;
+                host = (window.location.hostname || '').toLowerCase();
                 if (host && (
                     host === 'youtube.com' || host.endsWith('.youtube.com') ||
                     host === 'googlevideo.com' || host.endsWith('.googlevideo.com') ||
@@ -970,33 +975,52 @@ object BrowserJavascript {
             const patchKey = typeof Symbol !== 'undefined' && Symbol.for ? Symbol.for('__aab_drm_l3_enforced__') : '__aab_drm_l3_enforced__';
             if (navigator[patchKey]) return;
 
+            const isDazn = host === 'dazn.com' || host.endsWith('.dazn.com');
+
+            function rewriteCapabilities(caps, isVideo) {
+                return Array.from(caps).map(function(cap) {
+                    const newCap = Object.assign({}, cap);
+                    const robustness = typeof newCap.robustness === 'string' ? newCap.robustness : '';
+                    if (isDazn) {
+                        newCap.robustness = isVideo ? 'HW_SECURE_ALL' : 'SW_SECURE_CRYPTO';
+                    } else if (robustness.startsWith('HW_SECURE')) {
+                        newCap.robustness = 'SW_SECURE_DECODE';
+                    }
+                    return newCap;
+                });
+            }
+
+            // "v:HW_SECURE_ALL a:-" per ogni configurazione ("-" = nessun livello)
+            function describe(configs) {
+                try {
+                    return Array.from(configs).map(function(config) {
+                        const video = Array.from(config.videoCapabilities || []).map(function(c) { return c.robustness || '-'; });
+                        const audio = Array.from(config.audioCapabilities || []).map(function(c) { return c.robustness || '-'; });
+                        return 'v:' + video.join(',') + ' a:' + audio.join(',');
+                    }).join(' | ');
+                } catch (_) {
+                    return '?';
+                }
+            }
+
             const originalRequest = navigator.requestMediaKeySystemAccess;
             const patchedRequest = function requestMediaKeySystemAccess(keySystem, configs) {
                 if (keySystem === 'com.widevine.alpha' && configs) {
                     try {
-                        const newConfigs = Array.from(configs).map(config => {
+                        const newConfigs = Array.from(configs).map(function(config) {
                             const newConfig = Object.assign({}, config);
-                            if (config.videoCapabilities) {
-                                newConfig.videoCapabilities = Array.from(config.videoCapabilities).map(cap => {
-                                    const newCap = Object.assign({}, cap);
-                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
-                                        newCap.robustness = 'SW_SECURE_DECODE';
-                                    }
-                                    return newCap;
-                                });
-                            }
-                            if (config.audioCapabilities) {
-                                newConfig.audioCapabilities = Array.from(config.audioCapabilities).map(cap => {
-                                    const newCap = Object.assign({}, cap);
-                                    if (newCap.robustness && typeof newCap.robustness === 'string' && newCap.robustness.startsWith('HW_SECURE')) {
-                                        newCap.robustness = 'SW_SECURE_DECODE';
-                                    }
-                                    return newCap;
-                                });
-                            }
+                            if (config.videoCapabilities) newConfig.videoCapabilities = rewriteCapabilities(config.videoCapabilities, true);
+                            if (config.audioCapabilities) newConfig.audioCapabilities = rewriteCapabilities(config.audioCapabilities, false);
                             return newConfig;
                         });
-                        return originalRequest.call(navigator, keySystem, newConfigs).catch(function() {
+                        console.log('AABrowser DRM: page asked ' + describe(configs) + ', sent ' + describe(newConfigs));
+                        return originalRequest.call(navigator, keySystem, newConfigs).then(function(access) {
+                            try {
+                                console.log('AABrowser DRM: granted ' + describe([access.getConfiguration()]));
+                            } catch (_) {}
+                            return access;
+                        }, function(error) {
+                            console.log('AABrowser DRM: refused (' + (error && error.name) + '), using the page request');
                             return originalRequest.call(navigator, keySystem, configs);
                         });
                     } catch (_) {
@@ -1023,6 +1047,20 @@ object BrowserJavascript {
             } catch (_) {
                 navigator.requestMediaKeySystemAccess = patchedRequest;
             }
+
+            // Configurazione usata davvero dal player (la pagina può chiederne diverse e sceglierne una)
+            try {
+                const accessProto = window.MediaKeySystemAccess && window.MediaKeySystemAccess.prototype;
+                const originalCreate = accessProto && accessProto.createMediaKeys;
+                if (originalCreate) {
+                    accessProto.createMediaKeys = function createMediaKeys() {
+                        try {
+                            console.log('AABrowser DRM: media keys created for ' + describe([this.getConfiguration()]));
+                        } catch (_) {}
+                        return originalCreate.apply(this, arguments);
+                    };
+                }
+            } catch (_) {}
         })();
     """
 
