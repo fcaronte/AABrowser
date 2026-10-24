@@ -1,5 +1,7 @@
 package com.fcaronte.aabrowser
 
+import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
@@ -66,7 +68,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
             }
 
             setContent {
-                MainScreen(carInputManager = inputManager, isAutomotive = true)
+                MainScreen(carInputManager = inputManager, isAutomotive = true, bringToFront = ::bringToFront)
             }
         }
 
@@ -92,6 +94,16 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         }
 
         updateSystemUi(true)
+    }
+
+    // Comando vocale con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente): chiede ad Android Auto
+    // di riportarla davanti, come quando la si apre dal menu delle app
+    private fun bringToFront() {
+        try {
+            startCarActivity(Intent().setComponent(ComponentName(this, CarService::class.java)))
+        } catch (e: Exception) {
+            AppLog.w("MainCarActivity", "Main not brought to front: ${e.message}")
+        }
     }
 
     private fun getCarWindow(): android.view.Window? {

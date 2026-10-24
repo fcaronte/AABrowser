@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.fcaronte.aabrowser.mediaservice.CarMediaService
 import com.fcaronte.aabrowser.utils.AppLog
 
 /**
@@ -37,6 +38,14 @@ class VoiceCommandInput internal constructor(
         private set
 
     private var recognizer: SpeechRecognizer? = null
+
+    // In auto anche il player di Android Auto mostra "In ascolto…" e il testo capito. Da qui e non dalla
+    // composizione: con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮) l'interfaccia è ferma
+    private fun setListening(listening: Boolean, text: String? = null) {
+        isListening = listening
+        partialText = text
+        CarMediaService.showVoiceListening(listening, text)
+    }
 
     fun toggle() {
         if (isListening) cancel() else start()
@@ -59,22 +68,20 @@ class VoiceCommandInput internal constructor(
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
         }
-        partialText = null
-        isListening = true
+        setListening(true)
         try {
             speech.cancel()
             speech.setRecognitionListener(listener)
             speech.startListening(intent)
         } catch (e: Exception) {
             AppLog.e(TAG, "startListening failed", e)
-            isListening = false
+            setListening(false)
             onError(SpeechRecognizer.ERROR_CLIENT)
         }
     }
 
     fun cancel() {
-        isListening = false
-        partialText = null
+        setListening(false)
         try {
             recognizer?.cancel()
         } catch (_: Exception) {
@@ -100,15 +107,13 @@ class VoiceCommandInput internal constructor(
         override fun onError(error: Int) {
             // Annullato da noi (secondo tocco, schermata chiusa): niente avvisi
             if (!isListening) return
-            isListening = false
-            partialText = null
+            setListening(false)
             onError(error)
         }
 
         override fun onResults(results: Bundle?) {
             if (!isListening) return
-            isListening = false
-            partialText = null
+            setListening(false)
             val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
                 .filter { it.isNotBlank() }
             if (texts.isEmpty()) onError(SpeechRecognizer.ERROR_NO_MATCH) else onResult(texts)
@@ -117,7 +122,7 @@ class VoiceCommandInput internal constructor(
         override fun onPartialResults(partialResults: Bundle?) {
             partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull { it.isNotBlank() }
-                ?.let { partialText = it }
+                ?.let { setListening(true, it) }
         }
 
         override fun onEvent(eventType: Int, params: Bundle?) {}

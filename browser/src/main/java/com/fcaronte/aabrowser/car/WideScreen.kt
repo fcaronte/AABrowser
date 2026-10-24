@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.car
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Presentation
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -2030,6 +2031,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             },
             siteSearchUrl = { query -> SiteSearch.resolve(carContext, from, query) }
         )
+        // Con la Wide dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) si riporta davanti: si vede quello
+        // che è stato chiesto e la pagina può far partire il video (una pagina nascosta non avvia l'audio da sola).
+        // I comandi del player vanno anche così
+        if (plan !is VoiceCommands.Plan.Player && !isWideResumed) bringToFront()
         when (plan) {
             is VoiceCommands.Plan.Load -> {
                 if (plan.playFirst) {
@@ -2073,6 +2078,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
         } catch (e: Exception) {
             AppLog.w(TAG, "Voice command: Android Auto navigation not started: ${e.message}")
+        }
+    }
+
+    private fun bringToFront() {
+        try {
+            carContext.startCarApp(Intent().setComponent(ComponentName(carContext, CarServiceWide::class.java)))
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Voice command: Wide not brought to front: ${e.message}")
         }
     }
 

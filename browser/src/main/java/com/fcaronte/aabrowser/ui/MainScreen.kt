@@ -70,6 +70,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -139,7 +140,11 @@ private fun getDirSize(dir: java.io.File): Long {
 }
 
 @Composable
-fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean = false) {
+fun MainScreen(
+    carInputManager: CarInputManager? = null,
+    isAutomotive: Boolean = false,
+    bringToFront: (() -> Unit)? = null
+) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val favoritesViewModel: FavoritesViewModel = viewModel(
@@ -308,6 +313,8 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         localized.setTheme(R.style.AppTheme)
         localized
     }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     // Comandi vocali: tasto microfono (barra delle schede e menu) e "Ok Google, metti … su AABrowser".
     // Il comando diventa un piano (VoiceCommands, uguale per la Wide) e qui si esegue con le schede
     fun runVoiceCommand(command: VoiceCommands.Command) {
@@ -319,6 +326,13 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
             favoritesViewModel.favorites.toList(),
             webSearchUrl = { query -> UrlUtils.normalizeInput(query, searchBase) }
         )
+        // Con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) l'interfaccia è ferma e la pagina
+        // non si carica finché non torna davanti: Android Auto la riporta in primo piano. I comandi del player vanno
+        // anche così
+        if (plan !is VoiceCommands.Plan.Player && !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            AppLog.d("MainScreen", "Voice command with the Main behind: bringing it to front")
+            bringToFront?.invoke()
+        }
         when (plan) {
             is VoiceCommands.Plan.Load -> {
                 val favorite = plan.favorite
@@ -381,7 +395,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         onInteraction()
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
     val currentRunVoiceCommand by rememberUpdatedState<(VoiceCommands.Command) -> Unit> { runVoiceCommand(it) }
     val voiceExecutor = remember { VoiceCommandRouter.Executor { command -> currentRunVoiceCommand(command) } }
 
@@ -437,10 +450,6 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                     VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor)
                     CarMediaService.showVoiceListening(false)
                 }
-            }
-            // In auto il player mostra "In ascolto…" e il testo capito (si vede anche con l'app dietro)
-            LaunchedEffect(voiceInput.isListening, voiceInput.partialText) {
-                CarMediaService.showVoiceListening(voiceInput.isListening, voiceInput.partialText)
             }
             Box(
                 modifier = Modifier
