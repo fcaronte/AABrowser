@@ -175,7 +175,16 @@ object YouTubeManager {
                 'ytd-playlist-panel-video-renderer, ytmusic-player-queue, ytmusic-player-queue-item, ' +
                 'ytm-item-section-renderer, .playlist-items, [class*="playlist"], [class*="queue"]';
 
+            // Solo mentre suona una playlist (pagina del video con "list"). Altrove YouTube deve poter scorrere: i
+            // selettori sono larghi (ytm-item-section-renderer contiene risultati, home e commenti) e tornando ai
+            // risultati con "indietro" la posizione salvata non veniva ripristinata
+            function inPlaylist() {
+                return window.location.pathname === '/watch' &&
+                    new URLSearchParams(window.location.search).has('list');
+            }
+
             function isPlaylistElement(el) {
+                if (!inPlaylist()) return false;
                 try {
                     return el && el.closest && el.closest(PLAYLIST_SELECTOR) !== null;
                 } catch (e) {
@@ -240,7 +249,7 @@ object YouTubeManager {
             }
 
             function onTrackChange() {
-                if (window.scrollY < 120) {
+                if (inPlaylist() && window.scrollY < 120) {
                     keepVideoInView();
                     [50, 100, 200, 350, 500, 750, 1000, 1500].forEach(function(delay) {
                         setTimeout(keepVideoInView, delay);
