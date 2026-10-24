@@ -4,17 +4,6 @@ object DaznManager {
     fun getAuthProxyScript(): String = AUTH_PROXY_JS
     fun getClickInterceptorScript(): String = DAZN_CLICK_INTERCEPTOR_JS
 
-    /**
-     * Dirette e video protetti: con il DRM software dei telefoni (Widevine L3) la licenza di DAZN arriva senza la chiave
-     * del video che il player chiede, e il player si ferma con COR-25000; quello hardware (L1) la WebView lo rifiuta
-     * (log dell'utente del 24-25/10/2026). Ipotesi: la licenza L3 ha solo la definizione standard. Ai controlli dei
-     * formati sopra 576p si risponde "non supportato" (il player li chiede senza dire che sono cifrati, quindi anche
-     * gli highlights restano in definizione standard), così il player sceglie una qualità con la chiave. Nella console:
-     * chiavi della licenza col loro stato ("AABrowser DAZN: licence keys", dall'evento keystatuseschange: subito dopo
-     * update() l'elenco è ancora vuoto) e formati chiesti.
-     */
-    fun getDrmQualityScript(): String = DRM_QUALITY_JS
-
     private const val AUTH_PROXY_JS = """
         (function() {
             if (window.aabAuthProxyPatched) return;
@@ -211,74 +200,6 @@ object DaznManager {
                     return origFetch.apply(receiver, originalArgs);
                 };
             }
-        })();
-    """
-
-    private const val DRM_QUALITY_JS = """
-        (function() {
-            if (window.aabDaznDrmPatched) return;
-            window.aabDaznDrmPatched = true;
-
-            const MAX_HEIGHT = 576;
-
-            // Primi 8 byte dell'id della chiave, in esadecimale
-            function hex(source) {
-                try {
-                    const bytes = source instanceof ArrayBuffer
-                        ? new Uint8Array(source)
-                        : new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
-                    let out = '';
-                    for (let i = 0; i < Math.min(bytes.length, 8); i++) out += ('0' + bytes[i].toString(16)).slice(-2);
-                    return out;
-                } catch (e) {
-                    return '?';
-                }
-            }
-
-            // Chiavi che la licenza ha dato davvero, col loro stato (usable, output-restricted, ...), a ogni cambio
-            try {
-                const keysProto = window.MediaKeys && window.MediaKeys.prototype;
-                const originalCreateSession = keysProto && keysProto.createSession;
-                if (originalCreateSession) {
-                    keysProto.createSession = function createSession() {
-                        const session = originalCreateSession.apply(this, arguments);
-                        try {
-                            session.addEventListener('keystatuseschange', function() {
-                                const keys = [];
-                                session.keyStatuses.forEach(function(status, keyId) { keys.push(hex(keyId) + '=' + status); });
-                                console.log('AABrowser DAZN: licence keys ' + (keys.length ? keys.join(' ') : 'none'));
-                            });
-                        } catch (e) {}
-                        return session;
-                    };
-                }
-            } catch (e) {}
-
-            // Formati sopra la definizione standard: "non supportati"
-            try {
-                const capabilities = navigator.mediaCapabilities;
-                const capabilitiesProto = capabilities && Object.getPrototypeOf(capabilities);
-                const originalDecodingInfo = capabilitiesProto && capabilitiesProto.decodingInfo;
-                if (originalDecodingInfo) {
-                    const logged = new Set();
-                    capabilitiesProto.decodingInfo = function decodingInfo(config) {
-                        const video = config && config.video;
-                        const encrypted = !!(config && config.keySystemConfiguration);
-                        if (video) {
-                            const label = video.width + 'x' + video.height + (encrypted ? ' encrypted' : '');
-                            const refuse = video.height > MAX_HEIGHT;
-                            if (!logged.has(label)) {
-                                logged.add(label);
-                                console.log('AABrowser DAZN: decodingInfo ' + label + (refuse ? ' -> not supported' : ''));
-                            }
-                            if (refuse) {
-                                return Promise.resolve({ supported: false, smooth: false, powerEfficient: false, keySystemAccess: null });
-                            }
-                        }
-                        return originalDecodingInfo.apply(this, arguments);
-                    };
-                }
-            } catch (e) {}
         })();
     """
 

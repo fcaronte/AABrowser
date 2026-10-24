@@ -1336,7 +1336,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 AdBlockJavascript.YOUTUBE_ORIGINS
                             )
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
-                            WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getDrmQualityScript(), setOf("https://www.dazn.com"))
                             // Aggiungi anche lo script per salvare l'elemento attivo
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
                             // Blocca il doppio tap to zoom in tutte le pagine
