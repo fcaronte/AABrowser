@@ -19,16 +19,17 @@ object AdBlockSettings {
     private val _isYouTubeEnabled = mutableStateOf(false)
     val isYouTubeEnabled: State<Boolean> = _isYouTubeEnabled
 
-    // Rimozione anticipata (dati del player, AdBlockJavascript.getYouTubeAdPruneScript). Spenta restano 16x, muto e
-    // Salta: con le pubblicità inserite da YouTube nel video la rimozione lascia lo schermo nero per la loro durata
-    private val _isYouTubePruneEnabled = mutableStateOf(true)
+    // Rimozione anticipata (dati del player, AdBlockJavascript.getYouTubeAdPruneScript). Spenta di serie: con le
+    // pubblicità che YouTube inserisce nel video lascia lo schermo nero per la loro durata (confermato dall'utente),
+    // mentre 16x, muto e Salta le chiudono in pochi secondi. Accesa solo da chi la sceglie
+    private val _isYouTubePruneEnabled = mutableStateOf(false)
     val isYouTubePruneEnabled: State<Boolean> = _isYouTubePruneEnabled
 
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _isEnabled.value = prefs.getBoolean(KEY_ENABLED, true)
         _isYouTubeEnabled.value = prefs.getBoolean(KEY_YOUTUBE_ENABLED, false)
-        _isYouTubePruneEnabled.value = prefs.getBoolean(KEY_YOUTUBE_PRUNE, true)
+        _isYouTubePruneEnabled.value = prefs.getBoolean(KEY_YOUTUBE_PRUNE, false)
     }
 
     fun setEnabled(context: Context?, enabled: Boolean) {
