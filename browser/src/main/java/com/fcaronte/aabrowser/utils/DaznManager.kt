@@ -148,15 +148,25 @@ object DaznManager {
                 window.fetch = async function(input, init) {
                     const originalArgs = arguments;
                     const receiver = this;
-                    let request;
+                    // L'indirizzo senza costruire una Request: new Request(richiesta) ne consuma il corpo, e poi la fetch
+                    // originale falliva ("Cannot construct a Request with a Request object that has already been used",
+                    // player di DAZN)
+                    let url = '';
                     try {
-                        request = new Request(input, init);
+                        url = (input && typeof input === 'object' && 'url' in input)
+                            ? input.url
+                            : new URL(String(input), window.location.href).href;
                     } catch (e) {
                         return origFetch.apply(receiver, originalArgs);
                     }
 
-                    const url = request.url;
                     if (url && shouldProxyDaznApiRequest(url) && window.AndroidBridge && window.AndroidBridge.proxyFetch) {
+                        let request;
+                        try {
+                            request = new Request(input, init);
+                        } catch (e) {
+                            return origFetch.apply(receiver, originalArgs);
+                        }
                         try {
                             const headers = {};
                             request.headers.forEach(function(value, key) {
@@ -184,6 +194,8 @@ object DaznManager {
                         } catch (e) {
                             console.error('proxyFetch fetch error:', e);
                         }
+                        // La richiesta di partenza ha ormai il corpo consumato: si usa la copia
+                        return origFetch.call(receiver, request);
                     }
                     return origFetch.apply(receiver, originalArgs);
                 };
