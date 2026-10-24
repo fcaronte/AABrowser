@@ -948,9 +948,7 @@ object BrowserJavascript {
      * DRM L3 Enforcer script.
      * Patches navigator.requestMediaKeySystemAccess to enforce SW_SECURE_DECODE (DRM L3)
      * for Widevine compatibility on streaming platforms.
-     * DAZN fa eccezione: con la licenza software (L3, "level 1" nel log di Chromium) non dà la chiave del video e il
-     * player si ferma con COR-25000 (log dell'utente del 24/10/2026); lì il video chiede il livello hardware (L1,
-     * HW_SECURE_ALL) e l'audio SW_SECURE_CRYPTO. Se la WebView non lo accetta resta la richiesta della pagina.
+     * Il livello hardware (L1, HW_SECURE_ALL) la WebView lo rifiuta (NotSupportedError, provato su DAZN il 25/10/2026).
      * Righe "AABrowser DRM:" nella console: livelli chiesti dalla pagina, mandati, risultato e quelli usati davvero.
      * Credits/Inspired by: https://github.com/kododake/AABrowser/
      */
@@ -975,15 +973,11 @@ object BrowserJavascript {
             const patchKey = typeof Symbol !== 'undefined' && Symbol.for ? Symbol.for('__aab_drm_l3_enforced__') : '__aab_drm_l3_enforced__';
             if (navigator[patchKey]) return;
 
-            const isDazn = host === 'dazn.com' || host.endsWith('.dazn.com');
-
-            function rewriteCapabilities(caps, isVideo) {
+            function rewriteCapabilities(caps) {
                 return Array.from(caps).map(function(cap) {
                     const newCap = Object.assign({}, cap);
                     const robustness = typeof newCap.robustness === 'string' ? newCap.robustness : '';
-                    if (isDazn) {
-                        newCap.robustness = isVideo ? 'HW_SECURE_ALL' : 'SW_SECURE_CRYPTO';
-                    } else if (robustness.startsWith('HW_SECURE')) {
+                    if (robustness.startsWith('HW_SECURE')) {
                         newCap.robustness = 'SW_SECURE_DECODE';
                     }
                     return newCap;
@@ -1009,8 +1003,8 @@ object BrowserJavascript {
                     try {
                         const newConfigs = Array.from(configs).map(function(config) {
                             const newConfig = Object.assign({}, config);
-                            if (config.videoCapabilities) newConfig.videoCapabilities = rewriteCapabilities(config.videoCapabilities, true);
-                            if (config.audioCapabilities) newConfig.audioCapabilities = rewriteCapabilities(config.audioCapabilities, false);
+                            if (config.videoCapabilities) newConfig.videoCapabilities = rewriteCapabilities(config.videoCapabilities);
+                            if (config.audioCapabilities) newConfig.audioCapabilities = rewriteCapabilities(config.audioCapabilities);
                             return newConfig;
                         });
                         console.log('AABrowser DRM: page asked ' + describe(configs) + ', sent ' + describe(newConfigs));
