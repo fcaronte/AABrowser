@@ -27,16 +27,19 @@ object VoiceCommandRouter {
         fun execute(command: VoiceCommands.Command)
     }
 
-    private class Registration(val isInForeground: () -> Boolean, val executor: Executor)
+    private class Registration(val isInForeground: () -> Boolean, val executor: Executor, val listen: (() -> Unit)?)
 
     private val registrations = HashMap<Target, Registration>()
     private var pending: VoiceCommands.Command? = null
     private var pendingAt = 0L
     private val playFirstRequests = HashMap<Target, Long>()
 
-    /** La Main o la Wide è aperta: riceve i comandi (e quello in attesa, se c'è). */
-    fun register(target: Target, isInForeground: () -> Boolean, executor: Executor) {
-        registrations[target] = Registration(isInForeground, executor)
+    /**
+     * La Main o la Wide è aperta: riceve i comandi (e quello in attesa, se c'è). [listen] fa partire il suo microfono
+     * dei comandi vocali (doppio tocco su ⏮ al volante).
+     */
+    fun register(target: Target, isInForeground: () -> Boolean, executor: Executor, listen: (() -> Unit)? = null) {
+        registrations[target] = Registration(isInForeground, executor, listen)
         val waiting = pending ?: return
         pending = null
         if (SystemClock.uptimeMillis() - pendingAt <= PENDING_MS) {
@@ -54,6 +57,18 @@ object VoiceCommandRouter {
      * di quella che si apre e chi chiama può avvisare l'utente.
      */
     fun fromAssistant(query: String?): Boolean = dispatch(VoiceCommands.forAssistant(query))
+
+    /**
+     * Doppio tocco su ⏮ al volante: il microfono dei comandi vocali sulla schermata più adatta (come per
+     * l'Assistente), a prescindere da chi ha il player. false = nessuna schermata aperta.
+     */
+    fun startListening(): Boolean {
+        val target = choose() ?: return false
+        val listen = registrations[target]?.listen ?: return false
+        AppLog.d(TAG, "Voice command listening on $target")
+        listen()
+        return true
+    }
 
     /** Esegue [command] sulla schermata indicata, o sulla più adatta. */
     fun dispatch(command: VoiceCommands.Command, target: Target? = null): Boolean {

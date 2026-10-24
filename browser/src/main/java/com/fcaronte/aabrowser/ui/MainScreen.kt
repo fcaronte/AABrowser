@@ -381,18 +381,9 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
         onInteraction()
     }
 
-    // "Ok Google, metti … su AABrowser": arriva da CarMediaService finché la Main è aperta
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentRunVoiceCommand by rememberUpdatedState<(VoiceCommands.Command) -> Unit> { runVoiceCommand(it) }
     val voiceExecutor = remember { VoiceCommandRouter.Executor { command -> currentRunVoiceCommand(command) } }
-    DisposableEffect(voiceExecutor) {
-        VoiceCommandRouter.register(
-            VoiceCommandRouter.Target.MAIN,
-            isInForeground = { lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) },
-            executor = voiceExecutor
-        )
-        onDispose { VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor) }
-    }
 
     // Il contesto localizzato non risale più all'Activity: Activity e registro dei risultati
     // (selettore di file e cartelle delle pagine) vanno ripassati a parte. Sull'auto non ci sono.
@@ -428,6 +419,18 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
             val toggleVoiceCommand: () -> Unit = {
                 voiceInput.toggle()
                 onInteraction()
+            }
+
+            // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante (microfono): arrivano da
+            // CarMediaService finché la Main è aperta
+            DisposableEffect(voiceExecutor, voiceInput) {
+                VoiceCommandRouter.register(
+                    VoiceCommandRouter.Target.MAIN,
+                    isInForeground = { lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) },
+                    executor = voiceExecutor,
+                    listen = { if (!voiceInput.isListening) voiceInput.start() }
+                )
+                onDispose { VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor) }
             }
             Box(
                 modifier = Modifier

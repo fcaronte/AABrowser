@@ -289,8 +289,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
-                // "Ok Google, metti … su AABrowser" arriva qui finché la Wide è aperta
-                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor)
+                // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
+                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor) {
+                    if (!isVoiceListening) toggleVoiceCommand()
+                }
             }
 
             override fun onResume(owner: LifecycleOwner) {
@@ -1269,7 +1271,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
                             onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
                             onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
-                            onTriggerVoice = { toggleVoiceCommand() }
                         }
                         // Titolo della pagina finché il sito non invia i metadati del media
                         mediaSessionManager.fallbackTitle = { title }
