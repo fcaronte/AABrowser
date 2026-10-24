@@ -305,7 +305,6 @@
     <string name="voice_command_unavailable">Распознавание речи недоступно</string>
     <string name="voice_command_mic_permission">AABrowser нужен доступ к микрофону: разрешите его на телефоне</string>
     <string name="voice_command_open_app">Откройте AABrowser (Main или Wide), чтобы пользоваться голосовыми командами</string>
-    <string name="voice_command_navigate_failed">Нет доступного навигатора</string>
     <string name="share_logs_title">Поделиться журналами</string>
     <string name="share_logs_failed">Не удалось экспортировать журналы: %1$s</string>
     <string name="share_logs_phone_only">Поделитесь журналами с телефона</string>

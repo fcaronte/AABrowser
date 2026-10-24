@@ -305,7 +305,6 @@
     <string name="voice_command_unavailable">Speech recognition is not available</string>
     <string name="voice_command_mic_permission">AABrowser needs the microphone permission: allow it on the phone</string>
     <string name="voice_command_open_app">Open AABrowser (Main or Wide) to use voice commands</string>
-    <string name="voice_command_navigate_failed">No navigation app available</string>
     <string name="share_logs_title">Share logs</string>
     <string name="share_logs_failed">Could not export the logs: %1$s</string>
     <string name="share_logs_phone_only">Share the logs from the phone</string>

@@ -2057,16 +2057,22 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    /** "Portami a …": la destinazione al navigatore di Android Auto (Maps, Waze, ...). */
+    /**
+     * "Portami a …": le indicazioni di Google Maps nella pagina, come nella Main, e la destinazione al navigatore di
+     * Android Auto. Da sola la richiesta non bastava (prova dell'utente): la Wide è un'app di navigazione, quindi
+     * Android Auto può ridarla alla Wide stessa (WideSession.onNewIntent) invece che a Maps o Waze. Se invece la
+     * passa al navigatore, la navigazione vera prende il posto della Wide.
+     */
     private fun startNavigation(destination: String) {
+        hideCustomView()
+        loadUrl(VoiceCommands.mapsDirectionsUrl(destination))
+        showVoiceToast(carContext.getString(R.string.voice_command_navigate, destination))
         try {
             carContext.startCarApp(
                 Intent(CarContext.ACTION_NAVIGATE, Uri.parse(VoiceCommands.navigationGeoUri(destination)))
             )
-            showVoiceToast(carContext.getString(R.string.voice_command_navigate, destination))
         } catch (e: Exception) {
-            AppLog.e(TAG, "Voice command: navigation not started", e)
-            showVoiceToast(carContext.getString(R.string.voice_command_navigate_failed))
+            AppLog.w(TAG, "Voice command: Android Auto navigation not started: ${e.message}")
         }
     }
 

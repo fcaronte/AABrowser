@@ -302,7 +302,6 @@
     <string name="voice_command_unavailable">语音识别不可用</string>
     <string name="voice_command_mic_permission">AABrowser 需要麦克风权限：请在手机上授予</string>
     <string name="voice_command_open_app">打开 AABrowser（Main 或 Wide）以使用语音命令</string>
-    <string name="voice_command_navigate_failed">没有可用的导航应用</string>
     <string name="share_logs_title">分享日志</string>
     <string name="share_logs_failed">无法导出日志：%1$s</string>
     <string name="share_logs_phone_only">请在手机上分享日志</string>

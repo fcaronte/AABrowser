@@ -304,7 +304,6 @@
     <string name="voice_command_unavailable">La reconnaissance vocale n\'est pas disponible</string>
     <string name="voice_command_mic_permission">AABrowser a besoin de l\'autorisation du micro : accordez-la sur le téléphone</string>
     <string name="voice_command_open_app">Ouvrez AABrowser (Main ou Wide) pour utiliser les commandes vocales</string>
-    <string name="voice_command_navigate_failed">Aucune application de navigation disponible</string>
     <string name="share_logs_title">Partager les journaux</string>
     <string name="share_logs_failed">Impossible d\'exporter les journaux : %1$s</string>
     <string name="share_logs_phone_only">Partagez les journaux depuis le téléphone</string>

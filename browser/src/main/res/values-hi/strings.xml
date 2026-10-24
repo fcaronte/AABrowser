@@ -303,7 +303,6 @@
     <string name="voice_command_unavailable">आवाज़ पहचान उपलब्ध नहीं है</string>
     <string name="voice_command_mic_permission">AABrowser को माइक्रोफ़ोन की अनुमति चाहिए: फ़ोन पर दें</string>
     <string name="voice_command_open_app">वॉइस कमांड के लिए AABrowser (Main या Wide) खोलें</string>
-    <string name="voice_command_navigate_failed">कोई नेविगेशन ऐप उपलब्ध नहीं है</string>
     <string name="share_logs_title">लॉग शेयर करें</string>
     <string name="share_logs_failed">लॉग एक्सपोर्ट नहीं हो सके: %1$s</string>
     <string name="share_logs_phone_only">लॉग फ़ोन से शेयर करें</string>

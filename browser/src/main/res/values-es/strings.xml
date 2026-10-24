@@ -304,7 +304,6 @@
     <string name="voice_command_unavailable">El reconocimiento de voz no está disponible</string>
     <string name="voice_command_mic_permission">AABrowser necesita el permiso del micrófono: concédelo en el teléfono</string>
     <string name="voice_command_open_app">Abre AABrowser (Main o Wide) para usar los comandos de voz</string>
-    <string name="voice_command_navigate_failed">No hay ninguna app de navegación disponible</string>
     <string name="share_logs_title">Compartir registros</string>
     <string name="share_logs_failed">No se pudieron exportar los registros: %1$s</string>
     <string name="share_logs_phone_only">Comparte los registros desde el teléfono</string>

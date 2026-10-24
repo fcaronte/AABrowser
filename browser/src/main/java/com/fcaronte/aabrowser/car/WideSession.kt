@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.car
 
 import android.content.Intent
+import androidx.car.app.CarContext
 import androidx.car.app.Screen
 import androidx.car.app.Session
 import com.fcaronte.aabrowser.utils.AppLog
@@ -19,6 +20,10 @@ class WideSession : Session() {
 
     override fun onNewIntent(intent: Intent) {
         AppLog.d(TAG, "onNewIntent: ${describe(intent)}")
+        // "Portami a …" ridato alla Wide: è lei il navigatore attivo di Android Auto. La pagina di Maps è già aperta
+        if (intent.action == CarContext.ACTION_NAVIGATE) {
+            AppLog.d(TAG, "Navigation request came back to the Wide: the Maps page stays")
+        }
     }
 
     // Anche i valori degli extra: GH.TargetComponent dice quale componente Android Auto voleva aprire

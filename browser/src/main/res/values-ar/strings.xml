@@ -307,7 +307,6 @@
     <string name="voice_command_unavailable">التعرّف على الكلام غير متاح</string>
     <string name="voice_command_mic_permission">يحتاج AABrowser إلى إذن الميكروفون: امنحه من الهاتف</string>
     <string name="voice_command_open_app">افتح AABrowser (Main أو Wide) لاستخدام الأوامر الصوتية</string>
-    <string name="voice_command_navigate_failed">لا يوجد تطبيق ملاحة متاح</string>
     <string name="share_logs_title">مشاركة السجلات</string>
     <string name="share_logs_failed">تعذّر تصدير السجلات: %1$s</string>
     <string name="share_logs_phone_only">شارك السجلات من الهاتف</string>

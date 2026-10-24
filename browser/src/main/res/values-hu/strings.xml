@@ -303,7 +303,6 @@
     <string name="voice_command_unavailable">A hangfelismerés nem érhető el</string>
     <string name="voice_command_mic_permission">Az AABrowsernek mikrofonengedély kell: add meg a telefonon</string>
     <string name="voice_command_open_app">Nyisd meg az AABrowsert (Main vagy Wide) a hangparancsokhoz</string>
-    <string name="voice_command_navigate_failed">Nincs elérhető navigációs alkalmazás</string>
     <string name="share_logs_title">Naplók megosztása</string>
     <string name="share_logs_failed">Nem sikerült exportálni a naplókat: %1$s</string>
     <string name="share_logs_phone_only">A naplókat a telefonról oszd meg</string>

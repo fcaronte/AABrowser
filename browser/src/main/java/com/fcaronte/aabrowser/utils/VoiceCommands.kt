@@ -696,8 +696,11 @@ object VoiceCommands {
     fun mapsDirectionsUrl(destination: String) =
         "https://www.google.com/maps/dir/?api=1&destination=${encode(destination)}"
 
-    /** Destinazione per il navigatore di Android Auto (Wide, CarContext.ACTION_NAVIGATE). */
-    fun navigationGeoUri(destination: String) = "geo:0,0?q=${encode(destination)}"
+    /**
+     * Destinazione per il navigatore di Android Auto (Wide, CarContext.ACTION_NAVIGATE). Spazi come "+", nel
+     * formato degli esempi della documentazione di startCarApp ("geo:0,0?q=123+Main+St").
+     */
+    fun navigationGeoUri(destination: String) = "geo:0,0?q=${URLEncoder.encode(destination, "UTF-8")}"
 
     /** Pagina dei risultati di una ricerca di YouTube o YouTube Music (dove parte il primo risultato). */
     fun isSearchResultsPage(url: String?): Boolean {

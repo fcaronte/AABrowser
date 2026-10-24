@@ -252,6 +252,6 @@ class VoiceCommandsTest {
             "https://www.youtube.com/results?search_query=rock%20%26%20roll",
             VoiceCommands.youTubeSearchUrl("rock & roll")
         )
-        assertEquals("geo:0,0?q=via%20roma%2010", VoiceCommands.navigationGeoUri("via roma 10"))
+        assertEquals("geo:0,0?q=via+roma+10", VoiceCommands.navigationGeoUri("via roma 10"))
     }
 }
