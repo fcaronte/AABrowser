@@ -266,6 +266,7 @@
     <string name="skip_onboarding_button">Ich weiß, was ich tue (Überspringen)</string>
     <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>
     <string name="wide_sidebar_fixed">Fester Menü</string>
+    <string name="wide_no_favorites">Keine Favoriten. Nutzen Sie die Lupe zum Suchen.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Letzter Ordner: %1$s</string>

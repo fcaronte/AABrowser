@@ -19,6 +19,10 @@ object HomePage {
 
     const val BASE_URL = "https://home.local/"
 
+    // Link dell'avviso di aggiornamento (gestiti dalla Wide come gli interruttori "about:toggle_…")
+    const val UPDATE_DOWNLOAD = "about:update_download"
+    const val UPDATE_DISMISS = "about:update_dismiss"
+
     data class Item(
         val name: String,
         val url: String,
@@ -63,7 +67,14 @@ object HomePage {
         return list.distinct()
     }
 
-    fun build(context: Context, items: List<Item>, reopenLastPage: Boolean, sidebarFixed: Boolean = true): String {
+    /** [updateText]: avviso di una versione nuova in cima alla home (come nella home della Main), null se non c'è. */
+    fun build(
+        context: Context,
+        items: List<Item>,
+        reopenLastPage: Boolean,
+        sidebarFixed: Boolean = true,
+        updateText: String? = null
+    ): String {
         val version = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
         } catch (_: Exception) {
@@ -97,6 +108,10 @@ object HomePage {
         }
 
         val titleText = "AABrowser v$version"
+
+        val updateBanner = updateText?.let {
+            """<div class="update"><a class="update-go" href="$UPDATE_DOWNLOAD">⬇ ${it.htmlEncode()}</a><a class="update-x" href="$UPDATE_DISMISS">✕</a></div>"""
+        }.orEmpty()
 
         return """
 <!DOCTYPE html>
@@ -133,6 +148,29 @@ h1 {
     margin:0 0 14px 0;
     opacity:.9;
 }
+
+.update {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    background: rgba(29, 78, 216, 0.92);
+    border-radius: 8px;
+}
+.update-go {
+    flex: 1;
+    color: white;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    text-decoration: none;
+}
+.update-x {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 12px 18px;
+    font-size: 15px;
+    text-decoration: none;
+}
+.update:active { background: rgba(37, 99, 235, 0.95); }
 
 .settings {
     margin-bottom: 16px;
@@ -246,6 +284,8 @@ h1 {
 
 <h1>$titleText</h1>
 
+$updateBanner
+
 <div class="settings">
     <a class="toggle" href="about:toggle_reopen">
         $reopenLabel: <span style="color:$toggleColor">$toggleText</span>
@@ -258,7 +298,7 @@ h1 {
 <div class="grid">
 ${
             if (items.isEmpty())
-                """<div class="empty">Nessun preferito. Usa la lente per cercare.</div>"""
+                """<div class="empty">${context.getString(R.string.wide_no_favorites).htmlEncode()}</div>"""
             else
                 tiles
         }

@@ -122,17 +122,18 @@ object UpdateManager {
         }
     }
 
-    fun startDownload(context: Context, info: UpdateInfo) {
+    /** true = download avviato (la Wide lo dice sullo schermo dell'auto: i Toast si vedono solo sul telefono). */
+    fun startDownload(context: Context, info: UpdateInfo): Boolean {
         if (info.downloadUrl.isBlank()) {
             AppLog.e(TAG, "Cannot start download: downloadUrl is blank")
-            return
+            return false
         }
         // Il ricevitore che avvia il download è esportato (serve per DOWNLOAD_COMPLETE): qualunque app potrebbe
         // chiedergli di scaricare e far installare un APK qualsiasi. Si scaricano solo le release ufficiali
         if (!info.downloadUrl.startsWith(RELEASE_DOWNLOAD_PREFIX)) {
             AppLog.w(TAG, "Refusing download outside the official releases")
             Toast.makeText(context, context.getString(R.string.update_download_failed), Toast.LENGTH_SHORT).show()
-            return
+            return false
         }
 
         try {
@@ -194,6 +195,7 @@ object UpdateManager {
             ).show()
 
             AppLog.d(TAG, "Enqueued download ID: $downloadId for file $fileName at ${destinationFile.absolutePath}")
+            return true
         } catch (e: Exception) {
             AppLog.e(TAG, "Failed to start download: ${e.message}", e)
             Toast.makeText(
@@ -201,6 +203,7 @@ object UpdateManager {
                 context.getString(R.string.update_download_failed),
                 Toast.LENGTH_SHORT
             ).show()
+            return false
         }
     }
 

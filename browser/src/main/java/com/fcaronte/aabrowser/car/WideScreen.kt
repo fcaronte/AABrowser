@@ -76,6 +76,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -98,12 +99,14 @@ import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
+import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import kotlin.math.abs
@@ -243,6 +246,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     @Volatile
     private var homeHtml: String? = null
 
+    // Versione nuova trovata all'apertura: l'avviso in cima alla home (la home si costruisce anche dal thread di rete)
+    @Volatile
+    private var updateInfo: UpdateManager.UpdateInfo? = null
+
     private val mediaSessionManager = MediaSessionManager(carContext, MediaFocusManager.Source.WIDE_APP)
     private val handler = Handler(Looper.getMainLooper())
 
@@ -293,6 +300,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
+                checkForUpdate()
                 // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
                 VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor) {
                     if (!isVoiceListening) toggleVoiceCommand()
@@ -451,7 +459,29 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun buildHomeHtml(): String {
         favoritesCache = null
         val items = favorites().map { HomePage.Item(it.name, it.url) }
-        return HomePage.build(carContext, items, reopenEnabled(), sidebarFixedEnabled())
+        val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
+            ?.let { carContext.getString(R.string.update_available, it.latestVersion) }
+        return HomePage.build(carContext, items, reopenEnabled(), sidebarFixedEnabled(), updateText)
+    }
+
+    // Come la home della Main: all'apertura controlla se c'è una versione nuova e la mostra in cima alla home
+    private fun checkForUpdate() {
+        lifecycleScope.launch {
+            val info = UpdateManager.checkForUpdates(carContext)
+            if (!info.isAvailable) return@launch
+            updateInfo = info
+            UpdateManager.showUpdateNotification(carContext, info)
+            homeHtml = null
+            if (isHome()) showHome()
+        }
+    }
+
+    // Tocco sull'avviso: scarica e installa con KingInstaller, come dalla home della Main
+    private fun startUpdateDownload() {
+        val info = updateInfo ?: return
+        val started = UpdateManager.startDownload(carContext, info)
+        val message = carContext.getString(if (started) R.string.update_download_started else R.string.update_download_failed)
+        CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show()
     }
 
     private fun showHome() {
@@ -1662,6 +1692,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     toggleReopen()
                                     homeHtml = null
                                     carContext.finishCarApp()
+                                    return true
+                                }
+
+                                if (url.startsWith(HomePage.UPDATE_DOWNLOAD)) {
+                                    startUpdateDownload()
+                                    return true
+                                }
+
+                                if (url.startsWith(HomePage.UPDATE_DISMISS)) {
+                                    UpdateManager.isBannerDismissed = true
+                                    showHome()
                                     return true
                                 }
 
