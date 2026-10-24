@@ -144,6 +144,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Scorrimento in attesa del fotogramma da più di così: si riposta (WebView ricreata nel frattempo)
         const val SCROLL_FLUSH_STALE_MS = 500L
 
+        // Fling sulla pagina di un video di YouTube: distanza = velocità per questo tempo (scorrimento morbido)
+        const val FLING_SCROLL_SECONDS = 0.35f
+
         // Debounce per i callback di visible area (i tasti mappa appaiono/scompaiono con animazione)
         const val VISIBLE_AREA_DEBOUNCE_MS = 50L
         // Secondo passaggio, per catturare lo stato finale dell'animazione dei tasti
@@ -1020,7 +1023,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null) return
         val wv = webView ?: return
-        wv.scrollBy(distanceX.toInt(), distanceY.toInt())
+        // Pagina di un video di YouTube: niente scorrimento nativo, decide lo script (prima le colonne, video in alto)
+        if (!isYouTubeWatchPage(wv.url)) wv.scrollBy(distanceX.toInt(), distanceY.toInt())
         // La parte JavaScript una volta per fotogramma con le distanze sommate: Android Auto manda molti
         // onScroll piccoli e ognuno era uno script nella pagina
         pendingScrollX += distanceX
@@ -1047,7 +1051,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onFling(velocityX: Float, velocityY: Float) {
         if (isInputPopupVisible || customView != null) return
-        webView?.flingScroll(-velocityX.toInt(), -velocityY.toInt())
+        val wv = webView ?: return
+        if (isYouTubeWatchPage(wv.url)) {
+            // Come lo scorrimento: il fling nativo sposterebbe la pagina e il video
+            val dx = (-velocityX * FLING_SCROLL_SECONDS).toInt()
+            val dy = (-velocityY * FLING_SCROLL_SECONDS).toInt()
+            wv.evaluateJavascript(BrowserJavascript.getWideScrollScript(dx, dy, smooth = true), null)
+        } else {
+            wv.flingScroll(-velocityX.toInt(), -velocityY.toInt())
+        }
+    }
+
+    private fun isYouTubeWatchPage(url: String?): Boolean {
+        val uri = url?.let { Uri.parse(it) } ?: return false
+        val host = uri.host?.lowercase() ?: return false
+        return (host == "youtube.com" || host.endsWith(".youtube.com")) && uri.path == "/watch"
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
