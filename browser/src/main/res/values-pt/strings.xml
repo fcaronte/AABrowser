@@ -290,4 +290,7 @@
     <string name="voice_command_mic_permission">O AABrowser precisa da autorização do microfone: conceda-a no telemóvel</string>
     <string name="voice_command_open_app">Abra o AABrowser (Main ou Wide) para usar os comandos de voz</string>
     <string name="voice_command_navigate_failed">Nenhuma app de navegação disponível</string>
+    <string name="share_logs_title">Partilhar registos</string>
+    <string name="share_logs_failed">Não foi possível exportar os registos: %1$s</string>
+    <string name="share_logs_phone_only">Partilhe os registos a partir do telemóvel</string>
 </resources>

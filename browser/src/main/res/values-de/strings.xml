@@ -289,4 +289,7 @@
     <string name="voice_command_mic_permission">AABrowser braucht die Mikrofonberechtigung: Erteilen Sie sie auf dem Handy</string>
     <string name="voice_command_open_app">Öffnen Sie AABrowser (Main oder Wide), um Sprachbefehle zu nutzen</string>
     <string name="voice_command_navigate_failed">Keine Navigations-App verfügbar</string>
+    <string name="share_logs_title">Protokolle teilen</string>
+    <string name="share_logs_failed">Protokolle konnten nicht exportiert werden: %1$s</string>
+    <string name="share_logs_phone_only">Teilen Sie die Protokolle vom Handy aus</string>
 </resources>

@@ -247,4 +247,7 @@
     <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad AABrowser sul telefono</string>
     <string name="voice_command_open_app">Apri AABrowser (Main o Wide) per usare i comandi vocali</string>
     <string name="voice_command_navigate_failed">Nessun navigatore disponibile</string>
+    <string name="share_logs_title">Condividi i log</string>
+    <string name="share_logs_failed">Impossibile esportare i log: %1$s</string>
+    <string name="share_logs_phone_only">Condividi i log dal telefono</string>
 </resources>

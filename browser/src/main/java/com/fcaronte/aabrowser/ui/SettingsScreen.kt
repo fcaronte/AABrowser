@@ -2,9 +2,6 @@ package com.fcaronte.aabrowser.ui
 
 import android.Manifest
 import android.content.Context
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.core.content.FileProvider
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -17,6 +14,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -58,10 +56,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -72,8 +72,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import coil.compose.AsyncImage
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesViewModel
@@ -85,7 +86,11 @@ import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.SslExceptions
 import com.fcaronte.aabrowser.utils.WebLocation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
@@ -165,6 +170,8 @@ fun SettingsScreen(
     val dataClearedMsg = stringResource(R.string.data_cleared)
     val readmeUrl = stringResource(R.string.url_readme)
     val notAvailableInCarMsg = stringResource(R.string.not_available_in_car)
+    val shareLogsPhoneOnlyMsg = stringResource(R.string.share_logs_phone_only)
+    val logScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         val size = calculateCacheSize(context)
@@ -1133,8 +1140,11 @@ fun SettingsScreen(
                                             onTap = {
                                                 handleExternalLink(context, githubUrl, isCarMode) { qrUrlToShow = it }
                                             },
+                                            // Pressione lunga: log dell'app da condividere (segnalazioni). Solo dal
+                                            // telefono: dall'auto la scelta dell'app si aprirebbe sul telefono, fuori vista
                                             onLongPress = {
-                                                exportAndShareLogs(context)
+                                                if (isCarMode) onShowFeedback(shareLogsPhoneOnlyMsg)
+                                                else exportAndShareLogs(context, logScope)
                                             }
                                         )
                                     },
@@ -1497,28 +1507,33 @@ fun SettingsButtonItem(
     }
 }
 
-private fun exportAndShareLogs(context: Context) {
-    try {
-        val logFile = java.io.File(context.cacheDir, "AABrowser_logs.txt")
-        val process = Runtime.getRuntime().exec("logcat -d --pid=${android.os.Process.myPid()}")
-        val logText = process.inputStream.bufferedReader().use { it.readText() }
-        logFile.writeText(logText.ifBlank { "No logs captured." })
-
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            logFile
-        )
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+/**
+ * Log dell'app (logcat del suo processo) in un file da condividere. La lettura di logcat può durare qualche secondo:
+ * fuori dal thread principale, poi la scelta dell'app su quello principale.
+ */
+private fun exportAndShareLogs(context: Context, scope: CoroutineScope) {
+    scope.launch {
+        val result = withContext(Dispatchers.IO) {
+            runCatching {
+                val logFile = File(context.cacheDir, "AABrowser_logs.txt")
+                val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "--pid=${android.os.Process.myPid()}"))
+                val logText = process.inputStream.bufferedReader().use { it.readText() }
+                logFile.writeText(logText.ifBlank { "No logs captured." })
+                FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", logFile)
+            }
         }
-        val chooser = Intent.createChooser(intent, "Share Logs").apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        result.onSuccess { uri ->
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val chooser = Intent.createChooser(intent, context.getString(R.string.share_logs_title)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(chooser)
+        }.onFailure { e ->
+            Toast.makeText(context, context.getString(R.string.share_logs_failed, e.message.orEmpty()), Toast.LENGTH_SHORT).show()
         }
-        context.startActivity(chooser)
-    } catch (e: Exception) {
-        Toast.makeText(context, "Failed to export logs: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
