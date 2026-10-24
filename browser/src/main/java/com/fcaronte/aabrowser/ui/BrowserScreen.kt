@@ -594,6 +594,11 @@ fun BrowserScreen(
                         )
                         WebViewCompat.addDocumentStartJavaScript(
                             this,
+                            DaznManager.getDrmQualityScript(),
+                            setOf("https://www.dazn.com")
+                        )
+                        WebViewCompat.addDocumentStartJavaScript(
+                            this,
                             GoogleLoginManager.getGoogleOauthFixScript(),
                             setOf("*")
                         )
