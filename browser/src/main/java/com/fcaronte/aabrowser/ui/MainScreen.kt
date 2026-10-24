@@ -430,7 +430,14 @@ fun MainScreen(carInputManager: CarInputManager? = null, isAutomotive: Boolean =
                     executor = voiceExecutor,
                     listen = { if (!voiceInput.isListening) voiceInput.start() }
                 )
-                onDispose { VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor) }
+                onDispose {
+                    VoiceCommandRouter.unregister(VoiceCommandRouter.Target.MAIN, voiceExecutor)
+                    CarMediaService.showVoiceListening(false)
+                }
+            }
+            // In auto il player mostra "In ascolto…" e il testo capito (si vede anche con l'app dietro)
+            LaunchedEffect(voiceInput.isListening, voiceInput.partialText) {
+                CarMediaService.showVoiceListening(voiceInput.isListening, voiceInput.partialText)
             }
             Box(
                 modifier = Modifier

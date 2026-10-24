@@ -184,7 +184,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, loadingTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "AABrowser")
                 .build()
-            mMediasessioncompat?.setMetadata(loadingMetadata)
+            setSessionMetadata(loadingMetadata)
 
             weatherCheckJob?.cancel()
             weatherCheckJob = serviceScope.launch {
@@ -216,7 +216,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, weather.bitmap)
                             .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, weather.bitmap)
                             .build()
-                        mMediasessioncompat?.setMetadata(metadata)
+                        setSessionMetadata(metadata)
 
                         // STATE_PAUSED garantisce che Android Auto mostri la barra del player in auto senza avviare audio
                         val state = PlaybackStateCompat.Builder()
@@ -232,7 +232,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             }
         } else if (showingWeather || currentState == PlaybackStateCompat.STATE_NONE) {
             // Se il meteo non è abilitato ed è inattivo, resetta a STATE_NONE per non mostrare schede vuote
-            mMediasessioncompat?.setMetadata(MediaMetadataCompat.Builder().build())
+            setSessionMetadata(MediaMetadataCompat.Builder().build())
             val state = PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
                 .build()
@@ -389,7 +389,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
                                 .build()
-                            mMediasessioncompat!!.setMetadata(metadata)
+                            setSessionMetadata(metadata)
                             update = true
                         }
                     } else if (playbackStateCompat.state == PlaybackStateCompat.STATE_NONE ||
@@ -413,7 +413,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                         checkAndUpdateWeatherMetadata()
                     } else {
                         showingWeather = false
-                        mMediasessioncompat!!.setMetadata(mediaMetadataCompat)
+                        setSessionMetadata(mediaMetadataCompat)
                         // Niente requestAudioFocus(): il focus audio lo prende già la WebView quando suona
                         // e toglierglielo la mette subito in pausa (stesso fix di "fix spotify auto pause")
                         update = true
@@ -436,6 +436,45 @@ class CarMediaService : MediaBrowserServiceCompat() {
             .setActions(state.actions or VOICE_SEARCH_ACTIONS)
             .build()
         mMediasessioncompat?.setPlaybackState(withVoiceSearch)
+    }
+
+    // Microfono dei comandi vocali in ascolto (anche col doppio tocco su ⏮ e l'app dietro): in auto il player mostra
+    // "🎤 In ascolto…" e sotto quello che si sta capendo. I metadati che arrivano intanto (pagine, meteo) si tengono da
+    // parte e tornano alla fine
+    private var voiceListening = false
+    private var metadataUnderVoice: MediaMetadataCompat? = null
+
+    /** Metadati del player, tranne mentre si ascolta un comando vocale: allora restano da parte fino alla fine. */
+    private fun setSessionMetadata(metadata: MediaMetadataCompat) {
+        if (voiceListening) metadataUnderVoice = metadata else mMediasessioncompat?.setMetadata(metadata)
+    }
+
+    private fun applyVoiceListening(listening: Boolean, text: String?) {
+        if (!listening) {
+            if (!voiceListening) return
+            voiceListening = false
+            mMediasessioncompat?.setMetadata(metadataUnderVoice ?: MediaMetadataCompat.Builder().build())
+            metadataUnderVoice = null
+            updateNotification()
+            return
+        }
+        // Solo in auto: sul telefono l'ascolto si vede già nell'app
+        if (!voiceListening && wasConnectedToCar != true) return
+        if (!voiceListening) {
+            metadataUnderVoice = mMediacontrollercompat?.metadata
+            voiceListening = true
+        }
+        val title = "🎤 " + getString(R.string.voice_listening)
+        val subtitle = text?.takeIf { it.isNotBlank() } ?: getString(R.string.voice_command_button)
+        mMediasessioncompat?.setMetadata(
+            MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
+                .build()
+        )
+        updateNotification()
     }
 
     /** Comando vocale senza nessuna schermata aperta: Android Auto mostra l'avviso, lo stato resta com'è. */
@@ -482,7 +521,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                         }
                     }
                     .build()
-                service.mMediasessioncompat?.setMetadata(updatingMetadata)
+                service.setSessionMetadata(updatingMetadata)
                 service.updateNotification()
 
                 service.serviceScope.launch {
@@ -500,7 +539,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
                             .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, weather.bitmap)
                             .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, weather.bitmap)
                             .build()
-                        service.mMediasessioncompat?.setMetadata(metadata)
+                        service.setSessionMetadata(metadata)
 
                         val state = PlaybackStateCompat.Builder()
                             .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
@@ -674,6 +713,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
             if (wideActive == active) return
             wideActive = active
             runningService?.get()?.applySessionActivity()
+        }
+
+        /** Microfono dei comandi vocali (Main e Wide): in ascolto, con [text] capito finora, oppure finito. */
+        fun showVoiceListening(listening: Boolean, text: String? = null) {
+            runningService?.get()?.applyVoiceListening(listening, text)
         }
 
         /** Comandi vocali "pausa", "riprendi", "prossimo", "precedente": come i tasti del player di Android Auto. */

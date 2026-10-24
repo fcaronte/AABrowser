@@ -1988,7 +1988,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         override fun onPartialResults(partialResults: Bundle?) {
             partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull { it.isNotBlank() }
-                ?.let { voiceDetailReference?.text = it }
+                ?.let {
+                    voiceDetailReference?.text = it
+                    CarMediaService.showVoiceListening(true, it)
+                }
         }
 
         override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -2057,16 +2060,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    // Anche il player di Android Auto mostra "In ascolto…": si vede pure con la Wide dietro (doppio tocco su ⏮)
     private fun showVoiceCard(detail: String) {
         voiceDetailReference?.text = detail
         updateVoiceCardPosition()
         voiceCardReference?.visibility = View.VISIBLE
         sidebarVoiceButton?.setColorFilter("#EF4444".toColorInt())
+        CarMediaService.showVoiceListening(true)
     }
 
     private fun hideVoiceCard() {
         voiceCardReference?.visibility = View.GONE
         sidebarVoiceButton?.clearColorFilter()
+        CarMediaService.showVoiceListening(false)
     }
 
     // In alto nell'area libera dall'interfaccia di Android Auto, larga quanto l'area meno i margini
