@@ -300,6 +300,8 @@ object VoiceCommands {
             "busca {q} no {site}", "pesquisa {q} na {site}", "procura {q} na {site}", "pesquisa no {site} {q}",
             "найди {q} на {site}", "поищи {q} на {site}", "найди на {site} {q}", "поищи на {site} {q}",
             "keresd meg {q} a {site} oldalon", "keress a {site} oldalon {q}", "keress rá {q} a {site} oldalon",
+            // Davanti a vocale l'articolo è "az": "az amazon oldalon", "az ebay oldalon"
+            "keresd meg {q} az {site} oldalon", "keress az {site} oldalon {q}", "keress rá {q} az {site} oldalon",
             "ابحث عن {q} في {site}", "ابحث عن {q} على {site}", "ابحث في {site} عن {q}", "ابحث على {site} عن {q}",
             "{site} पर {q} खोजो", "{site} पर {q} सर्च करो", "{site} पर {q} ढूंढो",
             "在~{site}~上搜索~{q}", "在~{site}~搜索~{q}", "在~{site}~上找~{q}"
