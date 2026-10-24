@@ -27,9 +27,10 @@ from the misuse of this application. Use at your own risk.
 ## Main features
 
 * **Two apps on Android Auto:** **AABrowser**, the full browser with tabs, and **AAWBrowser
-  (Widescreen, Beta)**, which uses the whole map area, in full screen or in split view next to the player
-  or the app menu, with a fixed side menu. *Beta limits:* only the full-screen Android Auto keyboard,
-  no double-tap zoom, no drag gestures (you seek by tapping the progress bar).
+  (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
+  or the app menu, with a fixed side menu. *Limits set by Android Auto for this kind of app:* only the
+  full-screen Android Auto keyboard, no double-tap zoom, no drag gestures (you seek by tapping the progress
+  bar).
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
@@ -58,10 +59,11 @@ from the misuse of this application. Use at your own risk.
 
 * **AABrowser:** the 🎤 button in the tab bar (left of the shield), in the round navigation menu and next to
   search on the home page.
-* **AAWBrowser (Widescreen, Beta):** the 🎤 button in the fixed side menu, or at the top right next to search
+* **AAWBrowser (Widescreen):** the 🎤 button in the fixed side menu, or at the top right next to search
   when the side menu is off.
-* **Android Auto player:** in the car the "AAB Media" player has a 🎤 button, which works even when nothing has
-  played yet.
+* **Android Auto player:** in the car, while the "AAB Media" player shows the weather, it has a 🎤 button, which
+  works even when nothing has played yet (with a page playing, the player keeps its own buttons: use the double
+  tap).
 * **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (AABrowser or
   Widescreen, also in the background). It needs the Android Auto player enabled in Settings, and it works
   once something has played in AABrowser (also if paused afterwards): Android sends the media keys to the app
@@ -164,10 +166,10 @@ proprio rischio e pericolo.
 ## Funzioni principali
 
 * **Due app su Android Auto:** **AABrowser**, il browser completo con le schede, e **AAWBrowser
-  (Widescreen, Beta)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
-  o al menu delle app, con il menu laterale fisso. *Limiti della Beta:* solo la tastiera a schermo intero
-  di Android Auto, niente zoom col doppio tocco, niente trascinamenti (nel video ci si sposta toccando la
-  barra di avanzamento).
+  (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
+  o al menu delle app, con il menu laterale fisso. *Limiti imposti da Android Auto a questo tipo di app:*
+  solo la tastiera a schermo intero di Android Auto, niente zoom col doppio tocco, niente trascinamenti (nel
+  video ci si sposta toccando la barra di avanzamento).
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
@@ -195,10 +197,11 @@ proprio rischio e pericolo.
 
 * **AABrowser:** il pulsante 🎤 nella barra delle schede (a sinistra dello scudo), nel menu di navigazione
   rotondo e accanto alla ricerca nella pagina iniziale.
-* **AAWBrowser (Widescreen, Beta):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
+* **AAWBrowser (Widescreen):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
   alla ricerca se il menu laterale è spento.
-* **Player di Android Auto:** in auto il player "AAB Media" ha un tasto 🎤, che funziona anche quando non ha
-  ancora suonato niente.
+* **Player di Android Auto:** in auto, quando il player "AAB Media" mostra il meteo, ha un tasto 🎤 che funziona
+  anche quando non ha ancora suonato niente (con una pagina che suona il player tiene i suoi tasti: usa il doppio
+  tocco).
 * **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (AABrowser o
   Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni, e funziona
   dopo che in AABrowser ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti

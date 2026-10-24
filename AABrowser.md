@@ -41,7 +41,7 @@
 
 \## 3. Core Modules & Key Features
 
-\### AABrowser Widescreen (Wide Mode / Beta)
+\### AABrowser Widescreen (Wide Mode)
 
 \- \*\*Concept\*\*: Native Android Auto template-based UI (inspired by apps like Xtream Player) occupying the primary screen space (navigation/map area).
 
@@ -53,7 +53,7 @@
 
   - \*Hard Constraint\*: Android Auto stock template framework enforces that the right stock bar MUST keep at least one action button locked at the top-right corner.
 
-  - \*Beta Limitations\*: Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving). Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
+  - \*Android Auto Limitations\* (set by Google for Car App Library apps, not bugs; the "Beta" label was dropped in 2.4): Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving). Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
 
 \### Web Engine & Injected JavaScript
 
@@ -99,7 +99,7 @@ When tasked with creating release updates, strictly follow this format:
 
 \- \*\*Bi-lingual\*\*: Provide notes in \*\*Italian (🇮🇹)\*\* first, followed by \*\*English (🇬🇧)\*\*.
 
-\- \*\*Widescreen Disclaimer\*\*: If referencing Wide Mode features, explicitly label them as \*\*Beta\*\* and highlight current functional constraints (e.g., keyboard/zoom limits).
+\- \*\*Widescreen Disclaimer\*\*: If referencing Wide Mode features, highlight the constraints imposed by Android Auto (e.g., keyboard/zoom limits). Since 2.4 Wide Mode is no longer labeled \*\*Beta\*\*.
 
 \- \*\*Donation Section\*\*: End EVERY release note in both languages with styled clickable Markdown links (do NOT output raw URLs in text):
 
