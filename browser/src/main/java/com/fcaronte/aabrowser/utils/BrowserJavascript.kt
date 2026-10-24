@@ -946,11 +946,13 @@ object BrowserJavascript {
 
     /**
      * DRM L3 Enforcer script.
-     * Patches navigator.requestMediaKeySystemAccess to enforce SW_SECURE_DECODE (DRM L3)
-     * for Widevine compatibility on streaming platforms.
-     * Anche quando la pagina non chiede nessun livello (DAZN, log del 24/10/2026): Chromium usava il predefinito, L1
-     * sui telefoni L1, coi decoder normali, e la licenza arrivava ma le sue chiavi non si potevano usare ("requested
-     * key has not been loaded", errore DAZN COR-25000 su dirette e video protetti; gli highlights in chiaro andavano).
+     * Patches navigator.requestMediaKeySystemAccess so Widevine always runs at L3 (software) in the WebViews.
+     * Su Android solo SW_SECURE_CRYPTO è il livello software: da SW_SECURE_DECODE in su Chromium chiede decoder
+     * hardware sicuri (L1), e senza livello usa quello del telefono (L1 sui telefoni L1) coi decoder normali. In tutti e
+     * due i casi DAZN riceveva la licenza ma le chiavi non si potevano usare ("requested key has not been loaded",
+     * errore COR-25000 su dirette e video protetti; log dell'utente del 24/10/2026). Ogni livello Widevine diventa
+     * quindi SW_SECURE_CRYPTO; se la richiesta viene rifiutata si usa quella della pagina. Righe "AABrowser DRM:" nella
+     * console: livelli chiesti dalla pagina, mandati e risultato.
      * Credits/Inspired by: https://github.com/kododake/AABrowser/
      */
     private const val DRM_L3_ENFORCER_JS = """
@@ -973,42 +975,56 @@ object BrowserJavascript {
             const patchKey = typeof Symbol !== 'undefined' && Symbol.for ? Symbol.for('__aab_drm_l3_enforced__') : '__aab_drm_l3_enforced__';
             if (navigator[patchKey]) return;
 
-            const originalRequest = navigator.requestMediaKeySystemAccess;
-            // Livello hardware -> software; nessun livello -> quello software indicato (per l'audio il minimo,
-            // SW_SECURE_CRYPTO, che Widevine accetta sempre)
-            function softwareCapability(cap, emptyRobustness) {
-                const newCap = Object.assign({}, cap);
-                const robustness = typeof newCap.robustness === 'string' ? newCap.robustness : '';
-                if (robustness === '') {
-                    newCap.robustness = emptyRobustness;
-                } else if (robustness.startsWith('HW_SECURE')) {
-                    newCap.robustness = 'SW_SECURE_DECODE';
-                }
-                return newCap;
+            const L3_ROBUSTNESS = 'SW_SECURE_CRYPTO';
+            const proto = Object.getPrototypeOf(navigator);
+            const originalRequest = (proto && proto.requestMediaKeySystemAccess) || navigator.requestMediaKeySystemAccess;
+
+            function softwareCapabilities(caps) {
+                return Array.from(caps).map(function(cap) {
+                    const newCap = Object.assign({}, cap);
+                    newCap.robustness = L3_ROBUSTNESS;
+                    return newCap;
+                });
             }
+
+            // "v:SW_SECURE_CRYPTO,- a:-" per ogni configurazione ("-" = nessun livello)
+            function describe(configs) {
+                try {
+                    return Array.from(configs).map(function(config) {
+                        const video = Array.from(config.videoCapabilities || []).map(function(c) { return c.robustness || '-'; });
+                        const audio = Array.from(config.audioCapabilities || []).map(function(c) { return c.robustness || '-'; });
+                        return 'v:' + video.join(',') + ' a:' + audio.join(',');
+                    }).join(' | ');
+                } catch (_) {
+                    return '?';
+                }
+            }
+
             const patchedRequest = function requestMediaKeySystemAccess(keySystem, configs) {
+                const target = this && this !== window ? this : navigator;
                 if (keySystem === 'com.widevine.alpha' && configs) {
                     try {
-                        const newConfigs = Array.from(configs).map(config => {
+                        const newConfigs = Array.from(configs).map(function(config) {
                             const newConfig = Object.assign({}, config);
-                            if (config.videoCapabilities) {
-                                newConfig.videoCapabilities = Array.from(config.videoCapabilities)
-                                    .map(cap => softwareCapability(cap, 'SW_SECURE_DECODE'));
-                            }
-                            if (config.audioCapabilities) {
-                                newConfig.audioCapabilities = Array.from(config.audioCapabilities)
-                                    .map(cap => softwareCapability(cap, 'SW_SECURE_CRYPTO'));
-                            }
+                            if (config.videoCapabilities) newConfig.videoCapabilities = softwareCapabilities(config.videoCapabilities);
+                            if (config.audioCapabilities) newConfig.audioCapabilities = softwareCapabilities(config.audioCapabilities);
                             return newConfig;
                         });
-                        return originalRequest.call(navigator, keySystem, newConfigs).catch(function() {
-                            return originalRequest.call(navigator, keySystem, configs);
+                        console.log('AABrowser DRM: page asked ' + describe(configs) + ', sent ' + describe(newConfigs));
+                        return originalRequest.call(target, keySystem, newConfigs).then(function(access) {
+                            try {
+                                console.log('AABrowser DRM: L3 granted ' + describe([access.getConfiguration()]));
+                            } catch (_) {}
+                            return access;
+                        }, function(error) {
+                            console.log('AABrowser DRM: L3 refused (' + (error && error.name) + ': ' + (error && error.message) + '), using the page request');
+                            return originalRequest.call(target, keySystem, configs);
                         });
                     } catch (_) {
-                        return originalRequest.call(navigator, keySystem, configs);
+                        return originalRequest.call(target, keySystem, configs);
                     }
                 }
-                return originalRequest.call(navigator, keySystem, configs);
+                return originalRequest.call(target, keySystem, configs);
             };
 
             try {
@@ -1020,6 +1036,19 @@ object BrowserJavascript {
 
             try {
                 Object.defineProperty(navigator, patchKey, { value: true, enumerable: false, configurable: false });
+            } catch (_) {}
+            // Sul prototipo e sull'oggetto: un player che chiama Navigator.prototype.requestMediaKeySystemAccess
+            // passa di qui lo stesso
+            try {
+                if (proto) {
+                    Object.defineProperty(proto, 'requestMediaKeySystemAccess', {
+                        value: patchedRequest,
+                        writable: true,
+                        configurable: true
+                    });
+                }
+            } catch (_) {}
+            try {
                 Object.defineProperty(navigator, 'requestMediaKeySystemAccess', {
                     value: patchedRequest,
                     writable: true,
