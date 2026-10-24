@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
+import com.fcaronte.aabrowser.R
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -53,20 +54,22 @@ data class WeatherData(
     val isDay: Boolean = true
 )
 
-fun getWeatherDescription(code: Int, isDay: Boolean = true): String {
-    return when (code) {
-        0 -> if (isDay) "Sereno" else "Notte serena"
-        1, 2 -> "Parz. nuvoloso"
-        3 -> "Nuvoloso"
-        45, 48 -> "Nebbia"
-        51, 53, 55, 56, 57 -> "Pioviggine"
-        61, 63, 65, 66, 67 -> "Pioggia"
-        71, 73, 75, 77 -> "Neve"
-        80, 81, 82 -> "Rovesci"
-        85, 86 -> "Nevicate"
-        95, 96, 99 -> "Temporale"
-        else -> "Meteo"
+// Nella lingua dell'app (prima sempre in italiano, anche sul player di Android Auto)
+fun getWeatherDescription(context: Context, code: Int, isDay: Boolean = true): String {
+    val res = when (code) {
+        0 -> if (isDay) R.string.weather_clear else R.string.weather_clear_night
+        1, 2 -> R.string.weather_partly_cloudy
+        3 -> R.string.weather_cloudy
+        45, 48 -> R.string.weather_fog
+        51, 53, 55, 56, 57 -> R.string.weather_drizzle
+        61, 63, 65, 66, 67 -> R.string.weather_rain
+        71, 73, 75, 77 -> R.string.weather_snow
+        80, 81, 82 -> R.string.weather_showers
+        85, 86 -> R.string.weather_snow_showers
+        95, 96, 99 -> R.string.weather_thunderstorm
+        else -> R.string.weather_generic
     }
+    return context.getString(res)
 }
 
 fun getWeatherIcon(code: Int, isDay: Boolean = true): ImageVector {
@@ -374,7 +377,7 @@ suspend fun fetchWeather(context: Context): WeatherData? {
                     WeatherData(
                         temperature = temp,
                         weatherCode = code,
-                        description = getWeatherDescription(code, isDay),
+                        description = getWeatherDescription(context, code, isDay),
                         locationName = locationName,
                         icon = getWeatherIcon(code, isDay),
                         bitmap = createWeatherBitmap(code, isDay),

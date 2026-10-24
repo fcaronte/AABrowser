@@ -234,7 +234,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             // arrivato si mostra solo se showingWeather è vero
             showingWeather = true
             // Mostra subito uno stato di caricamento per dare feedback all'utente
-            val loadingTitle = "Meteo: recupero posizione..."
+            val loadingTitle = getString(R.string.weather_loading)
             val loadingMetadata = MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, loadingTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "AABrowser")
@@ -571,15 +571,16 @@ class CarMediaService : MediaBrowserServiceCompat() {
             // Scheda del meteo, anche mentre carica o mentre il player mostra "In ascolto…": ▶ aggiorna il meteo.
             // Fuori dall'auto il meteo non c'è: ▶ (es. cuffie) va alla pagina
             val weatherCard = service.isWeatherEnabled() && service.isInCar() &&
-                    (service.showingWeather || currentTitle.contains("°C") || currentTitle.contains("aggiornando"))
+                    (service.showingWeather || currentTitle.contains("°C") ||
+                            currentTitle == service.getString(R.string.weather_updating))
             if (weatherCard) {
                 AppLog.d(TAG, "Play pressed in weather mode -> showing updating message and refreshing weather")
                 
                 service.showingWeather = true
                 service.isUserPaused = false
 
-                val updatingTitle = "Sto aggiornando..."
-                val artistStr = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: "Meteo"
+                val updatingTitle = service.getString(R.string.weather_updating)
+                val artistStr = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: service.getString(R.string.weather_generic)
                 val existingBitmap = service.mMediacontrollercompat?.metadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
                 val updatingMetadata = MediaMetadataCompat.Builder()
