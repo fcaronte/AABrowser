@@ -39,7 +39,7 @@ from the misuse of this application. Use at your own risk.
 * **YouTube:** ad skipping, remembered playback speed (ads and music excluded), tap on the progress
   bar to seek.
 * **Voice commands (new in 2.4):** a microphone button in both apps, or a double tap on ⏮ at the steering
-  wheel, to play songs and videos, search, open favorites and sites, get directions and control the player.
+  wheel, to play songs and videos, search, open favorites and sites and control the player.
   See [Voice commands](#voice-commands).
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites (new in 2.3):** sites with a self-signed or invalid certificate (Home Assistant,
@@ -60,10 +60,12 @@ from the misuse of this application. Use at your own risk.
 * **AAWBrowser (Widescreen, Beta):** the 🎤 button in the fixed side menu, or at the top right next to search
   when the side menu is off.
 * **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (AABrowser or
-  Widescreen, also in the background). It needs the Android Auto player enabled in Settings and AABrowser as
-  the media source of Android Auto (the "AAB Media" card shows the weather or what is playing): when the car
-  radio or another app is playing, the keys go to them (for example the radio changes station). A single
-  press still means "previous", after a short wait.
+  Widescreen, also in the background). It needs the Android Auto player enabled in Settings, and it works
+  once something has played in AABrowser (also if paused afterwards): Android sends the media keys to the app
+  that last played audio, not to the card shown by Android Auto, and the weather card plays nothing on
+  purpose so it does not take the car audio away from the radio. When the car radio or another app is
+  playing, the keys go to them (for example the radio changes station). A single press still means
+  "previous", after a short wait.
 * While listening, the Android Auto player shows "🎤 Listening…" with the words understood so far.
 
 The first time, allow the microphone on the phone: the car screen cannot show the permission request.
@@ -80,7 +82,6 @@ app is set to)
 | "search *something*" | search on the open site (YouTube, YouTube Music) or with your search engine |
 | "search *something* on Google" | search with your search engine |
 | "open *favorite*", "open repubblica dot it" | opens a favorite (by name or site) or a spoken address |
-| "take me to *address*" | AABrowser: Google Maps directions in a new tab; Widescreen: Android Auto navigation (Maps or Waze) |
 | "back", "reload", "home" | page navigation |
 | "pause", "resume", "next", "previous" | the Android Auto player |
 
@@ -173,8 +174,7 @@ proprio rischio e pericolo.
 * **YouTube:** salto delle pubblicità, velocità di riproduzione ricordata (pubblicità e musica escluse),
   tocco sulla barra di avanzamento per spostarsi nel video.
 * **Comandi vocali (novità 2.4):** pulsante microfono nelle due app, o doppio tocco su ⏮ al volante, per far
-  partire canzoni e video, cercare, aprire preferiti e siti, farsi portare a un indirizzo e comandare il
-  player. Vedi [Comandi vocali](#comandi-vocali).
+  partire canzoni e video, cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa (novità 2.3):** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
@@ -194,10 +194,12 @@ proprio rischio e pericolo.
 * **AAWBrowser (Widescreen, Beta):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
   alla ricerca se il menu laterale è spento.
 * **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (AABrowser o
-  Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni e AABrowser
-  come sorgente multimediale di Android Auto (la scheda "AAB Media" mostra il meteo o quello che suona): se
-  suonano la radio dell'auto o un'altra app, i tasti vanno a loro (per esempio la radio cambia stazione). Un
-  tocco singolo resta "indietro", dopo un attimo di attesa.
+  Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni, e funziona
+  dopo che in AABrowser ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti
+  multimediali all'ultima app che ha riprodotto audio, non alla scheda mostrata da Android Auto, e la scheda
+  del meteo apposta non riproduce niente per non togliere l'audio alla radio. Se suonano la radio dell'auto o
+  un'altra app, i tasti vanno a loro (per esempio la radio cambia stazione). Un tocco singolo resta
+  "indietro", dopo un attimo di attesa.
 * Durante l'ascolto il player di Android Auto mostra "🎤 In ascolto…" con le parole capite fin lì.
 
 La prima volta consenti il microfono sul telefono: lo schermo dell'auto non può mostrare la richiesta.
@@ -214,7 +216,6 @@ impostata)
 | "cerca *qualcosa*" | ricerca sul sito aperto (YouTube, YouTube Music) o col motore di ricerca |
 | "cerca *qualcosa* su Google" | ricerca col motore di ricerca scelto |
 | "apri *preferito*", "apri repubblica punto it" | apre un preferito (per nome o sito) o un indirizzo detto a voce |
-| "portami a *indirizzo*" | AABrowser: indicazioni di Google Maps in una nuova scheda; Widescreen: navigazione di Android Auto (Maps o Waze) |
 | "indietro", "ricarica", "home" | navigazione della pagina |
 | "pausa", "riprendi", "prossimo", "precedente" | il player di Android Auto |
 
