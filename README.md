@@ -51,7 +51,7 @@ from the misuse of this application. Use at your own risk.
 * **Files for web pages:** file and folder picker without storage permissions.
 * **Location for websites (new in 2.4, optional):** Google Maps and the other sites in the browser can see
   where you are.
-* **And more:** DRM (Widevine L3), weather on the Android Auto player when nothing plays (only in the car),
+* **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
   through KingInstaller.
 
@@ -89,7 +89,7 @@ app is set to)
 | "play *song* on YouTube", "play *song* on YouTube Music" | searches and plays the first result |
 | "play *song*" | the same, on YouTube Music if it is open, otherwise on YouTube |
 | "search *something* on YouTube" | YouTube results |
-| "search *shoes* on Amazon", "search Google Maps for *pizzeria*" | the site's own search: Amazon and eBay of your country, Wikipedia in your language, Reddit, IMDb, Twitch, Netflix, Google Maps, DAZN, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, or one of your favorites |
+| "search *shoes* on Amazon", "search Google Maps for *pizzeria*" | the site's own search: Amazon and eBay of your country, Wikipedia in your language, Reddit, IMDb, Twitch, Netflix, Google Maps, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, or one of your favorites |
 | "search *something*" | search on the open site (YouTube, YouTube Music) or with your search engine |
 | "search *something* on Google" | search with your search engine |
 | "open *favorite*", "open repubblica dot it" | opens a favorite (by name or site) or a spoken address |
@@ -119,6 +119,7 @@ of those sessions.
 ## Disclaimer & Compatibility
 
 * **It’s a bit buggy:** Expect some "surprises" here and there. It's a work in progress!
+* **Protected content (DRM):** the Android WebView only offers Widevine L3, the software protection level. Sites that require the hardware level (Widevine L1) for their content, as live sports and paid movie and TV services often do, cannot work: it is a technical limit of the Android WebView, not of the app. Content protected at L3, like Spotify's music, plays normally.
 * **Visibility on Android Auto:** The app is currently only visible if you use an "unlocking device" like **AAWireless**, an open-source solution like [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (which can be installed on a Raspberry Pi and includes app unlocking among its features), or if it's installed via [KingInstaller](https://github.com/fcaronte/KingInstaller/releases) (to bypass Play Store restrictions).
 * **Compatibility & Installation via KingInstaller:**
   * **Samsung & Pixel:** Works directly without requiring Shizuku.
@@ -197,7 +198,7 @@ proprio rischio e pericolo.
 * **File per le pagine web:** scelta di file e cartelle senza permessi di archiviazione.
 * **Posizione per i siti web (novità 2.4, facoltativa):** Google Maps e gli altri siti nel browser possono
   vedere dove sei.
-* **E poi:** DRM (Widevine L3), meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
+* **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
   aggiornamenti tramite KingInstaller.
 
@@ -235,7 +236,7 @@ impostata)
 | "metti *canzone* su YouTube", "metti *canzone* su YouTube Music" | cerca e fa partire il primo risultato |
 | "metti *canzone*" | lo stesso, su YouTube Music se è aperto, altrimenti su YouTube |
 | "cerca *qualcosa* su YouTube" | risultati di YouTube |
-| "cerca *scarpe* su Amazon", "cerca su Google Maps *pizzeria*" | la ricerca del sito: Amazon ed eBay del tuo paese, Wikipedia nella tua lingua, Reddit, IMDb, Twitch, Netflix, Google Maps, DAZN, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, o un tuo preferito |
+| "cerca *scarpe* su Amazon", "cerca su Google Maps *pizzeria*" | la ricerca del sito: Amazon ed eBay del tuo paese, Wikipedia nella tua lingua, Reddit, IMDb, Twitch, Netflix, Google Maps, Google News, Booking, Tripadvisor, Subito, GitHub, X, Facebook, TikTok, Pinterest, o un tuo preferito |
 | "cerca *qualcosa*" | ricerca sul sito aperto (YouTube, YouTube Music) o col motore di ricerca |
 | "cerca *qualcosa* su Google" | ricerca col motore di ricerca scelto |
 | "apri *preferito*", "apri repubblica punto it" | apre un preferito (per nome o sito) o un indirizzo detto a voce |
@@ -265,6 +266,7 @@ sono nati da quelle sessioni.
 ## Disclaimer & Compatibilità
 
 * **Ci sono dei bug:** Aspettatevi qualche sorpresa qua e là. È un work in progress!
+* **Contenuti protetti (DRM):** la WebView di Android offre solo Widevine L3, il livello di protezione software. I siti che per i loro contenuti richiedono il livello hardware (Widevine L1), come spesso fanno le dirette sportive e i servizi di film e serie a pagamento, non possono funzionare: è un limite tecnico della WebView di Android, non dell'app. I contenuti protetti a livello L3, come la musica di Spotify, si riproducono normalmente.
 * **Visibilità su Android Auto:** L'app al momento si vede solo se utilizzi un dispositivo di "sblocco" tipo **AAWireless**, una soluzione open source come [aa-proxy-rs](https://github.com/aa-proxy/aa-proxy-rs) (installabile su Raspberry Pi o simili, che tra le sue funzioni include lo sblocco delle app), o se viene installata con [KingInstaller](https://github.com/fcaronte/KingInstaller/releases) (per bypassare le restrizioni del Play Store).
 * **Compatibilità & Installazione tramite KingInstaller:**
   * **Samsung & Pixel:** Funziona direttamente senza necessità di Shizuku.
