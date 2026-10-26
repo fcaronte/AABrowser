@@ -204,8 +204,6 @@
     <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
     <string name="favorite_default_name_8" translatable="false">Poki</string>
     <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
-    <string name="favorite_default_name_9" translatable="false">DAZN</string>
-    <string name="favorite_default_url_9" translatable="false">https://www.dazn.com/it-IT/home</string>
     <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
     <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
     <string name="favorite_default_name_11" translatable="false">AAB Media</string>

@@ -100,7 +100,6 @@ class FavoritesRepository(private val context: Context) {
             FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFFFF0000),
             FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFFFF9800),
             FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFF9C27B0),
-            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFFF50000),
             FavoriteSite("10", context.getString(R.string.favorite_default_name_10), context.getString(R.string.favorite_default_url_10), 0xFFE91E63),
             FavoriteSite("11", context.getString(R.string.favorite_default_name_11), context.getString(R.string.favorite_default_url_11), 0xFF00BCD4)
         )
@@ -138,7 +137,9 @@ class FavoritesRepository(private val context: Context) {
         private const val OLD_PLAYER_NAME = "AABrowser Player"
 
         // Nuovo preferito predefinito: aggiungilo in getDefaultFavorites() con un id nuovo, segnalo qui sotto con
-        // DEFAULTS_VERSION + 1 e alza DEFAULTS_VERSION. Chi aggiorna l'app lo trova una volta in fondo ai preferiti
+        // DEFAULTS_VERSION + 1 e alza DEFAULTS_VERSION. Chi aggiorna l'app lo trova una volta in fondo ai preferiti.
+        // Id tolti, da non riusare: "9" (DAZN, 2.5: dirette e contenuti protetti non vanno nella WebView; chi lo
+        // aveva già lo tiene)
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
         private const val DEFAULTS_VERSION = 2
