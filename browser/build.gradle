@@ -100,7 +100,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs/v4', include: ['*.jar', '*.aar'])
-    implementation fileTree(dir: 'libs/v5', include: ['*.jar', '*.aar'], exclude: ['android-support-car.aar', 'gearhead-sdk.aar', 'gearhead-sdk-ui.aar'])
 
     implementation libs.androidx.appcompat
     implementation libs.androidx.constraintlayout
