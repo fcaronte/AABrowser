@@ -49,8 +49,10 @@ from the misuse of this application. Use at your own risk.
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
   certificate; local network permission on Android 17.
 * **Files for web pages:** file and folder picker without storage permissions.
-* **Location for websites (new in 2.4, optional):** Google Maps and the other sites in the browser can see
-  where you are.
+* **Location for websites (optional):** Google Maps and the other sites in the browser can see where you are.
+* **Site permissions (new in 2.5):** microphone, location and, in the car, the files picked on the phone go to a
+  site only after it asks: "Always allow", "Only this time" or "Don't allow". The choices are listed in
+  Settings > Web Pages, where you can remove them one by one or all together (Clear data).
 * **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
   through KingInstaller.
@@ -196,8 +198,10 @@ proprio rischio e pericolo.
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
   sito e quel certificato; permesso rete locale su Android 17.
 * **File per le pagine web:** scelta di file e cartelle senza permessi di archiviazione.
-* **Posizione per i siti web (novità 2.4, facoltativa):** Google Maps e gli altri siti nel browser possono
-  vedere dove sei.
+* **Posizione per i siti web (facoltativa):** Google Maps e gli altri siti nel browser possono vedere dove sei.
+* **Permessi dei siti (novità 2.5):** microfono, posizione e, in auto, i file scelti sul telefono arrivano a un
+  sito solo dopo che lo ha chiesto: "Consenti sempre", "Solo questa volta" o "Non consentire". Le scelte sono in
+  Impostazioni > Pagine Web, dove si tolgono una per una o tutte insieme (Cancella dati).
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
   aggiornamenti tramite KingInstaller.
