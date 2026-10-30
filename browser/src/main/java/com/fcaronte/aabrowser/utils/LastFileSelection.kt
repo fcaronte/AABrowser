@@ -1,11 +1,13 @@
 package com.fcaronte.aabrowser.utils
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.webkit.ValueCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -47,8 +49,20 @@ object LastFileSelection {
         }
     }
 
+    /** C'è una scelta del telefono da dare alla pagina ([mode] = modo della richiesta della WebView). */
+    @SuppressLint("InlinedApi") // MODE_OPEN_FOLDER è una costante: arriva solo dalle WebView con File System Access
+    fun hasSelection(context: Context, mode: Int): Boolean =
+        rememberedFolder(context) != null || (mode != FileChooserParams.MODE_OPEN_FOLDER && files != null)
+
     /** Risponde con l'ultima scelta; false se dal telefono non è ancora stato scelto nulla (la WebView annulla). */
-    fun deliver(context: Context, callback: ValueCallback<Array<Uri>>): Boolean {
+    @SuppressLint("InlinedApi")
+    fun deliver(context: Context, callback: ValueCallback<Array<Uri>>, mode: Int): Boolean {
+        // showDirectoryPicker(): la pagina vuole la cartella, non i suoi file
+        if (mode == FileChooserParams.MODE_OPEN_FOLDER) {
+            val folder = rememberedFolder(context) ?: return false
+            callback.onReceiveValue(arrayOf(folder))
+            return true
+        }
         files?.let {
             callback.onReceiveValue(it)
             return true

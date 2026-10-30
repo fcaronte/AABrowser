@@ -148,10 +148,10 @@ object AppSettings {
     private val _onboardingCompleted = mutableStateOf(false)
     val onboardingCompleted: State<Boolean> = _onboardingCompleted
 
-    // Posizione ai siti web (es. Google Maps nel browser). Serve anche il permesso di posizione precisa,
-    // che l'app chiede solo per questo: l'opzione permette di spegnerla senza toglierlo
-    private val _webLocation = mutableStateOf(true)
-    val webLocation: State<Boolean> = _webLocation
+    // Microfono, posizione e file del telefono a ogni sito senza chiedere (come prima della 2.5); spento: ogni sito
+    // chiede e la scelta resta per quel sito (SitePermissions)
+    private val _autoSitePermissions = mutableStateOf(false)
+    val autoSitePermissions: State<Boolean> = _autoSitePermissions
 
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -196,7 +196,7 @@ object AppSettings {
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
-        _webLocation.value = prefs.getBoolean("web_location", true)
+        _autoSitePermissions.value = prefs.getBoolean("site_permissions_auto", false)
 
         enableWeatherByDefaultIfLocationGranted(context)
         if (_forceEnglish.value) updateLocale()
@@ -218,9 +218,9 @@ object AppSettings {
         saveBoolean(context, "onboarding_completed", completed)
     }
 
-    fun setWebLocation(context: Context, enabled: Boolean) {
-        _webLocation.value = enabled
-        saveBoolean(context, "web_location", enabled)
+    fun setAutoSitePermissions(context: Context, enabled: Boolean) {
+        _autoSitePermissions.value = enabled
+        saveBoolean(context, "site_permissions_auto", enabled)
     }
 
     fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {

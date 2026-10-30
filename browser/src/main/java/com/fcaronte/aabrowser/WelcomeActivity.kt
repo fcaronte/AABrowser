@@ -118,7 +118,6 @@ class WelcomeActivity : ComponentActivity() {
                 }
             },
             onWebLocationClick = {
-                AppSettings.setWebLocation(this, true)
                 WebLocation.requestMissing(this)
             },
             onStartClicked = {

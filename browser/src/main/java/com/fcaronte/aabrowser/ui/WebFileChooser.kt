@@ -47,7 +47,8 @@ private const val FOLDER_HINT_MS = 1500L
  *   e si restituiscono i file della cartella e delle sottocartelle.
  * - `showDirectoryPicker()` (File System Access, targetSdk >= 36): MODE_OPEN_FOLDER, la WebView vuole
  *   l'URI della cartella e la legge da sola.
- * Senza Activity (Android Auto) il selettore non si apre: la pagina riceve l'ultima scelta del telefono.
+ * Senza Activity (Android Auto) il selettore non si apre ([canOpenPicker] false): la pagina riceve l'ultima scelta
+ * del telefono, se il sito ha il permesso (SitePermissionPrompts.onCarFileRequest).
  */
 class WebFileChooser internal constructor(
     private val context: Context,
@@ -56,6 +57,8 @@ class WebFileChooser internal constructor(
     private enum class Request { FILES, FOLDER_FILES, FOLDER }
 
     internal var launcher: ActivityResultLauncher<Intent>? = null
+
+    val canOpenPicker: Boolean get() = launcher != null
 
     /** Cartella già autorizzata proposta al posto del selettore; null quando il dialogo è chiuso. */
     var folderOffer by mutableStateOf<String?>(null)
@@ -78,7 +81,7 @@ class WebFileChooser internal constructor(
         val mode = params?.mode ?: FileChooserParams.MODE_OPEN
         val isFolderInput = SystemClock.elapsedRealtime() - folderInputClickedAt < FOLDER_HINT_MS
         folderInputClickedAt = 0L
-        val launcher = launcher ?: return LastFileSelection.deliver(context, callback)
+        val launcher = launcher ?: return false
 
         val request = when {
             mode == FileChooserParams.MODE_OPEN_FOLDER -> Request.FOLDER

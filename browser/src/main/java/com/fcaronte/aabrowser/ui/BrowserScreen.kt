@@ -75,12 +75,13 @@ import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.PendingSslError
+import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
-import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
@@ -325,6 +326,10 @@ fun BrowserScreen(
     var sslPrompt by remember { mutableStateOf<PendingSslError?>(null) }
     val sslPrompts = remember { SslErrorPrompts(context) { sslPrompt = it } }
 
+    // Microfono, posizione e (in auto) file del telefono: il sito chiede, la scelta resta per quel sito
+    var sitePrompt by remember { mutableStateOf<PendingSitePermission?>(null) }
+    val sitePrompts = remember { SitePermissionPrompts(context) { sitePrompt = it } }
+
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
     var lastProcessedForwardTrigger by remember { mutableIntStateOf(forwardTrigger) }
@@ -411,6 +416,7 @@ fun BrowserScreen(
             // Se il player era di questa scheda viene azzerato
             mediaSessionManager?.disconnect()
             sslPrompts.cancelAll()
+            sitePrompts.cancelAll()
             webViewState.value?.let { webView ->
                 AppLog.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
                 webView.stopLoading()
@@ -888,6 +894,14 @@ fun BrowserScreen(
                         ): Boolean {
                             // false: la richiesta viene annullata dalla WebView (il callback non va chiamato)
                             if (filePathCallback == null) return false
+                            // In auto il selettore non si apre: l'ultima scelta del telefono, se il sito ha il permesso
+                            if (!fileChooser.canOpenPicker) {
+                                return sitePrompts.onCarFileRequest(
+                                    webView?.url,
+                                    filePathCallback,
+                                    fileChooserParams?.mode ?: FileChooserParams.MODE_OPEN
+                                )
+                            }
                             return fileChooser.show(filePathCallback, fileChooserParams)
                         }
 
@@ -935,25 +949,24 @@ fun BrowserScreen(
                             }
                         }
 
+                        // DRM sempre, microfono come scelto per il sito, fotocamera mai
                         override fun onPermissionRequest(request: PermissionRequest?) {
-                            val resources = request?.resources ?: return
-                            for (res in resources) {
-                                if (res == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID ||
-                                    res == PermissionRequest.RESOURCE_VIDEO_CAPTURE ||
-                                    res == PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
-                                    request.grant(arrayOf(res))
-                                    return
-                                }
-                            }
-                            request.grant(resources)
+                            request?.let(sitePrompts::onPermissionRequest)
                         }
 
-                        // Posizione ai siti (es. Google Maps) solo con l'opzione "Posizione per i siti web"
+                        override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+                            request?.let(sitePrompts::onPermissionRequestCanceled)
+                        }
+
                         override fun onGeolocationPermissionsShowPrompt(
                             origin: String?,
                             callback: GeolocationPermissions.Callback?
                         ) {
-                            WebLocation.answer(context, origin, callback)
+                            sitePrompts.onGeolocationPrompt(origin, callback)
+                        }
+
+                        override fun onGeolocationPermissionsHidePrompt() {
+                            sitePrompts.onGeolocationHidePrompt()
                         }
 
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -1001,8 +1014,9 @@ fun BrowserScreen(
                             // Nuova pagina: il media della precedente non esiste più
                             mediaSessionManager?.releaseMediaFocus()
                             updateMediaCapabilities(url)
-                            // e neanche le sue richieste in attesa di un avviso di certificato
+                            // e neanche le sue richieste in attesa di un avviso di certificato o di un permesso
                             sslPrompts.cancelAll()
+                            sitePrompts.onPageStarted(url)
 
                             if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
                             view?.settings?.mediaPlaybackRequiresUserGesture =
@@ -1400,6 +1414,10 @@ fun BrowserScreen(
                 onProceed = { sslPrompts.answer(prompt, proceed = true) },
                 onCancel = { sslPrompts.answer(prompt, proceed = false) },
             )
+        }
+
+        sitePrompt?.takeIf { isTabActive && sslPrompt == null }?.let { prompt ->
+            SitePermissionPopup(prompt = prompt, onChoice = { sitePrompts.answer(prompt, it) })
         }
     }
 }

@@ -96,14 +96,13 @@ import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
-import com.fcaronte.aabrowser.utils.LastFileSelection
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
-import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import kotlinx.coroutines.launch
@@ -260,6 +259,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Certificato non valido (es. server di casa autofirmato): conferma con una schermata di Android Auto
     private val sslPrompts = SslErrorPrompts(carContext) { handler.post { refreshSslWarning() } }
     private var sslWarningScreen: WideSslWarningScreen? = null
+
+    // Microfono, posizione e file del telefono: il sito chiede con una schermata di Android Auto
+    private val sitePrompts = SitePermissionPrompts(carContext) { handler.post { refreshSitePermission() } }
+    private var sitePermissionScreen: WideSitePermissionScreen? = null
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
     private val applyAreaRunnable = Runnable { applyVisibleArea() }
@@ -567,6 +570,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (prompt == null) return
         sslWarningScreen = WideSslWarningScreen(carContext, prompt) { proceed ->
             sslPrompts.answer(prompt, proceed)
+        }.also { screenManager.push(it) }
+    }
+
+    /** Mostra la richiesta di permesso in attesa, oppure chiude quella che non serve più (nuova pagina). */
+    private fun refreshSitePermission() {
+        if (lifecycle.currentState == Lifecycle.State.DESTROYED) return
+        val prompt = sitePrompts.current
+        val shown = sitePermissionScreen
+        if (shown?.prompt === prompt) return
+
+        sitePermissionScreen = null
+        shown?.finish()
+        if (prompt == null) return
+        sitePermissionScreen = WideSitePermissionScreen(carContext, prompt) { choice ->
+            sitePrompts.answer(prompt, choice)
         }.also { screenManager.push(it) }
     }
 
@@ -1536,12 +1554,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         )
 
                         webChromeClient = object : WebChromeClient() {
-                            // Sull'auto il selettore non si apre: la pagina riceve l'ultima scelta fatta sul telefono
+                            // Sull'auto il selettore non si apre: la pagina riceve l'ultima scelta fatta sul telefono,
+                            // se il sito ha il permesso
                             override fun onShowFileChooser(
                                 webView: WebView?,
                                 filePathCallback: ValueCallback<Array<Uri>>?,
                                 fileChooserParams: FileChooserParams?
-                            ): Boolean = filePathCallback != null && LastFileSelection.deliver(carContext, filePathCallback)
+                            ): Boolean = filePathCallback != null && sitePrompts.onCarFileRequest(
+                                webView?.url,
+                                filePathCallback,
+                                fileChooserParams?.mode ?: FileChooserParams.MODE_OPEN
+                            )
 
                             override fun onCreateWindow(
                                 view: WebView?,
@@ -1574,25 +1597,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 hideCustomView()
                             }
 
-                            // Solo DRM (Netflix, Spotify, ...). Microfono e fotocamera restano negati.
+                            // DRM sempre, microfono come scelto per il sito, fotocamera mai
                             override fun onPermissionRequest(request: PermissionRequest?) {
-                                // DRM e microfono (es. ricerca vocale di YouTube, che registra con getUserMedia),
-                                // come nella Main; la fotocamera resta negata
-                                val allowed = request?.resources
-                                    ?.filter {
-                                        it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID ||
-                                                it == PermissionRequest.RESOURCE_AUDIO_CAPTURE
-                                    }
-                                    ?.toTypedArray()
-                                if (allowed.isNullOrEmpty()) request?.deny() else request.grant(allowed)
+                                request?.let(sitePrompts::onPermissionRequest)
                             }
 
-                            // Posizione ai siti (es. Google Maps) solo con l'opzione "Posizione per i siti web"
+                            override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+                                request?.let(sitePrompts::onPermissionRequestCanceled)
+                            }
+
                             override fun onGeolocationPermissionsShowPrompt(
                                 origin: String?,
                                 callback: GeolocationPermissions.Callback?
                             ) {
-                                WebLocation.answer(carContext, origin, callback)
+                                sitePrompts.onGeolocationPrompt(origin, callback)
+                            }
+
+                            override fun onGeolocationPermissionsHidePrompt() {
+                                sitePrompts.onGeolocationHidePrompt()
                             }
 
                             override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
@@ -1770,9 +1792,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 val isHomePage = url?.startsWith(HomePage.BASE_URL) == true
 
                                 // Nuova pagina (anche la home): il media della precedente non esiste più,
-                                // e neanche le sue richieste in attesa di un avviso di certificato
+                                // e neanche le sue richieste in attesa di un avviso di certificato o di un permesso
                                 mediaSessionManager.releaseMediaFocus()
                                 sslPrompts.cancelAll()
+                                sitePrompts.onPageStarted(url)
 
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
@@ -2249,6 +2272,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun releaseVirtualDisplay() {
         mediaSessionManager.disconnect()
         sslPrompts.cancelAll()
+        sitePrompts.cancelAll()
         handler.removeCallbacks(hidePopupRunnable)
         handler.removeCallbacks(applyAreaRunnable)
         handler.removeCallbacks(applyAreaSettledRunnable)

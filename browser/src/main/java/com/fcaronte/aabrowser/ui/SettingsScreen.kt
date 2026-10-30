@@ -84,6 +84,7 @@ import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
+import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslExceptions
 import com.fcaronte.aabrowser.utils.WebLocation
 import kotlinx.coroutines.CoroutineScope
@@ -150,11 +151,11 @@ fun SettingsScreen(
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
-    val webLocation by AppSettings.webLocation
+    val autoSitePermissions by AppSettings.autoSitePermissions
     // Il permesso si concede da una finestra di sistema: si rilegge ogni volta che si torna qui
-    var webLocationAllowed by remember { mutableStateOf(WebLocation.isAllowed(context)) }
-    LifecycleResumeEffect(webLocation) {
-        webLocationAllowed = WebLocation.isAllowed(context)
+    var webLocationReady by remember { mutableStateOf(WebLocation.isReadyForCar(context)) }
+    LifecycleResumeEffect(Unit) {
+        webLocationReady = WebLocation.isReadyForCar(context)
         onPauseOrDispose { }
     }
 
@@ -968,16 +969,22 @@ fun SettingsScreen(
                                 )
                             }
 
-                            // Posizione per i siti web (facoltativa): GPS preciso per le mappe nel browser
+                            // Permessi dei siti: microfono, posizione e (in auto) file del telefono. Ogni sito chiede e la
+                            // scelta resta per quel sito; senza il permesso del telefono la posizione non arriva a nessuno
                             val webLocationPhoneMsg = stringResource(R.string.web_location_phone_toast)
                             SettingsCard {
                                 SettingsSwitchItem(
-                                    label = stringResource(R.string.perm_web_location_title),
-                                    description = stringResource(R.string.perm_web_location_desc),
-                                    checked = webLocationAllowed,
-                                    onCheckedChange = { enabled ->
-                                        AppSettings.setWebLocation(context, enabled)
-                                        if (enabled && !WebLocation.isReadyForCar(context)) {
+                                    label = stringResource(R.string.site_permissions_auto_label),
+                                    description = stringResource(R.string.site_permissions_auto_desc),
+                                    checked = autoSitePermissions,
+                                    onCheckedChange = { AppSettings.setAutoSitePermissions(context, it) }
+                                )
+                                if (!webLocationReady) {
+                                    SettingsButtonItem(
+                                        label = stringResource(R.string.perm_web_location_title),
+                                        description = stringResource(R.string.perm_web_location_desc),
+                                        buttonText = stringResource(R.string.site_permissions_grant),
+                                        onClick = {
                                             // In auto il sistema non mostra la richiesta: si concede dal telefono
                                             if (isCarMode || activity == null) {
                                                 Toast.makeText(context, webLocationPhoneMsg, Toast.LENGTH_LONG).show()
@@ -985,8 +992,9 @@ fun SettingsScreen(
                                                 WebLocation.requestMissing(activity)
                                             }
                                         }
-                                    }
-                                )
+                                    )
+                                }
+                                SitePermissionsList()
                             }
 
                             // Clear Data
@@ -995,6 +1003,9 @@ fun SettingsScreen(
                                 var clearCookies by remember { mutableStateOf(false) }
                                 var clearCertificates by remember { mutableStateOf(false) }
                                 var certificatesCount by remember { mutableStateOf(SslExceptions.count(context)) }
+                                var clearSitePermissions by remember { mutableStateOf(false) }
+                                val sitePermissionsVersion by SitePermissions.version
+                                val sitePermissionsCount = remember(sitePermissionsVersion) { SitePermissions.count(context) }
 
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Row(
@@ -1062,6 +1073,17 @@ fun SettingsScreen(
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }
+                                    // Scelte "Consenti sempre" / "Non consentire" dei siti (microfono, posizione, file)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = clearSitePermissions,
+                                            onCheckedChange = { clearSitePermissions = it }
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.site_permissions_clear_label, sitePermissionsCount),
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -1081,9 +1103,13 @@ fun SettingsScreen(
                                                 certificatesCount = 0
                                                 clearCertificates = false
                                             }
+                                            if (clearSitePermissions) {
+                                                SitePermissions.clear(context)
+                                                clearSitePermissions = false
+                                            }
                                             onShowFeedback(dataClearedMsg)
                                         },
-                                        enabled = clearCache || clearCookies || clearCertificates,
+                                        enabled = clearCache || clearCookies || clearCertificates || clearSitePermissions,
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.error,
