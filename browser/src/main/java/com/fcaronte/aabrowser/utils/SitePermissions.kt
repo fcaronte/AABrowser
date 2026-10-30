@@ -54,6 +54,13 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
 
     val current: PendingSitePermission? get() = queue.firstOrNull()
 
+    /**
+     * Il sito chiede un permesso che il telefono non ha dato all'app: senza, non si può nemmeno chiedere al sito.
+     * Una volta per permesso e pagina (sul telefono si chiede il permesso, in auto si avvisa).
+     */
+    var onPhonePermissionMissing: ((SitePermission) -> Unit)? = null
+    private val phonePermissionHints = mutableSetOf<SitePermission>()
+
     /** DRM sempre (Spotify, Netflix, ...), microfono come scelto per il sito, fotocamera mai (l'app non ha il permesso). */
     fun onPermissionRequest(request: PermissionRequest) {
         val drm = request.resources.filter { it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
@@ -124,6 +131,7 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
             grantedOnce.clear()
             pageOrigin = origin
         }
+        phonePermissionHints.clear()
         cancelAll()
     }
 
@@ -144,6 +152,9 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
     private fun request(originUrl: String?, permission: SitePermission, onResult: (Boolean) -> Unit): (() -> Unit)? {
         val origin = SitePermissions.originOf(originUrl)
         val available = SitePermissions.isAvailable(appContext, permission)
+        if (origin != null && !available && phonePermissionHints.add(permission)) {
+            onPhonePermissionMissing?.invoke(permission)
+        }
         val allowed = when {
             origin == null || !available -> false
             else -> SitePermissions.decision(origin, permission)

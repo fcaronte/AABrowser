@@ -276,6 +276,9 @@
     <string name="site_permissions_empty">अभी तक किसी साइट ने अनुमति नहीं मांगी है</string>
     <string name="site_permissions_clear_label">साइटों की अनुमतियां (%1$d)</string>
     <string name="site_permissions_grant">अनुमति दें</string>
+    <string name="site_permission_mic_phone">साइटों पर इस्तेमाल करने के लिए फ़ोन पर ऐप को माइक्रोफ़ोन की अनुमति दें</string>
+    <string name="site_permissions_location_phone_label">साइटों के लिए फ़ोन का स्थान</string>
+    <string name="site_permissions_location_phone_desc">फ़ोन की अनुमति: इसके बिना Google Maps जैसी साइटें आपका स्थान मांग भी नहीं सकतीं। कार में Android को “हर समय अनुमति दें” भी चाहिए।</string>
     <string name="popup_signing_in">साइन इन हो रहा है…</string>
     <string name="js_dialog_title">%1$s का संदेश</string>
     <string name="ok_button">ठीक है</string>

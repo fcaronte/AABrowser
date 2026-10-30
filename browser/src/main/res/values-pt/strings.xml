@@ -277,6 +277,9 @@
     <string name="site_permissions_empty">Nenhum site pediu ainda uma permissão</string>
     <string name="site_permissions_clear_label">Permissões dos sites (%1$d)</string>
     <string name="site_permissions_grant">Conceder</string>
+    <string name="site_permission_mic_phone">Conceda o microfone à app no telemóvel para o usar nos sites</string>
+    <string name="site_permissions_location_phone_label">Localização do telemóvel para os sites</string>
+    <string name="site_permissions_location_phone_desc">Permissão do telemóvel: sem ela, sites como o Google Maps nem sequer podem pedir a sua localização. No automóvel o Android também precisa de «Permitir sempre».</string>
     <string name="popup_signing_in">A iniciar sessão…</string>
     <string name="js_dialog_title">%1$s diz</string>
     <string name="ok_button">OK</string>

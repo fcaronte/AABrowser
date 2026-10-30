@@ -276,6 +276,9 @@
     <string name="site_permissions_empty">Noch keine Website hat eine Berechtigung angefragt</string>
     <string name="site_permissions_clear_label">Website-Berechtigungen (%1$d)</string>
     <string name="site_permissions_grant">Erlauben</string>
+    <string name="site_permission_mic_phone">Erlauben Sie der App das Mikrofon auf dem Telefon, um es auf Websites zu nutzen</string>
+    <string name="site_permissions_location_phone_label">Telefonstandort für Websites</string>
+    <string name="site_permissions_location_phone_desc">Telefonberechtigung: Ohne sie können Websites wie Google Maps nicht einmal nach Ihrem Standort fragen. Im Auto braucht Android zusätzlich „Immer zulassen“.</string>
     <string name="popup_signing_in">Anmeldung läuft…</string>
     <string name="js_dialog_title">%1$s meldet</string>
     <string name="ok_button">OK</string>

@@ -278,6 +278,9 @@
     <string name="site_permissions_empty">Ни один сайт ещё не запрашивал разрешений</string>
     <string name="site_permissions_clear_label">Разрешения сайтов (%1$d)</string>
     <string name="site_permissions_grant">Разрешить</string>
+    <string name="site_permission_mic_phone">Разрешите приложению доступ к микрофону на телефоне, чтобы использовать его на сайтах</string>
+    <string name="site_permissions_location_phone_label">Местоположение телефона для сайтов</string>
+    <string name="site_permissions_location_phone_desc">Разрешение телефона: без него сайты вроде Google Maps не могут даже запросить ваше местоположение. В машине Android также требует «Разрешить в любом режиме».</string>
     <string name="popup_signing_in">Выполняется вход…</string>
     <string name="js_dialog_title">Сообщение от %1$s</string>
     <string name="ok_button">ОК</string>

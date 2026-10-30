@@ -276,6 +276,9 @@
     <string name="site_permissions_empty">Még egyetlen weboldal sem kért engedélyt</string>
     <string name="site_permissions_clear_label">Weboldal-engedélyek (%1$d)</string>
     <string name="site_permissions_grant">Engedélyezés</string>
+    <string name="site_permission_mic_phone">Engedélyezze a mikrofont az alkalmazásnak a telefonon, hogy weboldalakon használhassa</string>
+    <string name="site_permissions_location_phone_label">A telefon helyadatai weboldalaknak</string>
+    <string name="site_permissions_location_phone_desc">Telefonos engedély: nélküle a weboldalak, például a Google Térkép, meg sem kérdezhetik a tartózkodási helyét. Autóban az Android a „Mindig engedélyezett” beállítást is kéri.</string>
     <string name="popup_signing_in">Bejelentkezés folyamatban…</string>
     <string name="js_dialog_title">%1$s üzenete</string>
     <string name="ok_button">OK</string>

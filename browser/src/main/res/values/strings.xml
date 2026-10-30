@@ -280,6 +280,9 @@
     <string name="site_permissions_empty">No site has asked for a permission yet</string>
     <string name="site_permissions_clear_label">Site permissions (%1$d)</string>
     <string name="site_permissions_grant">Grant</string>
+    <string name="site_permission_mic_phone">Grant the microphone to the app on the phone to use it on websites</string>
+    <string name="site_permissions_location_phone_label">Phone location for websites</string>
+    <string name="site_permissions_location_phone_desc">Phone permission: without it, websites such as Google Maps cannot even ask for your location. In the car Android also needs “Allow all the time”.</string>
     <string name="popup_signing_in">Signing in…</string>
     <string name="js_dialog_title">%1$s says</string>
     <string name="ok_button">OK</string>

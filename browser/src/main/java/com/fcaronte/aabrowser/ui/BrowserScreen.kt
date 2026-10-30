@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -27,6 +28,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,12 +83,14 @@ import com.fcaronte.aabrowser.utils.InactivityTracker
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSitePermission
+import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
+import com.fcaronte.aabrowser.utils.WebLocation
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
@@ -103,6 +108,9 @@ private fun safeUrlForLog(url: String?): String =
 
 // Come il blocco popup di Chrome, ma più largo: i login aprono il popup anche qualche secondo dopo il tocco
 private const val USER_GESTURE_MS = 10_000L
+
+// Microfono chiesto ad Android quando un sito lo vuole e l'app non ce l'ha (la posizione usa WebLocation.REQUEST_CODE)
+private const val MIC_PERMISSION_REQUEST = 1008
 
 // Due crash del motore delle pagine entro questo tempo: la scheda resta vuota invece di riaprire la pagina all'infinito
 private const val RENDER_CRASH_RETRY_MS = 5000L
@@ -363,6 +371,24 @@ fun BrowserScreen(
     // Microfono, posizione e (in auto) file del telefono: il sito chiede, la scelta resta per quel sito
     var sitePrompt by remember { mutableStateOf<PendingSitePermission?>(null) }
     val sitePrompts = remember { SitePermissionPrompts(context) { sitePrompt = it } }
+    // Permesso che il telefono non ha dato all'app: sul telefono lo si chiede subito (poi il sito potrà chiederlo),
+    // in auto si avvisa, perché la finestra di Android compare solo sul telefono
+    val activity = LocalActivity.current
+    val locationPhoneMsg = stringResource(R.string.web_location_phone_toast)
+    val micPhoneMsg = stringResource(R.string.site_permission_mic_phone)
+    sitePrompts.onPhonePermissionMissing = { permission ->
+        when {
+            activity == null -> Toast.makeText(
+                context,
+                if (permission == SitePermission.LOCATION) locationPhoneMsg else micPhoneMsg,
+                Toast.LENGTH_LONG
+            ).show()
+            permission == SitePermission.LOCATION -> WebLocation.requestMissing(activity)
+            permission == SitePermission.MICROPHONE ->
+                activity.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), MIC_PERMISSION_REQUEST)
+            else -> Unit
+        }
+    }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }

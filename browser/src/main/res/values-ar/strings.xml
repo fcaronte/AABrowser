@@ -280,6 +280,9 @@
     <string name="site_permissions_empty">لم يطلب أي موقع إذناً بعد</string>
     <string name="site_permissions_clear_label">أذونات المواقع (%1$d)</string>
     <string name="site_permissions_grant">منح</string>
+    <string name="site_permission_mic_phone">امنح التطبيق إذن الميكروفون من الهاتف لاستخدامه في المواقع</string>
+    <string name="site_permissions_location_phone_label">موقع الهاتف للمواقع</string>
+    <string name="site_permissions_location_phone_desc">إذن الهاتف: من دونه لا تستطيع المواقع مثل Google Maps حتى أن تطلب موقعك. في السيارة يحتاج Android أيضاً إلى «السماح طوال الوقت».</string>
     <string name="popup_signing_in">جارٍ تسجيل الدخول…</string>
     <string name="js_dialog_title">رسالة من %1$s</string>
     <string name="ok_button">حسناً</string>

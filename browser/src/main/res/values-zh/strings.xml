@@ -275,6 +275,9 @@
     <string name="site_permissions_empty">还没有网站请求过权限</string>
     <string name="site_permissions_clear_label">网站权限 (%1$d)</string>
     <string name="site_permissions_grant">授予</string>
+    <string name="site_permission_mic_phone">请在手机上为应用授予麦克风权限，以便在网站中使用</string>
+    <string name="site_permissions_location_phone_label">供网站使用的手机位置</string>
+    <string name="site_permissions_location_phone_desc">手机权限：没有它，Google 地图等网站甚至无法请求您的位置。在车上 Android 还需要“始终允许”。</string>
     <string name="popup_signing_in">正在登录…</string>
     <string name="js_dialog_title">%1$s 显示</string>
     <string name="ok_button">确定</string>

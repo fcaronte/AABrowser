@@ -97,6 +97,7 @@ import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UpdateManager
@@ -264,7 +265,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var sslWarningScreen: WideSslWarningScreen? = null
 
     // Microfono, posizione e file del telefono: il sito chiede con una schermata di Android Auto
-    private val sitePrompts = SitePermissionPrompts(carContext) { handler.post { refreshSitePermission() } }
+    private val sitePrompts = SitePermissionPrompts(carContext) { handler.post { refreshSitePermission() } }.apply {
+        // In auto la finestra dei permessi di Android non compare: il permesso dell'app si dà dal telefono
+        onPhonePermissionMissing = { permission ->
+            val message = if (permission == SitePermission.LOCATION) R.string.web_location_phone_toast
+            else R.string.site_permission_mic_phone
+            CarToast.makeText(carContext, carContext.getString(message), CarToast.LENGTH_LONG).show()
+        }
+    }
     private var sitePermissionScreen: WideSitePermissionScreen? = null
 
     // alert e confirm della pagina, uno alla volta

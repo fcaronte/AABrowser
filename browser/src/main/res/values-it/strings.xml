@@ -236,6 +236,9 @@
     <string name="site_permissions_empty">Nessun sito ha ancora chiesto un permesso</string>
     <string name="site_permissions_clear_label">Permessi dei siti (%1$d)</string>
     <string name="site_permissions_grant">Concedi</string>
+    <string name="site_permission_mic_phone">Concedi il microfono all\'app dal telefono per usarlo nei siti</string>
+    <string name="site_permissions_location_phone_label">Posizione del telefono per i siti</string>
+    <string name="site_permissions_location_phone_desc">Permesso del telefono: senza, i siti come Google Maps non possono nemmeno chiederti la posizione. In auto Android vuole anche «Consenti sempre».</string>
     <string name="popup_signing_in">Accesso in corso…</string>
     <string name="js_dialog_title">%1$s dice</string>
     <string name="ok_button">OK</string>

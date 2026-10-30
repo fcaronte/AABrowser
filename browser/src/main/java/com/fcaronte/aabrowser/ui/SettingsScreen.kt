@@ -983,8 +983,8 @@ fun SettingsScreen(
                                 )
                                 if (!webLocationReady) {
                                     SettingsButtonItem(
-                                        label = stringResource(R.string.perm_web_location_title),
-                                        description = stringResource(R.string.perm_web_location_desc),
+                                        label = stringResource(R.string.site_permissions_location_phone_label),
+                                        description = stringResource(R.string.site_permissions_location_phone_desc),
                                         buttonText = stringResource(R.string.site_permissions_grant),
                                         onClick = {
                                             // In auto il sistema non mostra la richiesta: si concede dal telefono
