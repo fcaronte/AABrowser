@@ -172,6 +172,9 @@
     <string name="downloading_update">Downloading update…</string>
     <string name="update_download_started">Update download started</string>
     <string name="update_download_failed">Failed to download update</string>
+    <string name="update_invalid_apk">The downloaded update is not valid for this app: it was not installed</string>
+    <string name="debug_update_test_label" translatable="false">Update test (debug build)</string>
+    <string name="debug_update_test_desc" translatable="false">Pretend version 2.3 is installed: the update banner, the notification and the download of the latest GitHub release appear, and even an older release is handed to KingInstaller.</string>
     <string name="kinginstaller_not_found">KingInstaller not found! Update cancelled to maintain Android Auto visibility.</string>
 
     <string name="settings_footer_github">GitHub Project</string>

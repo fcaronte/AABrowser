@@ -171,6 +171,7 @@
     <string name="downloading_update">Загрузка обновления…</string>
     <string name="update_download_started">Загрузка обновления начата</string>
     <string name="update_download_failed">Не удалось загрузить обновление</string>
+    <string name="update_invalid_apk">Загруженное обновление не подходит для этого приложения и не было установлено</string>
     <string name="kinginstaller_not_found">KingInstaller не найден! Обновление отменено для сохранения видимости в Android Auto.</string>
 
     <string name="settings_footer_github">Проект на GitHub</string>

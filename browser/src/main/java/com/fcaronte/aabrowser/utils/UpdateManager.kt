@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -16,6 +17,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.fcaronte.aabrowser.BuildConfig
 import com.fcaronte.aabrowser.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,13 +25,15 @@ import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 object UpdateManager {
     private const val TAG = "UpdateManager"
     private const val REPO_URL = "https://api.github.com/repos/fcaronte/AABrowser/releases/latest"
     private const val DOWNLOAD_PAGE = "https://github.com/fcaronte/AABrowser/releases"
-    // browser_download_url degli APK delle release (API di GitHub)
-    private const val RELEASE_DOWNLOAD_PREFIX = "https://github.com/fcaronte/AABrowser/releases/download/"
+    // browser_download_url degli APK delle release (API di GitHub): https://github.com + questo percorso
+    private const val RELEASE_DOWNLOAD_PATH = "/fcaronte/AABrowser/releases/download/"
+    private const val NETWORK_TIMEOUT_MS = 15_000
     private const val CHANNEL_ID = "com.fcaronte.aabrowser.updates"
     private const val NOTIFICATION_ID = 1001
 
@@ -42,6 +46,10 @@ object UpdateManager {
     private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
     private const val KEY_PENDING_APK_PATH = "pending_apk_path"
 
+    // Build di debug, "Test aggiornamento": l'app si comporta come se fosse installata questa versione
+    private const val KEY_TEST_OLD_VERSION = "test_old_version"
+    private const val TEST_OLD_VERSION = "2.3"
+
     private var isNotificationAlreadyShown = false
     var isBannerDismissed = false
 
@@ -51,12 +59,29 @@ object UpdateManager {
         val downloadUrl: String
     )
 
+    /** Solo build di debug: banner, notifica e download dell'ultima release compaiono come per una versione vecchia. */
+    fun isTestingOldVersion(context: Context): Boolean =
+        BuildConfig.DEBUG &&
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(KEY_TEST_OLD_VERSION, false)
+
+    fun setTestingOldVersion(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_TEST_OLD_VERSION, enabled)
+            .apply()
+        // Banner e notifica possono ricomparire subito
+        isBannerDismissed = false
+        isNotificationAlreadyShown = false
+    }
+
     suspend fun checkForUpdates(context: Context): UpdateInfo {
         return withContext(Dispatchers.IO) {
             try {
                 val url = URL(REPO_URL)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
+                // Senza limiti una rete che non risponde lasciava il controllo appeso
+                connection.connectTimeout = NETWORK_TIMEOUT_MS
+                connection.readTimeout = NETWORK_TIMEOUT_MS
                 connection.connect()
 
                 if (connection.responseCode == 200) {
@@ -65,7 +90,8 @@ object UpdateManager {
                     val latestVersion = json.getString("tag_name").replace("v", "")
 
                     val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                    val currentVersion = pInfo.versionName ?: "1.0"
+                    val currentVersion =
+                        if (isTestingOldVersion(context)) TEST_OLD_VERSION else pInfo.versionName ?: "1.0"
 
                     // Recupera l'URL dell'APK se disponibile negli assets
                     var downloadUrl = DOWNLOAD_PAGE
@@ -128,9 +154,8 @@ object UpdateManager {
             AppLog.e(TAG, "Cannot start download: downloadUrl is blank")
             return false
         }
-        // Il ricevitore che avvia il download è esportato (serve per DOWNLOAD_COMPLETE): qualunque app potrebbe
-        // chiedergli di scaricare e far installare un APK qualsiasi. Si scaricano solo le release ufficiali
-        if (!info.downloadUrl.startsWith(RELEASE_DOWNLOAD_PREFIX)) {
+        // Si scaricano solo le release ufficiali: KingInstaller installa senza chiedere
+        if (!isOfficialReleaseUrl(info.downloadUrl)) {
             AppLog.w(TAG, "Refusing download outside the official releases")
             Toast.makeText(context, context.getString(R.string.update_download_failed), Toast.LENGTH_SHORT).show()
             return false
@@ -227,34 +252,22 @@ object UpdateManager {
         if (cursor != null && cursor.moveToFirst()) {
             val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
             if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                val apkFile = if (apkPath != null) File(apkPath) else null
-
-                // Deve essere AABrowser: KingInstaller installerebbe qualunque app, anche senza conferma
-                if (apkFile != null && apkFile.exists() && !isAppPackage(context, apkFile)) {
-                    AppLog.e(TAG, "Downloaded APK is not AABrowser: not installing")
-                    cursor.close()
-                    return
-                }
-
-                val apkUri: Uri? = if (apkFile != null && apkFile.exists()) {
+                // KingInstaller installa senza chiedere: solo un file controllato, che è davvero un aggiornamento di
+                // questa app. Prima, senza percorso del file, il controllo saltava e passava l'APK così com'era
+                val apkFile = apkPath?.let(::File)?.takeIf { it.exists() }
+                val apkUri: Uri? = apkFile?.takeIf { isValidUpdate(context, it) }?.let { file ->
                     try {
-                        FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.fileprovider",
-                            apkFile
-                        )
+                        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
                     } catch (e: Exception) {
                         AppLog.e(TAG, "FileProvider URI error: ${e.message}", e)
-                        downloadManager.getUriForDownloadedFile(downloadId)
+                        null
                     }
-                } else {
-                    downloadManager.getUriForDownloadedFile(downloadId)
                 }
 
                 if (apkUri != null) {
                     launchKingInstaller(context, apkUri)
                 } else {
-                    AppLog.e(TAG, "Failed to generate Uri for downloaded APK")
+                    Toast.makeText(context, context.getString(R.string.update_invalid_apk), Toast.LENGTH_LONG).show()
                 }
             } else {
                 AppLog.e(TAG, "Download finished but status was not successful")
@@ -263,13 +276,47 @@ object UpdateManager {
         }
     }
 
-    // La firma la controlla Android installando l'aggiornamento; qui basta che sia lo stesso pacchetto
-    private fun isAppPackage(context: Context, apkFile: File): Boolean = try {
-        context.packageManager.getPackageArchiveInfo(apkFile.absolutePath, 0)?.packageName == context.packageName
+    /** Indirizzo di un APK delle release di AABrowser su GitHub, letto come indirizzo e non come testo. */
+    private fun isOfficialReleaseUrl(url: String): Boolean {
+        val uri = Uri.parse(url)
+        return uri.scheme == "https" && uri.host == "github.com" && uri.port == -1 && uri.userInfo == null &&
+            uri.path?.startsWith(RELEASE_DOWNLOAD_PATH) == true && uri.pathSegments.none { it == "." || it == ".." }
+    }
+
+    /**
+     * Stesso pacchetto, stessa firma dell'app installata e versione più nuova (il test di debug salta solo
+     * quest'ultimo controllo, così una release più vecchia arriva fino a KingInstaller).
+     */
+    private fun isValidUpdate(context: Context, apkFile: File): Boolean = try {
+        val pm = context.packageManager
+        val apk = pm.getPackageArchiveInfo(apkFile.absolutePath, PackageManager.GET_SIGNING_CERTIFICATES)
+        val installed = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        val apkSigners = apk?.let(::signers).orEmpty()
+        when {
+            apk == null || apk.packageName != context.packageName -> {
+                AppLog.e(TAG, "Downloaded APK is not AABrowser: not installing")
+                false
+            }
+            apkSigners.isEmpty() || apkSigners != signers(installed) -> {
+                AppLog.e(TAG, "Downloaded APK is signed with another key: not installing")
+                false
+            }
+            apk.longVersionCode <= installed.longVersionCode && !isTestingOldVersion(context) -> {
+                AppLog.e(TAG, "Downloaded APK is not newer (${apk.longVersionCode} <= ${installed.longVersionCode})")
+                false
+            }
+            else -> true
+        }
     } catch (e: Exception) {
         AppLog.w(TAG, "Cannot read the downloaded APK: ${e.javaClass.simpleName}")
         false
     }
+
+    // Impronte SHA-256 dei certificati con cui è firmato il contenuto dell'APK
+    private fun signers(info: PackageInfo): Set<String> =
+        info.signingInfo?.apkContentsSigners.orEmpty().map { signature ->
+            MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).joinToString("") { "%02x".format(it) }
+        }.toSet()
 
     fun launchKingInstaller(context: Context, apkUri: Uri) {
         val intent = Intent(Intent.ACTION_VIEW).apply {

@@ -171,6 +171,7 @@
     <string name="downloading_update">A descarregar atualização…</string>
     <string name="update_download_started">Descarregamento da atualização iniciado</string>
     <string name="update_download_failed">Falha ao descarregar a atualização</string>
+    <string name="update_invalid_apk">A atualização transferida não é válida para esta app: não foi instalada</string>
     <string name="kinginstaller_not_found">KingInstaller não encontrado! Atualização cancelada para manter a visibilidade no Android Auto.</string>
 
     <string name="settings_footer_github">Projeto GitHub</string>

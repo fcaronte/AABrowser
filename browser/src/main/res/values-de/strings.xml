@@ -171,6 +171,7 @@
     <string name="downloading_update">Update wird heruntergeladen…</string>
     <string name="update_download_started">Update-Download gestartet</string>
     <string name="update_download_failed">Herunterladen des Updates fehlgeschlagen</string>
+    <string name="update_invalid_apk">Das heruntergeladene Update ist für diese App nicht gültig und wurde nicht installiert</string>
     <string name="kinginstaller_not_found">KingInstaller nicht gefunden! Update abgebrochen, um die Android Auto-Sichtbarkeit zu wahren.</string>
 
     <string name="settings_footer_github">GitHub-Projekt</string>

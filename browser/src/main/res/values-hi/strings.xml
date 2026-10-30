@@ -171,6 +171,7 @@
     <string name="downloading_update">अपडेट डाउनलोड हो रहा है…</string>
     <string name="update_download_started">अपडेट डाउनलोड शुरू हुआ</string>
     <string name="update_download_failed">अपडेट डाउनलोड करने में विफल</string>
+    <string name="update_invalid_apk">डाउनलोड किया गया अपडेट इस ऐप के लिए मान्य नहीं है: इसे इंस्टॉल नहीं किया गया</string>
     <string name="kinginstaller_not_found">KingInstaller नहीं मिला! एंड्रॉइड ऑटो दृश्यता बनाए रखने के लिए अपडेट रद्द किया गया।</string>
 
     <string name="settings_footer_github">GitHub प्रोजेक्ट</string>

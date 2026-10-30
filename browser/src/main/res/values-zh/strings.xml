@@ -171,6 +171,7 @@
     <string name="downloading_update">正在下载更新…</string>
     <string name="update_download_started">已开始下载更新</string>
     <string name="update_download_failed">下载更新失败</string>
+    <string name="update_invalid_apk">下载的更新对此应用无效，未进行安装</string>
     <string name="kinginstaller_not_found">未找到 KingInstaller！已取消更新以保持在 Android Auto 中的可见性。</string>
 
     <string name="settings_footer_github">GitHub 项目</string>

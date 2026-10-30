@@ -171,6 +171,7 @@
     <string name="downloading_update">جاري تنزيل التحديث…</string>
     <string name="update_download_started">بدء تنزيل التحديث</string>
     <string name="update_download_failed">فشل تنزيل التحديث</string>
+    <string name="update_invalid_apk">التحديث الذي تم تنزيله غير صالح لهذا التطبيق: لم يتم تثبيته</string>
     <string name="kinginstaller_not_found">لم يتم العثور على KingInstaller! تم إلغاء التحديث للحفاظ على ظهور التطبيق في Android Auto.</string>
 
     <string name="settings_footer_github">مشروع GitHub</string>

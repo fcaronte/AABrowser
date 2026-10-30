@@ -171,6 +171,7 @@
     <string name="downloading_update">Frissítés letöltése…</string>
     <string name="update_download_started">Frissítés letöltése elindult</string>
     <string name="update_download_failed">A frissítés letöltése sikertelen</string>
+    <string name="update_invalid_apk">A letöltött frissítés nem érvényes ehhez az alkalmazáshoz, ezért nem lett telepítve</string>
     <string name="kinginstaller_not_found">KingInstaller nem található! A frissítés megszakítva az Android Auto láthatóságának megőrzése érdekében.</string>
 
     <string name="settings_footer_github">GitHub Projekt</string>

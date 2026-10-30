@@ -8,7 +8,7 @@
     <!-- Android 17+: senza questo le pagine non raggiungono gli indirizzi della rete di casa (Home Assistant, Proxmox, proxy) -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Facoltativo: posizione precisa per le mappe nei siti (opzione "Posizione per i siti web") -->
+    <!-- Facoltativo: posizione precisa per le mappe nei siti (ogni sito la chiede, Impostazioni > Permessi dei siti) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Facoltativo: in auto (telefono bloccato) Android considera l'app in background, serve "Consenti sempre" -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -148,9 +148,13 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-                <action android:name="com.fcaronte.aabrowser.START_UPDATE_DOWNLOAD" />
             </intent-filter>
         </receiver>
+
+        <!-- "Scarica" nella notifica di aggiornamento: lo raggiunge solo il PendingIntent dell'app -->
+        <receiver
+            android:name=".utils.UpdateStartReceiver"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

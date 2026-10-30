@@ -76,6 +76,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import coil.compose.AsyncImage
+import com.fcaronte.aabrowser.BuildConfig
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.settings.AdBlockSettings
@@ -86,6 +87,7 @@ import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslExceptions
+import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.WebLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -1122,6 +1124,22 @@ fun SettingsScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    // Solo build di debug: banner, notifica e download dell'aggiornamento come con una versione vecchia
+                    if (BuildConfig.DEBUG) {
+                        var testingOldVersion by remember { mutableStateOf(UpdateManager.isTestingOldVersion(context)) }
+                        SettingsCard {
+                            SettingsSwitchItem(
+                                label = stringResource(R.string.debug_update_test_label),
+                                description = stringResource(R.string.debug_update_test_desc),
+                                checked = testingOldVersion,
+                                onCheckedChange = {
+                                    UpdateManager.setTestingOldVersion(context, it)
+                                    testingOldVersion = it
+                                }
+                            )
                         }
                     }
 

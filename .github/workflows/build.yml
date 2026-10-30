@@ -34,12 +34,17 @@ jobs:
       - name: Decode Keystore Secret (if present)
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.KEYSTORE_FILE_BASE64 }}
+          KEYSTORE_FILE_SECRET: ${{ secrets.KEYSTORE_FILE }}
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding Keystore secret..."
             echo "$KEYSTORE_BASE64" | base64 -d > ${{ runner.temp }}/keystore.jks
+          elif [ "${{ inputs.build_type }}" = "release" ] && [ -z "$KEYSTORE_FILE_SECRET" ]; then
+            # Una release firmata con la chiave di debug del runner non aggiornerebbe l'app installata
+            echo "::error::Release build without the signing keystore: set the KEYSTORE_BASE64 secret."
+            exit 1
           else
-            echo "No base64 keystore secret provided. Fallback to default debug signing if no keystore file exists."
+            echo "No base64 keystore secret provided: the debug build uses the default debug signing."
           fi
 
       - name: Build APK with Gradle

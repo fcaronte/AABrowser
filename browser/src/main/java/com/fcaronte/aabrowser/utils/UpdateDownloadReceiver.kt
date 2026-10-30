@@ -10,17 +10,8 @@ class UpdateDownloadReceiver : BroadcastReceiver() {
         val action = intent.action ?: return
         AppLog.d(TAG, "onReceive action: $action")
 
+        // Esportato perché DOWNLOAD_COMPLETE arriva dal sistema; il download si avvia da UpdateStartReceiver
         when (action) {
-            UpdateManager.ACTION_START_UPDATE_DOWNLOAD -> {
-                val url = intent.getStringExtra(UpdateManager.EXTRA_DOWNLOAD_URL) ?: return
-                val version = intent.getStringExtra(UpdateManager.EXTRA_VERSION) ?: ""
-                val info = UpdateManager.UpdateInfo(
-                    isAvailable = true,
-                    latestVersion = version,
-                    downloadUrl = url
-                )
-                UpdateManager.startDownload(context, info)
-            }
             DownloadManager.ACTION_DOWNLOAD_COMPLETE -> {
                 val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
                 if (downloadId != -1L) {

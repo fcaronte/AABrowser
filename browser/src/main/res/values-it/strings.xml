@@ -172,6 +172,7 @@
     <string name="downloading_update">Download aggiornamento in corso…</string>
     <string name="update_download_started">Download dell\'aggiornamento avviato</string>
     <string name="update_download_failed">Impossibile scaricare l\'aggiornamento</string>
+    <string name="update_invalid_apk">L\'aggiornamento scaricato non è valido per questa app: non è stato installato</string>
     <string name="kinginstaller_not_found">KingInstaller non trovata! Installazione annullata per mantenere la visibilità su Android Auto.</string>
 
     <string name="settings_footer_github">Progetto GitHub</string>
