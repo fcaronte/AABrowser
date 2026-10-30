@@ -1048,16 +1048,15 @@ fun BrowserScreen(
                         ): Boolean {
                             val uri = request?.url?.toString() ?: ""
                             if (uri.startsWith("intent://")) {
+                                // Solo dalla pagina principale e solo verso indirizzi web: un iframe (es. una
+                                // pubblicità) con ripiego "javascript:" faceva eseguire il suo codice nella pagina
+                                if (request?.isForMainFrame != true) return true
                                 try {
                                     val intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
-                                    val fallbackUrl = intent.getStringExtra("browser_fallback_url")
-                                    val targetUrl = if (!fallbackUrl.isNullOrEmpty()) {
-                                        fallbackUrl
-                                    } else {
-                                        val data = intent.dataString
-                                        if (data != null && data.startsWith("https://")) data else null
-                                    }
-                                    if (!targetUrl.isNullOrEmpty()) {
+                                    val targetUrl = intent.getStringExtra("browser_fallback_url")
+                                        ?.takeIf { UrlUtils.isWebUrl(it) }
+                                        ?: intent.dataString?.takeIf { it.startsWith("https://") }
+                                    if (targetUrl != null) {
                                         if (targetUrl.contains("dazn.com", ignoreCase = true)) {
                                             daznDesktopForced = true
                                             view?.let { setDesktopUserAgent(it, context) }
@@ -1066,7 +1065,7 @@ fun BrowserScreen(
                                         return true
                                     }
                                 } catch (e: Exception) {
-                                    AppLog.e("BrowserScreen", "Intent parse error", e)
+                                    AppLog.w("BrowserScreen", "Intent parse error: ${e.javaClass.simpleName}")
                                 }
                                 return true
                             }

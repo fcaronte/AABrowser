@@ -1713,22 +1713,22 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     return true
                                 }
 
-                                // Link "intent://": usa l'indirizzo di ripiego invece di aprire un'app
+                                // Link "intent://": usa l'indirizzo di ripiego invece di aprire un'app. Solo dalla
+                                // pagina principale e solo verso indirizzi web: un iframe (es. una pubblicità) con
+                                // ripiego "javascript:" faceva eseguire il suo codice nella pagina
                                 if (url.startsWith("intent://")) {
+                                    if (request?.isForMainFrame != true) return true
                                     try {
                                         val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-                                        val fallback = intent.getStringExtra("browser_fallback_url")
-                                        val target = if (!fallback.isNullOrEmpty()) {
-                                            fallback
-                                        } else {
-                                            intent.dataString?.takeIf { it.startsWith("https://") }
-                                        }
-                                        if (!target.isNullOrEmpty()) {
+                                        val target = intent.getStringExtra("browser_fallback_url")
+                                            ?.takeIf { UrlUtils.isWebUrl(it) }
+                                            ?: intent.dataString?.takeIf { it.startsWith("https://") }
+                                        if (target != null) {
                                             if (isDazn(target)) daznDesktopForced = true
                                             this@WideScreen.loadUrl(target)
                                         }
                                     } catch (e: Exception) {
-                                        Log.w(TAG, "Intent parse error", e)
+                                        AppLog.w(TAG, "Intent parse error: ${e.javaClass.simpleName}")
                                     }
                                     return true
                                 }
