@@ -105,6 +105,9 @@ object LocalPlayer {
         return decodeScaled(bytes, COVER_SIZE)
     }
 
+    /** Copertina scaricata da una pagina, ridotta come quelle di AAB Media. */
+    fun decodeCover(bytes: ByteArray): Bitmap? = decodeScaled(bytes, COVER_SIZE)
+
     // Le copertine incorporate arrivano anche a 3000 px: al player ne bastano 512 (il Bitmap intero pesa decine di MB)
     private fun decodeScaled(bytes: ByteArray, maxSize: Int): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

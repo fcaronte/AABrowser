@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.mediaservice
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,12 +14,16 @@ import android.support.v4.media.session.PlaybackStateCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.UrlUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.net.HttpURLConnection
 import java.net.URL
 
 /**
@@ -220,8 +223,9 @@ class MediaSessionManager(
     fun disconnect() {
         runOnMain {
             AppLog.d(TAG, "Disconnecting MediaBrowser for $source...")
-            // Se il player era di questa WebView lo azzera prima di staccarsi
+            // Se il player era di questa WebView lo azzera prima di staccarsi; le copertine in arrivo non servono più
             releaseMediaFocus()
+            metadataScope.coroutineContext.cancelChildren()
             mediaController?.unregisterCallback(controllerCallback)
             mediaBrowser?.disconnect()
             mediaBrowser = null
@@ -373,9 +377,7 @@ class MediaSessionManager(
                             if (LocalPlayer.isPlayerUrl(artUrl)) {
                                 LocalPlayer.artworkBitmap(context, artUrl)
                             } else {
-                                URL(artUrl).openStream().use {
-                                    BitmapFactory.decodeStream(it)
-                                }
+                                downloadArtwork(artUrl)
                             }
                         }
                         // La copertina vale solo se nel frattempo il brano non è cambiato
@@ -561,9 +563,39 @@ class MediaSessionManager(
         }
     }
 
+    /**
+     * Copertina indicata dalla pagina: solo http(s), con tempi e dimensione limitati, ridotta come quelle di AAB
+     * Media. Prima qualunque indirizzo e nessun limite: una copertina enorme o lenta teneva occupato il download.
+     */
+    private fun downloadArtwork(artUrl: String): Bitmap? {
+        if (!UrlUtils.isWebUrl(artUrl)) return null
+        val connection = URL(artUrl).openConnection() as HttpURLConnection
+        return try {
+            connection.connectTimeout = ARTWORK_TIMEOUT_MS
+            connection.readTimeout = ARTWORK_TIMEOUT_MS
+            if (connection.contentLengthLong > MAX_ARTWORK_BYTES) return null
+            val bytes = connection.inputStream.use { input ->
+                val buffer = ByteArrayOutputStream()
+                val chunk = ByteArray(16 * 1024)
+                while (true) {
+                    val read = input.read(chunk)
+                    if (read < 0) break
+                    buffer.write(chunk, 0, read)
+                    if (buffer.size() > MAX_ARTWORK_BYTES) return null
+                }
+                buffer.toByteArray()
+            }
+            LocalPlayer.decodeCover(bytes)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     companion object {
         private const val TAG = "MediaSessionManager"
         private const val PLAYING_PUBLISH_DELAY_MS = 500L
         private const val UNWANTED_PAUSE_INTERVAL_MS = 1000L
+        private const val ARTWORK_TIMEOUT_MS = 10_000
+        private const val MAX_ARTWORK_BYTES = 5L * 1024 * 1024
     }
 }
