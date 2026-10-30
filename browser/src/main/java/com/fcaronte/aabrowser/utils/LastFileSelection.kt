@@ -49,10 +49,18 @@ object LastFileSelection {
         }
     }
 
-    /** C'è una scelta del telefono da dare alla pagina ([mode] = modo della richiesta della WebView). */
+    /**
+     * C'è una scelta del telefono adatta alla richiesta ([mode] = modo della richiesta della WebView). Un campo da un
+     * solo file riceve solo file scelti come tali: prima riceveva il primo file della cartella (es. una canzone
+     * finiva su un sito di analisi dei file).
+     */
     @SuppressLint("InlinedApi") // MODE_OPEN_FOLDER è una costante: arriva solo dalle WebView con File System Access
-    fun hasSelection(context: Context, mode: Int): Boolean =
-        rememberedFolder(context) != null || (mode != FileChooserParams.MODE_OPEN_FOLDER && files != null)
+    fun hasSelection(context: Context, mode: Int): Boolean = when (mode) {
+        FileChooserParams.MODE_OPEN_FOLDER -> rememberedFolder(context) != null
+        FileChooserParams.MODE_OPEN_MULTIPLE -> files != null || rememberedFolder(context) != null
+        FileChooserParams.MODE_OPEN -> files != null
+        else -> false
+    }
 
     /** Risponde con l'ultima scelta; false se dal telefono non è ancora stato scelto nulla (la WebView annulla). */
     @SuppressLint("InlinedApi")
@@ -63,10 +71,17 @@ object LastFileSelection {
             callback.onReceiveValue(arrayOf(folder))
             return true
         }
+        if (mode == FileChooserParams.MODE_OPEN) {
+            val file = files?.firstOrNull() ?: return false
+            callback.onReceiveValue(arrayOf(file))
+            return true
+        }
+        if (mode != FileChooserParams.MODE_OPEN_MULTIPLE) return false
         files?.let {
             callback.onReceiveValue(it)
             return true
         }
+        // Campo da più file o cartella (webkitdirectory, come "Scegli cartella" di AAB Media): i file della cartella
         val folder = rememberedFolder(context) ?: return false
         scope.launch { callback.onReceiveValue(listFolder(context, folder)) }
         return true
