@@ -205,12 +205,8 @@ fun TabItem(
             .width(160.dp)
             .fillMaxHeight(),
         shape = RoundedCornerShape(12.dp),
-        color = when {
-            isActive && tab.isWideTab -> MaterialTheme.colorScheme.tertiaryContainer
-            isActive -> MaterialTheme.colorScheme.primaryContainer
-            tab.isWideTab -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        },
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         border = if (isActive) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(
@@ -226,25 +222,14 @@ fun TabItem(
                 contentScale = ContentScale.Fit
             )
 
-            if (tab.isWideTab) {
-                Text(
-                    text = "Wide:",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
             Text(
                 text = tab.title.ifBlank { stringResource(R.string.new_tab) },
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
-                color = when {
-                    isActive && tab.isWideTab -> MaterialTheme.colorScheme.onTertiaryContainer
-                    isActive -> MaterialTheme.colorScheme.onPrimaryContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             IconButton(

@@ -86,7 +86,6 @@ import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
-import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
@@ -343,7 +342,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 if (activeInstance == this@WideScreen) {
                     activeInstance = null
                 }
-                TabManager.removeWideTab()
                 handler.removeCallbacks(applyAreaRunnable)
                 handler.removeCallbacks(applyAreaSettledRunnable)
                 handler.removeCallbacks(startupReapplyRunnable)
@@ -1864,11 +1862,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
-                                    TabManager.removeWideTab()
                                 } else {
                                     lastUrl = url
                                     saveUrl(url)
-                                    TabManager.updateOrAddWideTab(url, view?.title ?: "Car Display", null)
 
                                     // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)
                                     view?.let {

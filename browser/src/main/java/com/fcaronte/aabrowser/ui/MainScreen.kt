@@ -566,10 +566,7 @@ fun MainScreen(
                             Box(modifier = Modifier.fillMaxSize()) {
                                 BrowserScreen(
                                     tabId = tab.id,
-                                    url = if (tab.isWideTab) {
-                                        // Cerca la scheda wide e usa il suo URL sincronizzato
-                                        TabManager.tabs.firstOrNull { it.isWideTab }?.url ?: tab.url
-                                    } else tab.url,
+                                    url = tab.url,
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
                                     backTrigger = if (isTabActive) backTrigger else 0,
                                     forwardTrigger = if (isTabActive) forwardTrigger else 0,

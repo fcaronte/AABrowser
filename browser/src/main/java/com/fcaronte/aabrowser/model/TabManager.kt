@@ -15,8 +15,7 @@ data class TabState(
     val isLoading: Boolean = false,
     val desktopModeOverride: Boolean? = null,
     val mobileZoomOverride: Float? = null,
-    val desktopZoomOverride: Float? = null,
-    val isWideTab: Boolean = false
+    val desktopZoomOverride: Float? = null
 )
 
 object TabManager {
@@ -113,8 +112,7 @@ object TabManager {
         if (targetHost.isEmpty()) return -1
         
         return tabs.indexOfFirst { tab ->
-            // La scheda "Wide:" rispecchia la Wide: aprire un sito dalla Main non deve finire su di essa
-            !tab.isWideTab && (tab.url == targetUrl || (extractHost(tab.url) == targetHost))
+            tab.url == targetUrl || extractHost(tab.url) == targetHost
         }
     }
 
@@ -139,43 +137,8 @@ object TabManager {
         }
     }
 
-    fun updateOrAddWideTab(url: String, title: String = "Wide", faviconUrl: String? = null) {
-        if (url.isBlank() || url.startsWith("https://home.local/") || url.startsWith("about:home")) {
-            removeWideTab()
-            return
-        }
-
-        val existingIndex = tabs.indexOfFirst { it.isWideTab }
-        if (existingIndex != -1) {
-            tabs[existingIndex] = tabs[existingIndex].copy(
-                url = url,
-                title = title.ifBlank { "Car Display" },
-                faviconUrl = faviconUrl ?: tabs[existingIndex].faviconUrl
-            )
-        } else {
-            val newTab = TabState(
-                url = url,
-                title = title.ifBlank { "Car Display" },
-                faviconUrl = faviconUrl,
-                isWideTab = true
-            )
-            tabs.add(newTab)
-        }
-    }
-
-    fun removeWideTab() {
-        val index = tabs.indexOfFirst { it.isWideTab }
-        if (index != -1) {
-            removeTabAt(index)
-        }
-    }
-
     fun closeTab(index: Int) {
         if (index in tabs.indices) {
-            val tab = tabs[index]
-            if (tab.isWideTab) {
-                com.fcaronte.aabrowser.car.WideScreen.activeInstance?.navigateToHome()
-            }
             removeTabAt(index)
         }
     }
@@ -194,13 +157,6 @@ object TabManager {
 
     fun switchTab(index: Int) {
         if (index in tabs.indices) {
-            val tab = tabs[index]
-            if (tab.isWideTab) {
-                // La scheda "Wide:" diventa una scheda normale della Main tenendo la sua WebView
-                // (stesso id): niente chiusura né ricarica e la Wide resta sulla sua pagina.
-                // Il player passerà a chi avvia la prossima riproduzione.
-                tabs[index] = tab.copy(isWideTab = false)
-            }
             activeTabIndex = index
         }
     }
