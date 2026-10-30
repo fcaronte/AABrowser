@@ -275,6 +275,10 @@
     <string name="site_permissions_empty">अभी तक किसी साइट ने अनुमति नहीं मांगी है</string>
     <string name="site_permissions_clear_label">साइटों की अनुमतियां (%1$d)</string>
     <string name="site_permissions_grant">अनुमति दें</string>
+    <string name="popup_signing_in">साइन इन हो रहा है…</string>
+    <string name="js_dialog_title">%1$s का संदेश</string>
+    <string name="ok_button">ठीक है</string>
+    <string name="wide_search_on">%1$s पर खोजें</string>
     <string name="adblock_site_off">%1$s पर AdBlock बंद</string>
     <string name="adblock_site_on">%1$s पर AdBlock चालू</string>
     <string name="adblock_this_site">इस साइट पर AdBlock</string>

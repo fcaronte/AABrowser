@@ -96,6 +96,7 @@ import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
+import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
@@ -161,6 +162,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Popup tastiera/microfono aperto per così, se non si tocca niente: 3 s, scelta dell'utente (lo vuole
         // poco sullo schermo; provati anche 6 s). Un tocco fuori dalla scheda lo chiude subito
         const val INPUT_POPUP_TIMEOUT_MS = 3000L
+
+        // Come il blocco popup di Chrome: le pagine aprono altre pagine dal ponte solo entro 5 s da un tocco
+        private const val USER_GESTURE_MS = 5000L
 
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
@@ -263,6 +267,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Microfono, posizione e file del telefono: il sito chiede con una schermata di Android Auto
     private val sitePrompts = SitePermissionPrompts(carContext) { handler.post { refreshSitePermission() } }
     private var sitePermissionScreen: WideSitePermissionScreen? = null
+
+    // alert e confirm della pagina, uno alla volta
+    private var jsDialogScreen: WideJsDialogScreen? = null
+
+    // Ultimo tocco sulla surface (letto dal thread del JavaBridge)
+    @Volatile
+    private var lastTapAt = 0L
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
     private val applyAreaRunnable = Runnable { applyVisibleArea() }
@@ -503,7 +514,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val from = (webView?.url ?: lastUrl)
             ?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
         val target = SiteSearch.targetFor(from)
-        screenManager.push(WideSearchScreen(carContext, "Cerca su ${target.label}") { query ->
+        screenManager.push(WideSearchScreen(carContext, carContext.getString(R.string.wide_search_on, target.label)) { query ->
             loadUrl(SiteSearch.resolve(carContext, from, query))
         })
     }
@@ -571,6 +582,25 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         sslWarningScreen = WideSslWarningScreen(carContext, prompt) { proceed ->
             sslPrompts.answer(prompt, proceed)
         }.also { screenManager.push(it) }
+    }
+
+    /** alert e confirm della pagina con una schermata di Android Auto, uno alla volta: la pagina aspetta la risposta. */
+    private fun showJsDialog(request: JsDialogRequest): Boolean {
+        if (jsDialogScreen != null || lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            request.cancel()
+            return true
+        }
+        lateinit var screen: WideJsDialogScreen
+        screen = WideJsDialogScreen(carContext, request) { if (jsDialogScreen === screen) jsDialogScreen = null }
+        jsDialogScreen = screen
+        screenManager.push(screen)
+        return true
+    }
+
+    private fun hasRecentTap(action: String): Boolean {
+        val recent = SystemClock.uptimeMillis() - lastTapAt <= USER_GESTURE_MS
+        if (!recent) AppLog.w(TAG, "$action ignored: no recent tap on the page")
+        return recent
     }
 
     /** Mostra la richiesta di permesso in attesa, oppure chiude quella che non serve più (nuova pagina). */
@@ -1023,6 +1053,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
+        lastTapAt = SystemClock.uptimeMillis()
         webView?.evaluateJavascript("window.__lastTouchX = $x; window.__lastTouchY = $y;", null)
 
         val fixed = sidebarFixedEnabled()
@@ -1535,19 +1566,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun openInNewTab(url: String) {
                                     // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
-                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openInNewTab")) post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openLinkInNewTab(url: String) {
-                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openLinkInNewTab")) post { this@WideScreen.loadUrl(url) }
                                 }
 
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openPopup(url: String) {
-                                    if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openPopup")) post { this@WideScreen.loadUrl(url) }
                                 }
                             },
                             "AndroidBridge"
@@ -1617,18 +1648,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 sitePrompts.onGeolocationHidePrompt()
                             }
 
-                            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
-                                result?.confirm()
-                                return true
-                            }
+                            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                                result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.ALERT, url, message, null, result))
 
-                            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
-                                result?.confirm()
-                                return true
-                            }
+                            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                                result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.CONFIRM, url, message, null, result))
 
+                            // I messaggi di Android Auto non hanno un campo di testo: la pagina riceve Annulla
                             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean {
-                                result?.confirm(defaultValue ?: "")
+                                result?.cancel()
                                 return true
                             }
                         }
@@ -1796,6 +1824,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 mediaSessionManager.releaseMediaFocus()
                                 sslPrompts.cancelAll()
                                 sitePrompts.onPageStarted(url)
+                                jsDialogScreen?.finish()
 
                                 // Zoom disattivato solo sulla home
                                 view?.settings?.setSupportZoom(!isHomePage)
@@ -2273,6 +2302,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         mediaSessionManager.disconnect()
         sslPrompts.cancelAll()
         sitePrompts.cancelAll()
+        jsDialogScreen?.finish()
         handler.removeCallbacks(hidePopupRunnable)
         handler.removeCallbacks(applyAreaRunnable)
         handler.removeCallbacks(applyAreaSettledRunnable)

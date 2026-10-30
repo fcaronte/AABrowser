@@ -276,6 +276,10 @@
     <string name="site_permissions_empty">Aucun site n\'a encore demandé d\'autorisation</string>
     <string name="site_permissions_clear_label">Autorisations des sites (%1$d)</string>
     <string name="site_permissions_grant">Autoriser</string>
+    <string name="popup_signing_in">Connexion en cours…</string>
+    <string name="js_dialog_title">%1$s indique</string>
+    <string name="ok_button">OK</string>
+    <string name="wide_search_on">Rechercher sur %1$s</string>
     <string name="adblock_site_off">AdBlock désactivé sur %1$s</string>
     <string name="adblock_site_on">AdBlock activé sur %1$s</string>
     <string name="adblock_this_site">AdBlock sur ce site</string>

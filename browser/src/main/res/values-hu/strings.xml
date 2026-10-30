@@ -275,6 +275,10 @@
     <string name="site_permissions_empty">Még egyetlen weboldal sem kért engedélyt</string>
     <string name="site_permissions_clear_label">Weboldal-engedélyek (%1$d)</string>
     <string name="site_permissions_grant">Engedélyezés</string>
+    <string name="popup_signing_in">Bejelentkezés folyamatban…</string>
+    <string name="js_dialog_title">%1$s üzenete</string>
+    <string name="ok_button">OK</string>
+    <string name="wide_search_on">Keresés itt: %1$s</string>
     <string name="adblock_site_off">AdBlock kikapcsolva: %1$s</string>
     <string name="adblock_site_on">AdBlock bekapcsolva: %1$s</string>
     <string name="adblock_this_site">AdBlock ezen a webhelyen</string>

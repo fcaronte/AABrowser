@@ -45,6 +45,13 @@ class FavoritesRepository(private val context: Context) {
                 migrationNeeded = true
             }
 
+            // Indirizzi che non sono pagine (javascript:, file:, about:, ...) non restano tra i preferiti, nemmeno
+            // se arrivano da un backup importato
+            if (isUnsafeUrl(url)) {
+                migrationNeeded = true
+                continue
+            }
+
             val isDesktopMode = if (prefs.contains("BookmarkDesktop$i")) prefs.getBoolean("BookmarkDesktop$i", false) else null
             val mobileZoom = readZoom("BookmarkMobileZoom$i")
             val desktopZoom = readZoom("BookmarkDesktopZoom$i")
@@ -146,6 +153,10 @@ class FavoritesRepository(private val context: Context) {
         private val DEFAULTS_ADDED_IN = mapOf(
             "11" to 2 // AAB Media (2.3)
         )
+
+        private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")
+
+        fun isUnsafeUrl(url: String): Boolean = url.trim().lowercase().let { u -> UNSAFE_SCHEMES.any { u.startsWith(it) } }
 
         /** AAB Media è fisso: non si può eliminare né cambiare indirizzo, e se manca torna. */
         fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)

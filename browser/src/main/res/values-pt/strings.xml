@@ -276,6 +276,10 @@
     <string name="site_permissions_empty">Nenhum site pediu ainda uma permissão</string>
     <string name="site_permissions_clear_label">Permissões dos sites (%1$d)</string>
     <string name="site_permissions_grant">Conceder</string>
+    <string name="popup_signing_in">A iniciar sessão…</string>
+    <string name="js_dialog_title">%1$s diz</string>
+    <string name="ok_button">OK</string>
+    <string name="wide_search_on">Pesquisar em %1$s</string>
     <string name="adblock_site_off">AdBlock desativado em %1$s</string>
     <string name="adblock_site_on">AdBlock ativado em %1$s</string>
     <string name="adblock_this_site">AdBlock neste site</string>

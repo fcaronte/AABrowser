@@ -277,6 +277,10 @@
     <string name="site_permissions_empty">No site has asked for a permission yet</string>
     <string name="site_permissions_clear_label">Site permissions (%1$d)</string>
     <string name="site_permissions_grant">Grant</string>
+    <string name="popup_signing_in">Signing in…</string>
+    <string name="js_dialog_title">%1$s says</string>
+    <string name="ok_button">OK</string>
+    <string name="wide_search_on">Search on %1$s</string>
     <string name="site_permission_state" translatable="false">%1$s: %2$s</string>
     <string name="adblock_site_off">AdBlock off on %1$s</string>
     <string name="adblock_site_on">AdBlock on for %1$s</string>

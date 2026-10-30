@@ -277,6 +277,10 @@
     <string name="site_permissions_empty">Ни один сайт ещё не запрашивал разрешений</string>
     <string name="site_permissions_clear_label">Разрешения сайтов (%1$d)</string>
     <string name="site_permissions_grant">Разрешить</string>
+    <string name="popup_signing_in">Выполняется вход…</string>
+    <string name="js_dialog_title">Сообщение от %1$s</string>
+    <string name="ok_button">ОК</string>
+    <string name="wide_search_on">Поиск: %1$s</string>
     <string name="adblock_site_off">AdBlock выключен на %1$s</string>
     <string name="adblock_site_on">AdBlock включён на %1$s</string>
     <string name="adblock_this_site">AdBlock на этом сайте</string>

@@ -274,6 +274,10 @@
     <string name="site_permissions_empty">还没有网站请求过权限</string>
     <string name="site_permissions_clear_label">网站权限 (%1$d)</string>
     <string name="site_permissions_grant">授予</string>
+    <string name="popup_signing_in">正在登录…</string>
+    <string name="js_dialog_title">%1$s 显示</string>
+    <string name="ok_button">确定</string>
+    <string name="wide_search_on">在 %1$s 上搜索</string>
     <string name="adblock_site_off">已在 %1$s 关闭 AdBlock</string>
     <string name="adblock_site_on">已在 %1$s 开启 AdBlock</string>
     <string name="adblock_this_site">此网站的 AdBlock</string>

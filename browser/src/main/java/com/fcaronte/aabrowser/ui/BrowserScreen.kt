@@ -7,6 +7,7 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
 import android.os.Message
+import android.os.SystemClock
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -51,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -74,6 +76,7 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
+import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.PendingSslError
@@ -86,6 +89,7 @@ import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 private fun setDesktopUserAgent(webView: WebView, context: Context): String =
@@ -95,10 +99,22 @@ private fun setMobileUserAgent(webView: WebView, context: Context) =
 private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDesktopRequired(url)
 private fun safeUrlForLog(url: String?): String =
     AppLog.safeUrlForLog(url)
+
+// Come il blocco popup di Chrome: le pagine aprono schede e popup solo entro 5 s da un tocco
+private const val USER_GESTURE_MS = 5000L
+
+// Il sito del popup di accesso, come la barra degli indirizzi: "http://" resta visibile perché non è protetto
+private fun popupAddress(url: String?): String? {
+    val uri = url?.let { Uri.parse(it) } ?: return null
+    val host = uri.host ?: return null
+    return if (uri.scheme == "https") host else "${uri.scheme}://$host"
+}
+
 private fun createPopupWebView(
     context: Context,
     initialUrl: String? = null,
     userAgent: String?,
+    onPageChanged: (String?) -> Unit,
     onPopupDismiss: () -> Unit
 ): WebView {
     return WebView(context).apply {
@@ -115,12 +131,10 @@ private fun createPopupWebView(
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
-            allowContentAccess = true
-            allowFileAccess = true
+            // Solo pagine web di accesso: niente file locali, Safe Browsing acceso come nelle schede
+            allowContentAccess = false
+            allowFileAccess = false
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) {
-                WebSettingsCompat.setSafeBrowsingEnabled(this, false)
-            }
             if (!userAgent.isNullOrBlank()) {
                 userAgentString = userAgent
             }
@@ -153,6 +167,10 @@ private fun createPopupWebView(
 
         webViewClient = @SuppressLint("MissingOnRenderProcessGone")
         object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                onPageChanged(url)
+            }
+
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 AppLog.e("PopupWebView", "Error loading popup page: ${error?.description}")
             }
@@ -318,6 +336,13 @@ fun BrowserScreen(
     var customView by remember { mutableStateOf<android.view.View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
     var popupWebView by remember { mutableStateOf<WebView?>(null) }
+    var popupUrl by remember { mutableStateOf<String?>(null) }
+
+    // alert, confirm e prompt della pagina, mostrati nella scheda visibile
+    var jsDialog by remember { mutableStateOf<JsDialogRequest?>(null) }
+
+    // Ultimo tocco sulla pagina (letto dal thread del JavaBridge)
+    val lastTouchAt = remember { AtomicLong(0L) }
 
     // File e cartelle chiesti dalla pagina (sull'auto la pagina riceve l'ultima scelta fatta sul telefono)
     val fileChooser = rememberWebFileChooser()
@@ -417,6 +442,7 @@ fun BrowserScreen(
             mediaSessionManager?.disconnect()
             sslPrompts.cancelAll()
             sitePrompts.cancelAll()
+            jsDialog?.cancel()
             webViewState.value?.let { webView ->
                 AppLog.d("##BrowserScreen", "Tab closed, destroying WebView: $tabId")
                 webView.stopLoading()
@@ -523,6 +549,7 @@ fun BrowserScreen(
                     isLongClickable = true
                     // Notifica l'interazione continua durante swipe/scroll senza bloccare la WebView
                     setOnTouchListener { _, _ ->
+                        lastTouchAt.set(SystemClock.uptimeMillis())
                         onInteraction()
                         InactivityTracker.notifyInteraction(5000L, AppSettings.persistentNavigation.value)
                         false
@@ -822,7 +849,7 @@ fun BrowserScreen(
                             @Suppress("unused")
                             fun openInNewTab(url: String) {
                                 // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
-                                if (!UrlUtils.isWebUrl(url)) return
+                                if (!UrlUtils.isWebUrl(url) || !hasRecentTouch("openInNewTab")) return
                                 post {
                                     AppLog.d("##BrowserScreen", "openInNewTab requested for host=${safeUrlForLog(url)}")
                                     TabManager.openOrSwitchTo(url = url)
@@ -832,6 +859,7 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun openLinkInNewTab(url: String) {
+                                if (!hasRecentTouch("openLinkInNewTab")) return
                                 post {
                                     val uri = Uri.parse(url)
                                     if ((uri.scheme == "http" || uri.scheme == "https") && !uri.host.isNullOrBlank()) {
@@ -846,17 +874,25 @@ fun BrowserScreen(
                             @JavascriptInterface
                             @Suppress("unused")
                             fun openPopup(url: String) {
-                                // Il popup ha l'accesso ai file attivo: solo pagine web
-                                if (!UrlUtils.isWebUrl(url)) return
+                                // Solo pagine web, e solo subito dopo un tocco
+                                if (!UrlUtils.isWebUrl(url) || !hasRecentTouch("openPopup")) return
                                 post {
                                     AppLog.d("##BrowserScreen", "openPopup requested for host=${safeUrlForLog(url)}")
+                                    popupUrl = url
                                     val popup = createPopupWebView(
                                         context,
                                         url,
-                                        webViewReference?.settings?.userAgentString
+                                        webViewReference?.settings?.userAgentString,
+                                        onPageChanged = { popupUrl = it }
                                     ) { popupWebView = null }
                                     popupWebView = popup
                                 }
+                            }
+
+                            private fun hasRecentTouch(action: String): Boolean {
+                                val recent = SystemClock.uptimeMillis() - lastTouchAt.get() <= USER_GESTURE_MS
+                                if (!recent) AppLog.w("##BrowserScreen", "$action ignored: no recent tap on the page")
+                                return recent
                             }
 
                             @JavascriptInterface
@@ -912,10 +948,12 @@ fun BrowserScreen(
                             resultMsg: Message?
                         ): Boolean {
                             val context = view?.context ?: return false
+                            popupUrl = null
                             val popup = createPopupWebView(
                                 context,
                                 null,
-                                view.settings?.userAgentString
+                                view.settings?.userAgentString,
+                                onPageChanged = { popupUrl = it }
                             ) { popupWebView = null }
                             val transport = resultMsg?.obj as? WebView.WebViewTransport
                             if (transport != null) {
@@ -986,18 +1024,18 @@ fun BrowserScreen(
                             return super.onConsoleMessage(consoleMessage)
                         }
 
-                        override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
-                            result?.confirm()
-                            return true
-                        }
+                        override fun onJsAlert(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                            result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.ALERT, url, message, null, result))
 
-                        override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean {
-                            result?.confirm()
-                            return true
-                        }
+                        override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                            result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.CONFIRM, url, message, null, result))
 
-                        override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean {
-                            result?.confirm(defaultValue ?: "")
+                        override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean =
+                            result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.PROMPT, url, message, defaultValue, result))
+
+                        // Solo la scheda visibile mostra la finestra; dalle altre la pagina riceve Annulla
+                        private fun showJsDialog(request: JsDialogRequest): Boolean {
+                            if (!currentIsTabActive || jsDialog != null) request.cancel() else jsDialog = request
                             return true
                         }
                     }
@@ -1017,6 +1055,8 @@ fun BrowserScreen(
                             // e neanche le sue richieste in attesa di un avviso di certificato o di un permesso
                             sslPrompts.cancelAll()
                             sitePrompts.onPageStarted(url)
+                            jsDialog?.cancel()
+                            jsDialog = null
 
                             if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
                             view?.settings?.mediaPlaybackRequiresUserGesture =
@@ -1294,6 +1334,13 @@ fun BrowserScreen(
         }
 
         popupWebView?.let { popup ->
+            DisposableEffect(popup) {
+                onDispose {
+                    (popup.parent as? ViewGroup)?.removeView(popup)
+                    popup.stopLoading()
+                    popup.destroy()
+                }
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1315,11 +1362,17 @@ fun BrowserScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Accesso in corso...", color = Color.White)
+                            Text(
+                                text = popupAddress(popupUrl) ?: stringResource(R.string.popup_signing_in),
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
                             Button(
                                 onClick = { popupWebView = null }
                             ) {
-                                Text(text = "Chiudi")
+                                Text(text = stringResource(R.string.close_button))
                             }
                         }
                         AndroidView(
@@ -1418,6 +1471,10 @@ fun BrowserScreen(
 
         sitePrompt?.takeIf { isTabActive && sslPrompt == null }?.let { prompt ->
             SitePermissionPopup(prompt = prompt, onChoice = { sitePrompts.answer(prompt, it) })
+        }
+
+        jsDialog?.takeIf { isTabActive }?.let { request ->
+            JsDialogPopup(request) { if (jsDialog === request) jsDialog = null }
         }
     }
 }

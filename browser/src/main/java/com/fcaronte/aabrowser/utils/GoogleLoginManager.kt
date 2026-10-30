@@ -72,6 +72,8 @@ object GoogleLoginManager {
 
             const origOpen = window.open;
             window.open = function(url, target, features) {
+                // Come il blocco popup del browser: senza un tocco recente la pagina non apre nulla
+                if (navigator.userActivation && !navigator.userActivation.isActive) return null;
                 if (url) {
                     const low = url.toLowerCase();
                     const isGoogleAuth = low.includes('accounts.google.com') ||
