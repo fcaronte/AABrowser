@@ -1680,6 +1680,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ): Boolean {
                                 val url = request?.url?.toString() ?: ""
 
+                                // Interruttori e avviso di aggiornamento valgono solo dalla home: qualunque pagina
+                                // poteva aprire "about:toggle_…" e chiudere la Wide
+                                if (url.startsWith("about:toggle_") || url.startsWith(HomePage.UPDATE_DOWNLOAD) ||
+                                    url.startsWith(HomePage.UPDATE_DISMISS)
+                                ) {
+                                    val fromHome = request?.isForMainFrame == true &&
+                                            view?.url?.startsWith(HomePage.BASE_URL) == true
+                                    if (!fromHome) return true
+                                }
+
                                 if (url.startsWith("about:toggle_reopen")) {
                                     toggleReopen()
                                     homeHtml = null
