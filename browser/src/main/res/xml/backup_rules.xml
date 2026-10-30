@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backup di Google fino ad Android 11: niente cookie e dati dei siti (accessi già fatti) né certificati accettati.
+     Preferiti, impostazioni e permessi dei siti restano nel backup. -->
+<full-backup-content>
+    <exclude domain="root" path="app_webview/" />
+    <exclude domain="sharedpref" path="ssl_exceptions.xml" />
+</full-backup-content>
