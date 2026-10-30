@@ -281,6 +281,7 @@
     <string name="js_dialog_title">%1$s dice</string>
     <string name="ok_button">Aceptar</string>
     <string name="wide_search_on">Buscar en %1$s</string>
+    <string name="wide_field_input_hint">Escribe en el campo</string>
     <string name="adblock_site_off">AdBlock desactivado en %1$s</string>
     <string name="adblock_site_on">AdBlock activado en %1$s</string>
     <string name="adblock_this_site">AdBlock en este sitio</string>

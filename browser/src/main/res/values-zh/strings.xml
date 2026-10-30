@@ -279,6 +279,7 @@
     <string name="js_dialog_title">%1$s 显示</string>
     <string name="ok_button">确定</string>
     <string name="wide_search_on">在 %1$s 上搜索</string>
+    <string name="wide_field_input_hint">在输入框中输入</string>
     <string name="adblock_site_off">已在 %1$s 关闭 AdBlock</string>
     <string name="adblock_site_on">已在 %1$s 开启 AdBlock</string>
     <string name="adblock_this_site">此网站的 AdBlock</string>

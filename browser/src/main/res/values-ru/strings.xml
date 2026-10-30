@@ -282,6 +282,7 @@
     <string name="js_dialog_title">Сообщение от %1$s</string>
     <string name="ok_button">ОК</string>
     <string name="wide_search_on">Поиск: %1$s</string>
+    <string name="wide_field_input_hint">Введите текст в поле</string>
     <string name="adblock_site_off">AdBlock выключен на %1$s</string>
     <string name="adblock_site_on">AdBlock включён на %1$s</string>
     <string name="adblock_this_site">AdBlock на этом сайте</string>

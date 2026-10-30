@@ -284,6 +284,7 @@
     <string name="js_dialog_title">رسالة من %1$s</string>
     <string name="ok_button">حسناً</string>
     <string name="wide_search_on">البحث في %1$s</string>
+    <string name="wide_field_input_hint">اكتب في الحقل</string>
     <string name="adblock_site_off">تم إيقاف AdBlock على %1$s</string>
     <string name="adblock_site_on">تم تشغيل AdBlock على %1$s</string>
     <string name="adblock_this_site">AdBlock على هذا الموقع</string>

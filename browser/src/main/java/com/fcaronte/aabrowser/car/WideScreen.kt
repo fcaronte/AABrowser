@@ -536,7 +536,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val wv = webView ?: return
         wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
             val field = parseCapturedField(result)
-            val hint = field?.optString("hint")?.takeIf { it.isNotBlank() } ?: "Scrivi nel campo"
+            AppLog.d(TAG, "Keyboard: field captured=${field != null}")
+            val hint = field?.optString("hint")?.takeIf { it.isNotBlank() }
+                ?: carContext.getString(R.string.wide_field_input_hint)
 
             screenManager.push(
                 WideSearchScreen(
@@ -547,7 +549,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 ) { text ->
                     // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
                     suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
-                    webView?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text), null)
+                    // Il risultato dice come è stato scritto (typed:exec, typed:paste, no-target, ...): solo nei log
+                    webView?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text)) { written ->
+                        AppLog.d(TAG, "Keyboard text written: $written")
+                    }
 
                     // Forza il focus non subito, ma con un delay per permettere
                     // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
@@ -2232,7 +2237,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      */
     private fun startVoiceListening(context: Context, targetWebView: WebView?, btnMic: Button) {
         val wv = targetWebView ?: return
-        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { _ ->
+        wv.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
+            AppLog.d(TAG, "Voice input: field captured=${parseCapturedField(result) != null}")
             listenForSpeech(context, wv, btnMic)
         }
     }

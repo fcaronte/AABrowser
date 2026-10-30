@@ -87,32 +87,34 @@ object BrowserJavascript {
 
     fun getInjectTextScript(text: String): String {
         // Il testo come stringa JSON: proteggendo solo l'apostrofo, virgolette, barre rovesciate e a capo
-        // rompevano lo script, e un testo preparato apposta poteva eseguire codice nella pagina
+        // rompevano lo script, e un testo preparato apposta poteva eseguire codice nella pagina.
+        // Si scrive dove sta il cursore come la tastiera del browser: negli editor fatti in JavaScript (Lexical di
+        // WhatsApp Web, Quill di Gemini) innerText cambiato da fuori veniva annullato o finiva all'inizio, con le
+        // lettere della tastiera dell'auto al contrario
         return """
         (function(text) {
+            $INSERT_TEXT_JS
             var el = document.activeElement;
-            if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.contentEditable === 'true')) {
-                var now = Date.now();
-                if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === text) {
-                    return;
-                }
-                el.lastInjectTime = now;
-                el.lastInjectText = text;
+            if (!el || !(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+            var now = Date.now();
+            if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === text) return;
+            el.lastInjectTime = now;
+            el.lastInjectText = text;
+            if (insertText(el, text)) return;
 
-                var start = el.selectionStart || 0;
-                var end = el.selectionEnd || 0;
-                var val = el.value || el.innerText || "";
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.value = val.substring(0, start) + text + val.substring(end);
-                    el.selectionStart = el.selectionEnd = start + text.length;
-                    el.focus();
-                } else {
-                    el.innerText = val.substring(0, start) + text + val.substring(end);
-                    el.focus();
-                }
+            if (el.isContentEditable) {
+                el.textContent = (el.textContent || '') + text;
                 el.dispatchEvent(new Event('input', { bubbles: true }));
-                el.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
             }
+            var val = el.value || '';
+            var start = typeof el.selectionStart === 'number' ? el.selectionStart : val.length;
+            var end = typeof el.selectionEnd === 'number' ? el.selectionEnd : val.length;
+            var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+            Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, val.substring(0, start) + text + val.substring(end));
+            try { el.selectionStart = el.selectionEnd = start + text.length; } catch (e) {}
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
         })(${JSONObject.quote(text)});
         """.trimIndent()
     }
@@ -166,6 +168,7 @@ object BrowserJavascript {
         return """
         (function(text, append) {
             $EDITABLE_FIELD_JS
+            $INSERT_TEXT_JS
             const el = [window.__aabTypingTarget, document.activeElement, window.__savedInputElement].find(isEditable);
             if (!el) return 'no-target';
 
@@ -176,6 +179,7 @@ object BrowserJavascript {
 
             el.focus();
             let value = text;
+            let method = 'value';
             if (el.isContentEditable) {
                 // Gli editor fatti in JavaScript (Lexical di WhatsApp Web, ...) annullano un textContent cambiato
                 // da fuori e ignorano un InputEvent finto: si seleziona e si scrive come la tastiera del browser.
@@ -190,7 +194,8 @@ object BrowserJavascript {
                 document.dispatchEvent(new Event('selectionchange'));
                 const insert = append && current && text ? ' ' + text : text;
                 value = append ? current + insert : text;
-                const written = insert ? document.execCommand('insertText', false, insert) : document.execCommand('delete');
+                const written = insert ? insertText(el, insert) : (document.execCommand('delete') ? 'exec' : null);
+                method = written || 'textContent';
                 if (!written) {
                     el.textContent = value;
                     fireInput(value);
@@ -211,7 +216,7 @@ object BrowserJavascript {
                 el.getAttribute('enterkeyhint') === 'search' ||
                 !!el.closest('[role="search"]') ||
                 ['q', 'query', 'search', 'search_query', 's'].includes(name);
-            if (!isSearch || !text) return 'typed';
+            if (!isSearch || !text) return 'typed:' + method;
 
             if (el.form) {
                 if (typeof el.form.requestSubmit === 'function') el.form.requestSubmit(); else el.form.submit();
@@ -224,6 +229,22 @@ object BrowserJavascript {
         })(${JSONObject.quote(text)}, $append);
         """.trimIndent()
     }
+
+    // Scrive nel campo dove sta il cursore come la tastiera del browser. Se execCommand non va, negli editor fatti in
+    // JavaScript (Lexical, Quill, ...) un incolla che l'editor gestisce da solo; null = nessuno dei due
+    private const val INSERT_TEXT_JS = """
+        function insertText(el, text) {
+            if (document.execCommand('insertText', false, text)) return 'exec';
+            if (!el.isContentEditable) return null;
+            try {
+                const data = new DataTransfer();
+                data.setData('text/plain', text);
+                const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true });
+                if (!el.dispatchEvent(event)) return 'paste';
+            } catch (e) {}
+            return null;
+        }
+    """
 
     private const val EDITABLE_FIELD_JS = """
         function isEditable(el) {
@@ -1821,7 +1842,7 @@ object BrowserJavascript {
                 
                 var header = document.createElement('div');
                 header.style = 'padding:15px 20px;font-weight:bold;font-size:20px;border-bottom:2px solid #333333;display:flex;justify-content:space-between;align-items:center;color:#3b82f6;';
-                header.innerText = 'Seleziona voce:';
+                header.innerText = select.getAttribute('aria-label') || select.title || '';
                 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerText = '✕';
