@@ -1515,14 +1515,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun injectText(text: String) {
-                                    post {
-                                        evaluateJavascript(BrowserJavascript.getInjectTextScript(text), null)
-                                    }
-                                }
-
-                                @JavascriptInterface
-                                @Suppress("unused")
                                 fun openInNewTab(url: String) {
                                     // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
                                     if (UrlUtils.isWebUrl(url)) post { this@WideScreen.loadUrl(url) }

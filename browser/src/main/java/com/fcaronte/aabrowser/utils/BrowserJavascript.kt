@@ -86,33 +86,34 @@ object BrowserJavascript {
     }
 
     fun getInjectTextScript(text: String): String {
-        val sanitized = text.replace("'", "\\'")
+        // Il testo come stringa JSON: proteggendo solo l'apostrofo, virgolette, barre rovesciate e a capo
+        // rompevano lo script, e un testo preparato apposta poteva eseguire codice nella pagina
         return """
-        (function() {
+        (function(text) {
             var el = document.activeElement;
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.contentEditable === 'true')) {
                 var now = Date.now();
-                if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === "$sanitized") {
+                if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === text) {
                     return;
                 }
                 el.lastInjectTime = now;
-                el.lastInjectText = "$sanitized";
+                el.lastInjectText = text;
 
                 var start = el.selectionStart || 0;
                 var end = el.selectionEnd || 0;
                 var val = el.value || el.innerText || "";
                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.value = val.substring(0, start) + "$sanitized" + val.substring(end);
-                    el.selectionStart = el.selectionEnd = start + "$sanitized".length;
+                    el.value = val.substring(0, start) + text + val.substring(end);
+                    el.selectionStart = el.selectionEnd = start + text.length;
                     el.focus();
                 } else {
-                    el.innerText = val.substring(0, start) + "$sanitized" + val.substring(end);
+                    el.innerText = val.substring(0, start) + text + val.substring(end);
                     el.focus();
                 }
                 el.dispatchEvent(new Event('input', { bubbles: true }));
                 el.dispatchEvent(new Event('change', { bubbles: true }));
             }
-        })();
+        })(${JSONObject.quote(text)});
         """.trimIndent()
     }
 

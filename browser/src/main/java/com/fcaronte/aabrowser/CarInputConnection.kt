@@ -10,6 +10,7 @@ import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputContentInfo
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.BrowserJavascript
 
 class CarInputConnection internal constructor(
     private val mCarinputmanager: CarInputManager?,
@@ -193,12 +194,8 @@ class CarInputConnection internal constructor(
             val webView = mCarinputmanager?.getTargetView() as? android.webkit.WebView
             webView?.post {
                 webView.evaluateJavascript(
-                    "if(window.AndroidBridge) AndroidBridge.injectText('${
-                        textStr.replace(
-                            "'",
-                            "\\'"
-                        )
-                    }');", null
+                    "if (window.AndroidBridge) " + BrowserJavascript.getInjectTextScript(textStr),
+                    null
                 )
             }
         }

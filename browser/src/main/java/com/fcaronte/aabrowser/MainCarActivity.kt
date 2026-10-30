@@ -21,6 +21,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.input.InputManager
 
@@ -215,9 +216,8 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
             if (!spokenText.isNullOrEmpty()) {
                 getCarWindow()?.decorView?.let { decor ->
                     findWebView(decor)?.let { webView ->
-                        val escaped = spokenText.replace("'", "\\'")
                         webView.evaluateJavascript(
-                            "if(window.AndroidBridge) AndroidBridge.injectText('$escaped');",
+                            "if (window.AndroidBridge) " + BrowserJavascript.getInjectTextScript(spokenText),
                             null
                         )
                     }
