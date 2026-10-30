@@ -101,8 +101,8 @@ private fun isDesktopRequired(url: String?): Boolean = WebViewScriptRouter.isDes
 private fun safeUrlForLog(url: String?): String =
     AppLog.safeUrlForLog(url)
 
-// Come il blocco popup di Chrome: le pagine aprono schede e popup solo entro 5 s da un tocco
-private const val USER_GESTURE_MS = 5000L
+// Come il blocco popup di Chrome, ma più largo: i login aprono il popup anche qualche secondo dopo il tocco
+private const val USER_GESTURE_MS = 10_000L
 
 // Due crash del motore delle pagine entro questo tempo: la scheda resta vuota invece di riaprire la pagina all'infinito
 private const val RENDER_CRASH_RETRY_MS = 5000L

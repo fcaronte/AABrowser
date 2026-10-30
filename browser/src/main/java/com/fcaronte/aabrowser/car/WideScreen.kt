@@ -162,8 +162,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // poco sullo schermo; provati anche 6 s). Un tocco fuori dalla scheda lo chiude subito
         const val INPUT_POPUP_TIMEOUT_MS = 3000L
 
-        // Come il blocco popup di Chrome: le pagine aprono altre pagine dal ponte solo entro 5 s da un tocco
-        private const val USER_GESTURE_MS = 5000L
+        // Come il blocco popup di Chrome, ma più largo (i login aprono il popup qualche secondo dopo il tocco)
+        private const val USER_GESTURE_MS = 10_000L
 
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20

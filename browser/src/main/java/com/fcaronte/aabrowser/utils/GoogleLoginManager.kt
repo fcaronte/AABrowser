@@ -72,8 +72,9 @@ object GoogleLoginManager {
 
             const origOpen = window.open;
             window.open = function(url, target, features) {
-                // Come il blocco popup del browser: senza un tocco recente la pagina non apre nulla
-                if (navigator.userActivation && !navigator.userActivation.isActive) return null;
+                // Niente controllo di navigator.userActivation qui: i login aprono il popup dopo un'attesa (DAZN con
+                // Google) e con null il sito ripiegava sulla pagina intera, senza ritorno. Il tocco recente lo
+                // controlla l'app nei metodi del ponte (openPopup, openInNewTab)
                 if (url) {
                     const low = url.toLowerCase();
                     const isGoogleAuth = low.includes('accounts.google.com') ||
