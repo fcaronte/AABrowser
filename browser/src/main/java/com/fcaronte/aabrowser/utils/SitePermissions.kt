@@ -92,6 +92,11 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
      */
     fun onCarFileRequest(pageUrl: String?, callback: ValueCallback<Array<Uri>>, mode: Int): Boolean {
         if (!LastFileSelection.hasSelection(appContext, mode)) return false
+        // AAB Media è una pagina dell'app: i file del telefono sono il suo lavoro, nessuna domanda
+        if (LocalPlayer.isPlayerUrl(pageUrl)) {
+            if (!LastFileSelection.deliver(appContext, callback, mode)) callback.onReceiveValue(null)
+            return true
+        }
         request(pageUrl, SitePermission.FILES) { allowed ->
             if (!allowed || !LastFileSelection.deliver(appContext, callback, mode)) callback.onReceiveValue(null)
         }
