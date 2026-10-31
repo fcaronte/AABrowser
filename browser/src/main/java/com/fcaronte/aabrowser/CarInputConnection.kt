@@ -194,9 +194,11 @@ class CarInputConnection internal constructor(
             val webView = mCarinputmanager?.getTargetView() as? android.webkit.WebView
             webView?.post {
                 webView.evaluateJavascript(
-                    "if (window.AndroidBridge) " + BrowserJavascript.getInjectTextScript(textStr),
-                    null
-                )
+                    "if (window.AndroidBridge) " + BrowserJavascript.getInjectTextScript(textStr)
+                ) { written ->
+                    // Solo i casi diversi dal solito: un "exec" a ogni lettera riempirebbe il log
+                    if (written != "\"exec\"") AppLog.d(TAG, "Car keyboard text written: $written")
+                }
             }
         }
 

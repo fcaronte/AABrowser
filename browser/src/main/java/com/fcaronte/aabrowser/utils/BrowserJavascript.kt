@@ -90,31 +90,53 @@ object BrowserJavascript {
         // rompevano lo script, e un testo preparato apposta poteva eseguire codice nella pagina.
         // Si scrive dove sta il cursore come la tastiera del browser: negli editor fatti in JavaScript (Lexical di
         // WhatsApp Web, Quill di Gemini) innerText cambiato da fuori veniva annullato o finiva all'inizio, con le
-        // lettere della tastiera dell'auto al contrario
+        // lettere della tastiera dell'auto al contrario.
+        // Il campo può aver perso il focus intanto (WhatsApp Web nella Main non riceveva niente): come nella Wide si
+        // usa l'ultimo campo toccato, gli si rende il focus e, se il cursore non è più lì dentro, lo si mette in
+        // fondo; selectionchange subito, altrimenti gli editor (Lexical) usano ancora la selezione di prima.
+        // Restituisce come ha scritto (exec, paste, refocused:..., no-target, ...), per i log
         return """
         (function(text) {
+            $EDITABLE_FIELD_JS
             $INSERT_TEXT_JS
-            var el = document.activeElement;
-            if (!el || !(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
-            var now = Date.now();
-            if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === text) return;
+            const el = [document.activeElement, window.__aabTypingTarget, window.__savedInputElement].find(isEditable);
+            if (!el) return 'no-target';
+            const now = Date.now();
+            if (el.lastInjectTime && (now - el.lastInjectTime < 100) && el.lastInjectText === text) return 'duplicate';
             el.lastInjectTime = now;
             el.lastInjectText = text;
-            if (insertText(el, text)) return;
+
+            // Prima del focus: dando il focus a un editor senza cursore il browser lo mette all'inizio
+            const sel = window.getSelection();
+            const caretInside = !el.isContentEditable || (sel.rangeCount > 0 && el.contains(sel.anchorNode));
+            const refocused = document.activeElement !== el;
+            if (refocused) el.focus({ preventScroll: true });
+            if (!caretInside) {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            if (refocused || !caretInside) document.dispatchEvent(new Event('selectionchange'));
+            const prefix = refocused || !caretInside ? 'refocused:' : '';
+            const method = insertText(el, text);
+            if (method) return prefix + method;
 
             if (el.isContentEditable) {
                 el.textContent = (el.textContent || '') + text;
                 el.dispatchEvent(new Event('input', { bubbles: true }));
-                return;
+                return prefix + 'textContent';
             }
-            var val = el.value || '';
-            var start = typeof el.selectionStart === 'number' ? el.selectionStart : val.length;
-            var end = typeof el.selectionEnd === 'number' ? el.selectionEnd : val.length;
-            var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+            const val = el.value || '';
+            const start = typeof el.selectionStart === 'number' ? el.selectionStart : val.length;
+            const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : val.length;
+            const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
             Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, val.substring(0, start) + text + val.substring(end));
             try { el.selectionStart = el.selectionEnd = start + text.length; } catch (e) {}
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
+            return prefix + 'value';
         })(${JSONObject.quote(text)});
         """.trimIndent()
     }

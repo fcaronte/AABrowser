@@ -656,6 +656,13 @@ fun BrowserScreen(
                                 BrowserJavascript.getLifecycleAndMetadataScript(),
                                 setOf("*")
                             )
+                            // Ultimo campo con il focus: se la pagina glielo toglie, tastiera dell'auto e dettatura
+                            // scrivono comunque lì (getInjectTextScript), come nella Wide
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                BrowserJavascript.getAutoSaveActiveElementScript(),
+                                setOf("*")
+                            )
                             WebViewCompat.addDocumentStartJavaScript(
                                 this,
                                 DaznManager.getAuthProxyScript(),
@@ -1493,10 +1500,10 @@ fun BrowserScreen(
                                 results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                                     ?.firstOrNull()
                             if (!spokenText.isNullOrEmpty()) {
+                                // Come è stato scritto (exec, refocused:exec, no-target, ...): solo nei log
                                 webViewReference?.evaluateJavascript(
-                                    BrowserJavascript.getInjectTextScript(spokenText),
-                                    null
-                                )
+                                    BrowserJavascript.getInjectTextScript(spokenText)
+                                ) { written -> AppLog.d("##BrowserScreen", "Voice input written: $written") }
                             }
                             isListening = false
                         }
