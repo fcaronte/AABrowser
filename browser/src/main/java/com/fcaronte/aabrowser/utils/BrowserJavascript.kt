@@ -150,8 +150,11 @@ object BrowserJavascript {
             }
             window.__aabTypingTarget = el;
             const isPassword = el.type === 'password';
+            const text = isPassword ? '' : (el.isContentEditable ? el.innerText : el.value) || '';
             return {
-                value: isPassword ? '' : (el.isContentEditable ? el.innerText : el.value) || '',
+                // Su una riga, come il campo della tastiera di Android Auto: un editor vuoto (WhatsApp Web, Gemini) dà
+                // "\n" e quello che si scriveva finiva sulla seconda riga, che non si vede
+                value: text.replace(/^\s*[\r\n]+|[\r\n]+\s*$/g, '').replace(/\s*[\r\n]+\s*/g, ' '),
                 hint: el.getAttribute('placeholder') || el.getAttribute('aria-label') || '',
                 password: isPassword
             };
