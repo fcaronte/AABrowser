@@ -13,6 +13,7 @@ import androidx.activity.enableEdgeToEdge
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
+import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.WebLocation
 
 class MainActivity : ComponentActivity() {
@@ -63,8 +64,10 @@ class MainActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Posizione per i siti (da Impostazioni): dopo quella precisa chiede subito "Consenti sempre" (serve in auto)
+        // Posizione per i siti: dopo quella precisa chiede subito "Consenti sempre" (serve in auto)
         WebLocation.onPermissionResult(this, requestCode)
+        // I siti che aspettavano questo permesso ora possono chiederlo (schede della Main)
+        SitePermissions.onPhonePermissionsAnswered()
     }
 
     private fun checkAndRequestAppPermissions() {

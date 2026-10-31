@@ -261,7 +261,7 @@
     <string name="perm_local_network_desc">Lets pages reach sites and devices on your home network (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Location for websites (optional)</string>
     <string name="perm_web_location_desc">Precise GPS position for maps in the browser, such as Google Maps: each site asks before using it. In the car (phone locked) Android also needs “Allow all the time”.</string>
-    <string name="web_location_phone_toast">Grant precise location on the phone to use it on websites</string>
+    <string name="web_location_phone_toast">For location on websites in the car: on the phone, set AABrowser’s location to precise and “Allow all the time”</string>
     <string name="site_permission_mic_title">Microphone</string>
     <string name="site_permission_location_title">Location</string>
     <string name="site_permission_files_title">Phone files</string>
@@ -279,10 +279,7 @@
     <string name="site_permissions_list_label">Sites with permissions (%1$d)</string>
     <string name="site_permissions_empty">No site has asked for a permission yet</string>
     <string name="site_permissions_clear_label">Site permissions (%1$d)</string>
-    <string name="site_permissions_grant">Grant</string>
     <string name="site_permission_mic_phone">Grant the microphone to the app on the phone to use it on websites</string>
-    <string name="site_permissions_location_phone_label">Phone location for websites</string>
-    <string name="site_permissions_location_phone_desc">Phone permission: without it, websites such as Google Maps cannot even ask for your location. In the car Android also needs “Allow all the time”.</string>
     <string name="popup_signing_in">Signing in…</string>
     <string name="js_dialog_title">%1$s says</string>
     <string name="ok_button">OK</string>

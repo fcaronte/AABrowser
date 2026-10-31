@@ -257,7 +257,7 @@
     <string name="perm_local_network_desc">पेजों को आपके होम नेटवर्क की साइटों और डिवाइस (Home Assistant, राउटर, NAS) तक पहुंचने देता है।</string>
     <string name="perm_web_location_title">वेबसाइटों के लिए स्थान (वैकल्पिक)</string>
     <string name="perm_web_location_desc">ब्राउज़र में मैप्स, जैसे Google Maps, के लिए सटीक GPS स्थान: हर साइट इस्तेमाल से पहले पूछती है। कार में (फ़ोन लॉक होने पर) Android को “हर समय अनुमति दें” भी चाहिए।</string>
-    <string name="web_location_phone_toast">वेबसाइटों पर उपयोग करने के लिए फ़ोन पर सटीक स्थान की अनुमति दें</string>
+    <string name="web_location_phone_toast">कार में वेबसाइटों पर स्थान के लिए: फ़ोन पर AABrowser के स्थान को सटीक और “हर समय अनुमति दें” पर सेट करें</string>
     <string name="site_permission_mic_title">माइक्रोफ़ोन</string>
     <string name="site_permission_location_title">स्थान</string>
     <string name="site_permission_files_title">फ़ोन की फ़ाइलें</string>
@@ -275,10 +275,7 @@
     <string name="site_permissions_list_label">अनुमति वाली साइटें (%1$d)</string>
     <string name="site_permissions_empty">अभी तक किसी साइट ने अनुमति नहीं मांगी है</string>
     <string name="site_permissions_clear_label">साइटों की अनुमतियां (%1$d)</string>
-    <string name="site_permissions_grant">अनुमति दें</string>
     <string name="site_permission_mic_phone">साइटों पर इस्तेमाल करने के लिए फ़ोन पर ऐप को माइक्रोफ़ोन की अनुमति दें</string>
-    <string name="site_permissions_location_phone_label">साइटों के लिए फ़ोन का स्थान</string>
-    <string name="site_permissions_location_phone_desc">फ़ोन की अनुमति: इसके बिना Google Maps जैसी साइटें आपका स्थान मांग भी नहीं सकतीं। कार में Android को “हर समय अनुमति दें” भी चाहिए।</string>
     <string name="popup_signing_in">साइन इन हो रहा है…</string>
     <string name="js_dialog_title">%1$s का संदेश</string>
     <string name="ok_button">ठीक है</string>

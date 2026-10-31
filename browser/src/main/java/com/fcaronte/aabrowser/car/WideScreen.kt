@@ -265,12 +265,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var sslWarningScreen: WideSslWarningScreen? = null
 
     // Microfono, posizione e file del telefono: il sito chiede con una schermata di Android Auto
-    private val sitePrompts = SitePermissionPrompts(carContext) { handler.post { refreshSitePermission() } }.apply {
+    private val sitePrompts = SitePermissionPrompts(carContext, inCar = true) { handler.post { refreshSitePermission() } }.apply {
         // In auto la finestra dei permessi di Android non compare: il permesso dell'app si dà dal telefono
         onPhonePermissionMissing = { permission ->
             val message = if (permission == SitePermission.LOCATION) R.string.web_location_phone_toast
             else R.string.site_permission_mic_phone
             CarToast.makeText(carContext, carContext.getString(message), CarToast.LENGTH_LONG).show()
+            false
         }
     }
     private var sitePermissionScreen: WideSitePermissionScreen? = null

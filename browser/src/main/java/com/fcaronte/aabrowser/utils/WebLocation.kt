@@ -7,7 +7,8 @@ import android.content.pm.PackageManager
 
 /**
  * Permessi del telefono per la posizione dei siti web (Main e Wide): la posizione precisa, che l'app chiede solo per
- * questo, e in auto "Consenti sempre". Quali siti la ricevono lo decide l'utente sito per sito (SitePermissions).
+ * questo (se l'utente sceglie l'approssimativa i siti ricevono quella), e in auto "Consenti sempre". Quali siti la
+ * ricevono lo decide l'utente sito per sito (SitePermissions).
  */
 object WebLocation {
     const val REQUEST_CODE = 1006
@@ -17,6 +18,10 @@ object WebLocation {
     private val PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
     fun hasPreciseLocation(context: Context): Boolean = isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
+
+    /** Precisa o almeno approssimativa (quella chiesta all'avvio per il meteo). */
+    fun hasLocation(context: Context): Boolean =
+        hasPreciseLocation(context) || isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
 
     /**
      * In auto (app solo sullo schermo dell'auto, telefono bloccato) Android considera l'app in background

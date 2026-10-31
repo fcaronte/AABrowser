@@ -257,7 +257,7 @@
     <string name="perm_local_network_desc">Lehetővé teszi, hogy az oldalak elérjék az otthoni hálózat webhelyeit és eszközeit (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Helymeghatározás weboldalaknak (opcionális)</string>
     <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez: minden weboldal előbb megkérdezi. Autóban (zárolt telefonnal) az Android a „Mindig engedélyezett” beállítást is kéri.</string>
-    <string name="web_location_phone_toast">A weboldalakhoz engedélyezze a pontos helymeghatározást a telefonon</string>
+    <string name="web_location_phone_toast">Az autóban a weboldalak helymeghatározásához a telefonon állítsa az AABrowser helymeghatározását pontosra és „Mindig engedélyezett” értékre</string>
     <string name="site_permission_mic_title">Mikrofon</string>
     <string name="site_permission_location_title">Tartózkodási hely</string>
     <string name="site_permission_files_title">A telefon fájljai</string>
@@ -275,10 +275,7 @@
     <string name="site_permissions_list_label">Engedéllyel rendelkező weboldalak (%1$d)</string>
     <string name="site_permissions_empty">Még egyetlen weboldal sem kért engedélyt</string>
     <string name="site_permissions_clear_label">Weboldal-engedélyek (%1$d)</string>
-    <string name="site_permissions_grant">Engedélyezés</string>
     <string name="site_permission_mic_phone">Engedélyezze a mikrofont az alkalmazásnak a telefonon, hogy weboldalakon használhassa</string>
-    <string name="site_permissions_location_phone_label">A telefon helyadatai weboldalaknak</string>
-    <string name="site_permissions_location_phone_desc">Telefonos engedély: nélküle a weboldalak, például a Google Térkép, meg sem kérdezhetik a tartózkodási helyét. Autóban az Android a „Mindig engedélyezett” beállítást is kéri.</string>
     <string name="popup_signing_in">Bejelentkezés folyamatban…</string>
     <string name="js_dialog_title">%1$s üzenete</string>
     <string name="ok_button">OK</string>

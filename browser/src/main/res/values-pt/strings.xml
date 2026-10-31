@@ -258,7 +258,7 @@
     <string name="perm_local_network_desc">Permite que as páginas acedam a sites e dispositivos da sua rede doméstica (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Localização para sites (opcional)</string>
     <string name="perm_web_location_desc">Posição GPS precisa para mapas no navegador, como o Google Maps: cada site pergunta antes de a usar. No automóvel (telemóvel bloqueado) o Android também precisa de «Permitir sempre».</string>
-    <string name="web_location_phone_toast">Conceda a localização precisa no telemóvel para a usar nos sites</string>
+    <string name="web_location_phone_toast">Para a localização nos sites no automóvel: no telemóvel, defina a localização da AABrowser como precisa e «Permitir sempre»</string>
     <string name="site_permission_mic_title">Microfone</string>
     <string name="site_permission_location_title">Localização</string>
     <string name="site_permission_files_title">Ficheiros do telemóvel</string>
@@ -276,10 +276,7 @@
     <string name="site_permissions_list_label">Sites com permissões (%1$d)</string>
     <string name="site_permissions_empty">Nenhum site pediu ainda uma permissão</string>
     <string name="site_permissions_clear_label">Permissões dos sites (%1$d)</string>
-    <string name="site_permissions_grant">Conceder</string>
     <string name="site_permission_mic_phone">Conceda o microfone à app no telemóvel para o usar nos sites</string>
-    <string name="site_permissions_location_phone_label">Localização do telemóvel para os sites</string>
-    <string name="site_permissions_location_phone_desc">Permissão do telemóvel: sem ela, sites como o Google Maps nem sequer podem pedir a sua localização. No automóvel o Android também precisa de «Permitir sempre».</string>
     <string name="popup_signing_in">A iniciar sessão…</string>
     <string name="js_dialog_title">%1$s diz</string>
     <string name="ok_button">OK</string>

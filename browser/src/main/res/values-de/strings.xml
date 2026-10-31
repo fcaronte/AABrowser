@@ -257,7 +257,7 @@
     <string name="perm_local_network_desc">Ermöglicht Seiten den Zugriff auf Websites und Geräte in Ihrem Heimnetz (Home Assistant, Router, NAS).</string>
     <string name="perm_web_location_title">Standort für Websites (optional)</string>
     <string name="perm_web_location_desc">Genaue GPS-Position für Karten im Browser, z. B. Google Maps: Jede Website fragt, bevor sie sie verwendet. Im Auto (Telefon gesperrt) braucht Android zusätzlich „Immer zulassen“.</string>
-    <string name="web_location_phone_toast">Erlauben Sie den genauen Standort auf dem Telefon, um ihn auf Websites zu nutzen</string>
+    <string name="web_location_phone_toast">Für den Standort auf Websites im Auto: Stellen Sie auf dem Telefon den Standort von AABrowser auf genau und „Immer zulassen“</string>
     <string name="site_permission_mic_title">Mikrofon</string>
     <string name="site_permission_location_title">Standort</string>
     <string name="site_permission_files_title">Dateien des Telefons</string>
@@ -275,10 +275,7 @@
     <string name="site_permissions_list_label">Websites mit Berechtigungen (%1$d)</string>
     <string name="site_permissions_empty">Noch keine Website hat eine Berechtigung angefragt</string>
     <string name="site_permissions_clear_label">Website-Berechtigungen (%1$d)</string>
-    <string name="site_permissions_grant">Erlauben</string>
     <string name="site_permission_mic_phone">Erlauben Sie der App das Mikrofon auf dem Telefon, um es auf Websites zu nutzen</string>
-    <string name="site_permissions_location_phone_label">Telefonstandort für Websites</string>
-    <string name="site_permissions_location_phone_desc">Telefonberechtigung: Ohne sie können Websites wie Google Maps nicht einmal nach Ihrem Standort fragen. Im Auto braucht Android zusätzlich „Immer zulassen“.</string>
     <string name="popup_signing_in">Anmeldung läuft…</string>
     <string name="js_dialog_title">%1$s meldet</string>
     <string name="ok_button">OK</string>

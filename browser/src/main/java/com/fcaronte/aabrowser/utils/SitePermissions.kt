@@ -38,9 +38,13 @@ class PendingSitePermission internal constructor(val origin: String, val permiss
 /**
  * Permessi chiesti dalle pagine di una WebView, mostrati uno alla volta come gli avvisi di certificato. Tutto gira
  * sul main thread (callback della WebView e UI). [onChanged] riceve la richiesta da mostrare ora (null = nessuna).
- * "Solo questa volta" vale finché la WebView resta sullo stesso sito.
+ * "Solo questa volta" vale finché la WebView resta sullo stesso sito. [inCar]: WebView sullo schermo dell'auto.
  */
-class SitePermissionPrompts(context: Context, private val onChanged: (PendingSitePermission?) -> Unit) {
+class SitePermissionPrompts(
+    context: Context,
+    private val inCar: Boolean,
+    private val onChanged: (PendingSitePermission?) -> Unit
+) {
     private val appContext = context.applicationContext
     private val queue = mutableListOf<PendingSitePermission>()
     private val grantedOnce = mutableSetOf<String>()
@@ -55,11 +59,40 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
     val current: PendingSitePermission? get() = queue.firstOrNull()
 
     /**
-     * Il sito chiede un permesso che il telefono non ha dato all'app: senza, non si può nemmeno chiedere al sito.
-     * Una volta per permesso e pagina (sul telefono si chiede il permesso, in auto si avvisa).
+     * Il sito chiede un permesso che il telefono non ha dato all'app (o non del tutto, es. posizione approssimativa).
+     * Una volta per permesso e pagina. true = Android lo sta chiedendo (telefono): la richiesta del sito aspetta
+     * [onPhonePermissionsAnswered]. false = solo un avviso (in auto la finestra di Android non compare).
      */
-    var onPhonePermissionMissing: ((SitePermission) -> Unit)? = null
+    var onPhonePermissionMissing: ((SitePermission) -> Boolean)? = null
     private val phonePermissionHints = mutableSetOf<SitePermission>()
+
+    // Richieste dei siti ferme mentre Android chiede il permesso all'app
+    private val askingPhone = mutableSetOf<SitePermission>()
+    private val waitingForPhone = mutableListOf<WaitingRequest>()
+
+    private inner class WaitingRequest(
+        val originUrl: String?,
+        val permission: SitePermission,
+        val onResult: (Boolean) -> Unit
+    ) {
+        // Dopo la risposta di Android la richiesta riparte: come rinunciare a quella nuova
+        var next: (() -> Unit)? = null
+
+        fun cancel() {
+            if (!waitingForPhone.remove(this)) next?.invoke()
+        }
+    }
+
+    /**
+     * Android ha risposto a una richiesta di permesso: le richieste dei siti in attesa ripartono, così il sito chiede
+     * subito (prima riceveva un no e andava toccato di nuovo).
+     */
+    fun onPhonePermissionsAnswered() {
+        askingPhone.clear()
+        val waiting = waitingForPhone.toList()
+        waitingForPhone.clear()
+        waiting.forEach { it.next = request(it.originUrl, it.permission, it.onResult) }
+    }
 
     /** DRM sempre (Spotify, Netflix, ...), microfono come scelto per il sito, fotocamera mai (l'app non ha il permesso). */
     fun onPermissionRequest(request: PermissionRequest) {
@@ -140,6 +173,10 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
         val pending = queue.toList()
         queue.clear()
         pending.forEach { it.resolve(false) }
+        val waiting = waitingForPhone.toList()
+        waitingForPhone.clear()
+        askingPhone.clear()
+        waiting.forEach { it.onResult(false) }
         pendingRequests.clear()
         pendingGeolocation.clear()
         if (pending.isNotEmpty()) onChanged(null)
@@ -151,20 +188,24 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
      */
     private fun request(originUrl: String?, permission: SitePermission, onResult: (Boolean) -> Unit): (() -> Unit)? {
         val origin = SitePermissions.originOf(originUrl)
-        val available = SitePermissions.isAvailable(appContext, permission)
-        if (origin != null && !available && phonePermissionHints.add(permission)) {
-            onPhonePermissionMissing?.invoke(permission)
+        if (origin != null && !SitePermissions.isComplete(appContext, permission, inCar) &&
+            phonePermissionHints.add(permission) && onPhonePermissionMissing?.invoke(permission) == true
+        ) {
+            askingPhone.add(permission)
         }
+        if (origin != null && permission in askingPhone) {
+            if (permission == SitePermission.LOCATION) logLocation("waiting for the phone permission")
+            val waiting = WaitingRequest(originUrl, permission, onResult)
+            waitingForPhone.add(waiting)
+            return waiting::cancel
+        }
+        val available = SitePermissions.isAvailable(appContext, permission, inCar)
         val allowed = when {
             origin == null || !available -> false
             else -> SitePermissions.decision(origin, permission)
                 ?: if (onceKey(origin, permission) in grantedOnce || AppSettings.autoSitePermissions.value) true else null
         }
-        if (permission == SitePermission.LOCATION) {
-            // In auto (telefono bloccato) senza "Consenti sempre" la WebView non riceve posizioni
-            AppLog.d(TAG, "Location: allowed=$allowed (web=${origin != null}, precise=$available, " +
-                    "always=${WebLocation.hasBackgroundLocation(appContext)})")
-        }
+        if (permission == SitePermission.LOCATION) logLocation("allowed=$allowed (web=${origin != null})")
         if (allowed != null || origin == null) {
             onResult(allowed == true)
             return null
@@ -187,6 +228,15 @@ class SitePermissionPrompts(context: Context, private val onChanged: (PendingSit
     }
 
     private fun onceKey(origin: String, permission: SitePermission) = "${permission.key}|$origin"
+
+    // Perché un sito riceve o no la posizione: in auto (telefono bloccato) senza "Consenti sempre" non ne arrivano
+    private fun logLocation(state: String) {
+        AppLog.d(
+            TAG, "Location: $state, phone: precise=${WebLocation.hasPreciseLocation(appContext)}, " +
+                    "any=${WebLocation.hasLocation(appContext)}, " +
+                    "always=${WebLocation.hasBackgroundLocation(appContext)}, car=$inCar"
+        )
+    }
 
     // La richiesta può essere già chiusa dalla WebView (pagina cambiata nel frattempo)
     private fun reply(request: PermissionRequest, granted: List<String>) {
@@ -238,12 +288,30 @@ object SitePermissions {
     /** Nome da mostrare: il sito senza "www." (con la porta, se c'è). */
     fun displayName(origin: String): String = origin.substringAfter("://").removePrefix("www.")
 
-    /** Serve anche il permesso dato all'app dal telefono (microfono, posizione precisa). */
-    fun isAvailable(context: Context, permission: SitePermission): Boolean = when (permission) {
+    /**
+     * Serve anche il permesso dato all'app dal telefono. Posizione: basta l'approssimativa (il sito riceve quella); in
+     * auto anche "Consenti sempre", perché per Android l'app è in background e la WebView non riceverebbe posizioni.
+     */
+    fun isAvailable(context: Context, permission: SitePermission, inCar: Boolean): Boolean = when (permission) {
         SitePermission.MICROPHONE ->
             context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-        SitePermission.LOCATION -> WebLocation.hasPreciseLocation(context)
+        SitePermission.LOCATION ->
+            WebLocation.hasLocation(context) && (!inCar || WebLocation.hasBackgroundLocation(context))
         SitePermission.FILES -> true
+    }
+
+    /** Il telefono ha dato tutto: per la posizione quella precisa (le mappe con l'approssimativa servono a poco). */
+    fun isComplete(context: Context, permission: SitePermission, inCar: Boolean): Boolean = when (permission) {
+        SitePermission.LOCATION ->
+            WebLocation.hasPreciseLocation(context) && (!inCar || WebLocation.hasBackgroundLocation(context))
+        else -> isAvailable(context, permission, inCar)
+    }
+
+    /** Cambia quando Android risponde a una richiesta di permesso dell'app: le richieste dei siti in attesa ripartono. */
+    val phonePermissionAnswers = mutableIntStateOf(0)
+
+    fun onPhonePermissionsAnswered() {
+        phonePermissionAnswers.intValue++
     }
 
     @Synchronized

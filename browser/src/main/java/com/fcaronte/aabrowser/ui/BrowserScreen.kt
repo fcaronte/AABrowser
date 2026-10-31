@@ -86,6 +86,7 @@ import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
+import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -368,27 +369,36 @@ fun BrowserScreen(
     var sslPrompt by remember { mutableStateOf<PendingSslError?>(null) }
     val sslPrompts = remember { SslErrorPrompts(context) { sslPrompt = it } }
 
-    // Microfono, posizione e (in auto) file del telefono: il sito chiede, la scelta resta per quel sito
-    var sitePrompt by remember { mutableStateOf<PendingSitePermission?>(null) }
-    val sitePrompts = remember { SitePermissionPrompts(context) { sitePrompt = it } }
-    // Permesso che il telefono non ha dato all'app: sul telefono lo si chiede subito (poi il sito potrà chiederlo),
-    // in auto si avvisa, perché la finestra di Android compare solo sul telefono
+    // Microfono, posizione e (in auto) file del telefono: il sito chiede, la scelta resta per quel sito.
+    // Senza Activity (MainCarActivity) la scheda è sullo schermo dell'auto
     val activity = LocalActivity.current
-    val locationPhoneMsg = stringResource(R.string.web_location_phone_toast)
+    var sitePrompt by remember { mutableStateOf<PendingSitePermission?>(null) }
+    val sitePrompts = remember { SitePermissionPrompts(context, inCar = activity == null) { sitePrompt = it } }
+    // Permesso che il telefono non ha dato all'app: sul telefono lo chiede Android e il sito aspetta la risposta,
+    // in auto si avvisa, perché la finestra di Android compare solo sul telefono
+    val locationCarMsg = stringResource(R.string.web_location_phone_toast)
     val micPhoneMsg = stringResource(R.string.site_permission_mic_phone)
     sitePrompts.onPhonePermissionMissing = { permission ->
         when {
-            activity == null -> Toast.makeText(
-                context,
-                if (permission == SitePermission.LOCATION) locationPhoneMsg else micPhoneMsg,
-                Toast.LENGTH_LONG
-            ).show()
+            activity == null -> {
+                Toast.makeText(
+                    context,
+                    if (permission == SitePermission.LOCATION) locationCarMsg else micPhoneMsg,
+                    Toast.LENGTH_LONG
+                ).show()
+                false
+            }
             permission == SitePermission.LOCATION -> WebLocation.requestMissing(activity)
-            permission == SitePermission.MICROPHONE ->
+            permission == SitePermission.MICROPHONE -> {
                 activity.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), MIC_PERMISSION_REQUEST)
-            else -> Unit
+                true
+            }
+            else -> false
         }
     }
+    // Risposta di Android (MainActivity): le richieste dei siti in attesa ripartono
+    val phonePermissionAnswers by SitePermissions.phonePermissionAnswers
+    LaunchedEffect(phonePermissionAnswers) { sitePrompts.onPhonePermissionsAnswered() }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
