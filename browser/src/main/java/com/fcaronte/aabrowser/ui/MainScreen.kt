@@ -218,10 +218,10 @@ fun MainScreen(
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
 
     LaunchedEffect(feedbackMessage) {
-        if (feedbackMessage != null) {
-            delay(3.seconds)
-            feedbackMessage = null
-        }
+        val message = feedbackMessage ?: return@LaunchedEffect
+        // I messaggi lunghi (es. cosa concedere dal telefono) restano il tempo di leggerli
+        delay(if (message.length > 60) 6.seconds else 3.seconds)
+        feedbackMessage = null
     }
 
     LaunchedEffect(Unit) {
@@ -583,7 +583,8 @@ fun MainScreen(
                                         if (isTabActive) AppSettings.setLastUrl(context, newUrl)
                                     },
                                     onWebViewCreated = { if (isTabActive) activeWebView = it },
-                                    onFullScreenChange = { if (isTabActive) isFullScreen = it }
+                                    onFullScreenChange = { if (isTabActive) isFullScreen = it },
+                                    onShowFeedback = { if (isTabActive) feedbackMessage = it }
                                 )
                                 if (!isTabActive || !isBrowserVisible) {
                                     Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Transparent).pointerInput(Unit) {})

@@ -28,7 +28,6 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -231,6 +230,8 @@ fun BrowserScreen(
     onWebViewCreated: (WebView) -> Unit = {},
     onFullScreenChange: (Boolean) -> Unit = {},
     onInteraction: () -> Unit = {},
+    // Messaggio nel riquadro della Main: in auto un Toast compare sul telefono, non sullo schermo dell'auto
+    onShowFeedback: (String) -> Unit = {},
 ) {
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
@@ -381,11 +382,7 @@ fun BrowserScreen(
     sitePrompts.onPhonePermissionMissing = { permission ->
         when {
             activity == null -> {
-                Toast.makeText(
-                    context,
-                    if (permission == SitePermission.LOCATION) locationCarMsg else micPhoneMsg,
-                    Toast.LENGTH_LONG
-                ).show()
+                onShowFeedback(if (permission == SitePermission.LOCATION) locationCarMsg else micPhoneMsg)
                 false
             }
             permission == SitePermission.LOCATION -> WebLocation.requestMissing(activity)
