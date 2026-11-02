@@ -162,9 +162,9 @@ object BrowserJavascript {
     /**
      * Di nuovo a schermo intero al ritorno dal background. Il browser lo concede solo dentro un tocco dell'utente
      * (chiamato da qui fallisce in silenzio): lo script mette sopra la pagina uno strato trasparente che, al tocco
-     * successivo (la Main ne manda uno subito dopo), rientra a schermo intero sull'elemento di prima e sparisce, senza
-     * che il tocco arrivi alla pagina. Risponde "armed" (strato pronto), "already" o "no-target"; dopo 2 s lo strato
-     * sparisce comunque, così non ruba i tocchi veri.
+     * successivo (lo manda la Main, FullscreenRestore), rientra a schermo intero sull'elemento di prima e sparisce,
+     * senza che il tocco arrivi alla pagina. Risponde "armed" (strato pronto), "already" o "no-target". Se lo schermo
+     * intero non arriva lo strato lo toglie la Main ([getCancelFullscreenRestoreScript]); dopo 10 s sparisce comunque.
      */
     fun getRestoreFullscreenScript(): String = """
     (function() {
@@ -177,10 +177,11 @@ object BrowserJavascript {
         const layer = document.createElement('div');
         layer.id = '__aab_fullscreen_restore';
         layer.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:2147483647;' +
-            'background:transparent;touch-action:none';
+            'background:transparent;touch-action:manipulation';
+        // Ascoltatori passivi: lo strato non blocca lo scorrimento in attesa della pagina
         const swallow = function(e) { e.stopPropagation(); };
         ['touchstart', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click'].forEach(function(type) {
-            layer.addEventListener(type, swallow, true);
+            layer.addEventListener(type, swallow, { capture: true, passive: true });
         });
         // Fine del tocco: qui il browser concede lo schermo intero; preventDefault toglie il click che seguirebbe
         layer.addEventListener('touchend', function(e) {
@@ -195,10 +196,17 @@ object BrowserJavascript {
             } catch (_) {}
         }, { capture: true, passive: false });
         (document.body || document.documentElement).appendChild(layer);
-        setTimeout(function() { layer.remove(); }, 2000);
+        setTimeout(function() { layer.remove(); }, 10000);
         return 'armed';
     })();
     """.trimIndent()
+
+    /** true se lo strato di [getRestoreFullscreenScript] è ancora sulla pagina (il tocco dell'app deve finire lì). */
+    fun getFullscreenRestoreArmedScript(): String = "!!document.getElementById('__aab_fullscreen_restore')"
+
+    /** Toglie lo strato di [getRestoreFullscreenScript]: lo schermo intero non è arrivato. */
+    fun getCancelFullscreenRestoreScript(): String =
+        "(function() { const layer = document.getElementById('__aab_fullscreen_restore'); if (layer) layer.remove(); })();"
 
     fun getAutoSaveActiveElementScript(): String {
         return """

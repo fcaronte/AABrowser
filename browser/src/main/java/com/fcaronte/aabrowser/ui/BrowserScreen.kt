@@ -13,8 +13,6 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
-import android.view.InputDevice
-import android.view.MotionEvent
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
@@ -121,9 +119,6 @@ private const val RENDER_CRASH_RETRY_MS = 5000L
 
 // La tastiera passeggero ha scritto nel campo e lo script gli ha ridato il focus: intanto niente popup tastiera/microfono
 private const val INPUT_POPUP_SUPPRESS_MS = 1500L
-
-// Ritorno dal background: il tocco che fa rientrare a schermo intero arriva quando la WebView è di nuovo visibile
-private const val FULLSCREEN_RESTORE_TAP_DELAY_MS = 400L
 
 // Il sito del popup di accesso, come la barra degli indirizzi: "http://" resta visibile perché non è protetto
 private fun popupAddress(url: String?): String? {
@@ -469,30 +464,9 @@ fun BrowserScreen(
                     }
                     if (isFullscreenPending) {
                         isFullscreenPending = false
-                        // Solo la scheda visibile: una in background resta com'è
+                        // Solo la scheda visibile (una in background resta com'è), e a WebView di nuovo pronta
                         webViewReference?.takeIf { currentIsTabActive }?.let { webView ->
-                            // Il browser concede lo schermo intero solo dentro un tocco: lo script prepara uno strato
-                            // invisibile, poi un tocco al centro (per la pagina è un tocco vero) lo fa rientrare
-                            webView.evaluateJavascript(BrowserJavascript.getRestoreFullscreenScript()) { result ->
-                                AppLog.d("##BrowserScreen", "Fullscreen restore: $result")
-                                if (result != "\"armed\"") return@evaluateJavascript
-                                webView.postDelayed({
-                                    val x = webView.width / 2f
-                                    val y = webView.height / 2f
-                                    val downTime = SystemClock.uptimeMillis()
-                                    syntheticTap.set(true)
-                                    try {
-                                        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
-                                            val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0)
-                                            event.source = InputDevice.SOURCE_TOUCHSCREEN
-                                            webView.dispatchTouchEvent(event)
-                                            event.recycle()
-                                        }
-                                    } finally {
-                                        syntheticTap.set(false)
-                                    }
-                                }, FULLSCREEN_RESTORE_TAP_DELAY_MS)
-                            }
+                            FullscreenRestore(webView, syntheticTap) { customView != null }.start()
                         }
                     }
                 }
@@ -1438,16 +1412,20 @@ fun BrowserScreen(
             )
         }
 
+        // Una vista nuova a ogni schermo intero: senza key, se la WebView ne passava un'altra prima che la vecchia
+        // uscisse dalla composizione (rientro dal background), restava attaccata la vecchia e la pagina si fermava
         customView?.let { view ->
-            AndroidView(
-                factory = {
-                    (view.parent as? ViewGroup)?.removeView(view)
-                    view
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            )
+            key(view) {
+                AndroidView(
+                    factory = {
+                        (view.parent as? ViewGroup)?.removeView(view)
+                        view
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                )
+            }
         }
 
         popupWebView?.let { popup ->
