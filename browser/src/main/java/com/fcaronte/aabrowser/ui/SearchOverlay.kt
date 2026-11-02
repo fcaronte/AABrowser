@@ -10,7 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.settings.AppSettings
 
 @Composable
 fun SearchOverlay(
@@ -62,6 +63,8 @@ fun SearchOverlay(
     inputView: View? = null,
 ) {
     var queryValue by remember { mutableStateOf(value = TextFieldValue("")) }
+    // In auto con la tastiera passeggero: i tasti dell'app sotto la ricerca, al posto della tastiera di Android Auto
+    val passengerKeys = carInputManager != null && AppSettings.passengerKeyboard.value
     val context = LocalContext.current
     var isListening by remember { mutableStateOf(value = false) }
     val focusRequester = remember { FocusRequester() }
@@ -128,7 +131,7 @@ fun SearchOverlay(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.Black.copy(alpha = 0.6f))
@@ -151,11 +154,14 @@ fun SearchOverlay(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(id = R.string.search_button),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
+                // Con i tasti sotto lo spazio serve a loro (il campo dice già "Cerca")
+                if (!passengerKeys) {
+                    Text(
+                        text = stringResource(id = R.string.search_button),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -176,7 +182,7 @@ fun SearchOverlay(
                             .weight(weight = 1f)
                             .focusRequester(focusRequester = focusRequester)
                             .onFocusChanged { focusState ->
-                                if (focusState.isFocused && carInputManager != null && carInputManager.isValid) {
+                                if (focusState.isFocused && !passengerKeys && carInputManager != null && carInputManager.isValid) {
                                     inputView?.let { view ->
                                         view.requestFocus()
                                         carInputManager.startInput(view)
@@ -264,6 +270,16 @@ fun SearchOverlay(
                     }
                 }
             }
+        }
+
+        if (passengerKeys) {
+            PassengerKeyboardKeys(
+                onType = { queryValue = queryValue.typed(it) },
+                onDelete = { queryValue = queryValue.deletedBack() },
+                onEnter = { if (queryValue.text.isNotBlank()) onSearch(queryValue.text) },
+                keyHeight = passengerKeyHeight(maxHeight, 0.45f),
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+            )
         }
     }
 }

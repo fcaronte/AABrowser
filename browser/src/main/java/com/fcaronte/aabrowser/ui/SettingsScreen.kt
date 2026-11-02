@@ -152,6 +152,8 @@ fun SettingsScreen(
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val autoSitePermissions by AppSettings.autoSitePermissions
+    val passengerMode by AppSettings.passengerMode
+    val passengerKeyboard by AppSettings.passengerKeyboard
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -418,6 +420,26 @@ fun SettingsScreen(
                                         }
                                     }
                                 )
+                            }
+
+                            // Modalità passeggero: in movimento l'app sullo schermo dell'auto va solo con questa accesa (lo
+                            // stato di guida lo dà Android Auto); tastiera dell'app al posto di quella di Android Auto,
+                            // che in movimento si blocca
+                            SettingsCard {
+                                Column {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.passenger_mode_label),
+                                        description = stringResource(R.string.passenger_mode_desc),
+                                        checked = passengerMode,
+                                        onCheckedChange = { AppSettings.setPassengerMode(context, it) }
+                                    )
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.passenger_keyboard_label),
+                                        description = stringResource(R.string.passenger_keyboard_desc),
+                                        checked = passengerKeyboard,
+                                        onCheckedChange = { AppSettings.setPassengerKeyboard(context, it) }
+                                    )
+                                }
                             }
 
                             // Precarica schede preferiti all'avvio

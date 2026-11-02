@@ -289,4 +289,11 @@
     <string name="share_logs_title">Condividi i log</string>
     <string name="share_logs_failed">Impossibile esportare i log: %1$s</string>
     <string name="share_logs_phone_only">Condividi i log dal telefono</string>
+    <string name="passenger_mode_label">Modalità passeggero</string>
+    <string name="passenger_mode_desc">Sullo schermo dell\'auto l\'app funziona anche in movimento (spenta: solo da fermo). Per il passeggero: chi guida non deve usarla.</string>
+    <string name="passenger_keyboard_label">Tastiera passeggero</string>
+    <string name="passenger_keyboard_desc">Tastiera QWERTY dell\'app al posto di quella di Android Auto: con la Modalità passeggero funziona anche in movimento. Per il passeggero: chi guida non deve usarla.</string>
+    <string name="passenger_keyboard_clear">Svuota</string>
+    <string name="drive_lock_title">Disponibile solo da fermo</string>
+    <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni dell\'app sul telefono. Audio e comandi vocali restano attivi.</string>
 </resources>

@@ -46,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -114,6 +115,9 @@ private const val MIC_PERMISSION_REQUEST = 1008
 
 // Due crash del motore delle pagine entro questo tempo: la scheda resta vuota invece di riaprire la pagina all'infinito
 private const val RENDER_CRASH_RETRY_MS = 5000L
+
+// La tastiera passeggero ha scritto nel campo e lo script gli ha ridato il focus: intanto niente popup tastiera/microfono
+private const val INPUT_POPUP_SUPPRESS_MS = 1500L
 
 // Il sito del popup di accesso, come la barra degli indirizzi: "http://" resta visibile perché non è protetto
 private fun popupAddress(url: String?): String? {
@@ -346,6 +350,11 @@ fun BrowserScreen(
     var webViewReference by webViewState
 
     var showInputPopup by remember { mutableStateOf(value = false) }
+    // Tastiera passeggero (in auto, al posto di quella di Android Auto) aperta su un campo: testo e suggerimento
+    var passengerField by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var suppressInputPopupUntil by remember { mutableLongStateOf(0L) }
+    val passengerKeyboard by AppSettings.passengerKeyboard
+    val fieldHint = stringResource(R.string.wide_field_input_hint)
     var isListening by remember { mutableStateOf(value = false) }
     var customView by remember { mutableStateOf<android.view.View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
@@ -885,7 +894,12 @@ fun BrowserScreen(
                                 fun onStartInput() {
                                     AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $currentIsTabActive, isGlobalSearch: $currentIsGlobalSearchActive")
                                     if (currentIsTabActive && !currentIsGlobalSearchActive) {
-                                        post { showInputPopup = true }
+                                        post {
+                                            // Non sopra la tastiera passeggero, né subito dopo che ha scritto nel campo
+                                            if (passengerField == null && SystemClock.uptimeMillis() >= suppressInputPopupUntil) {
+                                                showInputPopup = true
+                                            }
+                                        }
                                     }
                                 }
 
@@ -1473,9 +1487,20 @@ fun BrowserScreen(
                 onKeyboardSelected = {
                     showInputPopup = false
                     webViewReference?.let { webView ->
-                        webView.post {
-                            webView.requestFocus()
-                            carInputManager?.startInput(webView)
+                        if (carInputManager != null && passengerKeyboard) {
+                            // Tastiera dell'app: il campo si memorizza prima (come nella Wide), poi Invio scrive lì
+                            webView.evaluateJavascript(BrowserJavascript.getCaptureInputTargetScript()) { result ->
+                                val field = result?.takeIf { it.startsWith("{") }
+                                    ?.let { runCatching { JSONObject(it) }.getOrNull() }
+                                AppLog.d("##BrowserScreen", "Passenger keyboard: field captured=${field != null}")
+                                passengerField = field?.optString("value").orEmpty() to
+                                        (field?.optString("hint")?.takeIf { it.isNotBlank() } ?: fieldHint)
+                            }
+                        } else {
+                            webView.post {
+                                webView.requestFocus()
+                                carInputManager?.startInput(webView)
+                            }
                         }
                     }
                 },
@@ -1521,6 +1546,22 @@ fun BrowserScreen(
                     speechRecognizer.startListening(intent)
                 },
                 onDismiss = { showInputPopup = false },
+            )
+        }
+
+        passengerField?.takeIf { isTabActive }?.let { (initialText, hint) ->
+            PassengerKeyboardPanel(
+                initialText = initialText,
+                hint = hint,
+                onDone = { text ->
+                    passengerField = null
+                    suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
+                    // Il risultato dice come è stato scritto (typed:exec, typed:paste, no-target, ...): solo nei log
+                    webViewReference?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text)) { written ->
+                        AppLog.d("##BrowserScreen", "Passenger keyboard text written: $written")
+                    }
+                },
+                onClose = { passengerField = null },
             )
         }
 

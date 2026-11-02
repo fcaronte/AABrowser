@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
@@ -79,6 +80,12 @@ fun EditFavoriteScreen(
     val colorOptions = listOf(dynamicPrimaryColor, 0xFFFF0000, 0xFF34A853, 0xFFFBBC05, 0xFF24292E)
 
     var focusedField by remember { mutableIntStateOf(0) } // 0: none, 1: name, 2: url, 3: favicon
+
+    // In auto con la tastiera passeggero il campo toccato si scrive nella tastiera dell'app (riga di testo + Invio),
+    // al posto di quella di Android Auto: sugli schermi bassi dell'auto il modulo non ci starebbe sopra ai tasti
+    val passengerKeys = carInputManager != null && AppSettings.passengerKeyboard.value
+    var passengerFieldIndex by remember { mutableIntStateOf(0) }
+    val focusManager = LocalFocusManager.current
 
     DisposableEffect(Unit) {
         onDispose {
@@ -230,7 +237,9 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 1
-                                                if (carInputManager != null && carInputManager.isValid) {
+                                                if (passengerKeys) {
+                                                    passengerFieldIndex = 1
+                                                } else if (carInputManager != null && carInputManager.isValid) {
                                                     inputHostView?.let { view -> // Usiamo inputHostView
                                                         view.requestFocus()
                                                         carInputManager.startInput(view)
@@ -251,7 +260,9 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 2
-                                                if (carInputManager != null && carInputManager.isValid) {
+                                                if (passengerKeys) {
+                                                    passengerFieldIndex = 2
+                                                } else if (carInputManager != null && carInputManager.isValid) {
                                                     inputHostView?.let { view -> // Usiamo inputHostView
                                                         view.requestFocus()
                                                         carInputManager.startInput(view)
@@ -270,7 +281,9 @@ fun EditFavoriteScreen(
                                         .onFocusChanged { focusState ->
                                             if (focusState.isFocused) {
                                                 focusedField = 3
-                                                if (carInputManager != null && carInputManager.isValid) {
+                                                if (passengerKeys) {
+                                                    passengerFieldIndex = 3
+                                                } else if (carInputManager != null && carInputManager.isValid) {
                                                     inputHostView?.let { view -> // Usiamo inputHostView
                                                         view.requestFocus()
                                                         carInputManager.startInput(view)
@@ -414,6 +427,32 @@ fun EditFavoriteScreen(
             ) {
                 Text(stringResource(R.string.confirm_button), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
+        }
+
+        if (passengerFieldIndex > 0) {
+            val (value, label) = when (passengerFieldIndex) {
+                1 -> nameValue to R.string.field_name
+                2 -> urlValue to R.string.field_url
+                else -> faviconValue to R.string.field_favicon
+            }
+            PassengerKeyboardPanel(
+                initialText = value.text,
+                hint = stringResource(label),
+                onDone = { text ->
+                    val typed = TextFieldValue(text, TextRange(text.length))
+                    when (passengerFieldIndex) {
+                        1 -> nameValue = typed
+                        2 -> urlValue = typed
+                        else -> faviconValue = typed
+                    }
+                    passengerFieldIndex = 0
+                    focusManager.clearFocus()
+                },
+                onClose = {
+                    passengerFieldIndex = 0
+                    focusManager.clearFocus()
+                },
+            )
         }
     }
 }

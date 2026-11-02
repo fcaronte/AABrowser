@@ -329,4 +329,11 @@
     <string name="share_logs_title">Protokolle teilen</string>
     <string name="share_logs_failed">Protokolle konnten nicht exportiert werden: %1$s</string>
     <string name="share_logs_phone_only">Teilen Sie die Protokolle vom Handy aus</string>
+    <string name="passenger_mode_label">Beifahrermodus</string>
+    <string name="passenger_mode_desc">Auf dem Autodisplay funktioniert die App auch während der Fahrt (aus: nur im Stand). Für Beifahrer: Wer fährt, darf sie nicht benutzen.</string>
+    <string name="passenger_keyboard_label">Beifahrer-Tastatur</string>
+    <string name="passenger_keyboard_desc">QWERTY-Tastatur der App statt der von Android Auto: mit dem Beifahrermodus funktioniert sie auch während der Fahrt. Für Beifahrer: Wer fährt, darf sie nicht benutzen.</string>
+    <string name="passenger_keyboard_clear">Leeren</string>
+    <string name="drive_lock_title">Nur im Stand verfügbar</string>
+    <string name="drive_lock_message">Um die App während der Fahrt zu nutzen, kann ein Beifahrer in den App-Einstellungen auf dem Handy „Beifahrermodus“ einschalten. Audio und Sprachbefehle funktionieren weiter.</string>
 </resources>

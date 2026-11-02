@@ -329,4 +329,11 @@
     <string name="share_logs_title">लॉग शेयर करें</string>
     <string name="share_logs_failed">लॉग एक्सपोर्ट नहीं हो सके: %1$s</string>
     <string name="share_logs_phone_only">लॉग फ़ोन से शेयर करें</string>
+    <string name="passenger_mode_label">यात्री मोड</string>
+    <string name="passenger_mode_desc">कार की स्क्रीन पर ऐप चलती गाड़ी में भी काम करता है (बंद होने पर: केवल रुकी गाड़ी में)। यात्रियों के लिए: गाड़ी चलाने वाला इसका उपयोग न करे।</string>
+    <string name="passenger_keyboard_label">यात्री कीबोर्ड</string>
+    <string name="passenger_keyboard_desc">Android Auto के कीबोर्ड की जगह ऐप का QWERTY कीबोर्ड: यात्री मोड के साथ चलती गाड़ी में भी काम करता है। यात्रियों के लिए: गाड़ी चलाने वाला इसका उपयोग न करे।</string>
+    <string name="passenger_keyboard_clear">साफ़ करें</string>
+    <string name="drive_lock_title">केवल रुकी गाड़ी में उपलब्ध</string>
+    <string name="drive_lock_message">चलती गाड़ी में ऐप का उपयोग करने के लिए, यात्री फ़ोन पर ऐप की सेटिंग में “यात्री मोड” चालू कर सकता है। ऑडियो और वॉइस कमांड काम करते रहते हैं।</string>
 </resources>

@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowInsetsCompat
@@ -22,7 +23,9 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.DrivingState
 import com.google.android.apps.auto.sdk.CarActivity
+import com.google.android.gms.car.CarSensorManager
 import com.google.android.gms.car.input.InputManager
 
 class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
@@ -41,6 +44,13 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
+    // Stato di guida anche dall'host della Main: è lo stesso dato di Android Auto, seconda strada se la connessione
+    // di DrivingState non funziona su questa versione
+    private var hostSensors: CarSensorManager? = null
+    private val hostSensorListener = CarSensorManager.CarSensorEventListener { type, _, _, bytes ->
+        if (type == DRIVING_STATUS) bytes?.firstOrNull()?.let { DrivingState.onStatus(it.toInt(), "host") }
+    }
+
     override fun onCreate(bundle: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(bundle)
@@ -49,6 +59,10 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             AppLog.w("MainCarActivity", "RECORD_AUDIO permission not granted!")
         }
+
+        // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la Main resta coperta (MainScreen)
+        DrivingState.acquire(this)
+        listenHostDrivingStatus()
 
         // Avvia il servizio in primo piano per evitare che il sistema lo killi in background
         ForegroundService.startForegroundService(this)
@@ -97,6 +111,18 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         updateSystemUi(true)
     }
 
+    private fun listenHostDrivingStatus() {
+        try {
+            val sensors = a("sensor") as? CarSensorManager ?: return
+            sensors.getLatestSensorEvent(DRIVING_STATUS)?.byteValues?.firstOrNull()
+                ?.let { DrivingState.onStatus(it.toInt(), "host") }
+            if (sensors.registerListener(hostSensorListener, DRIVING_STATUS, SENSOR_RATE_NORMAL)) hostSensors = sensors
+            Log.d("DrivingState", "Host driving status listener=${hostSensors != null}")
+        } catch (e: Exception) {
+            Log.w("DrivingState", "Host driving status not available: ${e.javaClass.simpleName} ${e.message}")
+        }
+    }
+
     // Comando vocale con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente): chiede ad Android Auto
     // di riportarla davanti, come quando la si apre dal menu delle app
     private fun bringToFront() {
@@ -141,6 +167,14 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     override fun onDestroy() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mViewModelStore.clear()
+
+        try {
+            hostSensors?.unregisterListener(hostSensorListener)
+        } catch (_: Exception) {
+        }
+        if (hostSensors != null) DrivingState.onHostStopped()
+        hostSensors = null
+        DrivingState.release()
 
         // Ferma il servizio in primo piano e il servizio media alla chiusura dell'activity sull'auto
         ForegroundService.stopForegroundService(this)
@@ -235,5 +269,11 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
             }
         }
         return null
+    }
+
+    companion object {
+        // Sensori di Android Auto (stessi valori di android.support.car.hardware.CarSensorManager)
+        private const val DRIVING_STATUS = 11
+        private const val SENSOR_RATE_NORMAL = 3
     }
 }

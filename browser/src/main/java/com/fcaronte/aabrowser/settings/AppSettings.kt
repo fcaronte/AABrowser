@@ -13,6 +13,7 @@ import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.DrivingState
 
 enum class ThemeMode {
     LIGHT, DARK, AMOLED
@@ -153,6 +154,15 @@ object AppSettings {
     private val _autoSitePermissions = mutableStateOf(false)
     val autoSitePermissions: State<Boolean> = _autoSitePermissions
 
+    // Sullo schermo dell'auto in movimento l'app va solo con questa accesa (se l'auto si muove lo dice Android Auto,
+    // DrivingState): pensata per chi viaggia accanto a chi guida
+    private val _passengerMode = mutableStateOf(false)
+    val passengerMode: State<Boolean> = _passengerMode
+
+    // Tastiera QWERTY dell'app al posto di quella di Android Auto, che in movimento si blocca
+    private val _passengerKeyboard = mutableStateOf(false)
+    val passengerKeyboard: State<Boolean> = _passengerKeyboard
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _forceTheme.value = prefs.getBoolean("force_theme", false)
@@ -197,6 +207,8 @@ object AppSettings {
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
         _autoSitePermissions.value = prefs.getBoolean("site_permissions_auto", false)
+        _passengerMode.value = prefs.getBoolean("passenger_mode", false)
+        _passengerKeyboard.value = prefs.getBoolean("passenger_keyboard", false)
 
         enableWeatherByDefaultIfLocationGranted(context)
         if (_forceEnglish.value) updateLocale()
@@ -221,6 +233,17 @@ object AppSettings {
     fun setAutoSitePermissions(context: Context, enabled: Boolean) {
         _autoSitePermissions.value = enabled
         saveBoolean(context, "site_permissions_auto", enabled)
+    }
+
+    fun setPassengerMode(context: Context, enabled: Boolean) {
+        _passengerMode.value = enabled
+        saveBoolean(context, "passenger_mode", enabled)
+        DrivingState.notifyChanged()
+    }
+
+    fun setPassengerKeyboard(context: Context, enabled: Boolean) {
+        _passengerKeyboard.value = enabled
+        saveBoolean(context, "passenger_keyboard", enabled)
     }
 
     fun setWeatherWidgetEnabled(context: Context, enabled: Boolean) {

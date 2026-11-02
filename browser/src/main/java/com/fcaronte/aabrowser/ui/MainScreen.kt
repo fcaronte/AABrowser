@@ -71,6 +71,7 @@ import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -800,6 +801,14 @@ fun MainScreen(
                             },
                         )
                     }
+                }
+
+                // In movimento, senza la Modalità passeggero, sullo schermo dell'auto l'app resta coperta (se l'auto si
+                // muove lo dice Android Auto). Sopra restano solo i messaggi e l'ascolto dei comandi vocali
+                val drivingMoving by DrivingState.moving
+                val passengerMode by AppSettings.passengerMode
+                if (isAutomotive && drivingMoving == true && !passengerMode) {
+                    DriveLockCover(modifier = Modifier.zIndex(97f))
                 }
 
                 // Feedback visivo

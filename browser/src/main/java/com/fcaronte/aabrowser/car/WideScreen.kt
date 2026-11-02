@@ -54,6 +54,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
 import androidx.car.app.CarToast
@@ -94,6 +95,7 @@ import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
+import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
@@ -217,6 +219,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
 
+    // Tastiera passeggero (al posto di quella di Android Auto) e copertura dell'auto in movimento, sulla superficie
+    private var passengerKeyboard: WidePassengerKeyboard? = null
+    private var driveLockReference: FrameLayout? = null
+    private var driveLockCardReference: LinearLayout? = null
+    private val driveStateListener: () -> Unit = { applyDriveLock() }
+
+    // Indietro dell'auto con la tastiera passeggero aperta: la chiude, come quella di Android Auto
+    private val closeKeyboardOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            passengerKeyboard?.hide()
+        }
+    }
+
     // Comandi vocali: scheda "In ascolto…" sulla superficie, tasto della sidebar (rosso mentre ascolta)
     private var voiceCardReference: LinearLayout? = null
     private var voiceDetailReference: TextView? = null
@@ -302,6 +317,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     init {
         activeInstance = this
+        carContext.onBackPressedDispatcher.addCallback(this, closeKeyboardOnBack)
         try {
             carContext.getCarService(AppManager::class.java).setSurfaceCallback(this)
 
@@ -323,6 +339,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
                 checkForUpdate()
+                // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
+                DrivingState.acquire(carContext)
+                DrivingState.addListener(driveStateListener)
                 // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
                 VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor) {
                     if (!isVoiceListening) toggleVoiceCommand()
@@ -343,6 +362,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 isWideResumed = false
                 mediaSessionManager.setWideActive(false)
                 VoiceCommandRouter.unregister(VoiceCommandRouter.Target.WIDE, voiceExecutor)
+                DrivingState.removeListener(driveStateListener)
+                DrivingState.release()
                 stopVoiceCommand()
                 try {
                     voiceRecognizer?.destroy()
@@ -521,9 +542,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val from = (webView?.url ?: lastUrl)
             ?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
         val target = SiteSearch.targetFor(from)
-        screenManager.push(WideSearchScreen(carContext, carContext.getString(R.string.wide_search_on, target.label)) { query ->
-            loadUrl(SiteSearch.resolve(carContext, from, query))
-        })
+        val title = carContext.getString(R.string.wide_search_on, target.label)
+        val search: (String) -> Unit = { query -> loadUrl(SiteSearch.resolve(carContext, from, query)) }
+        // Tastiera passeggero sulla superficie; sotto la copertura in movimento resta quella di Android Auto
+        val keyboard = passengerKeyboard
+        if (AppSettings.passengerKeyboard.value && keyboard != null && !isDriveLocked()) {
+            keyboard.show("", title) { query -> if (query.isNotBlank()) search(query) }
+        } else {
+            screenManager.push(WideSearchScreen(carContext, title, onSubmit = search))
+        }
     }
 
     /**
@@ -548,28 +575,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             AppLog.d(TAG, "Keyboard: field captured=${field != null}")
             val hint = field?.optString("hint")?.takeIf { it.isNotBlank() }
                 ?: carContext.getString(R.string.wide_field_input_hint)
+            val initialText = field?.optString("value").orEmpty()
 
-            screenManager.push(
-                WideSearchScreen(
-                    carContext,
-                    hint,
-                    initialText = field?.optString("value").orEmpty(),
-                    allowEmpty = true
-                ) { text ->
-                    // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
-                    suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
-                    // Il risultato dice come è stato scritto (typed:exec, typed:paste, no-target, ...): solo nei log
-                    webView?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text)) { written ->
-                        AppLog.d(TAG, "Keyboard text written: $written")
-                    }
-
-                    // Forza il focus non subito, ma con un delay per permettere
-                    // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
-                    webView?.postDelayed({
-                        webView?.requestFocus()
-                    }, 300)
+            val writeText: (String) -> Unit = { text ->
+                // Lo script rimette il focus sul campo: senza questo il popup si riaprirebbe subito
+                suppressInputPopupUntil = SystemClock.uptimeMillis() + INPUT_POPUP_SUPPRESS_MS
+                // Il risultato dice come è stato scritto (typed:exec, typed:paste, no-target, ...): solo nei log
+                webView?.evaluateJavascript(BrowserJavascript.getSetInputTextScript(text)) { written ->
+                    AppLog.d(TAG, "Keyboard text written: $written")
                 }
-            )
+
+                // Forza il focus non subito, ma con un delay per permettere
+                // alla WebView di "riprendersi" dalla chiusura della WideSearchScreen
+                webView?.postDelayed({
+                    webView?.requestFocus()
+                }, 300)
+            }
+
+            // Tastiera passeggero sulla superficie, anche in movimento; altrimenti quella di Android Auto
+            val keyboard = passengerKeyboard
+            if (AppSettings.passengerKeyboard.value && keyboard != null) {
+                keyboard.show(initialText, hint, writeText)
+            } else {
+                screenManager.push(WideSearchScreen(carContext, hint, initialText = initialText, allowEmpty = true, onSubmit = writeText))
+            }
         }
     }
 
@@ -766,7 +795,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
         )
         layoutCustomView(view, webView?.layoutParams as? FrameLayout.LayoutParams)
+        // Popup, tastiera passeggero, copertura in movimento e ascolto restano sopra il video
         popupOverlayReference?.bringToFront()
+        passengerKeyboard?.view?.bringToFront()
+        driveLockReference?.bringToFront()
+        voiceCardReference?.bringToFront()
         customView = view
         customViewCallback = callback
     }
@@ -1033,6 +1066,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         updatePopupPosition()
         updateVoiceCardPosition()
+        passengerKeyboard?.layout(overlayArea())
+        layoutDriveLock()
     }
 
     /**
@@ -1058,10 +1093,66 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         card.layoutParams = lp
     }
 
+    /**
+     * Area della tastiera passeggero e dell'avviso in movimento: quella libera anche coi tasti di Android Auto
+     * visibili (stable area), così la tastiera non si sposta sotto il dito quando i tasti compaiono o spariscono.
+     */
+    private fun overlayArea(): Rect =
+        (stableArea ?: visibleArea)?.takeUnless { it.isEmpty } ?: Rect(0, 0, surfaceWidth, surfaceHeight)
+
+    private fun isDriveLocked(): Boolean = driveLockReference?.isVisible == true
+
+    /** Pagina sotto la copertura in movimento o sotto la tastiera passeggero: niente scorrimento né zoom. */
+    private fun isPageCovered(): Boolean = isDriveLocked() || passengerKeyboard?.isVisible == true
+
+    /**
+     * Auto in movimento (lo dice Android Auto) e Modalità passeggero spenta: la pagina resta coperta da un avviso che
+     * spiega come sbloccarla e i tocchi si fermano. Audio, player di Android Auto e comandi vocali vanno avanti.
+     */
+    private fun applyDriveLock() {
+        val overlay = driveLockReference ?: return
+        val locked = DrivingState.isLocked
+        if (locked == overlay.isVisible) return
+        if (locked) {
+            handler.removeCallbacks(hidePopupRunnable)
+            popupOverlayReference?.visibility = View.GONE
+            isInputPopupVisible = false
+        }
+        overlay.isVisible = locked
+        layoutDriveLock()
+        Log.d(TAG, "Drive lock ${if (locked) "on" else "off"}")
+    }
+
+    // Avviso al centro dell'area libera, largo al massimo quanto lei
+    private fun layoutDriveLock() {
+        val card = driveLockCardReference ?: return
+        val lp = card.layoutParams as? FrameLayout.LayoutParams ?: return
+        val r = overlayArea()
+        val margin = (24 * card.resources.displayMetrics.density).toInt()
+        card.measure(
+            View.MeasureSpec.makeMeasureSpec((r.width() - 2 * margin).coerceAtLeast(0), View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(r.height(), View.MeasureSpec.AT_MOST)
+        )
+        lp.gravity = Gravity.TOP or Gravity.START
+        lp.width = card.measuredWidth
+        lp.leftMargin = (r.centerX() - card.measuredWidth / 2).coerceAtLeast(r.left)
+        lp.topMargin = (r.centerY() - card.measuredHeight / 2).coerceAtLeast(r.top)
+        card.layoutParams = lp
+    }
+
     override fun onClick(x: Float, y: Float) {
+        // In movimento senza la Modalità passeggero la pagina è coperta: i tocchi si fermano
+        if (isDriveLocked()) return
+
+        passengerKeyboard?.takeIf { it.isVisible }?.let { keyboard ->
+            dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_DOWN, x, y)
+            dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_UP, x, y)
+            return
+        }
+
         if (isInputPopupVisible) {
-            dispatchTouchToPopup(MotionEvent.ACTION_DOWN, x, y)
-            dispatchTouchToPopup(MotionEvent.ACTION_UP, x, y)
+            dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_DOWN, x, y)
+            dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_UP, x, y)
             return
         }
 
@@ -1106,7 +1197,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
-        if (isInputPopupVisible || customView != null) return
+        if (isInputPopupVisible || customView != null || isPageCovered()) return
         val wv = webView ?: return
         // Pagina di un video di YouTube: niente scorrimento nativo, decide lo script (prima le colonne, video in alto)
         if (!isYouTubeWatchPage(wv.url)) wv.scrollBy(distanceX.toInt(), distanceY.toInt())
@@ -1135,7 +1226,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
-        if (isInputPopupVisible || customView != null) return
+        if (isInputPopupVisible || customView != null || isPageCovered()) return
         val wv = webView ?: return
         if (isYouTubeWatchPage(wv.url)) {
             // Come lo scorrimento: il fling nativo sposterebbe la pagina e il video
@@ -1155,7 +1246,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
         // Niente zoom sulla home o zoom improvviso (doppio tap to zoom dell'host Android Auto)
-        if (isInputPopupVisible || customView != null || isHome()) return
+        if (isInputPopupVisible || customView != null || isHome() || isPageCovered()) return
 
         // I doppi tap interpretati dall'host Android Auto inviano scaleFactor fissi o ampi (es. 2.0 o 0.5).
         // Il pinch-to-zoom usa variazioni graduali vicine a 1.0 (es. 0.95 - 1.05).
@@ -1190,9 +1281,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    private fun dispatchTouchToPopup(action: Int, x: Float, y: Float) {
+    /** Tocco a una scheda sopra la pagina (popup, tastiera passeggero), che copre tutta la superficie. */
+    private fun dispatchTouchToOverlay(overlay: View?, action: Int, x: Float, y: Float) {
         handler.post {
-            val overlay = popupOverlayReference ?: return@post
+            if (overlay == null) return@post
             val now = SystemClock.uptimeMillis()
             if (action == MotionEvent.ACTION_DOWN) downTime = now
 
@@ -1348,6 +1440,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     voiceCard.addView(voiceDetail, LinearLayout.LayoutParams(-1, -2).apply { topMargin = (4 * dp).toInt() })
                     voiceCardReference = voiceCard
                     voiceDetailReference = voiceDetail
+
+                    val keyboard = WidePassengerKeyboard(ctx)
+                    keyboard.onVisibilityChanged = { visible -> closeKeyboardOnBack.isEnabled = visible }
+                    passengerKeyboard = keyboard
+
+                    // Auto in movimento senza la Modalità passeggero: copre pagina e sidebar, spiega come sbloccare
+                    val driveLock = FrameLayout(ctx).apply {
+                        visibility = View.GONE
+                        setBackgroundColor("#101010".toColorInt())
+                        isClickable = true
+                    }
+                    val driveLockCard = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    }
+                    driveLockCard.addView(TextView(ctx).apply {
+                        text = "🚗 ${ctx.getString(R.string.drive_lock_title)}"
+                        textSize = 24f
+                        setTextColor(Color.WHITE)
+                        gravity = Gravity.CENTER
+                    }, LinearLayout.LayoutParams(-1, -2))
+                    driveLockCard.addView(TextView(ctx).apply {
+                        text = ctx.getString(R.string.drive_lock_message)
+                        textSize = 18f
+                        setTextColor("#BDC1C6".toColorInt())
+                        gravity = Gravity.CENTER
+                    }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = (12 * dp).toInt() })
+                    driveLock.addView(driveLockCard, FrameLayout.LayoutParams(-2, -2))
+                    driveLockReference = driveLock
+                    driveLockCardReference = driveLockCard
 
                     val wv = WebView(ctx).apply {
                         settings.apply {
@@ -1565,7 +1687,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun onStartInput() {
                                     post {
-                                        if (SystemClock.uptimeMillis() < suppressInputPopupUntil) return@post
+                                        if (SystemClock.uptimeMillis() < suppressInputPopupUntil || isPageCovered()) return@post
                                         popupOverlay.visibility = View.VISIBLE
                                         isInputPopupVisible = true
                                         updatePopupPosition()
@@ -2016,10 +2138,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     )
                     frame.addView(sidebarContainer, FrameLayout.LayoutParams(52, ViewGroup.LayoutParams.MATCH_PARENT))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
+                    frame.addView(keyboard.view, FrameLayout.LayoutParams(-1, -1))
+                    frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))
+                    // L'ascolto dei comandi vocali resta visibile anche sopra la copertura in movimento
                     frame.addView(voiceCard, FrameLayout.LayoutParams(-1, -2).apply { gravity = Gravity.TOP })
 
                     setContentView(frame)
                     applyVisibleArea()
+                    applyDriveLock()
                     loadInitial()
                 }
             }
@@ -2319,6 +2445,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         handler.removeCallbacks(applyAreaSettledRunnable)
         popupOverlayReference = null
         sidebarContainerReference = null
+        passengerKeyboard = null
+        closeKeyboardOnBack.isEnabled = false
+        driveLockReference = null
+        driveLockCardReference = null
         voiceCardReference = null
         voiceDetailReference = null
         sidebarVoiceButton = null
