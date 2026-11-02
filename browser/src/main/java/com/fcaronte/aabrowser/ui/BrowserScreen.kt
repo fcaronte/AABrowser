@@ -13,6 +13,8 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
@@ -96,6 +98,7 @@ import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
@@ -118,6 +121,9 @@ private const val RENDER_CRASH_RETRY_MS = 5000L
 
 // La tastiera passeggero ha scritto nel campo e lo script gli ha ridato il focus: intanto niente popup tastiera/microfono
 private const val INPUT_POPUP_SUPPRESS_MS = 1500L
+
+// Ritorno dal background: il tocco che fa rientrare a schermo intero arriva quando la WebView è di nuovo visibile
+private const val FULLSCREEN_RESTORE_TAP_DELAY_MS = 400L
 
 // Il sito del popup di accesso, come la barra degli indirizzi: "http://" resta visibile perché non è protetto
 private fun popupAddress(url: String?): String? {
@@ -366,6 +372,8 @@ fun BrowserScreen(
 
     // Ultimo tocco sulla pagina (letto dal thread del JavaBridge)
     val lastTouchAt = remember { AtomicLong(0L) }
+    // Tocco mandato dall'app (rientro a schermo intero): non conta come tocco dell'utente
+    val syntheticTap = remember { AtomicBoolean(false) }
 
     // Motore delle pagine chiuso (crash, o Android che libera memoria): la WebView morta non si può più usare, se ne
     // crea una nuova che riapre la pagina (la WebView si ricrea cambiando questa chiave)
@@ -460,15 +468,36 @@ fun BrowserScreen(
                         it.invalidate()
                     }
                     if (isFullscreenPending) {
-                        AppLog.d("##BrowserScreen", "Resuming fullscreen")
-                        webViewReference?.evaluateJavascript(
-                            "document.querySelector('video')?.requestFullscreen().catch(() => {})",
-                            null
-                        )
                         isFullscreenPending = false
+                        // Solo la scheda visibile: una in background resta com'è
+                        webViewReference?.takeIf { currentIsTabActive }?.let { webView ->
+                            // Il browser concede lo schermo intero solo dentro un tocco: lo script prepara uno strato
+                            // invisibile, poi un tocco al centro (per la pagina è un tocco vero) lo fa rientrare
+                            webView.evaluateJavascript(BrowserJavascript.getRestoreFullscreenScript()) { result ->
+                                AppLog.d("##BrowserScreen", "Fullscreen restore: $result")
+                                if (result != "\"armed\"") return@evaluateJavascript
+                                webView.postDelayed({
+                                    val x = webView.width / 2f
+                                    val y = webView.height / 2f
+                                    val downTime = SystemClock.uptimeMillis()
+                                    syntheticTap.set(true)
+                                    try {
+                                        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                                            val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0)
+                                            event.source = InputDevice.SOURCE_TOUCHSCREEN
+                                            webView.dispatchTouchEvent(event)
+                                            event.recycle()
+                                        }
+                                    } finally {
+                                        syntheticTap.set(false)
+                                    }
+                                }, FULLSCREEN_RESTORE_TAP_DELAY_MS)
+                            }
+                        }
                     }
                 }
                 Lifecycle.Event.ON_PAUSE -> {
+                    // A schermo intero in background la riproduzione si fermava: si esce e al ritorno si rientra
                     if (customView != null) {
                         AppLog.d("##BrowserScreen", "App paused, exiting fullscreen and marking as pending")
                         isFullscreenPending = true
@@ -601,9 +630,11 @@ fun BrowserScreen(
                         isLongClickable = true
                         // Notifica l'interazione continua durante swipe/scroll senza bloccare la WebView
                         setOnTouchListener { _, _ ->
-                            lastTouchAt.set(SystemClock.uptimeMillis())
-                            onInteraction()
-                            InactivityTracker.notifyInteraction(5000L, AppSettings.persistentNavigation.value)
+                            if (!syntheticTap.get()) {
+                                lastTouchAt.set(SystemClock.uptimeMillis())
+                                onInteraction()
+                                InactivityTracker.notifyInteraction(5000L, AppSettings.persistentNavigation.value)
+                            }
                             false
                         }
 
@@ -677,6 +708,12 @@ fun BrowserScreen(
                             WebViewCompat.addDocumentStartJavaScript(
                                 this,
                                 BrowserJavascript.getAutoSaveActiveElementScript(),
+                                setOf("*")
+                            )
+                            // Elemento a schermo intero (player di YouTube, video): ci si rientra al ritorno dal background
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                BrowserJavascript.getFullscreenMemoryScript(),
                                 setOf("*")
                             )
                             WebViewCompat.addDocumentStartJavaScript(

@@ -141,6 +141,65 @@ object BrowserJavascript {
         """.trimIndent()
     }
 
+    /**
+     * Ultimo elemento a schermo intero della pagina (il player di YouTube, un video, ...). Andando in background la
+     * Main esce dallo schermo intero, perché lì la riproduzione si fermava; al ritorno ci rientra con
+     * [getRestoreFullscreenScript].
+     */
+    fun getFullscreenMemoryScript(): String = """
+    (function() {
+        if (window.__aabFullscreenMemory) return;
+        window.__aabFullscreenMemory = true;
+        const remember = function() {
+            const el = document.fullscreenElement || document.webkitFullscreenElement;
+            if (el) window.__aabFullscreenTarget = el;
+        };
+        document.addEventListener('fullscreenchange', remember, true);
+        document.addEventListener('webkitfullscreenchange', remember, true);
+    })();
+    """.trimIndent()
+
+    /**
+     * Di nuovo a schermo intero al ritorno dal background. Il browser lo concede solo dentro un tocco dell'utente
+     * (chiamato da qui fallisce in silenzio): lo script mette sopra la pagina uno strato trasparente che, al tocco
+     * successivo (la Main ne manda uno subito dopo), rientra a schermo intero sull'elemento di prima e sparisce, senza
+     * che il tocco arrivi alla pagina. Risponde "armed" (strato pronto), "already" o "no-target"; dopo 2 s lo strato
+     * sparisce comunque, così non ruba i tocchi veri.
+     */
+    fun getRestoreFullscreenScript(): String = """
+    (function() {
+        const old = document.getElementById('__aab_fullscreen_restore');
+        if (old) old.remove();
+        if (document.fullscreenElement || document.webkitFullscreenElement) return 'already';
+        let target = window.__aabFullscreenTarget;
+        if (!target || !target.isConnected) target = document.querySelector('video');
+        if (!target) return 'no-target';
+        const layer = document.createElement('div');
+        layer.id = '__aab_fullscreen_restore';
+        layer.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:2147483647;' +
+            'background:transparent;touch-action:none';
+        const swallow = function(e) { e.stopPropagation(); };
+        ['touchstart', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click'].forEach(function(type) {
+            layer.addEventListener(type, swallow, true);
+        });
+        // Fine del tocco: qui il browser concede lo schermo intero; preventDefault toglie il click che seguirebbe
+        layer.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            layer.remove();
+            const request = target.requestFullscreen || target.webkitRequestFullscreen;
+            if (!request) return;
+            try {
+                const result = request.call(target);
+                if (result && result.catch) result.catch(function() {});
+            } catch (_) {}
+        }, { capture: true, passive: false });
+        (document.body || document.documentElement).appendChild(layer);
+        setTimeout(function() { layer.remove(); }, 2000);
+        return 'armed';
+    })();
+    """.trimIndent()
+
     fun getAutoSaveActiveElementScript(): String {
         return """
     (function() {
