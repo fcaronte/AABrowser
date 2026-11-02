@@ -53,13 +53,19 @@
 
   - \*Hard Constraint\*: Android Auto stock template framework enforces that the right stock bar MUST keep at least one action button locked at the top-right corner.
 
-  - \*Android Auto Limitations\* (set by Google for Car App Library apps, not bugs; the "Beta" label was dropped in 2.4): Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving). Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
+  - \*Android Auto Limitations\* (set by Google for Car App Library apps, not bugs; the "Beta" label was dropped in 2.4): Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving); since 2.5 the optional Passenger keyboard (a QWERTY keyboard drawn by the app) replaces it in both apps. Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
 
 \### Web Engine & Injected JavaScript
 
 \- JS injections are decoupled into modular, readable JavaScript files (located in assets/res).
 
 \- Handles site-specific optimizations (e.g., skip button handling on YouTube playlists across multiple UI languages, touch interactions on Zappr, media auto-pause logic).
+
+\### Passenger Mode (2.5)
+
+\- On the car screens (Main in the car and Wide) the app works only when the car is parked: the driving status comes from Android Auto (the same one that locks its keyboard), no checks of our own. While moving the page is covered by a message that explains how to unlock it; audio, the Android Auto player and voice commands keep working. If Android Auto does not send the status, nothing is locked.
+
+\- Settings "Passenger mode" (unlocks the app while moving) and "Passenger keyboard" (the app's QWERTY keyboard instead of the Android Auto one, also while moving): both off by default, meant for passengers only. Release notes must say the driver must not use them.
 
 \### Media & Audio Handling
 

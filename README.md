@@ -29,8 +29,8 @@ from the misuse of this application. Use at your own risk.
 * **Two apps on Android Auto:** **AABrowser**, the full browser with tabs, and **AAWBrowser
   (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
   or the app menu, with a fixed side menu. *Limits set by Android Auto for this kind of app:* only the
-  full-screen Android Auto keyboard, no double-tap zoom, no drag gestures (you seek by tapping the progress
-  bar).
+  full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
+  (you seek by tapping the progress bar).
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
@@ -53,6 +53,11 @@ from the misuse of this application. Use at your own risk.
 * **Site permissions (new in 2.5):** microphone, location and, in the car, the files picked on the phone go to a
   site only after it asks: "Always allow", "Only this time" or "Don't allow". The choices are listed in
   Settings > Web Pages, where you can remove them one by one or all together (Clear data).
+* **Passenger mode (new in 2.5):** on the car screen the app works only when the car is parked (Android Auto
+  tells when it moves); audio, the Android Auto player and voice commands keep working. With *Passenger mode*
+  in Settings it works while moving too, and with *Passenger keyboard*, a QWERTY keyboard of the app (letters,
+  numbers and symbols, accented letters), you can type while moving, in both apps. For passengers only: the
+  driver must not use them.
 * **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
   through KingInstaller.
@@ -177,8 +182,8 @@ proprio rischio e pericolo.
 * **Due app su Android Auto:** **AABrowser**, il browser completo con le schede, e **AAWBrowser
   (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
   o al menu delle app, con il menu laterale fisso. *Limiti imposti da Android Auto a questo tipo di app:*
-  solo la tastiera a schermo intero di Android Auto, niente zoom col doppio tocco, niente trascinamenti (nel
-  video ci si sposta toccando la barra di avanzamento).
+  solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
+  tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento).
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
@@ -202,6 +207,11 @@ proprio rischio e pericolo.
 * **Permessi dei siti (novità 2.5):** microfono, posizione e, in auto, i file scelti sul telefono arrivano a un
   sito solo dopo che lo ha chiesto: "Consenti sempre", "Solo questa volta" o "Non consentire". Le scelte sono in
   Impostazioni > Pagine Web, dove si tolgono una per una o tutte insieme (Cancella dati).
+* **Modalità passeggero (novità 2.5):** sullo schermo dell'auto l'app funziona solo da fermo (se l'auto si
+  muove lo dice Android Auto); audio, player di Android Auto e comandi vocali continuano a funzionare. Con
+  *Modalità passeggero* nelle Impostazioni funziona anche in movimento, e con *Tastiera passeggero*, una
+  tastiera QWERTY dell'app (lettere, numeri e simboli, lettere accentate), si scrive anche in movimento, nelle
+  due app. Solo per i passeggeri: chi guida non deve usarle.
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
   aggiornamenti tramite KingInstaller.
