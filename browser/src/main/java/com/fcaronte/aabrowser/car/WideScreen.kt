@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Presentation
 import android.content.ComponentName
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -91,6 +92,7 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
@@ -194,6 +196,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun toggleSidebarFixed() = AppSettings.setWideSidebarFixed(carContext, !sidebarFixedEnabled())
     private val isRtl: Boolean
         get() = carContext.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+
+    // Testi nella lingua dell'app: Android Auto passa alla Wide la configurazione dell'auto, con la lingua del telefono
+    private var stringsCache: Pair<Configuration, Context>? = null
+    private val strings: Context
+        get() {
+            val config = carContext.resources.configuration
+            stringsCache?.takeIf { it.first == config }?.let { return it.second }
+            return AppLocale.wrap(carContext).also { stringsCache = Configuration(config) to it }
+        }
     private fun savedUrl(): String = AppSettings.wideLastUrl.value
     private fun saveUrl(url: String) = AppSettings.setWideLastUrl(carContext, url)
 
@@ -285,7 +296,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         onPhonePermissionMissing = { permission ->
             val message = if (permission == SitePermission.LOCATION) R.string.web_location_phone_toast
             else R.string.site_permission_mic_phone
-            CarToast.makeText(carContext, carContext.getString(message), CarToast.LENGTH_LONG).show()
+            CarToast.makeText(carContext, strings.getString(message), CarToast.LENGTH_LONG).show()
             false
         }
     }
@@ -483,7 +494,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val site = currentAdBlockSite() ?: return
         val disable = !AdBlockHost.isWhitelisted(site)
         if (disable) AdBlockHost.addToWhitelist(site) else AdBlockHost.removeFromWhitelist(site)
-        val message = carContext.getString(if (disable) R.string.adblock_site_off else R.string.adblock_site_on, site)
+        val message = strings.getString(if (disable) R.string.adblock_site_off else R.string.adblock_site_on, site)
         CarToast.makeText(carContext, message, CarToast.LENGTH_SHORT).show()
         invalidate()
         webView?.reload()
@@ -502,8 +513,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         favoritesCache = null
         val items = favorites().map { HomePage.Item(it.name, it.url) }
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
-            ?.let { carContext.getString(R.string.update_available, it.latestVersion) }
-        return HomePage.build(carContext, items, reopenEnabled(), sidebarFixedEnabled(), updateText)
+            ?.let { strings.getString(R.string.update_available, it.latestVersion) }
+        return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText)
     }
 
     // Come la home della Main: all'apertura controlla se c'è una versione nuova e la mostra in cima alla home
@@ -522,7 +533,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun startUpdateDownload() {
         val info = updateInfo ?: return
         val started = UpdateManager.startDownload(carContext, info)
-        val message = carContext.getString(if (started) R.string.update_download_started else R.string.update_download_failed)
+        val message = strings.getString(if (started) R.string.update_download_started else R.string.update_download_failed)
         CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show()
     }
 
@@ -542,8 +553,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val from = (webView?.url ?: lastUrl)
             ?.takeIf { it != HOME && !it.startsWith(HomePage.BASE_URL) }
         val target = SiteSearch.targetFor(from)
-        val title = carContext.getString(R.string.wide_search_on, target.label)
-        val search: (String) -> Unit = { query -> loadUrl(SiteSearch.resolve(carContext, from, query)) }
+        val title = strings.getString(R.string.wide_search_on, target.label)
+        val search: (String) -> Unit = { query -> loadUrl(SiteSearch.resolve(strings, from, query)) }
         // Tastiera passeggero sulla superficie; sotto la copertura in movimento resta quella di Android Auto
         val keyboard = passengerKeyboard
         if (AppSettings.passengerKeyboard.value && keyboard != null && !isDriveLocked()) {
@@ -574,7 +585,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val field = parseCapturedField(result)
             AppLog.d(TAG, "Keyboard: field captured=${field != null}")
             val hint = field?.optString("hint")?.takeIf { it.isNotBlank() }
-                ?: carContext.getString(R.string.wide_field_input_hint)
+                ?: strings.getString(R.string.wide_field_input_hint)
             val initialText = field?.optString("value").orEmpty()
 
             val writeText: (String) -> Unit = { text ->
@@ -1426,7 +1437,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         }
                     }
                     val voiceTitle = TextView(ctx).apply {
-                        text = "🎤 ${ctx.getString(R.string.voice_listening)}"
+                        text = "🎤 ${strings.getString(R.string.voice_listening)}"
                         textSize = 20f
                         setTextColor(Color.WHITE)
                         gravity = Gravity.CENTER
@@ -1441,7 +1452,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     voiceCardReference = voiceCard
                     voiceDetailReference = voiceDetail
 
-                    val keyboard = WidePassengerKeyboard(ctx)
+                    val keyboard = WidePassengerKeyboard(ctx, strings)
                     keyboard.onVisibilityChanged = { visible -> closeKeyboardOnBack.isEnabled = visible }
                     passengerKeyboard = keyboard
 
@@ -1456,13 +1467,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         gravity = Gravity.CENTER_HORIZONTAL
                     }
                     driveLockCard.addView(TextView(ctx).apply {
-                        text = "🚗 ${ctx.getString(R.string.drive_lock_title)}"
+                        text = "🚗 ${strings.getString(R.string.drive_lock_title)}"
                         textSize = 24f
                         setTextColor(Color.WHITE)
                         gravity = Gravity.CENTER
                     }, LinearLayout.LayoutParams(-1, -2))
                     driveLockCard.addView(TextView(ctx).apply {
-                        text = ctx.getString(R.string.drive_lock_message)
+                        text = strings.getString(R.string.drive_lock_message)
                         textSize = 18f
                         setTextColor("#BDC1C6".toColorInt())
                         gravity = Gravity.CENTER
@@ -2169,11 +2180,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val granted = ContextCompat.checkSelfPermission(carContext, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
         if (!granted) {
-            showVoiceToast(carContext.getString(R.string.voice_command_mic_permission))
+            showVoiceToast(strings.getString(R.string.voice_command_mic_permission))
             return
         }
         if (!SpeechRecognizer.isRecognitionAvailable(carContext)) {
-            showVoiceToast(carContext.getString(R.string.voice_command_unavailable))
+            showVoiceToast(strings.getString(R.string.voice_command_unavailable))
             return
         }
         val recognizer = voiceRecognizer ?: SpeechRecognizer.createSpeechRecognizer(carContext).also { voiceRecognizer = it }
@@ -2192,7 +2203,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             AppLog.e(TAG, "Voice command: startListening failed", e)
             isVoiceListening = false
             hideVoiceCard()
-            showVoiceToast(carContext.getString(R.string.voice_command_unavailable))
+            showVoiceToast(strings.getString(R.string.voice_command_unavailable))
         }
     }
 
@@ -2221,7 +2232,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 SpeechRecognizer.ERROR_CLIENT -> R.string.voice_command_unavailable
                 else -> R.string.voice_command_not_heard
             }
-            showVoiceToast(carContext.getString(message))
+            showVoiceToast(strings.getString(message))
         }
 
         override fun onResults(results: Bundle?) {
@@ -2231,7 +2242,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
                 .filter { it.isNotBlank() }
             if (texts.isEmpty()) {
-                showVoiceToast(carContext.getString(R.string.voice_command_not_heard))
+                showVoiceToast(strings.getString(R.string.voice_command_not_heard))
             } else {
                 runVoiceCommand(VoiceCommands.parse(texts))
             }
@@ -2260,9 +2271,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             from,
             favorites(),
             webSearchUrl = { query ->
-                carContext.getString(AppSettings.effectiveSearchEngine.baseUrlRes) + Uri.encode(query)
+                strings.getString(AppSettings.effectiveSearchEngine.baseUrlRes) + Uri.encode(query)
             },
-            siteSearchUrl = { query -> SiteSearch.resolve(carContext, from, query) }
+            siteSearchUrl = { query -> SiteSearch.resolve(strings, from, query) }
         )
         // Con la Wide dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) si riporta davanti: si vede quello
         // che è stato chiesto e la pagina può far partire il video (una pagina nascosta non avvia l'audio da sola).
@@ -2278,12 +2289,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 hideCustomView()
                 loadUrl(plan.url)
                 val message = when (plan.kind) {
-                    VoiceCommands.LoadKind.YOUTUBE -> carContext.getString(R.string.voice_command_youtube, plan.label)
-                    VoiceCommands.LoadKind.YOUTUBE_MUSIC -> carContext.getString(R.string.voice_command_youtube_music, plan.label)
-                    VoiceCommands.LoadKind.SEARCH -> carContext.getString(R.string.voice_command_search, plan.label)
+                    VoiceCommands.LoadKind.YOUTUBE -> strings.getString(R.string.voice_command_youtube, plan.label)
+                    VoiceCommands.LoadKind.YOUTUBE_MUSIC -> strings.getString(R.string.voice_command_youtube_music, plan.label)
+                    VoiceCommands.LoadKind.SEARCH -> strings.getString(R.string.voice_command_search, plan.label)
                     VoiceCommands.LoadKind.SITE ->
-                        carContext.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
-                    VoiceCommands.LoadKind.PAGE -> carContext.getString(R.string.voice_command_open, plan.label)
+                        strings.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
+                    VoiceCommands.LoadKind.PAGE -> strings.getString(R.string.voice_command_open, plan.label)
                 }
                 showVoiceToast(message)
             }
@@ -2304,7 +2315,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun startNavigation(destination: String) {
         hideCustomView()
         loadUrl(VoiceCommands.mapsDirectionsUrl(destination))
-        showVoiceToast(carContext.getString(R.string.voice_command_navigate, destination))
+        showVoiceToast(strings.getString(R.string.voice_command_navigate, destination))
         try {
             carContext.startCarApp(
                 Intent(CarContext.ACTION_NAVIGATE, Uri.parse(VoiceCommands.navigationGeoUri(destination)))
@@ -2332,9 +2343,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     // Esempi; col player di Android Auto attivo anche il doppio tocco su ⏮ al volante, che apre il microfono
     private fun voiceHintText(): String {
-        val hint = carContext.getString(R.string.voice_command_hint)
+        val hint = strings.getString(R.string.voice_command_hint)
         if (!AppSettings.mediaPlayerEnabled.value) return hint
-        return hint + "\n" + carContext.getString(R.string.voice_command_hint_wheel)
+        return hint + "\n" + strings.getString(R.string.voice_command_hint_wheel)
     }
 
     // Anche il player di Android Auto mostra "In ascolto…": si vede pure con la Wide dietro (doppio tocco su ⏮)

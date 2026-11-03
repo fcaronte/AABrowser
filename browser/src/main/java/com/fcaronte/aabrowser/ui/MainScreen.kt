@@ -70,6 +70,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.LocalPlayer
@@ -305,10 +306,9 @@ fun MainScreen(
         }
         config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or uiMode
 
-        // 2. Gestione Lingua (Forza inglese se attivo, altrimenti lascia la configurazione originale)
-        if (forceEnglish) {
-            config.setLocale(java.util.Locale.ENGLISH)
-        }
+        // 2. Lingua dell'app (Forza inglese o lingua per app): in auto la configurazione arriva da Android Auto, con la
+        // lingua del telefono
+        AppLocale.locales(context)?.let { config.setLocales(it) }
 
         val localized = context.createConfigurationContext(config)
         localized.setTheme(R.style.AppTheme)

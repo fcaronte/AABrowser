@@ -9,6 +9,7 @@ import androidx.car.app.model.Template
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.PendingSslError
 
 /**
@@ -21,6 +22,9 @@ class WideSslWarningScreen(
     val prompt: PendingSslError,
     private val onDecision: (proceed: Boolean) -> Unit
 ) : Screen(carContext) {
+    // Testi nella lingua dell'app, non in quella del telefono che arriva con la configurazione dell'auto
+    private val strings = AppLocale.wrap(carContext)
+
 
     private var decided = false
 
@@ -43,7 +47,7 @@ class WideSslWarningScreen(
     override fun onGetTemplate(): Template {
         // "Annulla" è il pulsante principale: proseguire deve essere una scelta consapevole
         val cancel = Action.Builder()
-            .setTitle(carContext.getString(R.string.ssl_warning_cancel))
+            .setTitle(strings.getString(R.string.ssl_warning_cancel))
             .setFlags(Action.FLAG_PRIMARY)
             .setOnClickListener {
                 decide(false)
@@ -51,7 +55,7 @@ class WideSslWarningScreen(
             }
             .build()
         val proceed = Action.Builder()
-            .setTitle(carContext.getString(R.string.ssl_warning_proceed))
+            .setTitle(strings.getString(R.string.ssl_warning_proceed))
             .setOnClickListener {
                 decide(true)
                 finish()
@@ -59,8 +63,8 @@ class WideSslWarningScreen(
             .build()
 
         // Testo corto: Android Auto mostra solo un paio di righe e taglierebbe il consiglio finale
-        return MessageTemplate.Builder(carContext.getString(R.string.ssl_warning_message_car, prompt.host))
-            .setTitle(carContext.getString(R.string.ssl_warning_title))
+        return MessageTemplate.Builder(strings.getString(R.string.ssl_warning_message_car, prompt.host))
+            .setTitle(strings.getString(R.string.ssl_warning_title))
             .setHeaderAction(Action.BACK)
             .setIcon(CarIcon.ALERT)
             .addAction(cancel)

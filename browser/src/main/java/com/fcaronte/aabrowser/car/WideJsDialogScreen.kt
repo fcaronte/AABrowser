@@ -8,6 +8,7 @@ import androidx.car.app.model.Template
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 
 /**
@@ -19,6 +20,9 @@ class WideJsDialogScreen(
     private val request: JsDialogRequest,
     private val onDone: () -> Unit
 ) : Screen(carContext) {
+    // Testi nella lingua dell'app, non in quella del telefono che arriva con la configurazione dell'auto
+    private val strings = AppLocale.wrap(carContext)
+
 
     init {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -31,7 +35,7 @@ class WideJsDialogScreen(
 
     private fun action(titleRes: Int, primary: Boolean, onClick: () -> Unit): Action =
         Action.Builder()
-            .setTitle(carContext.getString(titleRes))
+            .setTitle(strings.getString(titleRes))
             .apply { if (primary) setFlags(Action.FLAG_PRIMARY) }
             .setOnClickListener {
                 onClick()
@@ -45,7 +49,7 @@ class WideJsDialogScreen(
         val builder = MessageTemplate.Builder(request.message.ifBlank { " " })
             .setHeaderAction(Action.BACK)
             .addAction(action(R.string.ok_button, primary = true) { request.confirm() })
-        request.site?.let { builder.setTitle(carContext.getString(R.string.js_dialog_title, it)) }
+        request.site?.let { builder.setTitle(strings.getString(R.string.js_dialog_title, it)) }
         if (request.kind == JsDialogRequest.Kind.CONFIRM) {
             builder.addAction(action(R.string.cancel_button, primary = false) { request.cancel() })
         }

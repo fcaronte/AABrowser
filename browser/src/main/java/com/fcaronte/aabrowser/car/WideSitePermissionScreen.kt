@@ -9,6 +9,7 @@ import androidx.car.app.model.Template
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionChoice
 
@@ -22,6 +23,9 @@ class WideSitePermissionScreen(
     val prompt: PendingSitePermission,
     private val onChoice: (SitePermissionChoice) -> Unit
 ) : Screen(carContext) {
+    // Testi nella lingua dell'app, non in quella del telefono che arriva con la configurazione dell'auto
+    private val strings = AppLocale.wrap(carContext)
+
 
     private var decided = false
 
@@ -41,7 +45,7 @@ class WideSitePermissionScreen(
 
     private fun action(titleRes: Int, choice: SitePermissionChoice, primary: Boolean = false): Action =
         Action.Builder()
-            .setTitle(carContext.getString(titleRes))
+            .setTitle(strings.getString(titleRes))
             .apply { if (primary) setFlags(Action.FLAG_PRIMARY) }
             .setOnClickListener {
                 decide(choice)
@@ -52,8 +56,8 @@ class WideSitePermissionScreen(
     // setTitle/setHeaderAction sono deprecati, ma il sostituto (setHeader) richiede le API auto 7 e l'app parte dalla 5
     @Suppress("DEPRECATION")
     override fun onGetTemplate(): Template =
-        MessageTemplate.Builder(carContext.getString(prompt.permission.messageRes, prompt.site))
-            .setTitle(carContext.getString(prompt.permission.titleRes))
+        MessageTemplate.Builder(strings.getString(prompt.permission.messageRes, prompt.site))
+            .setTitle(strings.getString(prompt.permission.titleRes))
             .setHeaderAction(Action.BACK)
             .setActionStrip(
                 ActionStrip.Builder()

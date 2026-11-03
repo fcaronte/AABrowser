@@ -25,9 +25,10 @@ import com.fcaronte.aabrowser.utils.PassengerKeyboard
  * dall'interfaccia di Android Auto. Riceve i tocchi dalla Wide (onClick: solo tocchi singoli, niente pressione
  * lunga). Invio passa il testo a chi l'ha aperta, ✕ chiude senza scrivere.
  */
-class WidePassengerKeyboard(private val context: Context) {
+class WidePassengerKeyboard(private val context: Context, strings: Context = context) {
     private val dp = context.resources.displayMetrics.density
-    private val keyboard = PassengerKeyboard.create(context)
+    // Disposizione della lingua dell'app ([strings]: context con la lingua dell'app)
+    private val keyboard = PassengerKeyboard.create(strings)
     private var typed = ""
     private var hint = ""
     private var onDone: ((String) -> Unit)? = null
@@ -69,7 +70,7 @@ class WidePassengerKeyboard(private val context: Context) {
         topRow.addView(key("✕", TOP_KEY_COLOR) { hide() }, LinearLayout.LayoutParams(0, -1, 1f).apply { rightMargin = gap() })
         topRow.addView(textView, LinearLayout.LayoutParams(0, -1, 6.5f).apply { rightMargin = gap() })
         topRow.addView(
-            key(context.getString(R.string.passenger_keyboard_clear), TOP_KEY_COLOR) {
+            key(strings.getString(R.string.passenger_keyboard_clear), TOP_KEY_COLOR) {
                 typed = ""
                 updateText()
             },

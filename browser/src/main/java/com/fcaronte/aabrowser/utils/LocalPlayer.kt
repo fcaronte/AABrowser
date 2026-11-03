@@ -134,7 +134,9 @@ object LocalPlayer {
     // Pagina
     // ------------------------------------------------------------------
 
-    private fun page(context: Context): WebResourceResponse {
+    private fun page(appContext: Context): WebResourceResponse {
+        // Nella Wide il context ha la lingua del telefono: i testi vanno nella lingua dell'app
+        val context = AppLocale.wrap(appContext)
         val strings = JSONObject()
             .put("chooseFolder", context.getString(R.string.player_choose_folder))
             .put("noFolder", context.getString(R.string.player_no_folder))
