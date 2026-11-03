@@ -336,4 +336,23 @@
     <string name="passenger_keyboard_clear">Leeren</string>
     <string name="drive_lock_title">Nur im Stand verfügbar</string>
     <string name="drive_lock_message">Um die App während der Fahrt zu nutzen, kann ein Beifahrer in den App-Einstellungen auf dem Handy „Beifahrermodus“ einschalten. Audio und Sprachbefehle funktionieren weiter.</string>
+    <string name="iptv_title">AAB Media TV (M3U und Xtream)</string>
+    <string name="iptv_desc">Senderlisten zum Ansehen in AAB Media › TV. Adressen und Passwörter bleiben auf dem Handy und kommen nicht ins Backup.</string>
+    <string name="iptv_add_m3u">M3U hinzufügen</string>
+    <string name="iptv_add_xtream">Xtream hinzufügen</string>
+    <string name="iptv_name">Name (optional)</string>
+    <string name="iptv_url">Adresse der Liste (http://…)</string>
+    <string name="iptv_server">Server (http://Host:Port)</string>
+    <string name="iptv_username">Benutzer</string>
+    <string name="iptv_password">Passwort</string>
+    <string name="iptv_add">Hinzufügen</string>
+    <string name="iptv_remove">Entfernen</string>
+    <string name="iptv_add_on_phone">Listen werden in den Einstellungen auf dem Handy hinzugefügt.</string>
+    <string name="tv_no_sources">Keine TV-Listen: Füge auf dem Handy eine unter Einstellungen › AAB Media TV hinzu.</string>
+    <string name="tv_search">Sender suchen</string>
+    <string name="tv_favorites">Favoriten</string>
+    <string name="tv_other_channels">Weitere Sender</string>
+    <string name="tv_unavailable">Sender nicht verfügbar</string>
+    <string name="tv_source_error">Liste nicht erreichbar oder Zugriff verweigert</string>
+    <string name="tv_no_results">Keine Sender gefunden</string>
 </resources>

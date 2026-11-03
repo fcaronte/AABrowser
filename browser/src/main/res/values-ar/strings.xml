@@ -340,4 +340,23 @@
     <string name="passenger_keyboard_clear">مسح</string>
     <string name="drive_lock_title">متاح فقط والسيارة متوقفة</string>
     <string name="drive_lock_message">لاستخدام التطبيق أثناء الحركة، يمكن للراكب تفعيل «وضع الراكب» في إعدادات التطبيق على الهاتف. يستمر عمل الصوت والأوامر الصوتية.</string>
+    <string name="iptv_title">تلفزيون AAB Media (M3U وXtream)</string>
+    <string name="iptv_desc">قوائم قنوات للمشاهدة في AAB Media › التلفزيون. تبقى العناوين وكلمات المرور على الهاتف ولا تدخل في النسخة الاحتياطية.</string>
+    <string name="iptv_add_m3u">إضافة M3U</string>
+    <string name="iptv_add_xtream">إضافة Xtream</string>
+    <string name="iptv_name">الاسم (اختياري)</string>
+    <string name="iptv_url">عنوان القائمة (http://…)</string>
+    <string name="iptv_server">الخادم (http://host:port)</string>
+    <string name="iptv_username">اسم المستخدم</string>
+    <string name="iptv_password">كلمة المرور</string>
+    <string name="iptv_add">إضافة</string>
+    <string name="iptv_remove">إزالة</string>
+    <string name="iptv_add_on_phone">تُضاف القوائم من الإعدادات على الهاتف.</string>
+    <string name="tv_no_sources">لا توجد قوائم تلفزيون: أضف قائمة من الإعدادات › تلفزيون AAB Media على الهاتف.</string>
+    <string name="tv_search">البحث عن قناة</string>
+    <string name="tv_favorites">المفضلة</string>
+    <string name="tv_other_channels">قنوات أخرى</string>
+    <string name="tv_unavailable">القناة غير متاحة</string>
+    <string name="tv_source_error">تعذر الوصول إلى القائمة أو تم رفض الوصول</string>
+    <string name="tv_no_results">لم يتم العثور على قنوات</string>
 </resources>

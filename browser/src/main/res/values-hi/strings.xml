@@ -336,4 +336,23 @@
     <string name="passenger_keyboard_clear">साफ़ करें</string>
     <string name="drive_lock_title">केवल रुकी गाड़ी में उपलब्ध</string>
     <string name="drive_lock_message">चलती गाड़ी में ऐप का उपयोग करने के लिए, यात्री फ़ोन पर ऐप की सेटिंग में “यात्री मोड” चालू कर सकता है। ऑडियो और वॉइस कमांड काम करते रहते हैं।</string>
+    <string name="iptv_title">AAB Media TV (M3U और Xtream)</string>
+    <string name="iptv_desc">AAB Media › TV में देखने के लिए चैनल सूचियाँ। पते और पासवर्ड फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
+    <string name="iptv_add_m3u">M3U जोड़ें</string>
+    <string name="iptv_add_xtream">Xtream जोड़ें</string>
+    <string name="iptv_name">नाम (वैकल्पिक)</string>
+    <string name="iptv_url">सूची का पता (http://…)</string>
+    <string name="iptv_server">सर्वर (http://host:port)</string>
+    <string name="iptv_username">उपयोगकर्ता</string>
+    <string name="iptv_password">पासवर्ड</string>
+    <string name="iptv_add">जोड़ें</string>
+    <string name="iptv_remove">हटाएँ</string>
+    <string name="iptv_add_on_phone">सूचियाँ फ़ोन की सेटिंग में जोड़ी जाती हैं।</string>
+    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › AAB Media TV में एक सूची जोड़ें।</string>
+    <string name="tv_search">चैनल खोजें</string>
+    <string name="tv_favorites">पसंदीदा</string>
+    <string name="tv_other_channels">अन्य चैनल</string>
+    <string name="tv_unavailable">चैनल उपलब्ध नहीं है</string>
+    <string name="tv_source_error">सूची तक नहीं पहुँचा जा सका या पहुँच अस्वीकृत</string>
+    <string name="tv_no_results">कोई चैनल नहीं मिला</string>
 </resources>

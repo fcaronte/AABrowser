@@ -337,4 +337,23 @@
     <string name="passenger_keyboard_clear">Borrar</string>
     <string name="drive_lock_title">Disponible solo con el coche parado</string>
     <string name="drive_lock_message">Para usar la app en marcha, un pasajero puede activar «Modo pasajero» en los ajustes de la app en el teléfono. El audio y los comandos de voz siguen funcionando.</string>
+    <string name="iptv_title">TV de AAB Media (M3U y Xtream)</string>
+    <string name="iptv_desc">Listas de canales para ver en AAB Media › TV. Las direcciones y contraseñas se quedan en el teléfono y no van a la copia de seguridad.</string>
+    <string name="iptv_add_m3u">Añadir M3U</string>
+    <string name="iptv_add_xtream">Añadir Xtream</string>
+    <string name="iptv_name">Nombre (opcional)</string>
+    <string name="iptv_url">Dirección de la lista (http://…)</string>
+    <string name="iptv_server">Servidor (http://host:puerto)</string>
+    <string name="iptv_username">Usuario</string>
+    <string name="iptv_password">Contraseña</string>
+    <string name="iptv_add">Añadir</string>
+    <string name="iptv_remove">Quitar</string>
+    <string name="iptv_add_on_phone">Las listas se añaden desde los ajustes del teléfono.</string>
+    <string name="tv_no_sources">No hay listas de TV: añade una en Ajustes › TV de AAB Media, en el teléfono.</string>
+    <string name="tv_search">Buscar un canal</string>
+    <string name="tv_favorites">Favoritos</string>
+    <string name="tv_other_channels">Otros canales</string>
+    <string name="tv_unavailable">Canal no disponible</string>
+    <string name="tv_source_error">Lista no accesible o acceso denegado</string>
+    <string name="tv_no_results">No se encontraron canales</string>
 </resources>

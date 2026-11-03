@@ -341,4 +341,23 @@
     <string name="passenger_keyboard_clear">Clear</string>
     <string name="drive_lock_title">Available only when parked</string>
     <string name="drive_lock_message">To use the app while moving, a passenger can turn on “Passenger mode” in the app settings on the phone. Audio and voice commands keep working.</string>
+    <string name="iptv_title">AAB Media TV (M3U and Xtream)</string>
+    <string name="iptv_desc">Channel lists to watch in AAB Media › TV. Addresses and passwords stay on the phone and are not backed up.</string>
+    <string name="iptv_add_m3u">Add M3U</string>
+    <string name="iptv_add_xtream">Add Xtream</string>
+    <string name="iptv_name">Name (optional)</string>
+    <string name="iptv_url">List address (http://…)</string>
+    <string name="iptv_server">Server (http://host:port)</string>
+    <string name="iptv_username">Username</string>
+    <string name="iptv_password">Password</string>
+    <string name="iptv_add">Add</string>
+    <string name="iptv_remove">Remove</string>
+    <string name="iptv_add_on_phone">Lists are added from Settings on the phone.</string>
+    <string name="tv_no_sources">No TV lists: add one in Settings › AAB Media TV, on the phone.</string>
+    <string name="tv_search">Search a channel</string>
+    <string name="tv_favorites">Favorites</string>
+    <string name="tv_other_channels">Other channels</string>
+    <string name="tv_unavailable">Channel not available</string>
+    <string name="tv_source_error">List not reachable or access denied</string>
+    <string name="tv_no_results">No channels found</string>
 </resources>

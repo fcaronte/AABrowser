@@ -1,0 +1,128 @@
+package com.fcaronte.aabrowser.utils
+
+import android.content.Context
+import android.net.Uri
+import android.webkit.WebResourceResponse
+import com.fcaronte.aabrowser.R
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.text.Normalizer
+
+/**
+ * TV di AAB Media (https://player.local/tv): la pagina e le sue richieste di dati (gruppi, canali, avvio di un
+ * canale). Come il resto di AAB Media i dati vogliono il token della pagina (lo controlla LocalPlayer); gli stream
+ * passano da IptvProxy. Alla pagina vanno solo id e nomi: indirizzi e credenziali restano nell'app.
+ */
+internal object IptvApi {
+    private const val TAG = "IptvApi"
+    private const val MAX_SEARCH_RESULTS = 300
+    private const val MAX_GROUP_CHANNELS = 20_000
+    private val COMBINING_MARKS = Regex("\\p{M}+")
+
+    fun page(context: Context, token: String, theme: String): WebResourceResponse {
+        val strings = JSONObject()
+            .put("noSources", context.getString(R.string.tv_no_sources))
+            .put("search", context.getString(R.string.tv_search))
+            .put("favorites", context.getString(R.string.tv_favorites))
+            .put("other", context.getString(R.string.tv_other_channels))
+            .put("loading", context.getString(R.string.player_loading))
+            .put("unavailable", context.getString(R.string.tv_unavailable))
+            .put("sourceError", context.getString(R.string.tv_source_error))
+            .put("noResults", context.getString(R.string.tv_no_results))
+        val sources = JSONArray()
+        IptvSources.list(context).forEach { sources.put(JSONObject().put("id", it.id).put("name", it.name)) }
+        val config = JSONObject().put("token", token).put("strings", strings).put("sources", sources)
+        val html = context.assets.open("player/tv.html").bufferedReader().use { it.readText() }
+            .replace("/*AAB_CONFIG*/", "window.AAB_TV = $config;")
+            .replace("/*AAB_THEME*/", theme)
+        return response(
+            html.toByteArray(Charsets.UTF_8),
+            "text/html",
+            200,
+            mapOf("Cache-Control" to "no-store", "X-Frame-Options" to "DENY")
+        )
+    }
+
+    /** Richieste /api/tv/…; null se il percorso non è della TV. */
+    fun handle(context: Context, path: String, url: Uri): WebResourceResponse? {
+        val source = IptvSources.find(context, url.getQueryParameter("source"))
+        return when (path) {
+            "/api/tv/groups" -> withLineup(source, url.getQueryParameter("refresh") == "1", ::groups)
+            "/api/tv/channels" -> withLineup(source, false) { channels(it, url) }
+            "/api/tv/play" -> withLineup(source, false) { play(it, url) }
+            else -> null
+        }
+    }
+
+    private fun withLineup(
+        source: IptvSources.Source?,
+        refresh: Boolean,
+        block: (IptvLibrary.Lineup) -> WebResourceResponse
+    ): WebResourceResponse {
+        if (source == null) return error(404, "source")
+        val lineup = try {
+            IptvLibrary.lineup(source, refresh)
+        } catch (e: Exception) {
+            AppLog.w(TAG, "List not loaded: ${e.javaClass.simpleName}")
+            return error(502, "source")
+        }
+        return block(lineup)
+    }
+
+    private fun groups(lineup: IptvLibrary.Lineup): WebResourceResponse {
+        val counts = IntArray(lineup.groups.size)
+        lineup.channels.forEach { counts[it.group]++ }
+        val groups = JSONArray()
+        lineup.groups.forEachIndexed { index, name ->
+            groups.put(JSONObject().put("i", index).put("name", name).put("count", counts[index]))
+        }
+        return json(JSONObject().put("groups", groups).put("total", lineup.channels.size))
+    }
+
+    // Un gruppo, o la ricerca per nome su tutta la lista (senza maiuscole e accenti)
+    private fun channels(lineup: IptvLibrary.Lineup, url: Uri): WebResourceResponse {
+        val query = normalize(url.getQueryParameter("q").orEmpty().trim())
+        val group = url.getQueryParameter("group")?.toIntOrNull()
+        val selected = when {
+            query.isNotEmpty() -> lineup.channels.asSequence()
+                .filter { normalize(it.name).contains(query) }
+                .take(MAX_SEARCH_RESULTS)
+            group != null -> lineup.channels.asSequence().filter { it.group == group }.take(MAX_GROUP_CHANNELS)
+            else -> emptySequence()
+        }
+        val channels = JSONArray()
+        selected.forEach { channel ->
+            channels.put(
+                JSONObject()
+                    .put("k", channel.key)
+                    .put("n", channel.name)
+                    .put("l", channel.logo ?: JSONObject.NULL)
+                    .put("g", lineup.groups[channel.group])
+            )
+        }
+        return json(JSONObject().put("channels", channels))
+    }
+
+    private fun play(lineup: IptvLibrary.Lineup, url: Uri): WebResourceResponse {
+        val channel = lineup.channel(url.getQueryParameter("ch")) ?: return error(404, "channel")
+        val kind = IptvProxy.kindOf(channel.url)
+        return json(JSONObject().put("url", IptvProxy.proxyPath(channel.url)).put("kind", kind))
+    }
+
+    private fun normalize(text: String): String =
+        Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
+
+    private fun json(value: JSONObject): WebResourceResponse =
+        response(value.toString().toByteArray(Charsets.UTF_8), "application/json", 200, mapOf("Cache-Control" to "no-store"))
+
+    private fun error(code: Int, kind: String): WebResourceResponse = response(
+        JSONObject().put("error", kind).toString().toByteArray(Charsets.UTF_8),
+        "application/json",
+        code,
+        mapOf("Cache-Control" to "no-store")
+    )
+
+    private fun response(bytes: ByteArray, mime: String, code: Int, headers: Map<String, String>): WebResourceResponse =
+        WebResourceResponse(mime, "utf-8", code, if (code == 200) "OK" else "Error", headers, ByteArrayInputStream(bytes))
+}

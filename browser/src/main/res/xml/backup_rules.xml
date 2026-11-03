@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Backup di Google fino ad Android 11: niente cookie e dati dei siti (accessi già fatti) né certificati accettati.
+<!-- Backup di Google fino ad Android 11: niente cookie e dati dei siti (accessi già fatti), certificati accettati e liste TV.
      Preferiti, impostazioni e permessi dei siti restano nel backup. -->
 <full-backup-content>
     <exclude domain="root" path="app_webview/" />
     <exclude domain="sharedpref" path="ssl_exceptions.xml" />
+    <!-- Liste TV: indirizzi e credenziali degli account Xtream -->
+    <exclude domain="sharedpref" path="iptv_sources.xml" />
 </full-backup-content>

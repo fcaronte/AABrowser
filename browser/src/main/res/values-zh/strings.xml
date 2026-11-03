@@ -335,4 +335,23 @@
     <string name="passenger_keyboard_clear">清空</string>
     <string name="drive_lock_title">仅在停车时可用</string>
     <string name="drive_lock_message">如需在行驶中使用本应用，乘客可在手机上的应用设置中开启“乘客模式”。音频和语音命令仍可使用。</string>
+    <string name="iptv_title">AAB Media 电视（M3U 和 Xtream）</string>
+    <string name="iptv_desc">在 AAB Media › 电视 中观看的频道列表。地址和密码只保存在手机上，不会进入备份。</string>
+    <string name="iptv_add_m3u">添加 M3U</string>
+    <string name="iptv_add_xtream">添加 Xtream</string>
+    <string name="iptv_name">名称（可选）</string>
+    <string name="iptv_url">列表地址（http://…）</string>
+    <string name="iptv_server">服务器（http://主机:端口）</string>
+    <string name="iptv_username">用户名</string>
+    <string name="iptv_password">密码</string>
+    <string name="iptv_add">添加</string>
+    <string name="iptv_remove">删除</string>
+    <string name="iptv_add_on_phone">请在手机上的设置中添加列表。</string>
+    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › AAB Media 电视 中添加。</string>
+    <string name="tv_search">搜索频道</string>
+    <string name="tv_favorites">收藏</string>
+    <string name="tv_other_channels">其他频道</string>
+    <string name="tv_unavailable">频道不可用</string>
+    <string name="tv_source_error">无法访问列表或访问被拒绝</string>
+    <string name="tv_no_results">未找到频道</string>
 </resources>

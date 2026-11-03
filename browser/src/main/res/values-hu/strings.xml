@@ -336,4 +336,23 @@
     <string name="passenger_keyboard_clear">Törlés</string>
     <string name="drive_lock_title">Csak álló helyzetben érhető el</string>
     <string name="drive_lock_message">Ha menet közben szeretné használni az alkalmazást, egy utas bekapcsolhatja az „Utas mód” beállítást az alkalmazás beállításaiban a telefonon. A hang és a hangutasítások továbbra is működnek.</string>
+    <string name="iptv_title">AAB Media TV (M3U és Xtream)</string>
+    <string name="iptv_desc">Csatornalisták az AAB Media › TV megtekintéséhez. A címek és jelszavak a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
+    <string name="iptv_add_m3u">M3U hozzáadása</string>
+    <string name="iptv_add_xtream">Xtream hozzáadása</string>
+    <string name="iptv_name">Név (nem kötelező)</string>
+    <string name="iptv_url">A lista címe (http://…)</string>
+    <string name="iptv_server">Szerver (http://gazdagép:port)</string>
+    <string name="iptv_username">Felhasználó</string>
+    <string name="iptv_password">Jelszó</string>
+    <string name="iptv_add">Hozzáadás</string>
+    <string name="iptv_remove">Eltávolítás</string>
+    <string name="iptv_add_on_phone">A listákat a telefon beállításaiban lehet hozzáadni.</string>
+    <string name="tv_no_sources">Nincs TV-lista: adjon hozzá egyet a telefonon a Beállítások › AAB Media TV menüben.</string>
+    <string name="tv_search">Csatorna keresése</string>
+    <string name="tv_favorites">Kedvencek</string>
+    <string name="tv_other_channels">Egyéb csatornák</string>
+    <string name="tv_unavailable">A csatorna nem érhető el</string>
+    <string name="tv_source_error">A lista nem érhető el, vagy a hozzáférés megtagadva</string>
+    <string name="tv_no_results">Nincs találat</string>
 </resources>

@@ -34,6 +34,7 @@ import java.util.UUID
  * cartella scelta sul telefono (LastFileSelection), i file con le richieste Range (per spostarsi nel brano),
  * tag e copertina incorporata. I dati vogliono il token che la pagina riceve nel suo HTML: un altro sito aperto
  * in una scheda non può né elencare né riprodurre i file dell'utente.
+ * Anche la TV (https://player.local/tv, liste M3U e Xtream): IptvApi per la pagina e i dati, IptvProxy per gli stream.
  */
 object LocalPlayer {
     const val BASE_URL = "https://player.local/"
@@ -69,6 +70,8 @@ object LocalPlayer {
     private val videoExtensions = setOf("mp4", "m4v", "webm", "mkv", "mov", "3gp")
     private val playlistExtensions = setOf("m3u", "m3u8", "pls", "cue")
 
+    private val TV_LIBRARIES = setOf("/lib/hls.light.min.js", "/lib/mpegts.min.js")
+
     /** Risposta per gli indirizzi di player.local; null per tutti gli altri (la WebView li carica normalmente). */
     fun intercept(context: Context, request: WebResourceRequest?): WebResourceResponse? {
         val url = request?.url ?: return null
@@ -80,7 +83,15 @@ object LocalPlayer {
                 path == "/player.js" -> asset(context, "player/player.js", "application/javascript")
                 path == "/player.css" -> asset(context, "player/player.css", "text/css")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
+                // TV (liste M3U e Xtream): pagina, script e librerie per HLS e MPEG-TS
+                path == "/tv" || path == "/tv/" -> IptvApi.page(AppLocale.wrap(context), token, themeCss(context))
+                path == "/tv.js" -> asset(context, "player/tv.js", "application/javascript")
+                path == "/tv.css" -> asset(context, "player/tv.css", "text/css")
+                path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
+                // Stream della TV: l'id a caso fa da chiave (lo danno solo /api/tv/play e le liste HLS riscritte)
+                path.startsWith(IptvProxy.STREAM_PATH) -> IptvProxy.serve(path.removePrefix(IptvProxy.STREAM_PATH))
                 url.getQueryParameter("t") != token -> status(403, "Forbidden")
+                path.startsWith("/api/tv/") -> IptvApi.handle(context, path, url) ?: status(404, "Not Found")
                 path == "/api/library" -> library(context)
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
                 path.startsWith("/api/tags/") -> tags(context, path.removePrefix("/api/tags/"))

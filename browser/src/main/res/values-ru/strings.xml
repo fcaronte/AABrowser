@@ -338,4 +338,23 @@
     <string name="passenger_keyboard_clear">Очистить</string>
     <string name="drive_lock_title">Доступно только на стоянке</string>
     <string name="drive_lock_message">Чтобы пользоваться приложением во время движения, пассажир может включить «Режим пассажира» в настройках приложения на телефоне. Звук и голосовые команды продолжают работать.</string>
+    <string name="iptv_title">ТВ в AAB Media (M3U и Xtream)</string>
+    <string name="iptv_desc">Списки каналов для просмотра в AAB Media › ТВ. Адреса и пароли остаются на телефоне и не попадают в резервную копию.</string>
+    <string name="iptv_add_m3u">Добавить M3U</string>
+    <string name="iptv_add_xtream">Добавить Xtream</string>
+    <string name="iptv_name">Название (необязательно)</string>
+    <string name="iptv_url">Адрес списка (http://…)</string>
+    <string name="iptv_server">Сервер (http://хост:порт)</string>
+    <string name="iptv_username">Пользователь</string>
+    <string name="iptv_password">Пароль</string>
+    <string name="iptv_add">Добавить</string>
+    <string name="iptv_remove">Удалить</string>
+    <string name="iptv_add_on_phone">Списки добавляются в настройках на телефоне.</string>
+    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › ТВ в AAB Media на телефоне.</string>
+    <string name="tv_search">Поиск канала</string>
+    <string name="tv_favorites">Избранное</string>
+    <string name="tv_other_channels">Другие каналы</string>
+    <string name="tv_unavailable">Канал недоступен</string>
+    <string name="tv_source_error">Список недоступен или доступ запрещён</string>
+    <string name="tv_no_results">Каналы не найдены</string>
 </resources>

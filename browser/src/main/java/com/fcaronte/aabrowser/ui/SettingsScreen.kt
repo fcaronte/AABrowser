@@ -442,6 +442,9 @@ fun SettingsScreen(
                                 }
                             }
 
+                            // TV di AAB Media: liste M3U e account Xtream (si aggiungono dal telefono)
+                            IptvSourcesCard(isCarMode = isCarMode)
+
                             // Precarica schede preferiti all'avvio
                             SettingsCard {
                                 Column(modifier = Modifier.padding(bottom = if (preloadFavorites) 12.dp else 0.dp)) {

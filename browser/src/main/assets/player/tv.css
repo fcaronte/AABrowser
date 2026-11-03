@@ -1,0 +1,140 @@
+/*
+ * TV di AAB Media: stessa grafica di player.css (colori, barra, comandi); qui solo liste, gruppi, ricerca e la lista
+ * dei canali, che disegna solo le righe visibili (le liste arrivano a decine di migliaia di canali).
+ */
+
+.stage video {
+    display: block;
+}
+
+body.has-video .art {
+    display: none;
+}
+
+.source {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 24px;
+    background: var(--soft);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+}
+
+.control.toggle.active {
+    color: var(--accent);
+}
+
+.tv-list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tv-tools {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.search {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+}
+
+.groups {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.group {
+    flex: none;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 22px;
+    background: var(--panel);
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.group.active {
+    background: var(--soft);
+    color: var(--accent);
+}
+
+.channels {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.channels-space {
+    position: relative;
+    width: 100%;
+}
+
+.channel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    border-left: 4px solid transparent;
+}
+
+.channel:active {
+    background: var(--pressed);
+}
+
+.channel.current {
+    border-left-color: var(--accent);
+    background: var(--current);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.channel img {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.channel .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.channel .star {
+    flex: none;
+    color: var(--accent);
+}
+
+.empty {
+    padding: 24px 16px;
+    color: var(--muted);
+    text-align: center;
+}

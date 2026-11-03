@@ -337,4 +337,23 @@
     <string name="passenger_keyboard_clear">Limpar</string>
     <string name="drive_lock_title">Disponível só com o automóvel parado</string>
     <string name="drive_lock_message">Para usar a aplicação em andamento, um passageiro pode ativar «Modo passageiro» nas definições da aplicação no telemóvel. O áudio e os comandos de voz continuam a funcionar.</string>
+    <string name="iptv_title">TV do AAB Media (M3U e Xtream)</string>
+    <string name="iptv_desc">Listas de canais para ver no AAB Media › TV. Os endereços e palavras-passe ficam no telemóvel e não vão para a cópia de segurança.</string>
+    <string name="iptv_add_m3u">Adicionar M3U</string>
+    <string name="iptv_add_xtream">Adicionar Xtream</string>
+    <string name="iptv_name">Nome (opcional)</string>
+    <string name="iptv_url">Endereço da lista (http://…)</string>
+    <string name="iptv_server">Servidor (http://anfitrião:porta)</string>
+    <string name="iptv_username">Utilizador</string>
+    <string name="iptv_password">Palavra-passe</string>
+    <string name="iptv_add">Adicionar</string>
+    <string name="iptv_remove">Remover</string>
+    <string name="iptv_add_on_phone">As listas adicionam-se nas definições do telemóvel.</string>
+    <string name="tv_no_sources">Nenhuma lista de TV: adicione uma em Definições › TV do AAB Media, no telemóvel.</string>
+    <string name="tv_search">Procurar um canal</string>
+    <string name="tv_favorites">Favoritos</string>
+    <string name="tv_other_channels">Outros canais</string>
+    <string name="tv_unavailable">Canal indisponível</string>
+    <string name="tv_source_error">Lista inacessível ou acesso recusado</string>
+    <string name="tv_no_results">Nenhum canal encontrado</string>
 </resources>

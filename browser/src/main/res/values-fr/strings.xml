@@ -337,4 +337,23 @@
     <string name="passenger_keyboard_clear">Effacer</string>
     <string name="drive_lock_title">Disponible uniquement à l\'arrêt</string>
     <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans les paramètres de l\'app sur le téléphone. Le son et les commandes vocales continuent de fonctionner.</string>
+    <string name="iptv_title">TV d\'AAB Media (M3U et Xtream)</string>
+    <string name="iptv_desc">Listes de chaînes à regarder dans AAB Media › TV. Les adresses et mots de passe restent sur le téléphone et ne sont pas sauvegardés.</string>
+    <string name="iptv_add_m3u">Ajouter M3U</string>
+    <string name="iptv_add_xtream">Ajouter Xtream</string>
+    <string name="iptv_name">Nom (facultatif)</string>
+    <string name="iptv_url">Adresse de la liste (http://…)</string>
+    <string name="iptv_server">Serveur (http://hôte:port)</string>
+    <string name="iptv_username">Utilisateur</string>
+    <string name="iptv_password">Mot de passe</string>
+    <string name="iptv_add">Ajouter</string>
+    <string name="iptv_remove">Supprimer</string>
+    <string name="iptv_add_on_phone">Les listes s\'ajoutent depuis les paramètres du téléphone.</string>
+    <string name="tv_no_sources">Aucune liste TV : ajoutez-en une dans Paramètres › TV d\'AAB Media, sur le téléphone.</string>
+    <string name="tv_search">Chercher une chaîne</string>
+    <string name="tv_favorites">Favoris</string>
+    <string name="tv_other_channels">Autres chaînes</string>
+    <string name="tv_unavailable">Chaîne indisponible</string>
+    <string name="tv_source_error">Liste inaccessible ou accès refusé</string>
+    <string name="tv_no_results">Aucune chaîne trouvée</string>
 </resources>

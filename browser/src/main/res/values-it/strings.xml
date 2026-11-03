@@ -296,4 +296,23 @@
     <string name="passenger_keyboard_clear">Svuota</string>
     <string name="drive_lock_title">Disponibile solo da fermo</string>
     <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni dell\'app sul telefono. Audio e comandi vocali restano attivi.</string>
+    <string name="iptv_title">TV di AAB Media (M3U e Xtream)</string>
+    <string name="iptv_desc">Liste di canali da guardare in AAB Media › TV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
+    <string name="iptv_add_m3u">Aggiungi M3U</string>
+    <string name="iptv_add_xtream">Aggiungi Xtream</string>
+    <string name="iptv_name">Nome (facoltativo)</string>
+    <string name="iptv_url">Indirizzo della lista (http://…)</string>
+    <string name="iptv_server">Server (http://host:porta)</string>
+    <string name="iptv_username">Utente</string>
+    <string name="iptv_password">Password</string>
+    <string name="iptv_add">Aggiungi</string>
+    <string name="iptv_remove">Rimuovi</string>
+    <string name="iptv_add_on_phone">Le liste si aggiungono dalle Impostazioni sul telefono.</string>
+    <string name="tv_no_sources">Nessuna lista TV: aggiungine una in Impostazioni › TV di AAB Media, sul telefono.</string>
+    <string name="tv_search">Cerca un canale</string>
+    <string name="tv_favorites">Preferiti</string>
+    <string name="tv_other_channels">Altri canali</string>
+    <string name="tv_unavailable">Canale non disponibile</string>
+    <string name="tv_source_error">Lista non raggiungibile o accesso negato</string>
+    <string name="tv_no_results">Nessun canale trovato</string>
 </resources>
