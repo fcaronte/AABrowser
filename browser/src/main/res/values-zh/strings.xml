@@ -342,6 +342,7 @@
     <string name="iptv_name">名称（可选）</string>
     <string name="iptv_url">列表地址（http://…）</string>
     <string name="iptv_server">服务器（http://主机:端口）</string>
+    <string name="iptv_server_link_hint">也可以粘贴已包含用户名和密码的完整链接。</string>
     <string name="iptv_username">用户名</string>
     <string name="iptv_password">密码</string>
     <string name="iptv_add">添加</string>

@@ -343,6 +343,7 @@
     <string name="iptv_name">Név (nem kötelező)</string>
     <string name="iptv_url">A lista címe (http://…)</string>
     <string name="iptv_server">Szerver (http://gazdagép:port)</string>
+    <string name="iptv_server_link_hint">A teljes linket is be lehet illeszteni, amelyben már benne van a felhasználó és a jelszó.</string>
     <string name="iptv_username">Felhasználó</string>
     <string name="iptv_password">Jelszó</string>
     <string name="iptv_add">Hozzáadás</string>

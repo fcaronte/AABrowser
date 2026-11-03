@@ -343,6 +343,7 @@
     <string name="iptv_name">नाम (वैकल्पिक)</string>
     <string name="iptv_url">सूची का पता (http://…)</string>
     <string name="iptv_server">सर्वर (http://host:port)</string>
+    <string name="iptv_server_link_hint">उपयोगकर्ता और पासवर्ड वाला पूरा लिंक भी पेस्ट किया जा सकता है।</string>
     <string name="iptv_username">उपयोगकर्ता</string>
     <string name="iptv_password">पासवर्ड</string>
     <string name="iptv_add">जोड़ें</string>

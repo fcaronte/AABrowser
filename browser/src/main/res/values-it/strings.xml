@@ -303,6 +303,7 @@
     <string name="iptv_name">Nome (facoltativo)</string>
     <string name="iptv_url">Indirizzo della lista (http://…)</string>
     <string name="iptv_server">Server (http://host:porta)</string>
+    <string name="iptv_server_link_hint">Puoi anche incollare il link completo che contiene già utente e password.</string>
     <string name="iptv_username">Utente</string>
     <string name="iptv_password">Password</string>
     <string name="iptv_add">Aggiungi</string>

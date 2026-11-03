@@ -37,10 +37,11 @@ from the misuse of this application. Use at your own risk.
 * **AAB Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
-* **TV in AAB Media (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone), with
-  groups, search and favorites; HLS and MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to
-  change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio
-  may play without sound (WebView limit).
+* **TV in AAB Media (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
+  Xtream account the full link with username and password is enough), with groups, search and favorites; HLS and
+  MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
+  passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may play without sound (WebView
+  limit).
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
   tab bar and the navigation menu of AABrowser, at the top right of the Widescreen).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
@@ -196,9 +197,10 @@ proprio rischio e pericolo.
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
 * **TV in AAB Media (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
-  telefono), con gruppi, ricerca e preferiti; stream HLS e MPEG-TS, nome e logo del canale sul player di Android
-  Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I canali con audio
-  AC3/E-AC3 possono restare senza audio (limite della WebView).
+  telefono; per un account Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
+  stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e
+  password restano sul telefono (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio
+  (limite della WebView).
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
   2.4: nella barra delle schede e nel menu di navigazione di AABrowser, in alto a destra nella Widescreen).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di

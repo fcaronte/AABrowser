@@ -345,6 +345,7 @@
     <string name="iptv_name">Название (необязательно)</string>
     <string name="iptv_url">Адрес списка (http://…)</string>
     <string name="iptv_server">Сервер (http://хост:порт)</string>
+    <string name="iptv_server_link_hint">Можно также вставить полную ссылку, в которой уже есть пользователь и пароль.</string>
     <string name="iptv_username">Пользователь</string>
     <string name="iptv_password">Пароль</string>
     <string name="iptv_add">Добавить</string>

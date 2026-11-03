@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.IptvSources
+import com.fcaronte.aabrowser.utils.XtreamLink
+import kotlin.math.abs
 
 /**
  * Liste della TV di AAB Media nelle Impostazioni: elenco, aggiunta (lista M3U o account Xtream) e rimozione. In auto
@@ -111,7 +113,9 @@ private fun IptvSourceDialog(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val xtream = type == IptvSources.Type.XTREAM
-    val ready = url.isNotBlank() && (!xtream || (username.isNotBlank() && password.isNotEmpty()))
+    // Xtream: nel campo del server va bene anche il link completo con utente e password
+    val link = if (xtream) XtreamLink.parse(url) else null
+    val ready = url.isNotBlank() && (!xtream || link != null || (username.isNotBlank() && password.isNotEmpty()))
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -127,8 +131,24 @@ private fun IptvSourceDialog(
                 )
                 OutlinedTextField(
                     value = url,
-                    onValueChange = { url = it },
+                    onValueChange = { value ->
+                        // Link incollato: server, utente e password vanno nei loro campi. Non a ogni carattere
+                        // scritto, si separerebbe a metà password: scritto a mano si separa all'aggiunta.
+                        val pasted = if (xtream && abs(value.length - url.length) > 1) XtreamLink.parse(value) else null
+                        if (pasted == null) {
+                            url = value
+                        } else {
+                            url = pasted.server
+                            username = pasted.username
+                            password = pasted.password
+                        }
+                    },
                     label = { Text(stringResource(if (xtream) R.string.iptv_server else R.string.iptv_url)) },
+                    supportingText = if (xtream) {
+                        { Text(stringResource(R.string.iptv_server_link_hint)) }
+                    } else {
+                        null
+                    },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth(),
@@ -154,7 +174,14 @@ private fun IptvSourceDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onAdd(name, url, username, password) }, enabled = ready) {
+            TextButton(
+                onClick = {
+                    // Link scritto a mano (quello incollato si è già separato): utente e password vengono dal link
+                    val login = link ?: XtreamLink.Login(url, username, password)
+                    onAdd(name, login.server, login.username, login.password)
+                },
+                enabled = ready,
+            ) {
                 Text(stringResource(R.string.iptv_add))
             }
         },

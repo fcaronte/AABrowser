@@ -69,7 +69,7 @@
 
 \### TV in AAB Media (2.5)
 
-\- Page `https://player.local/tv` (assets/player/tv.html, tv.js, tv.css), reached from the TV button of AAB Media. M3U lists and Xtream accounts are added in Settings on the phone (`IptvSources`, prefs `iptv_sources`, out of the backup). The app reads the lists (`IptvLibrary`) and proxies every stream (`IptvProxy`): the page only gets random ids, never addresses or credentials (Xtream puts user and password in the stream URL), and HLS playlists are rewritten so segments go through the proxy too. Playback with hls.js (light build) and mpegts.js, Apache 2.0, bundled in assets/player/lib with their licenses. Never log stream addresses.
+\- Page `https://player.local/tv` (assets/player/tv.html, tv.js, tv.css), reached from the TV button of AAB Media. M3U lists and Xtream accounts are added in Settings on the phone (`IptvSources`, prefs `iptv_sources`, out of the backup); for Xtream, server + user + password or the full link that contains them (`XtreamLink`). The app reads the lists (`IptvLibrary`) and proxies every stream (`IptvProxy`): the page only gets random ids, never addresses or credentials (Xtream puts user and password in the stream URL), and HLS playlists are rewritten so segments go through the proxy too. Playback with hls.js (light build) and mpegts.js, Apache 2.0, bundled in assets/player/lib with their licenses. Never log stream addresses.
 
 \### Media & Audio Handling
 
