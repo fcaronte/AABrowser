@@ -55,8 +55,9 @@ from the misuse of this application. Use at your own risk.
   Settings > Web Pages, where you can remove them one by one or all together (Clear data).
 * **Passenger mode (new in 2.5):** on the car screen the app works only when the car is parked (Android Auto
   tells when it moves); audio, the Android Auto player and voice commands keep working. With *Passenger mode*
-  in Settings it works while moving too, and with *Passenger keyboard*, a QWERTY keyboard of the app (letters,
-  numbers and symbols, accented letters), you can type while moving, in both apps. For passengers only: the
+  in Settings it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
+  🌐 AZERTY, QWERTZ, Russian or Arabic for those languages; numbers and symbols, accented letters), you can type
+  while moving, in both apps. For passengers only: the
   driver must not use them.
 * **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
@@ -210,8 +211,8 @@ proprio rischio e pericolo.
 * **Modalità passeggero (novità 2.5):** sullo schermo dell'auto l'app funziona solo da fermo (se l'auto si
   muove lo dice Android Auto); audio, player di Android Auto e comandi vocali continuano a funzionare. Con
   *Modalità passeggero* nelle Impostazioni funziona anche in movimento, e con *Tastiera passeggero*, una
-  tastiera QWERTY dell'app (lettere, numeri e simboli, lettere accentate), si scrive anche in movimento, nelle
-  due app. Solo per i passeggeri: chi guida non deve usarle.
+  tastiera dell'app (QWERTY, e con 🌐 AZERTY, QWERTZ, russa o araba per quelle lingue; numeri e simboli, lettere
+  accentate), si scrive anche in movimento, nelle due app. Solo per i passeggeri: chi guida non deve usarle.
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
   aggiornamenti tramite KingInstaller.

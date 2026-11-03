@@ -336,7 +336,7 @@
     <string name="passenger_mode_label">وضع الراكب</string>
     <string name="passenger_mode_desc">يعمل التطبيق على شاشة السيارة أثناء الحركة أيضًا (عند إيقافه: فقط والسيارة متوقفة). للركاب: يجب ألا يستخدمه السائق.</string>
     <string name="passenger_keyboard_label">لوحة مفاتيح الراكب</string>
-    <string name="passenger_keyboard_desc">لوحة مفاتيح QWERTY الخاصة بالتطبيق بدلًا من لوحة Android Auto: مع وضع الراكب تعمل أثناء الحركة أيضًا. للركاب: يجب ألا يستخدمها السائق.</string>
+    <string name="passenger_keyboard_desc">لوحة مفاتيح التطبيق (العربية، أو QWERTY عبر 🌐) بدلًا من لوحة Android Auto: مع وضع الراكب تعمل أثناء الحركة أيضًا. للركاب: يجب ألا يستخدمها السائق.</string>
     <string name="passenger_keyboard_clear">مسح</string>
     <string name="drive_lock_title">متاح فقط والسيارة متوقفة</string>
     <string name="drive_lock_message">لاستخدام التطبيق أثناء الحركة، يمكن للراكب تفعيل «وضع الراكب» في إعدادات التطبيق على الهاتف. يستمر عمل الصوت والأوامر الصوتية.</string>

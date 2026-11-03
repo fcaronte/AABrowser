@@ -333,7 +333,7 @@
     <string name="passenger_mode_label">Mode passager</string>
     <string name="passenger_mode_desc">Sur l\'écran de la voiture, l\'app fonctionne aussi en roulant (désactivé : seulement à l\'arrêt). Pour les passagers : le conducteur ne doit pas l\'utiliser.</string>
     <string name="passenger_keyboard_label">Clavier passager</string>
-    <string name="passenger_keyboard_desc">Clavier QWERTY de l\'app à la place de celui d\'Android Auto : avec le Mode passager, il fonctionne aussi en roulant. Pour les passagers : le conducteur ne doit pas l\'utiliser.</string>
+    <string name="passenger_keyboard_desc">Clavier de l\'app (AZERTY, ou QWERTY avec 🌐) à la place de celui d\'Android Auto : avec le Mode passager, il fonctionne aussi en roulant. Pour les passagers : le conducteur ne doit pas l\'utiliser.</string>
     <string name="passenger_keyboard_clear">Effacer</string>
     <string name="drive_lock_title">Disponible uniquement à l\'arrêt</string>
     <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans les paramètres de l\'app sur le téléphone. Le son et les commandes vocales continuent de fonctionner.</string>

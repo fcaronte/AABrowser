@@ -334,7 +334,7 @@
     <string name="passenger_mode_label">Режим пассажира</string>
     <string name="passenger_mode_desc">На экране автомобиля приложение работает и во время движения (выкл.: только на стоянке). Для пассажиров: водитель не должен им пользоваться.</string>
     <string name="passenger_keyboard_label">Клавиатура пассажира</string>
-    <string name="passenger_keyboard_desc">QWERTY-клавиатура приложения вместо клавиатуры Android Auto: с режимом пассажира работает и во время движения. Для пассажиров: водитель не должен ею пользоваться.</string>
+    <string name="passenger_keyboard_desc">Клавиатура приложения (ЙЦУКЕН или QWERTY, переключение 🌐) вместо клавиатуры Android Auto: с режимом пассажира работает и во время движения. Для пассажиров: водитель не должен ею пользоваться.</string>
     <string name="passenger_keyboard_clear">Очистить</string>
     <string name="drive_lock_title">Доступно только на стоянке</string>
     <string name="drive_lock_message">Чтобы пользоваться приложением во время движения, пассажир может включить «Режим пассажира» в настройках приложения на телефоне. Звук и голосовые команды продолжают работать.</string>

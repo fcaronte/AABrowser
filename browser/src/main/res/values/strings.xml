@@ -337,7 +337,7 @@
     <string name="passenger_mode_label">Passenger mode</string>
     <string name="passenger_mode_desc">On the car screen the app also works while moving (off: only when parked). For passengers: the driver must not use it.</string>
     <string name="passenger_keyboard_label">Passenger keyboard</string>
-    <string name="passenger_keyboard_desc">The app’s QWERTY keyboard instead of the Android Auto one: with Passenger mode it also works while moving. For passengers: the driver must not use it.</string>
+    <string name="passenger_keyboard_desc">The app’s keyboard (QWERTY, or the layout of your language with 🌐) instead of the Android Auto one: with Passenger mode it also works while moving. For passengers: the driver must not use it.</string>
     <string name="passenger_keyboard_clear">Clear</string>
     <string name="drive_lock_title">Available only when parked</string>
     <string name="drive_lock_message">To use the app while moving, a passenger can turn on “Passenger mode” in the app settings on the phone. Audio and voice commands keep working.</string>

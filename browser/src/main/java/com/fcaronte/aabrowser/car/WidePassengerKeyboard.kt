@@ -27,7 +27,7 @@ import com.fcaronte.aabrowser.utils.PassengerKeyboard
  */
 class WidePassengerKeyboard(private val context: Context) {
     private val dp = context.resources.displayMetrics.density
-    private val keyboard = PassengerKeyboard()
+    private val keyboard = PassengerKeyboard.create(context)
     private var typed = ""
     private var hint = ""
     private var onDone: ((String) -> Unit)? = null
@@ -113,6 +113,7 @@ class WidePassengerKeyboard(private val context: Context) {
     }
 
     private fun onKey(key: PassengerKeyboard.Key) {
+        val layout = keyboard.layout
         val page = keyboard.page
         val shift = keyboard.shift
         when (val action = keyboard.press(key)) {
@@ -126,7 +127,7 @@ class WidePassengerKeyboard(private val context: Context) {
             }
             PassengerKeyboard.Action.None -> Unit
         }
-        if (keyboard.page != page || keyboard.shift != shift) buildKeys()
+        if (keyboard.layout != layout || keyboard.page != page || keyboard.shift != shift) buildKeys()
         updateText()
     }
 
@@ -144,23 +145,24 @@ class WidePassengerKeyboard(private val context: Context) {
 
     private fun buildKeys() {
         keyRows.removeAllViews()
-        keyboard.rows.forEachIndexed { index, row ->
+        val rows = keyboard.rows
+        rows.forEachIndexed { index, row ->
             val rowView = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
             // Le righe più corte restano al centro
-            val side = (PassengerKeyboard.ROW_WEIGHT - row.sumOf { PassengerKeyboard.weight(it).toDouble() }.toFloat()) / 2
+            val side = (keyboard.rowWeight - row.sumOf { keyboard.weight(it, row).toDouble() }.toFloat()) / 2
             if (side > 0f) rowView.addView(View(context), LinearLayout.LayoutParams(0, -1, side))
             row.forEachIndexed { i, key ->
                 val color = if (keyboard.isHighlighted(key)) ACCENT_COLOR else KEY_COLOR
                 rowView.addView(
                     key(keyboard.label(key), color) { onKey(key) },
-                    LinearLayout.LayoutParams(0, -1, PassengerKeyboard.weight(key)).apply {
+                    LinearLayout.LayoutParams(0, -1, keyboard.weight(key, row)).apply {
                         if (i < row.lastIndex) rightMargin = gap()
                     }
                 )
             }
             if (side > 0f) rowView.addView(View(context), LinearLayout.LayoutParams(0, -1, side))
             keyRows.addView(rowView, LinearLayout.LayoutParams(-1, 0, 1f).apply {
-                if (index < keyboard.rows.lastIndex) bottomMargin = gap()
+                if (index < rows.lastIndex) bottomMargin = gap()
             })
         }
     }

@@ -29,12 +29,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
@@ -65,7 +67,8 @@ fun PassengerKeyboardKeys(
     keyHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
-    val keyboard = remember { PassengerKeyboard() }
+    val context = LocalContext.current
+    val keyboard = remember { PassengerKeyboard.create(context) }
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainer)
@@ -80,13 +83,13 @@ fun PassengerKeyboardKeys(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 // Le righe più corte restano al centro
-                val side = (PassengerKeyboard.ROW_WEIGHT - row.sumOf { PassengerKeyboard.weight(it).toDouble() }.toFloat()) / 2
+                val side = (keyboard.rowWeight - row.sumOf { keyboard.weight(it, row).toDouble() }.toFloat()) / 2
                 if (side > 0f) Spacer(Modifier.weight(side))
                 row.forEach { key ->
                     KeyboardKey(
                         label = keyboard.label(key),
                         highlighted = keyboard.isHighlighted(key),
-                        modifier = Modifier.weight(PassengerKeyboard.weight(key)).fillMaxHeight(),
+                        modifier = Modifier.weight(keyboard.weight(key, row)).fillMaxHeight(),
                     ) {
                         when (val action = keyboard.press(key)) {
                             is PassengerKeyboard.Action.Type -> onType(action.text)
@@ -154,9 +157,10 @@ fun PassengerKeyboardPanel(initialText: String, hint: String, onDone: (String) -
 private fun PassengerTextLine(text: String, hint: String, onClear: () -> Unit, onClose: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val scroll = rememberScrollState()
-    // Sempre in fondo: si vede l'ultima parte scritta
+    // Sempre sull'ultima parte scritta: a destra, o a sinistra per l'arabo (da destra a sinistra)
+    val rtl by rememberUpdatedState(PassengerKeyboard.isRtl(text))
     LaunchedEffect(scroll) {
-        snapshotFlow { scroll.maxValue }.collect { scroll.scrollTo(it) }
+        snapshotFlow { scroll.maxValue to rtl }.collect { (end, isRtl) -> scroll.scrollTo(if (isRtl) 0 else end) }
     }
     Row(
         modifier = Modifier

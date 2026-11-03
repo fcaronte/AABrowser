@@ -53,7 +53,7 @@
 
   - \*Hard Constraint\*: Android Auto stock template framework enforces that the right stock bar MUST keep at least one action button locked at the top-right corner.
 
-  - \*Android Auto Limitations\* (set by Google for Car App Library apps, not bugs; the "Beta" label was dropped in 2.4): Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving); since 2.5 the optional Passenger keyboard (a QWERTY keyboard drawn by the app) replaces it in both apps. Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
+  - \*Android Auto Limitations\* (set by Google for Car App Library apps, not bugs; the "Beta" label was dropped in 2.4): Only the full-screen Android Auto keyboard is available for text fields (Car App Library apps cannot show a docked keyboard; Android Auto may lock it while driving); since 2.5 the optional Passenger keyboard (drawn by the app: QWERTY, plus AZERTY, QWERTZ, Russian and Arabic with the 🌐 key for those languages) replaces it in both apps. Double-tap-to-zoom is disabled and drag gestures are not available (the host gives no finger position), for touch stability and safety while driving.
 
 \### Web Engine & Injected JavaScript
 
