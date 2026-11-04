@@ -352,7 +352,7 @@
     <string name="iptv_add">जोड़ें</string>
     <string name="iptv_remove">हटाएँ</string>
     <string name="iptv_add_on_phone">सूचियाँ फ़ोन की सेटिंग में जोड़ी जाती हैं।</string>
-    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › IPTV में एक सूची जोड़ें।</string>
+    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › ऐप दिखावट › IPTV में एक सूची जोड़ें।</string>
     <string name="tv_search">चैनल खोजें</string>
     <string name="tv_favorites">पसंदीदा</string>
     <string name="tv_other_channels">अन्य चैनल</string>

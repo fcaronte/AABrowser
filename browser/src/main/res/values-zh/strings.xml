@@ -351,7 +351,7 @@
     <string name="iptv_add">添加</string>
     <string name="iptv_remove">删除</string>
     <string name="iptv_add_on_phone">请在手机上的设置中添加列表。</string>
-    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › IPTV 中添加。</string>
+    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › 应用外观 › IPTV 中添加。</string>
     <string name="tv_search">搜索频道</string>
     <string name="tv_favorites">收藏</string>
     <string name="tv_other_channels">其他频道</string>

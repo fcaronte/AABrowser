@@ -356,7 +356,7 @@
     <string name="iptv_add">إضافة</string>
     <string name="iptv_remove">إزالة</string>
     <string name="iptv_add_on_phone">تُضاف القوائم من الإعدادات على الهاتف.</string>
-    <string name="tv_no_sources">لا توجد قوائم تلفزيون: أضف قائمة من الإعدادات › IPTV على الهاتف.</string>
+    <string name="tv_no_sources">لا توجد قوائم تلفزيون: أضف قائمة من الإعدادات › مظهر التطبيق › IPTV على الهاتف.</string>
     <string name="tv_search">البحث عن قناة</string>
     <string name="tv_favorites">المفضلة</string>
     <string name="tv_other_channels">قنوات أخرى</string>

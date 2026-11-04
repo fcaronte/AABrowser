@@ -354,7 +354,7 @@
     <string name="iptv_add">Добавить</string>
     <string name="iptv_remove">Удалить</string>
     <string name="iptv_add_on_phone">Списки добавляются в настройках на телефоне.</string>
-    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › IPTV на телефоне.</string>
+    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › Внешний вид приложения › IPTV на телефоне.</string>
     <string name="tv_search">Поиск канала</string>
     <string name="tv_favorites">Избранное</string>
     <string name="tv_other_channels">Другие каналы</string>

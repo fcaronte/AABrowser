@@ -1,7 +1,7 @@
 # PROJECT MEMORY - AABrowser
 
 ## 1. Current Status
-- **Version / Milestone**: 2.4 published on GitHub (24/10/2026, tag `2.4`, `AABrowser-v2.4.apk`). 2.4.1 cancelled by the user (25/10/2026: its point was DAZN, which cannot be fixed): its commits go into the future 2.5. `browser/build.gradle` still says `versionCode 16` / `versionName "2.4.1"`: set `versionName "2.5"` (code 16 is free, 2.4.1 was never published) when preparing 2.5
+- **Version / Milestone**: 2.5 release prepared (`versionCode 16` / `versionName "2.5"`, `CarWeb-v2.5.apk`). Previous release 2.4 published on GitHub (24/10/2026, tag `2.4`).
 - **Recent Updates**:
   - **Passenger Mode & Keyboard Disclaimer (User Request)**:
     - Added a safety disclaimer & liability waiver dialog (`AlertDialog`) in `SettingsScreen.kt` when activating "Modalità passeggero" or "Tastiera passeggero".

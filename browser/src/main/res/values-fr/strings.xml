@@ -353,7 +353,7 @@
     <string name="iptv_add">Ajouter</string>
     <string name="iptv_remove">Supprimer</string>
     <string name="iptv_add_on_phone">Les listes s\'ajoutent depuis les paramètres du téléphone.</string>
-    <string name="tv_no_sources">Aucune liste TV : ajoutez-en une dans Paramètres › IPTV, sur le téléphone.</string>
+    <string name="tv_no_sources">Aucune liste TV : ajoutez-en une dans Paramètres › Apparence de l\'application › IPTV, sur le téléphone.</string>
     <string name="tv_search">Chercher une chaîne</string>
     <string name="tv_favorites">Favoris</string>
     <string name="tv_other_channels">Autres chaînes</string>
