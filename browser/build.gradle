@@ -89,7 +89,7 @@ android {
         variant.outputs.all { output ->
             def version = variant.versionName
             def buildType = variant.buildType.name
-            def name = "AABrowser"
+            def name = "CarWeb"
             if (buildType == "debug") {
                 name += "-debug"
             }

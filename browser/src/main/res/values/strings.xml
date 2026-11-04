@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name">AABrowser</string>
-    <string name="wide_app_name" translatable="false">AAWBrowser</string>
+    <string name="app_name">CarWeb</string>
+    <string name="wide_app_name" translatable="false">CarWebWide</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">Android Auto Browser Notification</string>
-    <string name="notification_title">AABrowser running</string>
+    <string name="notification_title">CarWeb running</string>
     <string name="notification_text">Tap to stop</string>
 
     <string name="settings_name">Settings</string>
-    <string name="service_name">AAB Media</string>
+    <string name="service_name">Media-IPTV</string>
     <string name="open_readme">Open README</string>
     <string name="open_readme_desc">Read the app documentation on GitHub</string>
     <string name="change_language">Change App Language</string>
@@ -156,8 +156,8 @@
     <string name="voice_search">Voice Search</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AAB Media</string>
-    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">Audio from Browser</string>
     <string name="media_browser_subtitle">Play current audio</string>
 
@@ -166,7 +166,7 @@
 
     <!-- Update -->
     <string name="update_available">New update available: %s</string>
-    <string name="update_available_title">AABrowser Update %s</string>
+    <string name="update_available_title">CarWeb Update %s</string>
     <string name="update_available_text">A new version is available. Tap to download and install.</string>
     <string name="download_button">Update</string>
     <string name="downloading_update">Downloading update…</string>
@@ -193,26 +193,24 @@
     <!-- Default Favorites -->
     <string name="favorite_default_name_0" translatable="false">Google</string>
     <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_1" translatable="false">YouTube</string>
-    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_4" translatable="false">Spotify</string>
-    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_5" translatable="false">Telegram</string>
-    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_7" translatable="false">Zappr</string>
-    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_8" translatable="false">Poki</string>
-    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
-    <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
-    <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
-    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_1" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_url_1" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube</string>
+    <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_3" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_4" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_4" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_5" translatable="false">Spotify</string>
+    <string name="favorite_default_url_5" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_6" translatable="false">Telegram</string>
+    <string name="favorite_default_url_6" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_7" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_7" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_8" translatable="false">Zappr</string>
+    <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_9" translatable="false">Poki</string>
+    <string name="favorite_default_url_9" translatable="false">https://poki.com/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -243,13 +241,13 @@
     <string name="import_settings_label">Import Settings &amp; Bookmarks</string>
     <string name="import_settings_desc">Restore bookmarks and settings from a backup file</string>
     <string name="import_button">Import</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Backup saved to Download/CarWeb/carweb_backup.json</string>
     <string name="backup_error">Backup failed.</string>
     <string name="import_success">Restore completed! Please restart the app.</string>
     <string name="import_error">Restore failed.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Welcome to AABrowser</string>
+    <string name="welcome_title">Welcome to CarWeb</string>
     <string name="welcome_subtitle">The complete browser designed for Android Auto. To ensure optimal performance, please grant the following permissions:</string>
     <string name="perm_mic_title">Microphone</string>
     <string name="perm_mic_desc">Used for voice dictation and search input inside websites.</string>
@@ -261,7 +259,7 @@
     <string name="perm_local_network_desc">Lets pages reach sites and devices on your home network (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Location for websites (optional)</string>
     <string name="perm_web_location_desc">Precise GPS position for maps in the browser, such as Google Maps: each site asks before using it. In the car (phone locked) Android also needs “Allow all the time”.</string>
-    <string name="web_location_phone_toast">For location on websites in the car: on the phone, set AABrowser’s location to precise and “Allow all the time”</string>
+    <string name="web_location_phone_toast">For location on websites in the car: on the phone, set CarWeb’s location to precise and “Allow all the time”</string>
     <string name="site_permission_mic_title">Microphone</string>
     <string name="site_permission_location_title">Location</string>
     <string name="site_permission_files_title">Phone files</string>
@@ -320,7 +318,7 @@
     <string name="ssl_warning_cancel">Cancel</string>
     <string name="voice_command_button">Voice command</string>
     <string name="voice_command_hint">Try: “play … on YouTube”, “search … on Amazon”, “open …”, “pause”</string>
-    <string name="voice_command_hint_wheel">After something has played in AABrowser: double tap ⏮ on the steering wheel</string>
+    <string name="voice_command_hint_wheel">After something has played in CarWeb: double tap ⏮ on the steering wheel</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Searching: %1$s</string>
@@ -329,8 +327,8 @@
     <string name="voice_command_navigate">Directions to %1$s</string>
     <string name="voice_command_not_heard">I didn\'t hear anything, try again</string>
     <string name="voice_command_unavailable">Speech recognition is not available</string>
-    <string name="voice_command_mic_permission">AABrowser needs the microphone permission: allow it on the phone</string>
-    <string name="voice_command_open_app">Open AABrowser (Main or Wide) to use voice commands</string>
+    <string name="voice_command_mic_permission">CarWeb needs the microphone permission: allow it on the phone</string>
+    <string name="voice_command_open_app">Open CarWeb (Main or Wide) to use voice commands</string>
     <string name="share_logs_title">Share logs</string>
     <string name="share_logs_failed">Could not export the logs: %1$s</string>
     <string name="share_logs_phone_only">Share the logs from the phone</string>
@@ -341,8 +339,8 @@
     <string name="passenger_keyboard_clear">Clear</string>
     <string name="drive_lock_title">Available only when parked</string>
     <string name="drive_lock_message">To use the app while moving, a passenger can turn on “Passenger mode” in the app settings on the phone. Audio and voice commands keep working.</string>
-    <string name="iptv_title">AAB Media TV (M3U and Xtream)</string>
-    <string name="iptv_desc">Channel lists to watch in AAB Media › TV. Addresses and passwords stay on the phone and are not backed up.</string>
+    <string name="iptv_title">Media-IPTV TV (M3U and Xtream)</string>
+    <string name="iptv_desc">Channel lists to watch in Media-IPTV › TV. Addresses and passwords stay on the phone and are not backed up.</string>
     <string name="iptv_add_m3u">Add M3U</string>
     <string name="iptv_add_xtream">Add Xtream</string>
     <string name="iptv_name">Name (optional)</string>
@@ -354,7 +352,7 @@
     <string name="iptv_add">Add</string>
     <string name="iptv_remove">Remove</string>
     <string name="iptv_add_on_phone">Lists are added from Settings on the phone.</string>
-    <string name="tv_no_sources">No TV lists: add one in Settings › AAB Media TV, on the phone.</string>
+    <string name="tv_no_sources">No TV lists: add one in Settings › Media-IPTV TV, on the phone.</string>
     <string name="tv_search">Search a channel</string>
     <string name="tv_favorites">Favorites</string>
     <string name="tv_other_channels">Other channels</string>

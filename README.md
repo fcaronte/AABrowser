@@ -1,4 +1,4 @@
-# AABrowser: A Modern Revival of the "Old School" Trick
+# CarWeb: A Modern Revival of the "Old School" Trick
 
 🇮🇹 [Vai alla versione italiana](#aa-browser-una-rinascita-moderna)
 
@@ -14,7 +14,7 @@ different worlds:
 I loved the interface of the new one, but I needed the functionality of the old one. So, I took the
 old, ugly, and obsolete base and forced it to become a modern app, blending the best of both worlds.
 
-![AABrowser Demo](assets/demo.gif)
+![CarWeb Demo](assets/demo.gif)
 
 ## ⚠️ SAFETY WARNING
 
@@ -26,7 +26,7 @@ from the misuse of this application. Use at your own risk.
 
 ## Main features
 
-* **Two apps on Android Auto:** **AABrowser**, the full browser with tabs, and **AAWBrowser
+* **Two apps on Android Auto:** **CarWeb**, the full browser with tabs, and **CarWebWide
   (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
   or the app menu, with a fixed side menu. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
@@ -34,16 +34,16 @@ from the misuse of this application. Use at your own risk.
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
-* **AAB Media:** player for the audio and video files of a folder on the phone, with separate
+* **Media-IPTV:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
-* **TV in AAB Media (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
+* **TV in Media-IPTV (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
   Xtream account the full link with username and password is enough), with groups, search and favorites; HLS and
   MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
   passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may play without sound (WebView
   limit).
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
-  tab bar and the navigation menu of AABrowser, at the top right of the Widescreen).
+  tab bar and the navigation menu of CarWeb, at the top right of the Widescreen).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
   speed (ads and music excluded), tap on the progress bar to seek.
 * **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
@@ -74,16 +74,16 @@ from the misuse of this application. Use at your own risk.
 
 **How to start listening**
 
-* **AABrowser:** the 🎤 button in the tab bar (left of the shield), in the round navigation menu and next to
+* **CarWeb:** the 🎤 button in the tab bar (left of the shield), in the round navigation menu and next to
   search on the home page.
-* **AAWBrowser (Widescreen):** the 🎤 button in the fixed side menu, or at the top right next to search
+* **CarWebWide (Widescreen):** the 🎤 button in the fixed side menu, or at the top right next to search
   when the side menu is off.
-* **Android Auto player:** in the car, while the "AAB Media" player shows the weather, it has a 🎤 button, which
+* **Android Auto player:** in the car, while the "Media-IPTV" player shows the weather, it has a 🎤 button, which
   works even when nothing has played yet (with a page playing, the player keeps its own buttons: use the double
   tap).
-* **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (AABrowser or
+* **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (CarWeb or
   Widescreen, also in the background). It needs the Android Auto player enabled in Settings, and it works
-  once something has played in AABrowser (also if paused afterwards): Android sends the media keys to the app
+  once something has played in CarWeb (also if paused afterwards): Android sends the media keys to the app
   that last played audio, not to the card shown by Android Auto, and the weather card plays nothing on
   purpose so it does not take the car audio away from the radio. When the car radio or another app is
   playing, the keys go to them (for example the radio changes station). A single press still means
@@ -112,7 +112,7 @@ app is set to)
 Anything else is searched on the open site or with your search engine.
 
 **Google Assistant and Gemini:** the app also accepts the standard Android media voice search ("Ok Google,
-play *song* on AABrowser"), but for now Gemini replies that the app does not support its commands: use the
+play *song* on CarWeb"), but for now Gemini replies that the app does not support its commands: use the
 🎤 button or the double tap on ⏮.
 
 ## The "Gemini-Powered" Development
@@ -126,7 +126,7 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 4. Finally getting it to work.
 
 Since version 2.3 **Claude** (Anthropic), through Claude Code, has joined the arguments too: the Android
-Auto player with multiple tabs, AAB Media, the Widescreen layout fixes and a lot of bug hunting came out
+Auto player with multiple tabs, Media-IPTV, the Widescreen layout fixes and a lot of bug hunting came out
 of those sessions.
 
 ## Disclaimer & Compatibility
@@ -155,7 +155,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <a id="aa-browser-una-rinascita-moderna"></a>
 
-# AABrowser: Una rinascita moderna del "vecchio trucco"
+# CarWeb: Una rinascita moderna del "vecchio trucco"
 
 🇬🇧 [Go to the English version](#aa-browser-a-modern-revival-of-the-old-school-trick)
 
@@ -172,7 +172,7 @@ Mi piaceva l'interfaccia di quello nuovo, ma avevo bisogno della funzionalità d
 Così, ho preso la base vecchia, brutta e obsoleta e l'ho trasformata in un'app moderna, unendo il
 meglio dei due mondi.
 
-![AABrowser Demo](assets/demo.gif)
+![CarWeb Demo](assets/demo.gif)
 
 ## ⚠️ AVVERTENZA DI SICUREZZA
 
@@ -185,7 +185,7 @@ proprio rischio e pericolo.
 
 ## Funzioni principali
 
-* **Due app su Android Auto:** **AABrowser**, il browser completo con le schede, e **AAWBrowser
+* **Due app su Android Auto:** **CarWeb**, il browser completo con le schede, e **CarWebWide
   (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
   o al menu delle app, con il menu laterale fisso. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
@@ -193,16 +193,16 @@ proprio rischio e pericolo.
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
-* **AAB Media:** lettore per i file audio e video di una cartella del telefono, con code
+* **Media-IPTV:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
-* **TV in AAB Media (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
+* **TV in Media-IPTV (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
   telefono; per un account Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
   stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e
   password restano sul telefono (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio
   (limite della WebView).
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
-  2.4: nella barra delle schede e nel menu di navigazione di AABrowser, in alto a destra nella Widescreen).
+  2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
   video.
@@ -233,16 +233,16 @@ proprio rischio e pericolo.
 
 **Come avviare l'ascolto**
 
-* **AABrowser:** il pulsante 🎤 nella barra delle schede (a sinistra dello scudo), nel menu di navigazione
+* **CarWeb:** il pulsante 🎤 nella barra delle schede (a sinistra dello scudo), nel menu di navigazione
   rotondo e accanto alla ricerca nella pagina iniziale.
-* **AAWBrowser (Widescreen):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
+* **CarWebWide (Widescreen):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
   alla ricerca se il menu laterale è spento.
-* **Player di Android Auto:** in auto, quando il player "AAB Media" mostra il meteo, ha un tasto 🎤 che funziona
+* **Player di Android Auto:** in auto, quando il player "Media-IPTV" mostra il meteo, ha un tasto 🎤 che funziona
   anche quando non ha ancora suonato niente (con una pagina che suona il player tiene i suoi tasti: usa il doppio
   tocco).
-* **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (AABrowser o
+* **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (CarWeb o
   Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni, e funziona
-  dopo che in AABrowser ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti
+  dopo che in CarWeb ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti
   multimediali all'ultima app che ha riprodotto audio, non alla scheda mostrata da Android Auto, e la scheda
   del meteo apposta non riproduce niente per non togliere l'audio alla radio. Se suonano la radio dell'auto o
   un'altra app, i tasti vanno a loro (per esempio la radio cambia stazione). Un tocco singolo resta
@@ -271,7 +271,7 @@ impostata)
 Tutto il resto viene cercato sul sito aperto o col motore di ricerca.
 
 **Assistente Google e Gemini:** l'app accetta anche la ricerca vocale standard dei player di Android ("Ok
-Google, metti *canzone* su AABrowser"), ma per ora Gemini risponde che l'app non supporta i suoi comandi: usa
+Google, metti *canzone* su CarWeb"), ma per ora Gemini risponde che l'app non supporta i suoi comandi: usa
 il pulsante 🎤 o il doppio tocco su ⏮.
 
 ## Sviluppo "Gemini-Powered"
@@ -285,7 +285,7 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 4. Finalmente farlo funzionare.
 
 Dalla versione 2.3 alle discussioni si è aggiunto anche **Claude** (Anthropic), tramite Claude Code: il
-player di Android Auto con più schede, AAB Media, le correzioni del layout Widescreen e tanta caccia ai bug
+player di Android Auto con più schede, Media-IPTV, le correzioni del layout Widescreen e tanta caccia ai bug
 sono nati da quelle sessioni.
 
 ## Disclaimer & Compatibilità

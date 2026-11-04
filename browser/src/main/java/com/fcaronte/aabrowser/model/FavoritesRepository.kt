@@ -35,13 +35,13 @@ class FavoritesRepository(private val context: Context) {
             // Il lettore di prova su streamlit è stato sostituito dal lettore locale dell'app
             if (url.startsWith(TEST_PLAYER_URL)) {
                 url = LocalPlayer.BASE_URL
-                name = context.getString(R.string.favorite_default_name_11)
+                name = context.getString(R.string.favorite_default_name_1)
                 faviconUrl = null
                 migrationNeeded = true
             }
-            // Il lettore locale si chiamava "AABrowser Player" (il nome scelto dall'utente non viene toccato)
-            if (url == LocalPlayer.BASE_URL && name == OLD_PLAYER_NAME) {
-                name = context.getString(R.string.favorite_default_name_11)
+            // Il lettore locale si chiamava "AABrowser Player" o "AAB Media"
+            if (url == LocalPlayer.BASE_URL && (name == OLD_PLAYER_NAME || name == "AAB Media")) {
+                name = context.getString(R.string.favorite_default_name_1)
                 migrationNeeded = true
             }
 
@@ -99,16 +99,15 @@ class FavoritesRepository(private val context: Context) {
     fun getDefaultFavorites(): List<FavoriteSite> {
         return listOf(
             FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF4285F4),
-            FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFFF0000),
+            FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFF00BCD4),
             FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFFFF0000),
-            FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF25D366, null, true, null, 0.9f),
-            FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFF1DB954, null, false, null, 1.0f),
-            FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFF0088CC, null, true, null, 0.9f),
-            FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFFFF0000),
-            FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFFFF9800),
-            FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFF9C27B0),
-            FavoriteSite("10", context.getString(R.string.favorite_default_name_10), context.getString(R.string.favorite_default_url_10), 0xFFE91E63),
-            FavoriteSite("11", context.getString(R.string.favorite_default_name_11), context.getString(R.string.favorite_default_url_11), 0xFF00BCD4)
+            FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFFFF0000),
+            FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFF25D366, null, true, null, 0.9f),
+            FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFF1DB954, null, false, null, 1.0f),
+            FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFF0088CC, null, true, null, 0.9f),
+            FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFFFF0000),
+            FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFFFF9800),
+            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFF9C27B0)
         )
     }
 
@@ -149,9 +148,9 @@ class FavoritesRepository(private val context: Context) {
         // aveva già lo tiene)
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
-        private const val DEFAULTS_VERSION = 2
+        private const val DEFAULTS_VERSION = 3
         private val DEFAULTS_ADDED_IN = mapOf(
-            "11" to 2 // AAB Media (2.3)
+            "1" to 3 // Media-IPTV (2.5)
         )
 
         private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")

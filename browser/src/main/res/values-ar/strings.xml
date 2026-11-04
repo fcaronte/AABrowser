@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AABrowser</string>
+    <string name="app_name">CarWeb</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">إشعار Android Auto Browser</string>
@@ -7,7 +7,7 @@
     <string name="notification_text">انقر للإيقاف</string>
 
     <string name="settings_name">الإعدادات</string>
-    <string name="service_name">AAB Media</string>
+    <string name="service_name">Media-IPTV</string>
     <string name="open_readme">فتح README</string>
     <string name="open_readme_desc">اقرأ وثائق التطبيق على GitHub</string>
     <string name="change_language">تغيير لغة التطبيق</string>
@@ -155,8 +155,8 @@
     <string name="voice_search">البحث الصوتي</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AAB Media</string>
-    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">الصوت من المتصفح</string>
     <string name="media_browser_subtitle">تشغيل الصوت الحالي</string>
 
@@ -165,7 +165,7 @@
 
     <!-- Update -->
     <string name="update_available">تحديث جديد متوفر: %s</string>
-    <string name="update_available_title">تحديث AABrowser %s</string>
+    <string name="update_available_title">تحديث CarWeb %s</string>
     <string name="update_available_text">إصدار جديد متوفر. انقر للتنزيل والتثبيت.</string>
     <string name="download_button">تحديث</string>
     <string name="downloading_update">جاري تنزيل التحديث…</string>
@@ -189,26 +189,24 @@
     <!-- Default Favorites -->
     <string name="favorite_default_name_0" translatable="false">Google</string>
     <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_1" translatable="false">YouTube</string>
-    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_4" translatable="false">Spotify</string>
-    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_5" translatable="false">Telegram</string>
-    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_7" translatable="false">Zappr</string>
-    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_8" translatable="false">Poki</string>
-    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
-    <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
-    <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
-    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_1" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_url_1" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube</string>
+    <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_3" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_4" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_4" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_5" translatable="false">Spotify</string>
+    <string name="favorite_default_url_5" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_6" translatable="false">Telegram</string>
+    <string name="favorite_default_url_6" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_7" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_7" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_8" translatable="false">Zappr</string>
+    <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_9" translatable="false">Poki</string>
+    <string name="favorite_default_url_9" translatable="false">https://poki.com/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>

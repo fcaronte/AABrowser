@@ -562,8 +562,8 @@ fun SettingsScreen(
                                             onClick = {
                                                 if (confirmExport) {
                                                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                                    val aaBrowserFolder = File(downloadsDir, "AABrowser")
-                                                    val file = File(aaBrowserFolder, "aabrowser_backup.json")
+                                                    val aaBrowserFolder = File(downloadsDir, "CarWeb")
+                                                    val file = File(aaBrowserFolder, "carweb_backup.json")
                                                     val success = BackupRestoreUtils.exportSettingsAndBookmarksToFile(context, file)
                                                     val msg = if (success) context.getString(R.string.backup_success) else context.getString(R.string.backup_error)
                                                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
@@ -584,8 +584,8 @@ fun SettingsScreen(
                                             onClick = {
                                                 if (confirmImport) {
                                                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                                    val aaBrowserFolder = File(downloadsDir, "AABrowser")
-                                                    val file = File(aaBrowserFolder, "aabrowser_backup.json")
+                                                    val aaBrowserFolder = File(downloadsDir, "CarWeb")
+                                                    val file = File(aaBrowserFolder, "carweb_backup.json")
                                                     val success = BackupRestoreUtils.importSettingsAndBookmarksFromFile(context, file)
                                                     val msg = if (success) context.getString(R.string.import_success) else context.getString(R.string.import_error)
                                                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()

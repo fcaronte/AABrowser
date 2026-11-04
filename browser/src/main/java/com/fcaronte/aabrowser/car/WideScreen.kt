@@ -2168,7 +2168,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // ------------------------------------------------------------------
-    // Comandi vocali (tasto microfono, "Ok Google, metti … su AABrowser")
+    // Comandi vocali (tasto microfono, "Ok Google, metti … su CarWeb")
     // ------------------------------------------------------------------
 
     /** Tasto microfono (sidebar o in alto): ascolta una frase e la esegue come comando (VoiceCommands). */
@@ -2261,7 +2261,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     /**
-     * Esegue un comando vocale (anche quelli di "Ok Google, metti … su AABrowser"). Il piano è lo stesso della
+     * Esegue un comando vocale (anche quelli di "Ok Google, metti … su CarWeb"). Il piano è lo stesso della
      * Main; qui la ricerca segue il sito aperto come la lente (SiteSearch) e "portami a …" usa il navigatore.
      */
     private fun runVoiceCommand(command: VoiceCommands.Command) {

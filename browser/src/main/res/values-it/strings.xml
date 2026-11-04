@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name">AABrowser</string>
-    <string name="wide_app_name">AAWBrowser</string>
+    <string name="app_name">CarWeb</string>
+    <string name="wide_app_name">CarWebWide</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">Notifiche Android Auto Browser</string>
-    <string name="notification_title">AABrowser in esecuzione</string>
+    <string name="notification_title">CarWeb in esecuzione</string>
     <string name="notification_text">Tocca per fermare</string>
 
     <string name="settings_name">Impostazioni</string>
-    <string name="service_name">AAB Media</string>
+    <string name="service_name">Media-IPTV</string>
     <string name="open_readme">Apri README</string>
     <string name="open_readme_desc">Leggi la documentazione dell\'app su GitHub</string>
     <string name="change_language">Cambia Lingua App</string>
@@ -156,8 +156,8 @@
     <string name="voice_search">Ricerca vocale</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AAB Media</string>
-    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">Audio dal Browser</string>
     <string name="media_browser_subtitle">Riproduci l\'audio corrente</string>
 
@@ -166,7 +166,7 @@
 
     <!-- Update -->
     <string name="update_available">Nuovo aggiornamento disponibile: %s</string>
-    <string name="update_available_title">Aggiornamento AABrowser %s</string>
+    <string name="update_available_title">Aggiornamento CarWeb %s</string>
     <string name="update_available_text">È disponibile una nuova versione. Tocca per scaricare e installare.</string>
     <string name="download_button">Aggiorna</string>
     <string name="downloading_update">Download aggiornamento in corso…</string>
@@ -199,13 +199,13 @@
     <string name="import_settings_label">Importa Impostazioni e Preferiti</string>
     <string name="import_settings_desc">Ripristina preferiti e impostazioni da un file di backup</string>
     <string name="import_button">Importa</string>
-    <string name="backup_success">Backup salvato in Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Backup salvato in Download/CarWeb/carweb_backup.json</string>
     <string name="backup_error">Errore durante il backup.</string>
     <string name="import_success">Ripristino completato! Riavvia l\'app.</string>
     <string name="import_error">Errore durante il ripristino.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Benvenuto in AABrowser</string>
+    <string name="welcome_title">Benvenuto in CarWeb</string>
     <string name="welcome_subtitle">Il browser completo progettato per Android Auto. Per un\'esperienza ottimale, l\'app richiede alcuni permessi essenziali:</string>
     <string name="perm_mic_title">Microfono</string>
     <string name="perm_mic_desc">Utilizzato per la dettatura vocale e la ricerca nei siti web.</string>
@@ -217,7 +217,7 @@
     <string name="perm_local_network_desc">Permette alle pagine di raggiungere siti e dispositivi della rete di casa (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Posizione per i siti web (facoltativa)</string>
     <string name="perm_web_location_desc">Posizione GPS precisa per le mappe nel browser, come Google Maps: ogni sito chiede prima di usarla. In auto (telefono bloccato) Android vuole anche «Consenti sempre».</string>
-    <string name="web_location_phone_toast">Per la posizione nei siti in auto: sul telefono imposta la posizione di AABrowser su precisa e «Consenti sempre»</string>
+    <string name="web_location_phone_toast">Per la posizione nei siti in auto: sul telefono imposta la posizione di CarWeb su precisa e «Consenti sempre»</string>
     <string name="site_permission_mic_title">Microfono</string>
     <string name="site_permission_location_title">Posizione</string>
     <string name="site_permission_files_title">File del telefono</string>
@@ -275,7 +275,7 @@
     <string name="ssl_warning_cancel">Annulla</string>
     <string name="voice_command_button">Comando vocale</string>
     <string name="voice_command_hint">Prova: «metti … su YouTube», «cerca … su Amazon», «apri …», «pausa»</string>
-    <string name="voice_command_hint_wheel">Dopo aver riprodotto qualcosa in AABrowser: doppio tocco su ⏮ al volante</string>
+    <string name="voice_command_hint_wheel">Dopo aver riprodotto qualcosa in CarWeb: doppio tocco su ⏮ al volante</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Cerco: %1$s</string>
@@ -284,8 +284,8 @@
     <string name="voice_command_navigate">Navigazione verso %1$s</string>
     <string name="voice_command_not_heard">Non ho sentito nulla, riprova</string>
     <string name="voice_command_unavailable">Riconoscimento vocale non disponibile</string>
-    <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad AABrowser sul telefono</string>
-    <string name="voice_command_open_app">Apri AABrowser (Main o Wide) per usare i comandi vocali</string>
+    <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad CarWeb sul telefono</string>
+    <string name="voice_command_open_app">Apri CarWeb (Main o Wide) per usare i comandi vocali</string>
     <string name="share_logs_title">Condividi i log</string>
     <string name="share_logs_failed">Impossibile esportare i log: %1$s</string>
     <string name="share_logs_phone_only">Condividi i log dal telefono</string>
@@ -296,8 +296,8 @@
     <string name="passenger_keyboard_clear">Svuota</string>
     <string name="drive_lock_title">Disponibile solo da fermo</string>
     <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni dell\'app sul telefono. Audio e comandi vocali restano attivi.</string>
-    <string name="iptv_title">TV di AAB Media (M3U e Xtream)</string>
-    <string name="iptv_desc">Liste di canali da guardare in AAB Media › TV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
+    <string name="iptv_title">TV di Media-IPTV (M3U e Xtream)</string>
+    <string name="iptv_desc">Liste di canali da guardare in Media-IPTV › TV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
     <string name="iptv_add_m3u">Aggiungi M3U</string>
     <string name="iptv_add_xtream">Aggiungi Xtream</string>
     <string name="iptv_name">Nome (facoltativo)</string>
@@ -309,7 +309,7 @@
     <string name="iptv_add">Aggiungi</string>
     <string name="iptv_remove">Rimuovi</string>
     <string name="iptv_add_on_phone">Le liste si aggiungono dalle Impostazioni sul telefono.</string>
-    <string name="tv_no_sources">Nessuna lista TV: aggiungine una in Impostazioni › TV di AAB Media, sul telefono.</string>
+    <string name="tv_no_sources">Nessuna lista TV: aggiungine una in Impostazioni › TV di Media-IPTV, sul telefono.</string>
     <string name="tv_search">Cerca un canale</string>
     <string name="tv_favorites">Preferiti</string>
     <string name="tv_other_channels">Altri canali</string>

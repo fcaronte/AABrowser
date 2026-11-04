@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AABrowser</string>
+    <string name="app_name">CarWeb</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">Android Auto Browser 通知</string>
@@ -7,7 +7,7 @@
     <string name="notification_text">点击停止</string>
 
     <string name="settings_name">设置</string>
-    <string name="service_name">AAB Media</string>
+    <string name="service_name">Media-IPTV</string>
     <string name="open_readme">打开 README</string>
     <string name="open_readme_desc">在 GitHub 上阅读应用文档</string>
     <string name="change_language">更改应用语言</string>
@@ -155,8 +155,8 @@
     <string name="voice_search">语音搜索</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AAB Media</string>
-    <string name="media_session_channel_desc">AABrowser 媒体会话</string>
+    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_desc">CarWeb 媒体会话</string>
     <string name="media_browser_title">来自浏览器的音频</string>
     <string name="media_browser_subtitle">播放当前音频</string>
 
@@ -165,7 +165,7 @@
 
     <!-- Update -->
     <string name="update_available">发现新版本：%s</string>
-    <string name="update_available_title">AABrowser 更新 %s</string>
+    <string name="update_available_title">CarWeb 更新 %s</string>
     <string name="update_available_text">有新版本可用。点击下载并安装。</string>
     <string name="download_button">更新</string>
     <string name="downloading_update">正在下载更新…</string>
@@ -189,26 +189,24 @@
     <!-- Default Favorites -->
     <string name="favorite_default_name_0" translatable="false">Google</string>
     <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_1" translatable="false">YouTube</string>
-    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_4" translatable="false">Spotify</string>
-    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_5" translatable="false">Telegram</string>
-    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_7" translatable="false">Zappr</string>
-    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_8" translatable="false">Poki</string>
-    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
-    <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
-    <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
-    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_1" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_url_1" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube</string>
+    <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_3" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_4" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_4" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_5" translatable="false">Spotify</string>
+    <string name="favorite_default_url_5" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_6" translatable="false">Telegram</string>
+    <string name="favorite_default_url_6" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_7" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_7" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_8" translatable="false">Zappr</string>
+    <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_9" translatable="false">Poki</string>
+    <string name="favorite_default_url_9" translatable="false">https://poki.com/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -335,8 +333,8 @@
     <string name="passenger_keyboard_clear">清空</string>
     <string name="drive_lock_title">仅在停车时可用</string>
     <string name="drive_lock_message">如需在行驶中使用本应用，乘客可在手机上的应用设置中开启“乘客模式”。音频和语音命令仍可使用。</string>
-    <string name="iptv_title">AAB Media 电视（M3U 和 Xtream）</string>
-    <string name="iptv_desc">在 AAB Media › 电视 中观看的频道列表。地址和密码只保存在手机上，不会进入备份。</string>
+    <string name="iptv_title">Media-IPTV 电视（M3U 和 Xtream）</string>
+    <string name="iptv_desc">在 Media-IPTV › 电视 中观看的频道列表。地址和密码只保存在手机上，不会进入备份。</string>
     <string name="iptv_add_m3u">添加 M3U</string>
     <string name="iptv_add_xtream">添加 Xtream</string>
     <string name="iptv_name">名称（可选）</string>
@@ -348,7 +346,7 @@
     <string name="iptv_add">添加</string>
     <string name="iptv_remove">删除</string>
     <string name="iptv_add_on_phone">请在手机上的设置中添加列表。</string>
-    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › AAB Media 电视 中添加。</string>
+    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › Media-IPTV 电视 中添加。</string>
     <string name="tv_search">搜索频道</string>
     <string name="tv_favorites">收藏</string>
     <string name="tv_other_channels">其他频道</string>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AABrowser</string>
+    <string name="app_name">CarWeb</string>
 
     <string name="notification_channel_name">Android Auto Browser</string>
     <string name="notification_channel_description">Уведомление Android Auto Browser</string>
@@ -7,7 +7,7 @@
     <string name="notification_text">Нажмите, чтобы остановить</string>
 
     <string name="settings_name">Настройки</string>
-    <string name="service_name">AAB Media</string>
+    <string name="service_name">Media-IPTV</string>
     <string name="open_readme">Открыть README</string>
     <string name="open_readme_desc">Документация приложения на GitHub</string>
     <string name="change_language">Изменить язык приложения</string>
@@ -155,8 +155,8 @@
     <string name="voice_search">Голосовой поиск</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">AAB Media</string>
-    <string name="media_session_channel_desc">AABrowser MediaSession</string>
+    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">Звук из браузера</string>
     <string name="media_browser_subtitle">Воспроизвести текущий звук</string>
 
@@ -165,7 +165,7 @@
 
     <!-- Update -->
     <string name="update_available">Доступно обновление: %s</string>
-    <string name="update_available_title">Обновление AABrowser %s</string>
+    <string name="update_available_title">Обновление CarWeb %s</string>
     <string name="update_available_text">Доступна новая версия. Нажмите для скачивания и установки.</string>
     <string name="download_button">Обновить</string>
     <string name="downloading_update">Загрузка обновления…</string>
@@ -189,26 +189,24 @@
     <!-- Default Favorites -->
     <string name="favorite_default_name_0" translatable="false">Google</string>
     <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_1" translatable="false">YouTube</string>
-    <string name="favorite_default_url_1" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_2" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_2" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_3" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_3" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_4" translatable="false">Spotify</string>
-    <string name="favorite_default_url_4" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_5" translatable="false">Telegram</string>
-    <string name="favorite_default_url_5" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_6" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_6" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_7" translatable="false">Zappr</string>
-    <string name="favorite_default_url_7" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_8" translatable="false">Poki</string>
-    <string name="favorite_default_url_8" translatable="false">https://poki.com/it</string>
-    <string name="favorite_default_name_10" translatable="false">AeroPlayer</string>
-    <string name="favorite_default_url_10" translatable="false">https://aeroplayer.tv/it</string>
-    <string name="favorite_default_name_11" translatable="false">AAB Media</string>
-    <string name="favorite_default_url_11" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_1" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_url_1" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_2" translatable="false">YouTube</string>
+    <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_3" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_4" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_4" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_5" translatable="false">Spotify</string>
+    <string name="favorite_default_url_5" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_6" translatable="false">Telegram</string>
+    <string name="favorite_default_url_6" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_7" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_7" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_8" translatable="false">Zappr</string>
+    <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_9" translatable="false">Poki</string>
+    <string name="favorite_default_url_9" translatable="false">https://poki.com/it</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -338,8 +336,8 @@
     <string name="passenger_keyboard_clear">Очистить</string>
     <string name="drive_lock_title">Доступно только на стоянке</string>
     <string name="drive_lock_message">Чтобы пользоваться приложением во время движения, пассажир может включить «Режим пассажира» в настройках приложения на телефоне. Звук и голосовые команды продолжают работать.</string>
-    <string name="iptv_title">ТВ в AAB Media (M3U и Xtream)</string>
-    <string name="iptv_desc">Списки каналов для просмотра в AAB Media › ТВ. Адреса и пароли остаются на телефоне и не попадают в резервную копию.</string>
+    <string name="iptv_title">ТВ в Media-IPTV (M3U и Xtream)</string>
+    <string name="iptv_desc">Списки каналов для просмотра в Media-IPTV › ТВ. Адреса и пароли остаются на телефоне и не попадают в резервную копию.</string>
     <string name="iptv_add_m3u">Добавить M3U</string>
     <string name="iptv_add_xtream">Добавить Xtream</string>
     <string name="iptv_name">Название (необязательно)</string>
@@ -351,7 +349,7 @@
     <string name="iptv_add">Добавить</string>
     <string name="iptv_remove">Удалить</string>
     <string name="iptv_add_on_phone">Списки добавляются в настройках на телефоне.</string>
-    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › ТВ в AAB Media на телефоне.</string>
+    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › ТВ в Media-IPTV на телефоне.</string>
     <string name="tv_search">Поиск канала</string>
     <string name="tv_favorites">Избранное</string>
     <string name="tv_other_channels">Другие каналы</string>
