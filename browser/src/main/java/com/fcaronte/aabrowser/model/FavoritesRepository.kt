@@ -98,8 +98,8 @@ class FavoritesRepository(private val context: Context) {
 
     fun getDefaultFavorites(): List<FavoriteSite> {
         return listOf(
-            FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF4285F4),
-            FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFF00BCD4),
+            FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF00BCD4),
+            FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFF4285F4),
             FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFFFF0000),
             FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFFFF0000),
             FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFF25D366, null, true, null, 0.9f),
@@ -148,9 +148,9 @@ class FavoritesRepository(private val context: Context) {
         // aveva già lo tiene)
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
-        private const val DEFAULTS_VERSION = 3
+        private const val DEFAULTS_VERSION = 4
         private val DEFAULTS_ADDED_IN = mapOf(
-            "1" to 3 // Media-IPTV (2.5)
+            "0" to 4 // Media-IPTV (2.5)
         )
 
         private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")

@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">CarWeb</string>
 
-    <string name="notification_channel_name">Android Auto Browser</string>
-    <string name="notification_channel_description">Notification Android Auto Browser</string>
+    <string name="notification_channel_name">CarWeb</string>
+    <string name="notification_channel_description">Notification CarWeb</string>
     <string name="notification_title">AABrowser en cours d\'exécution</string>
     <string name="notification_text">Appuyez pour arrêter</string>
 
@@ -187,10 +187,10 @@
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->
-    <string name="favorite_default_name_0" translatable="false">Google</string>
-    <string name="favorite_default_url_0" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_1" translatable="false">Media-IPTV</string>
-    <string name="favorite_default_url_1" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_0" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_url_0" translatable="false">https://player.local/</string>
+    <string name="favorite_default_name_1" translatable="false">Google</string>
+    <string name="favorite_default_url_1" translatable="false">https://www.google.com</string>
     <string name="favorite_default_name_2" translatable="false">YouTube</string>
     <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
     <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
@@ -206,7 +206,7 @@
     <string name="favorite_default_name_8" translatable="false">Zappr</string>
     <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
     <string name="favorite_default_name_9" translatable="false">Poki</string>
-    <string name="favorite_default_url_9" translatable="false">https://poki.com/it</string>
+    <string name="favorite_default_url_9" translatable="false">https://poki.com</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>

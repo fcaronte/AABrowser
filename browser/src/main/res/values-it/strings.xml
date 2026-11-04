@@ -2,8 +2,8 @@
     <string name="app_name">CarWeb</string>
     <string name="wide_app_name">CarWebWide</string>
 
-    <string name="notification_channel_name">Android Auto Browser</string>
-    <string name="notification_channel_description">Notifiche Android Auto Browser</string>
+    <string name="notification_channel_name">CarWeb</string>
+    <string name="notification_channel_description">Notifiche CarWeb</string>
     <string name="notification_title">CarWeb in esecuzione</string>
     <string name="notification_text">Tocca per fermare</string>
 
