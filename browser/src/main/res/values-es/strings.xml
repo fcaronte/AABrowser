@@ -335,6 +335,9 @@
     <string name="passenger_keyboard_label">Teclado del pasajero</string>
     <string name="passenger_keyboard_desc">Teclado QWERTY de la app en lugar del de Android Auto: con el Modo pasajero también funciona en marcha. Para pasajeros: quien conduce no debe usarlo.</string>
     <string name="passenger_keyboard_clear">Borrar</string>
+    <string name="passenger_disclaimer_title">Aviso de seguridad y responsabilidad</string>
+    <string name="passenger_disclaimer_message">Usar un navegador web o escribir mientras se conduce un vehículo es extremadamente peligroso e ilegal. El conductor nunca debe mirar ni interactuar con la pantalla mientras conduce. Este modo está estrictamente destinado a los pasajeros.\n\nEl desarrollador no asume ninguna responsabilidad por accidentes, multas, lesiones o daños derivados del uso indebido de esta función.</string>
+    <string name="passenger_disclaimer_accept">Acepto</string>
     <string name="drive_lock_title">Disponible solo con el coche parado</string>
     <string name="drive_lock_message">Para usar la app en marcha, un pasajero puede activar «Modo pasajero» en los ajustes de la app en el teléfono. El audio y los comandos de voz siguen funcionando.</string>
     <string name="iptv_title">IPTV (M3U y Xtream)</string>

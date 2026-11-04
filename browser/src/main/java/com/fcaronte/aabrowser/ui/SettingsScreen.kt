@@ -37,6 +37,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +52,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -93,6 +95,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+
+private enum class PendingPassengerToggle { MODE, KEYBOARD }
 
 @Composable
 fun SettingsScreen(
@@ -159,6 +163,7 @@ fun SettingsScreen(
     var expandedWebSection by remember { mutableStateOf(false) }
     var cacheSize by remember { mutableStateOf("...") }
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
+    var pendingPassengerToggle by remember { mutableStateOf<PendingPassengerToggle?>(null) }
 
     val configuration = LocalConfiguration.current
     val isCarMode = isCarModeOverride ||
@@ -431,15 +436,55 @@ fun SettingsScreen(
                                         label = stringResource(R.string.passenger_mode_label),
                                         description = stringResource(R.string.passenger_mode_desc),
                                         checked = passengerMode,
-                                        onCheckedChange = { AppSettings.setPassengerMode(context, it) }
+                                        onCheckedChange = { checked ->
+                                            if (checked) {
+                                                pendingPassengerToggle = PendingPassengerToggle.MODE
+                                            } else {
+                                                AppSettings.setPassengerMode(context, false)
+                                            }
+                                        }
                                     )
                                     SettingsSwitchItem(
                                         label = stringResource(R.string.passenger_keyboard_label),
                                         description = stringResource(R.string.passenger_keyboard_desc),
                                         checked = passengerKeyboard,
-                                        onCheckedChange = { AppSettings.setPassengerKeyboard(context, it) }
+                                        onCheckedChange = { checked ->
+                                            if (checked) {
+                                                pendingPassengerToggle = PendingPassengerToggle.KEYBOARD
+                                            } else {
+                                                AppSettings.setPassengerKeyboard(context, false)
+                                            }
+                                        }
                                     )
                                 }
+                            }
+
+                            pendingPassengerToggle?.let { toggle ->
+                                AlertDialog(
+                                    onDismissRequest = { pendingPassengerToggle = null },
+                                    title = { Text(stringResource(R.string.passenger_disclaimer_title)) },
+                                    text = { Text(stringResource(R.string.passenger_disclaimer_message)) },
+                                    confirmButton = {
+                                        Button(
+                                            onClick = {
+                                                when (toggle) {
+                                                    PendingPassengerToggle.MODE -> AppSettings.setPassengerMode(context, true)
+                                                    PendingPassengerToggle.KEYBOARD -> AppSettings.setPassengerKeyboard(context, true)
+                                                }
+                                                pendingPassengerToggle = null
+                                            }
+                                        ) {
+                                            Text(stringResource(R.string.passenger_disclaimer_accept))
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(
+                                            onClick = { pendingPassengerToggle = null }
+                                        ) {
+                                            Text(stringResource(R.string.ssl_warning_cancel))
+                                        }
+                                    }
+                                )
                             }
 
                             // TV di CarWeb Media: liste M3U e account Xtream (si aggiungono dal telefono)

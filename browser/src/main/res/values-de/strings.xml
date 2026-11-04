@@ -334,6 +334,9 @@
     <string name="passenger_keyboard_label">Beifahrer-Tastatur</string>
     <string name="passenger_keyboard_desc">Tastatur der App (QWERTZ, oder QWERTY mit 🌐) statt der von Android Auto: mit dem Beifahrermodus funktioniert sie auch während der Fahrt. Für Beifahrer: Wer fährt, darf sie nicht benutzen.</string>
     <string name="passenger_keyboard_clear">Leeren</string>
+    <string name="passenger_disclaimer_title">Sicherheitshinweis und Haftungsausschluss</string>
+    <string name="passenger_disclaimer_message">Die Nutzung eines Webbrowsers oder das Tippen während der Fahrt ist extrem gefährlich und illegal. Der Fahrer darf während der Fahrt niemals auf den Bildschirm schauen oder ihn bedienen. Dieser Modus ist ausschließlich für Beifahrer bestimmt.\n\nDer Entwickler übernimmt keine Haftung für Unfälle, Bußgelder, Verletzungen oder Schäden, die aus der unsachgemäßen Nutzung dieser Funktion entstehen.</string>
+    <string name="passenger_disclaimer_accept">Akzeptieren</string>
     <string name="drive_lock_title">Nur im Stand verfügbar</string>
     <string name="drive_lock_message">Um die App während der Fahrt zu nutzen, kann ein Beifahrer in den App-Einstellungen auf dem Handy „Beifahrermodus“ einschalten. Audio und Sprachbefehle funktionieren weiter.</string>
     <string name="iptv_title">IPTV (M3U und Xtream)</string>

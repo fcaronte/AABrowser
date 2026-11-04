@@ -338,6 +338,9 @@
     <string name="passenger_keyboard_label">لوحة مفاتيح الراكب</string>
     <string name="passenger_keyboard_desc">لوحة مفاتيح التطبيق (العربية، أو QWERTY عبر 🌐) بدلًا من لوحة Android Auto: مع وضع الراكب تعمل أثناء الحركة أيضًا. للركاب: يجب ألا يستخدمها السائق.</string>
     <string name="passenger_keyboard_clear">مسح</string>
+    <string name="passenger_disclaimer_title">تنويه السلامة وإخلاء المسؤولية</string>
+    <string name="passenger_disclaimer_message">إن استخدام متصفح الويب أو الكتابة أثناء قيادة المركبة أمر في غاية الخطورة ومخالف للقانون. يجب على السائق عدم النظر إلى الشاشة أو التفاعل معها أثناء القيادة. هذا الوضع مخصص حصرياً للركاب.\n\nلا يتحمل المطور أي مسؤولية عن أي حوادث أو مخالفات أو إصابات أو أضرار ناتجة عن الاستخدام الخاطئ لهذه الميزة.</string>
+    <string name="passenger_disclaimer_accept">أوافق</string>
     <string name="drive_lock_title">متاح فقط والسيارة متوقفة</string>
     <string name="drive_lock_message">لاستخدام التطبيق أثناء الحركة، يمكن للراكب تفعيل «وضع الراكب» في إعدادات التطبيق على الهاتف. يستمر عمل الصوت والأوامر الصوتية.</string>
     <string name="iptv_title">IPTV (M3U وXtream)</string>

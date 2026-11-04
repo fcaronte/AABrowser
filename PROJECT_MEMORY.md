@@ -3,6 +3,10 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.4 published on GitHub (24/10/2026, tag `2.4`, `AABrowser-v2.4.apk`). 2.4.1 cancelled by the user (25/10/2026: its point was DAZN, which cannot be fixed): its commits go into the future 2.5. `browser/build.gradle` still says `versionCode 16` / `versionName "2.4.1"`: set `versionName "2.5"` (code 16 is free, 2.4.1 was never published) when preparing 2.5
 - **Recent Updates**:
+  - **Passenger Mode & Keyboard Disclaimer (User Request)**:
+    - Added a safety disclaimer & liability waiver dialog (`AlertDialog`) in `SettingsScreen.kt` when activating "Modalità passeggero" or "Tastiera passeggero".
+    - Turning ON either feature prompts the user with an explicit warning regarding dangerous use while moving and liability disclaimer; requires tapping "Accetto" / "I Accept" to enable. Turning OFF applies immediately.
+    - Strings localized across all 11 supported languages (`passenger_disclaimer_*`).
   - **App Renaming and Favorites Re-indexing (User Request)**:
     - Main app renamed from `AABrowser` to `CarWeb` (`app_name`, apk filename, backup folder, notifications, welcome, voice prompts).
     - Widescreen app renamed from `AAWBrowser` to `CarWebWide` (`wide_app_name`).
