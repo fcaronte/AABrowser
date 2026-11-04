@@ -144,7 +144,7 @@ object UpdateManager {
             extracted
         } else {
             val clean = version.replace("v", "")
-            "AABrowser-v$clean.apk"
+            "CarWeb-v$clean.apk"
         }
     }
 
@@ -177,13 +177,13 @@ object UpdateManager {
                 }
             }
 
-            // 2. Mantiene il nome file originale dall'URL di GitHub (es. AABrowser-v1.6.apk)
+            // 2. Mantiene il nome file originale dall'URL di GitHub (es. CarWeb-v2.5.apk)
             val fileName = getApkFileName(info.downloadUrl, info.latestVersion)
             val downloadsDir =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (downloadsDir.exists() && downloadsDir.isDirectory) {
                 downloadsDir.listFiles()?.forEach { file ->
-                    if (file.name.startsWith("AABrowser") && file.name.endsWith(".apk")) {
+                    if ((file.name.startsWith("AABrowser") || file.name.startsWith("CarWeb")) && file.name.endsWith(".apk")) {
                         try {
                             file.delete()
                         } catch (e: Exception) {
@@ -294,7 +294,7 @@ object UpdateManager {
         val apkSigners = apk?.let(::signers).orEmpty()
         when {
             apk == null || apk.packageName != context.packageName -> {
-                AppLog.e(TAG, "Downloaded APK is not AABrowser: not installing")
+                AppLog.e(TAG, "Downloaded APK is not CarWeb: not installing")
                 false
             }
             apkSigners.isEmpty() || apkSigners != signers(installed) -> {
