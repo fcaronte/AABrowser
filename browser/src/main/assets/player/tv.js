@@ -1,5 +1,5 @@
 /*
- * TV di AAB Media: liste M3U e account Xtream aggiunti nelle Impostazioni dell'app. L'app legge le liste e fa da
+ * TV di CarWeb Media: liste M3U e account Xtream aggiunti nelle Impostazioni dell'app. L'app legge le liste e fa da
  * tramite per gli stream (IptvApi, IptvProxy): qui arrivano solo nomi, gruppi, loghi e indirizzi del tramite.
  * Gruppi, ricerca, preferiti e ultimo canale (salvati nella pagina); HLS con hls.js, MPEG-TS con mpegts.js, il resto
  * direttamente nel video. Sul player di Android Auto ⏮ ⏭ cambiano canale (Media Session).

@@ -252,7 +252,7 @@ fun EditFavoriteScreen(
                                 OutlinedTextField(
                                     value = urlValue,
                                     onValueChange = { urlValue = it },
-                                    // AAB Media è fisso: l'indirizzo non si cambia
+                                    // CarWeb Media è fisso: l'indirizzo non si cambia
                                     enabled = site == null || !FavoritesRepository.isFixed(site),
                                     label = { Text(stringResource(R.string.field_url)) },
                                     modifier = Modifier

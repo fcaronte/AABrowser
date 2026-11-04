@@ -1453,7 +1453,7 @@ object BrowserJavascript {
     """
 
     /*
-     * Siti a brani (Spotify, YouTube Music, SoundCloud, AAB Media, ...): registrano 'nexttrack'/'previoustrack'
+     * Siti a brani (Spotify, YouTube Music, SoundCloud, CarWeb Media, ...): registrano 'nexttrack'/'previoustrack'
      * nella Media Session. Li memorizziamo per i tasti avanti/indietro di Android Auto (NEXT_SCRIPT /
      * PREVIOUS_SCRIPT li usano per primi) e segnaliamo all'app di mostrare lo skip invece di +/-10 s.
      * Play/pausa non vengono toccati. Sui video di YouTube resta la logica delle playlist.
@@ -1514,7 +1514,7 @@ object BrowserJavascript {
         window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
         const handlers = window.aabMediaSessionHandlers;
 
-        // Hanno sempre una coda di brani, anche prima di registrare i comandi (player.local = AAB Media)
+        // Hanno sempre una coda di brani, anche prima di registrare i comandi (player.local = CarWeb Media)
         const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com') || host === 'player.local';
         let lastReport = null;
 

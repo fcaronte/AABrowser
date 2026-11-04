@@ -36,7 +36,7 @@ import com.fcaronte.aabrowser.utils.XtreamLink
 import kotlin.math.abs
 
 /**
- * Liste della TV di AAB Media nelle Impostazioni: elenco, aggiunta (lista M3U o account Xtream) e rimozione. In auto
+ * Liste della TV di CarWeb Media nelle Impostazioni: elenco, aggiunta (lista M3U o account Xtream) e rimozione. In auto
  * si possono solo vedere e togliere: indirizzi, utente e password si scrivono sul telefono.
  */
 @Composable

@@ -9,7 +9,7 @@ import org.json.JSONObject
 import java.util.UUID
 
 /**
- * Liste della TV di AAB Media: liste M3U (un indirizzo) e account Xtream (server, utente, password), aggiunte dalle
+ * Liste della TV di CarWeb Media: liste M3U (un indirizzo) e account Xtream (server, utente, password), aggiunte dalle
  * Impostazioni sul telefono. Salvate nell'app e fuori dal backup (credenziali). La pagina ne vede solo id e nome:
  * indirizzi e password restano qui (IptvLibrary, IptvProxy).
  */

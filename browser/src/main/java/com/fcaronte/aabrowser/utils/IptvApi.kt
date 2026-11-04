@@ -10,8 +10,8 @@ import java.io.ByteArrayInputStream
 import java.text.Normalizer
 
 /**
- * TV di AAB Media (https://player.local/tv): la pagina e le sue richieste di dati (gruppi, canali, avvio di un
- * canale). Come il resto di AAB Media i dati vogliono il token della pagina (lo controlla LocalPlayer); gli stream
+ * TV di CarWeb Media (https://player.local/tv): la pagina e le sue richieste di dati (gruppi, canali, avvio di un
+ * canale). Come il resto di CarWeb Media i dati vogliono il token della pagina (lo controlla LocalPlayer); gli stream
  * passano da IptvProxy. Alla pagina vanno solo id e nomi: indirizzi e credenziali restano nell'app.
  */
 internal object IptvApi {

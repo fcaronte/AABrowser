@@ -442,7 +442,7 @@ fun SettingsScreen(
                                 }
                             }
 
-                            // TV di AAB Media: liste M3U e account Xtream (si aggiungono dal telefono)
+                            // TV di CarWeb Media: liste M3U e account Xtream (si aggiungono dal telefono)
                             IptvSourcesCard(isCarMode = isCarMode)
 
                             // Precarica schede preferiti all'avvio

@@ -353,7 +353,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
-                // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
+                // "Ok Google, metti … su CarWeb Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
                 VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor) {
                     if (!isVoiceListening) toggleVoiceCommand()
                 }
@@ -480,7 +480,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    /** Sito della pagina aperta per lo scudo dell'AdBlock; null sulla home e su AAB Media. */
+    /** Sito della pagina aperta per lo scudo dell'AdBlock; null sulla home e su CarWeb Media. */
     private fun currentAdBlockSite(): String? {
         val url = (webView?.url ?: lastUrl)?.takeUnless { it == HOME } ?: return null
         if (url.startsWith(HomePage.BASE_URL) || LocalPlayer.isPlayerUrl(url) || !UrlUtils.isWebUrl(url)) return null

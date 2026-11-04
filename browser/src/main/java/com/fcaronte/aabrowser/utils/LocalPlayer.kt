@@ -116,7 +116,7 @@ object LocalPlayer {
         return decodeScaled(bytes, COVER_SIZE)
     }
 
-    /** Copertina scaricata da una pagina, ridotta come quelle di AAB Media. */
+    /** Copertina scaricata da una pagina, ridotta come quelle di CarWeb Media. */
     fun decodeCover(bytes: ByteArray): Bitmap? = decodeScaled(bytes, COVER_SIZE)
 
     // Le copertine incorporate arrivano anche a 3000 px: al player ne bastano 512 (il Bitmap intero pesa decine di MB)
@@ -131,7 +131,7 @@ object LocalPlayer {
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
     }
 
-    // La nota di AAB Media, per i brani senza copertina
+    // La nota di CarWeb Media, per i brani senza copertina
     private fun defaultCover(context: Context): Bitmap? {
         defaultCover?.let { return it }
         return ContextCompat.getDrawable(context, R.drawable.ic_aab_media)

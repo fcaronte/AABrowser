@@ -13,7 +13,7 @@ import java.net.URL
 import java.util.UUID
 
 /**
- * Tramite degli stream della TV di AAB Media. I server IPTV di solito sono in http e non permettono alle pagine di
+ * Tramite degli stream della TV di CarWeb Media. I server IPTV di solito sono in http e non permettono alle pagine di
  * leggerli (CORS): la pagina (https://player.local/tv) chiede all'app e l'app apre lo stream. Gli indirizzi, che per
  * Xtream contengono utente e password, restano qui: la pagina riceve solo un id a caso, valido finché l'app è
  * aperta. Le liste HLS tornano con ogni indirizzo sostituito da un altro id, così anche i segmenti passano da qui.

@@ -34,10 +34,10 @@ from the misuse of this application. Use at your own risk.
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
-* **Media-IPTV:** player for the audio and video files of a folder on the phone, with separate
+* **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
-* **TV in Media-IPTV (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
+* **TV in CarWeb Media (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
   Xtream account the full link with username and password is enough), with groups, search and favorites; HLS and
   MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
   passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may play without sound (WebView
@@ -78,7 +78,7 @@ from the misuse of this application. Use at your own risk.
   search on the home page.
 * **CarWebWide (Widescreen):** the 🎤 button in the fixed side menu, or at the top right next to search
   when the side menu is off.
-* **Android Auto player:** in the car, while the "Media-IPTV" player shows the weather, it has a 🎤 button, which
+* **Android Auto player:** in the car, while the "CarWeb Media" player shows the weather, it has a 🎤 button, which
   works even when nothing has played yet (with a page playing, the player keeps its own buttons: use the double
   tap).
 * **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (CarWeb or
@@ -126,7 +126,7 @@ project exists thanks to my endless arguments with Gemini. We spent hours in a c
 4. Finally getting it to work.
 
 Since version 2.3 **Claude** (Anthropic), through Claude Code, has joined the arguments too: the Android
-Auto player with multiple tabs, Media-IPTV, the Widescreen layout fixes and a lot of bug hunting came out
+Auto player with multiple tabs, CarWeb Media, the Widescreen layout fixes and a lot of bug hunting came out
 of those sessions.
 
 ## Disclaimer & Compatibility
@@ -193,10 +193,10 @@ proprio rischio e pericolo.
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
-* **Media-IPTV:** lettore per i file audio e video di una cartella del telefono, con code
+* **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
-* **TV in Media-IPTV (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
+* **TV in CarWeb Media (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
   telefono; per un account Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
   stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e
   password restano sul telefono (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio
@@ -237,7 +237,7 @@ proprio rischio e pericolo.
   rotondo e accanto alla ricerca nella pagina iniziale.
 * **CarWebWide (Widescreen):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
   alla ricerca se il menu laterale è spento.
-* **Player di Android Auto:** in auto, quando il player "Media-IPTV" mostra il meteo, ha un tasto 🎤 che funziona
+* **Player di Android Auto:** in auto, quando il player "CarWeb Media" mostra il meteo, ha un tasto 🎤 che funziona
   anche quando non ha ancora suonato niente (con una pagina che suona il player tiene i suoi tasti: usa il doppio
   tocco).
 * **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (CarWeb o
@@ -285,7 +285,7 @@ esiste solo grazie alle infinite discussioni con Gemini. Abbiamo passato ore in 
 4. Finalmente farlo funzionare.
 
 Dalla versione 2.3 alle discussioni si è aggiunto anche **Claude** (Anthropic), tramite Claude Code: il
-player di Android Auto con più schede, Media-IPTV, le correzioni del layout Widescreen e tanta caccia ai bug
+player di Android Auto con più schede, CarWeb Media, le correzioni del layout Widescreen e tanta caccia ai bug
 sono nati da quelle sessioni.
 
 ## Disclaimer & Compatibilità

@@ -90,7 +90,7 @@ fun AABrowserTheme(
 
 /**
  * Colori dell'app secondo le impostazioni (tema automatico o forzato chiaro/scuro/AMOLED, colori dinamici del
- * telefono). Funzione normale e non @Composable: la usa anche AAB Media (LocalPlayer) per la sua pagina.
+ * telefono). Funzione normale e non @Composable: la usa anche CarWeb Media (LocalPlayer) per la sua pagina.
  */
 fun appColorScheme(
     context: Context,

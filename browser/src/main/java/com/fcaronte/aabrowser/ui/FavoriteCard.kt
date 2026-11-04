@@ -115,7 +115,7 @@ fun FavoriteCard(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-                    // AAB Media è fisso: si può modificare e spostare, non eliminare
+                    // CarWeb Media è fisso: si può modificare e spostare, non eliminare
                     if (!FavoritesRepository.isFixed(site)) {
                         IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
                             Icon(

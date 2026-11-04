@@ -11,7 +11,7 @@ import java.net.URLEncoder
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Canali delle liste della TV di AAB Media: scarica la lista M3U o chiede all'account Xtream i canali live, e li
+ * Canali delle liste della TV di CarWeb Media: scarica la lista M3U o chiede all'account Xtream i canali live, e li
  * tiene in memoria per lista (6 ore, o finché la pagina chiede di aggiornarli). Alla pagina vanno gruppi e canali
  * senza indirizzi: quelli li apre solo IptvProxy. Liste anche da decine di migliaia di canali: l'M3U si legge riga
  * per riga e la risposta Xtream con un lettore JSON a flusso, senza tenere in memoria tutto il testo.

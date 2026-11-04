@@ -8,7 +8,7 @@
     <string name="notification_text">Tocca per fermare</string>
 
     <string name="settings_name">Impostazioni</string>
-    <string name="service_name">Media-IPTV</string>
+    <string name="service_name">CarWeb Media</string>
     <string name="open_readme">Apri README</string>
     <string name="open_readme_desc">Leggi la documentazione dell\'app su GitHub</string>
     <string name="change_language">Cambia Lingua App</string>
@@ -156,7 +156,7 @@
     <string name="voice_search">Ricerca vocale</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_name">CarWeb Media</string>
     <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">Audio dal Browser</string>
     <string name="media_browser_subtitle">Riproduci l\'audio corrente</string>
@@ -296,8 +296,8 @@
     <string name="passenger_keyboard_clear">Svuota</string>
     <string name="drive_lock_title">Disponibile solo da fermo</string>
     <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni dell\'app sul telefono. Audio e comandi vocali restano attivi.</string>
-    <string name="iptv_title">TV di Media-IPTV (M3U e Xtream)</string>
-    <string name="iptv_desc">Liste di canali da guardare in Media-IPTV › TV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
+    <string name="iptv_title">IPTV (M3U e Xtream)</string>
+    <string name="iptv_desc">Liste di canali da guardare in IPTV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
     <string name="iptv_add_m3u">Aggiungi M3U</string>
     <string name="iptv_add_xtream">Aggiungi Xtream</string>
     <string name="iptv_name">Nome (facoltativo)</string>
@@ -309,7 +309,7 @@
     <string name="iptv_add">Aggiungi</string>
     <string name="iptv_remove">Rimuovi</string>
     <string name="iptv_add_on_phone">Le liste si aggiungono dalle Impostazioni sul telefono.</string>
-    <string name="tv_no_sources">Nessuna lista TV: aggiungine una in Impostazioni › TV di Media-IPTV, sul telefono.</string>
+    <string name="tv_no_sources">Nessuna lista TV: aggiungine una in Impostazioni › IPTV, sul telefono.</string>
     <string name="tv_search">Cerca un canale</string>
     <string name="tv_favorites">Preferiti</string>
     <string name="tv_other_channels">Altri canali</string>

@@ -200,7 +200,7 @@ class VoiceCommandsTest {
     private val favorites = listOf(
         FavoriteSite(id = "1", name = "YouTube", url = "https://m.youtube.com/"),
         FavoriteSite(id = "2", name = "WhatsApp", url = "https://web.whatsapp.com/"),
-        FavoriteSite(id = "3", name = "Media-IPTV", url = "https://player.local/"),
+        FavoriteSite(id = "3", name = "CarWeb Media", url = "https://player.local/"),
         FavoriteSite(id = "4", name = "Netflix Italia", url = "https://www.netflix.com/it/")
     )
 

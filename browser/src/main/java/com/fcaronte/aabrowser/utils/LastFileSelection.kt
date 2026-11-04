@@ -81,7 +81,7 @@ object LastFileSelection {
             callback.onReceiveValue(it)
             return true
         }
-        // Campo da più file o cartella (webkitdirectory, come "Scegli cartella" di AAB Media): i file della cartella
+        // Campo da più file o cartella (webkitdirectory, come "Scegli cartella" di CarWeb Media): i file della cartella
         val folder = rememberedFolder(context) ?: return false
         scope.launch { callback.onReceiveValue(listFolder(context, folder)) }
         return true

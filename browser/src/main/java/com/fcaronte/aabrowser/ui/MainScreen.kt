@@ -438,7 +438,7 @@ fun MainScreen(
                 onInteraction()
             }
 
-            // "Ok Google, metti … su AAB Media" e il doppio tocco su ⏮ al volante (microfono): arrivano da
+            // "Ok Google, metti … su CarWeb Media" e il doppio tocco su ⏮ al volante (microfono): arrivano da
             // CarMediaService finché la Main è aperta
             DisposableEffect(voiceExecutor, voiceInput) {
                 VoiceCommandRouter.register(

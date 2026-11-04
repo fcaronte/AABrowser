@@ -1,5 +1,5 @@
 /*
- * AAB Media, il lettore locale di AABrowser.
+ * CarWeb Media, il lettore locale di AABrowser.
  *
  * I file arrivano dall'app (LocalPlayer su https://player.local/): cartella scelta sul telefono, richieste Range
  * per spostarsi nel brano, tag e copertina. La Media Session (titolo, copertina, avanti/indietro) collega la pagina
@@ -314,7 +314,7 @@
         else media.removeAttribute('poster');
 
         if ('mediaSession' in navigator && typeof MediaMetadata === 'function') {
-            // Senza copertina, letti i tag, Android Auto mostra la nota di AAB Media (cover.png la disegna l'app)
+            // Senza copertina, letti i tag, Android Auto mostra la nota di CarWeb Media (cover.png la disegna l'app)
             const artwork = artUrl ? [{ src: artUrl, sizes: '512x512' }]
                 : tags ? [{ src: 'cover.png', sizes: '512x512' }] : [];
             try {

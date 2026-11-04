@@ -1,5 +1,5 @@
 /*
- * AAB Media: tema scuro, tocchi grandi, verticale sul telefono e orizzontale in auto.
+ * CarWeb Media: tema scuro, tocchi grandi, verticale sul telefono e orizzontale in auto.
  * Tutti i colori sono variabili: con Material You l'app le sostituisce con i colori del telefono (LocalPlayer).
  */
 :root {
@@ -108,6 +108,29 @@ svg {
 }
 
 .icon-button:active {
+    background: var(--pressed);
+}
+
+.icon-text-button {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 24px;
+    background: var(--soft);
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.icon-text-button svg {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-text-button:active {
     background: var(--pressed);
 }
 

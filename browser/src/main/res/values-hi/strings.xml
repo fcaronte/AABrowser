@@ -7,7 +7,7 @@
     <string name="notification_text">रोकने के लिए टैップ करें</string>
 
     <string name="settings_name">सेटिंग्स</string>
-    <string name="service_name">Media-IPTV</string>
+    <string name="service_name">CarWeb Media</string>
     <string name="open_readme">README खोलें</string>
     <string name="open_readme_desc">GitHub पर ऐप का दस्तावेज़ पढ़ें</string>
     <string name="change_language">ऐप की भाषा बदलें</string>
@@ -155,7 +155,7 @@
     <string name="voice_search">वॉयस सर्च</string>
 
     <!-- Media -->
-    <string name="media_session_channel_name">Media-IPTV</string>
+    <string name="media_session_channel_name">CarWeb Media</string>
     <string name="media_session_channel_desc">CarWeb MediaSession</string>
     <string name="media_browser_title">ब्राउज़र से ऑडियो</string>
     <string name="media_browser_subtitle">वर्तमान ऑडियो चलाएं</string>
@@ -187,26 +187,28 @@
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 
     <!-- Default Favorites -->
-    <string name="favorite_default_name_0" translatable="false">Media-IPTV</string>
+    <string name="favorite_default_name_0" translatable="false">Media</string>
     <string name="favorite_default_url_0" translatable="false">https://player.local/</string>
-    <string name="favorite_default_name_1" translatable="false">Google</string>
-    <string name="favorite_default_url_1" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_2" translatable="false">YouTube</string>
-    <string name="favorite_default_url_2" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_3" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_3" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_4" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_4" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_5" translatable="false">Spotify</string>
-    <string name="favorite_default_url_5" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_6" translatable="false">Telegram</string>
-    <string name="favorite_default_url_6" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_7" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_7" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_8" translatable="false">Zappr</string>
-    <string name="favorite_default_url_8" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_9" translatable="false">Poki</string>
-    <string name="favorite_default_url_9" translatable="false">https://poki.com</string>
+    <string name="favorite_default_name_1" translatable="false">IPTV</string>
+    <string name="favorite_default_url_1" translatable="false">https://player.local/tv</string>
+    <string name="favorite_default_name_2" translatable="false">Google</string>
+    <string name="favorite_default_url_2" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_3" translatable="false">YouTube</string>
+    <string name="favorite_default_url_3" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_4" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_4" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_5" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_5" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_6" translatable="false">Spotify</string>
+    <string name="favorite_default_url_6" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_7" translatable="false">Telegram</string>
+    <string name="favorite_default_url_7" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_8" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_8" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_9" translatable="false">Zappr</string>
+    <string name="favorite_default_url_9" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_10" translatable="false">Poki</string>
+    <string name="favorite_default_url_10" translatable="false">https://poki.com</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>
@@ -334,8 +336,8 @@
     <string name="passenger_keyboard_clear">साफ़ करें</string>
     <string name="drive_lock_title">केवल रुकी गाड़ी में उपलब्ध</string>
     <string name="drive_lock_message">चलती गाड़ी में ऐप का उपयोग करने के लिए, यात्री फ़ोन पर ऐप की सेटिंग में “यात्री मोड” चालू कर सकता है। ऑडियो और वॉइस कमांड काम करते रहते हैं।</string>
-    <string name="iptv_title">Media-IPTV TV (M3U और Xtream)</string>
-    <string name="iptv_desc">Media-IPTV › TV में देखने के लिए चैनल सूचियाँ। पते और पासवर्ड फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
+    <string name="iptv_title">IPTV (M3U और Xtream)</string>
+    <string name="iptv_desc">IPTV में देखने के लिए चैनल सूचियाँ। पते और पासवर्ड फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
     <string name="iptv_add_m3u">M3U जोड़ें</string>
     <string name="iptv_add_xtream">Xtream जोड़ें</string>
     <string name="iptv_name">नाम (वैकल्पिक)</string>
@@ -347,7 +349,7 @@
     <string name="iptv_add">जोड़ें</string>
     <string name="iptv_remove">हटाएँ</string>
     <string name="iptv_add_on_phone">सूचियाँ फ़ोन की सेटिंग में जोड़ी जाती हैं।</string>
-    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › Media-IPTV TV में एक सूची जोड़ें।</string>
+    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › IPTV में एक सूची जोड़ें।</string>
     <string name="tv_search">चैनल खोजें</string>
     <string name="tv_favorites">पसंदीदा</string>
     <string name="tv_other_channels">अन्य चैनल</string>
