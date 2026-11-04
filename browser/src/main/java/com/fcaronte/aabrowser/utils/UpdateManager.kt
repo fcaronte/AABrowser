@@ -210,7 +210,7 @@ object UpdateManager {
 
             prefs.edit()
                 .putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
-                .putString(KEY_PENDING_APK_PATH, destinationFile.absolutePath)
+                .remove(KEY_PENDING_APK_PATH)
                 .apply()
 
             Toast.makeText(
@@ -241,8 +241,10 @@ object UpdateManager {
             return
         }
 
-        val apkPath = prefs.getString(KEY_PENDING_APK_PATH, null)
-        prefs.edit().remove(KEY_PENDING_DOWNLOAD_ID).apply()
+        prefs.edit()
+            .remove(KEY_PENDING_DOWNLOAD_ID)
+            .remove(KEY_PENDING_APK_PATH)
+            .apply()
 
         val downloadManager =
             context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -252,15 +254,21 @@ object UpdateManager {
         if (cursor != null && cursor.moveToFirst()) {
             val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
             if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                // KingInstaller installa senza chiedere: solo un file controllato, che è davvero un aggiornamento di
-                // questa app. Prima, senza percorso del file, il controllo saltava e passava l'APK così com'era
-                val apkFile = apkPath?.let(::File)?.takeIf { it.exists() }
-                val apkUri: Uri? = apkFile?.takeIf { isValidUpdate(context, it) }?.let { file ->
-                    try {
-                        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                    } catch (e: Exception) {
-                        AppLog.e(TAG, "FileProvider URI error: ${e.message}", e)
+                // DownloadManager's public Downloads path may not be readable under scoped storage.
+                // Stage its content URI in app-private cache before inspecting the APK.
+                val apkFile = stageDownloadedApk(context, downloadManager, downloadId)
+                val apkUri: Uri? = apkFile?.let { file ->
+                    if (!isValidUpdate(context, file)) {
+                        file.delete()
                         null
+                    } else {
+                        try {
+                            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                        } catch (e: Exception) {
+                            file.delete()
+                            AppLog.e(TAG, "FileProvider URI error: ${e.message}", e)
+                            null
+                        }
                     }
                 }
 
@@ -273,6 +281,37 @@ object UpdateManager {
                 AppLog.e(TAG, "Download finished but status was not successful")
             }
             cursor.close()
+        }
+    }
+
+    private fun stageDownloadedApk(context: Context, downloadManager: DownloadManager, downloadId: Long): File? {
+        val downloadUri = downloadManager.getUriForDownloadedFile(downloadId)
+        if (downloadUri == null) {
+            AppLog.e(TAG, "DownloadManager returned no URI for completed download $downloadId")
+            return null
+        }
+
+        val stagedFile = try {
+            File.createTempFile("CarWeb-update-$downloadId-", ".apk", context.cacheDir)
+        } catch (e: Exception) {
+            AppLog.e(TAG, "Cannot create a private staging file for the update: ${e.javaClass.simpleName}", e)
+            return null
+        }
+
+        return try {
+            val input = context.contentResolver.openInputStream(downloadUri)
+                ?: throw IllegalStateException("DownloadManager URI could not be opened")
+            input.use { source ->
+                stagedFile.outputStream().use { destination -> source.copyTo(destination) }
+            }
+            if (stagedFile.length() == 0L) {
+                throw IllegalStateException("Downloaded APK is empty")
+            }
+            stagedFile
+        } catch (e: Exception) {
+            stagedFile.delete()
+            AppLog.e(TAG, "Cannot stage downloaded APK: ${e.javaClass.simpleName}", e)
+            null
         }
     }
 
@@ -293,7 +332,11 @@ object UpdateManager {
         val installed = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
         val apkSigners = apk?.let(::signers).orEmpty()
         when {
-            apk == null || apk.packageName != context.packageName -> {
+            apk == null -> {
+                AppLog.e(TAG, "PackageManager could not parse the staged APK")
+                false
+            }
+            apk.packageName != context.packageName -> {
                 AppLog.e(TAG, "Downloaded APK is not CarWeb: not installing")
                 false
             }
