@@ -342,6 +342,9 @@
     <string name="iptv_title">IPTV (M3U और Xtream)</string>
     <string name="iptv_desc">IPTV में देखने के लिए चैनल सूचियाँ। पते और पासवर्ड फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
     <string name="iptv_add_m3u">M3U जोड़ें</string>
+    <string name="iptv_add_m3u_file">फ़ाइल से…</string>
+    <string name="iptv_source_local_m3u">स्थानीय M3U</string>
+    <string name="iptv_file_error">प्लेलिस्ट पढ़ी नहीं जा सकी। पहुँच योग्य .m3u या .m3u8 फ़ाइल चुनें।</string>
     <string name="iptv_add_xtream">Xtream जोड़ें</string>
     <string name="iptv_name">नाम (वैकल्पिक)</string>
     <string name="iptv_url">सूची का पता (http://…)</string>

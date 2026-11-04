@@ -37,8 +37,8 @@ from the misuse of this application. Use at your own risk.
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
-* **TV in CarWeb Media (new in 2.5):** your M3U lists and Xtream accounts (added in Settings on the phone; for an
-  Xtream account the full link with username and password is enough), with groups, search and favorites; HLS and
+* **TV in CarWeb Media (new in 2.5):** your M3U lists (from a URL or an M3U/M3U8 file selected on the phone) and
+  Xtream accounts (added in Settings; for Xtream the full link with username and password is enough), with groups, search and favorites; HLS and
   MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
   passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may play without sound (WebView
   limit).
@@ -196,8 +196,8 @@ proprio rischio e pericolo.
 * **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
-* **TV in CarWeb Media (novità 2.5):** le tue liste M3U e i tuoi account Xtream (si aggiungono nelle Impostazioni sul
-  telefono; per un account Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
+* **TV in CarWeb Media (novità 2.5):** le tue liste M3U (da URL o da un file M3U/M3U8 scelto sul telefono) e i tuoi
+  account Xtream (si aggiungono nelle Impostazioni; per Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
   stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e
   password restano sul telefono (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio
   (limite della WebView).

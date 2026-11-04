@@ -344,6 +344,9 @@
     <string name="iptv_title">IPTV (M3U и Xtream)</string>
     <string name="iptv_desc">Списки каналов для просмотра в IPTV. Адреса и пароли остаются на телефоне и не попадают в резервную копию.</string>
     <string name="iptv_add_m3u">Добавить M3U</string>
+    <string name="iptv_add_m3u_file">Из файла…</string>
+    <string name="iptv_source_local_m3u">Локальный M3U</string>
+    <string name="iptv_file_error">Не удалось прочитать список. Выберите доступный файл .m3u или .m3u8.</string>
     <string name="iptv_add_xtream">Добавить Xtream</string>
     <string name="iptv_name">Название (необязательно)</string>
     <string name="iptv_url">Адрес списка (http://…)</string>

@@ -48,21 +48,22 @@ internal object IptvApi {
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? {
         val source = IptvSources.find(context, url.getQueryParameter("source"))
         return when (path) {
-            "/api/tv/groups" -> withLineup(source, url.getQueryParameter("refresh") == "1", ::groups)
-            "/api/tv/channels" -> withLineup(source, false) { channels(it, url) }
-            "/api/tv/play" -> withLineup(source, false) { play(it, url) }
+            "/api/tv/groups" -> withLineup(context, source, url.getQueryParameter("refresh") == "1", ::groups)
+            "/api/tv/channels" -> withLineup(context, source, false) { channels(it, url) }
+            "/api/tv/play" -> withLineup(context, source, false) { play(it, url) }
             else -> null
         }
     }
 
     private fun withLineup(
+        context: Context,
         source: IptvSources.Source?,
         refresh: Boolean,
         block: (IptvLibrary.Lineup) -> WebResourceResponse
     ): WebResourceResponse {
         if (source == null) return error(404, "source")
         val lineup = try {
-            IptvLibrary.lineup(source, refresh)
+            IptvLibrary.lineup(context, source, refresh)
         } catch (e: Exception) {
             AppLog.w(TAG, "List not loaded: ${e.javaClass.simpleName}")
             return error(502, "source")

@@ -1,18 +1,20 @@
 package com.fcaronte.aabrowser.utils
 
+import android.content.Context
 import android.net.Uri
 import android.util.JsonReader
 import android.util.JsonToken
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URLEncoder
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Canali delle liste della TV di CarWeb Media: scarica la lista M3U o chiede all'account Xtream i canali live, e li
- * tiene in memoria per lista (6 ore, o finché la pagina chiede di aggiornarli). Alla pagina vanno gruppi e canali
+ * Canali delle liste della TV di CarWeb Media: legge la lista M3U da URL o file, oppure chiede all'account Xtream i
+ * canali live, e li tiene in memoria per lista (6 ore, o finché la pagina chiede di aggiornarli). Alla pagina vanno gruppi e canali
  * senza indirizzi: quelli li apre solo IptvProxy. Liste anche da decine di migliaia di canali: l'M3U si legge riga
  * per riga e la risposta Xtream con un lettore JSON a flusso, senza tenere in memoria tutto il testo.
  */
@@ -37,11 +39,19 @@ object IptvLibrary {
     private val locks = ConcurrentHashMap<String, Any>()
 
     /** Canali della lista (dalla memoria se recenti). Lancia un'eccezione se il server non risponde o rifiuta l'accesso. */
-    fun lineup(source: IptvSources.Source, refresh: Boolean = false): Lineup {
+    fun lineup(context: Context, source: IptvSources.Source, refresh: Boolean = false): Lineup {
         synchronized(locks.getOrPut(source.id) { Any() }) {
             cache[source.id]?.takeIf { !refresh && it.isFresh() }?.let { return it }
             val loaded = when (source.type) {
-                IptvSources.Type.M3U -> loadM3u(source.url)
+                IptvSources.Type.M3U -> IptvProxy.open(source.url).use { upstream ->
+                    if (upstream.status >= 400) throw IOException("HTTP ${upstream.status}")
+                    parseM3u(upstream.stream)
+                }
+                IptvSources.Type.LOCAL_M3U -> {
+                    val stream = context.contentResolver.openInputStream(Uri.parse(source.url))
+                        ?: throw IOException("Unable to open playlist")
+                    stream.use(::parseM3u)
+                }
                 IptvSources.Type.XTREAM -> loadXtream(source)
             }
             cache[source.id] = loaded
@@ -75,37 +85,34 @@ object IptvLibrary {
 
     private val ATTRIBUTE = Regex("""([A-Za-z0-9_-]+)="([^"]*)"""")
 
-    private fun loadM3u(url: String): Lineup {
+    private fun parseM3u(stream: InputStream): Lineup {
         val builder = Builder()
-        IptvProxy.open(url).use { upstream ->
-            if (upstream.status >= 400) throw IOException("HTTP ${upstream.status}")
-            var name: String? = null
-            var group: String? = null
-            var logo: String? = null
-            InputStreamReader(upstream.stream, Charsets.UTF_8).buffered().useLines { lines ->
-                lines.forEach { raw ->
-                    val line = raw.trim()
-                    when {
-                        line.startsWith("#EXTINF", ignoreCase = true) -> {
-                            val comma = nameSeparator(line)
-                            val attributes = ATTRIBUTE.findAll(line.substring(0, comma))
-                                .associate { it.groupValues[1].lowercase() to it.groupValues[2] }
-                            name = line.substring((comma + 1).coerceAtMost(line.length)).trim()
-                                .ifEmpty { attributes["tvg-name"].orEmpty() }
-                            group = attributes["group-title"]
-                            logo = attributes["tvg-logo"]
+        var name: String? = null
+        var group: String? = null
+        var logo: String? = null
+        InputStreamReader(stream, Charsets.UTF_8).buffered().useLines { lines ->
+            lines.forEach { raw ->
+                val line = raw.trim()
+                when {
+                    line.startsWith("#EXTINF", ignoreCase = true) -> {
+                        val comma = nameSeparator(line)
+                        val attributes = ATTRIBUTE.findAll(line.substring(0, comma))
+                            .associate { it.groupValues[1].lowercase() to it.groupValues[2] }
+                        name = line.substring((comma + 1).coerceAtMost(line.length)).trim()
+                            .ifEmpty { attributes["tvg-name"].orEmpty() }
+                        group = attributes["group-title"]
+                        logo = attributes["tvg-logo"]
+                    }
+                    line.startsWith("#EXTGRP:", ignoreCase = true) -> group = line.substringAfter(':')
+                    line.isEmpty() || line.startsWith("#") -> Unit
+                    else -> {
+                        // Solo stream http(s): rtmp, udp e simili la WebView non li apre
+                        if (UrlUtils.isWebUrl(line)) {
+                            builder.add(line.hashCode().toUInt().toString(36), name.orEmpty(), builder.group(group.orEmpty()), logo, line)
                         }
-                        line.startsWith("#EXTGRP:", ignoreCase = true) -> group = line.substringAfter(':')
-                        line.isEmpty() || line.startsWith("#") || line.startsWith("﻿") -> Unit
-                        else -> {
-                            // Solo stream http(s): rtmp, udp e simili la WebView non li apre
-                            if (UrlUtils.isWebUrl(line)) {
-                                builder.add(line.hashCode().toUInt().toString(36), name.orEmpty(), builder.group(group.orEmpty()), logo, line)
-                            }
-                            name = null
-                            group = null
-                            logo = null
-                        }
+                        name = null
+                        group = null
+                        logo = null
                     }
                 }
             }

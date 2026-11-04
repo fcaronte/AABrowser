@@ -1,5 +1,7 @@
 package com.fcaronte.aabrowser.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,8 +38,8 @@ import com.fcaronte.aabrowser.utils.XtreamLink
 import kotlin.math.abs
 
 /**
- * Liste della TV di CarWeb Media nelle Impostazioni: elenco, aggiunta (lista M3U o account Xtream) e rimozione. In auto
- * si possono solo vedere e togliere: indirizzi, utente e password si scrivono sul telefono.
+ * Liste della TV di CarWeb Media nelle Impostazioni: elenco, aggiunta (M3U da URL o file, account Xtream) e rimozione.
+ * In auto si possono solo vedere e togliere: le sorgenti si aggiungono sul telefono.
  */
 @Composable
 fun IptvSourcesCard(isCarMode: Boolean) {
@@ -46,6 +48,7 @@ fun IptvSourcesCard(isCarMode: Boolean) {
     val version by IptvSources.version
     val sources = remember(version) { IptvSources.list(context) }
     var adding by remember { mutableStateOf<IptvSources.Type?>(null) }
+    var fileError by remember { mutableStateOf(false) }
 
     SettingsCard {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -65,7 +68,11 @@ fun IptvSourcesCard(isCarMode: Boolean) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = source.name, color = colors.onSurface, fontWeight = FontWeight.SemiBold)
                         Text(
-                            text = if (source.type == IptvSources.Type.M3U) "M3U" else "Xtream",
+                            text = when (source.type) {
+                                IptvSources.Type.M3U -> "M3U"
+                                IptvSources.Type.LOCAL_M3U -> stringResource(R.string.iptv_source_local_m3u)
+                                IptvSources.Type.XTREAM -> "Xtream"
+                            },
                             color = colors.onSurfaceVariant,
                             fontSize = 12.sp,
                         )
@@ -82,13 +89,23 @@ fun IptvSourcesCard(isCarMode: Boolean) {
                     fontSize = 12.sp,
                 )
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { adding = IptvSources.Type.M3U }) {
-                        Text(stringResource(R.string.iptv_add_m3u))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { adding = IptvSources.Type.M3U }) {
+                            Text(stringResource(R.string.iptv_add_m3u))
+                        }
+                        IptvLocalM3uButton(onError = { fileError = it })
                     }
                     OutlinedButton(onClick = { adding = IptvSources.Type.XTREAM }) {
                         Text(stringResource(R.string.iptv_add_xtream))
                     }
+                }
+                if (fileError) {
+                    Text(
+                        text = stringResource(R.string.iptv_file_error),
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                    )
                 }
             }
         }
@@ -99,6 +116,39 @@ fun IptvSourcesCard(isCarMode: Boolean) {
             IptvSources.add(context, type, name, url, username, password)
             adding = null
         }
+    }
+}
+
+@Composable
+private fun IptvLocalM3uButton(onError: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            try {
+                IptvSources.addFile(context, uri)
+                onError(false)
+            } catch (_: Exception) {
+                onError(true)
+            }
+        }
+    }
+
+    OutlinedButton(
+        onClick = {
+            onError(false)
+            filePicker.launch(
+                arrayOf(
+                    "application/x-mpegurl",
+                    "application/vnd.apple.mpegurl",
+                    "audio/mpegurl",
+                    "audio/x-mpegurl",
+                    "text/plain",
+                    "application/octet-stream",
+                )
+            )
+        }
+    ) {
+        Text(stringResource(R.string.iptv_add_m3u_file))
     }
 }
 

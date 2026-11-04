@@ -341,6 +341,9 @@
     <string name="iptv_title">IPTV（M3U 和 Xtream）</string>
     <string name="iptv_desc">在 IPTV 中观看的频道列表。地址和密码只保存在手机上，不会进入备份。</string>
     <string name="iptv_add_m3u">添加 M3U</string>
+    <string name="iptv_add_m3u_file">从文件…</string>
+    <string name="iptv_source_local_m3u">本地 M3U</string>
+    <string name="iptv_file_error">无法读取播放列表。请选择可访问的 .m3u 或 .m3u8 文件。</string>
     <string name="iptv_add_xtream">添加 Xtream</string>
     <string name="iptv_name">名称（可选）</string>
     <string name="iptv_url">列表地址（http://…）</string>

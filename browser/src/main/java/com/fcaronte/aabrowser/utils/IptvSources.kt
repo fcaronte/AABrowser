@@ -1,22 +1,27 @@
 package com.fcaronte.aabrowser.utils
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.core.content.edit
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.IOException
 import java.util.UUID
 
 /**
- * Liste della TV di CarWeb Media: liste M3U (un indirizzo) e account Xtream (server, utente, password), aggiunte dalle
- * Impostazioni sul telefono. Salvate nell'app e fuori dal backup (credenziali). La pagina ne vede solo id e nome:
- * indirizzi e password restano qui (IptvLibrary, IptvProxy).
+ * Liste della TV di CarWeb Media: M3U via URL o file e account Xtream, aggiunti dalle Impostazioni sul telefono.
+ * Salvati nell'app e fuori dal backup. La pagina ne vede solo id e nome: indirizzi, credenziali e URI dei file
+ * restano qui (IptvLibrary, IptvProxy).
  */
 object IptvSources {
-    enum class Type { M3U, XTREAM }
+    private const val TAG = "IptvSources"
 
-    /** [url]: indirizzo della lista M3U, o server Xtream (http://host:porta). */
+    enum class Type { M3U, LOCAL_M3U, XTREAM }
+
+    /** [url]: indirizzo M3U/server Xtream, oppure URI del documento per [Type.LOCAL_M3U]. */
     data class Source(
         val id: String,
         val type: Type,
@@ -69,9 +74,62 @@ object IptvSources {
         save(context, list(context) + source)
     }
 
+    /** Aggiunge un file M3U/M3U8 selezionato dall'utente, conservandone l'accesso dopo il riavvio. */
+    fun addFile(context: Context, uri: Uri): Source {
+        val sources = list(context)
+        sources.firstOrNull { it.type == Type.LOCAL_M3U && it.url == uri.toString() }?.let { return it }
+
+        val fileName = context.contentResolver.query(
+            uri,
+            arrayOf(OpenableColumns.DISPLAY_NAME),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        } ?: uri.lastPathSegment.orEmpty()
+        if (!fileName.endsWith(".m3u", ignoreCase = true) && !fileName.endsWith(".m3u8", ignoreCase = true)) {
+            throw IllegalArgumentException("Unsupported playlist file")
+        }
+
+        val resolver = context.contentResolver
+        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        try {
+            resolver.openInputStream(uri)?.use { } ?: throw IOException("Unable to open playlist")
+            val name = fileName.replace(Regex("""(?i)\.m3u8?$"""), "").ifBlank { "M3U" }
+            val source = Source(
+                id = UUID.randomUUID().toString(),
+                type = Type.LOCAL_M3U,
+                name = name,
+                url = uri.toString(),
+            )
+            save(context, sources + source)
+            return source
+        } catch (e: Exception) {
+            releaseFileAccess(context, uri)
+            throw e
+        }
+    }
+
     fun remove(context: Context, id: String) {
-        save(context, list(context).filterNot { it.id == id })
+        val sources = list(context)
+        val removed = sources.firstOrNull { it.id == id }
+        val remaining = sources.filterNot { it.id == id }
+        save(context, remaining)
         IptvLibrary.forget(id)
+        if (removed?.type == Type.LOCAL_M3U &&
+            remaining.none { it.type == Type.LOCAL_M3U && it.url == removed.url }
+        ) {
+            releaseFileAccess(context, Uri.parse(removed.url))
+        }
+    }
+
+    private fun releaseFileAccess(context: Context, uri: Uri) {
+        try {
+            context.contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Unable to release playlist access", e)
+        }
     }
 
     private fun save(context: Context, sources: List<Source>) {

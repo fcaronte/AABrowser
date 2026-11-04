@@ -3,6 +3,7 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.5 release prepared (`versionCode 16` / `versionName "2.5"`, `CarWeb-v2.5.apk`). Previous release 2.4 published on GitHub (24/10/2026, tag `2.4`).
 - **Recent Updates**:
+  - **Local IPTV playlists**: Settings can import `.m3u`/`.m3u8` via Android's Storage Access Framework; the app retains a read grant and parses the file locally, while channel streams still use `IptvProxy`. Existing URL-based M3U and Xtream sources are unchanged. Modified: `ui/IptvSourcesCard.kt`, `utils/IptvSources.kt`, `utils/IptvLibrary.kt`, `utils/IptvApi.kt`, IPTV strings in all locales, `README.md`, `AABrowser.md`. Architectural choice: persist only the selected document URI inside the already-excluded `iptv_sources` preferences; do not copy playlists into app storage or expose their URI to the TV page. Also corrected the M3U parser's empty-prefix condition that skipped every stream line. Next: test selecting local M3U and M3U8 files, loading channels, playback, removing a source, and access after an app restart on a device.
   - **Passenger Mode & Keyboard Disclaimer (User Request)**:
     - Added a safety disclaimer & liability waiver dialog (`AlertDialog`) in `SettingsScreen.kt` when activating "Modalità passeggero" or "Tastiera passeggero".
     - Turning ON either feature prompts the user with an explicit warning regarding dangerous use while moving and liability disclaimer; requires tapping "Accetto" / "I Accept" to enable. Turning OFF applies immediately.
