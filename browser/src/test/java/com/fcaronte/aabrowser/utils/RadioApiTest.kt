@@ -19,4 +19,18 @@ class RadioApiTest {
         assertEquals("RU", RadioApi.countryCodeFor(Locale.forLanguageTag("ru")))
         assertEquals("US", RadioApi.countryCodeFor(Locale.forLanguageTag("en")))
     }
+
+    @Test
+    fun parsesIcyStreamTitleAndUnescapesQuotes() {
+        assertEquals(
+            "Artista - L'estate",
+            RadioApi.parseIcyTitle("StreamTitle='Artista - L\\'estate';".toByteArray())
+        )
+    }
+
+    @Test
+    fun ignoresEmptyOrMissingIcyStreamTitle() {
+        assertEquals(null, RadioApi.parseIcyTitle("StreamTitle='';".toByteArray()))
+        assertEquals(null, RadioApi.parseIcyTitle("StreamUrl='https://example.com';".toByteArray()))
+    }
 }

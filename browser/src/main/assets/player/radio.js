@@ -13,8 +13,12 @@
     let stations = [];
     let visibleStations = [];
     let current = null;
+    let currentTrackTitle = '';
     let currentUrl = '';
     let hls = null;
+    let metadataTimer = null;
+    let metadataRequestPending = null;
+    let icyMetadataSupported = null;
     let showFavorites = false;
     let drawPending = false;
     let requestToken = 0;
@@ -64,9 +68,9 @@
     }
 
     function showStation(station) {
-        byId('title').textContent = station ? station.name : (S.title || 'Radio');
+        byId('title').textContent = station ? (currentTrackTitle || station.name) : (S.title || 'Radio');
         byId('subtitle').textContent = station
-            ? [station.country, station.codec].filter(Boolean).join(' · ')
+            ? [station.name, station.country, station.codec].filter(Boolean).join(' · ')
             : '';
         const art = byId('art');
         const image = byId('artImage');
@@ -155,15 +159,132 @@
         if (!('mediaSession' in navigator) || typeof MediaMetadata !== 'function') return;
         try {
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: station.name,
-                artist: station.country || S.title || 'Radio',
+                title: currentTrackTitle || station.name,
+                artist: station.name,
                 album: S.title || 'Radio',
                 artwork: station.favicon ? [{ src: station.favicon, sizes: '512x512' }] : []
             });
         } catch (_) {}
     }
 
+    function setTrackTitle(value) {
+        const title = String(value || '').trim();
+        if (!current || !title || title === currentTrackTitle) return;
+        currentTrackTitle = title;
+        showStation(current);
+        updateMediaSession(current);
+    }
+
+    function decodeId3Text(bytes, offset, end) {
+        if (offset >= end) return '';
+        const encoding = bytes[offset++];
+        let decoder;
+        if (encoding === 1) decoder = new TextDecoder('utf-16');
+        else if (encoding === 2) decoder = new TextDecoder('utf-16be');
+        else if (encoding === 3) decoder = new TextDecoder('utf-8');
+        else decoder = new TextDecoder('windows-1252');
+        return decoder.decode(bytes.subarray(offset, end)).replace(/\0+$/g, '').trim();
+    }
+
+    function id3TextFrame(bytes, frameId, offset, end) {
+        if (frameId !== 'TIT2' && frameId !== 'TXXX') return null;
+        if (offset >= end) return null;
+        if (frameId === 'TIT2') return decodeId3Text(bytes, offset, end) || null;
+
+        const encoding = bytes[offset++];
+        const terminatorWidth = encoding === 1 || encoding === 2 ? 2 : 1;
+        let valueStart = offset;
+        while (valueStart + terminatorWidth <= end) {
+            if (bytes[valueStart] === 0 &&
+                (terminatorWidth === 1 || bytes[valueStart + 1] === 0)) {
+                valueStart += terminatorWidth;
+                break;
+            }
+            valueStart += terminatorWidth;
+        }
+        const description = decodeId3Text(bytes, offset, valueStart - terminatorWidth);
+        if (description.toLowerCase() !== 'streamtitle') return null;
+        return decodeId3Text(bytes, valueStart, end) || null;
+    }
+
+    function id3Title(value) {
+        const bytes = value instanceof Uint8Array
+            ? value
+            : value instanceof ArrayBuffer ? new Uint8Array(value) : null;
+        if (!bytes || bytes.length < 10 || bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return null;
+
+        const version = bytes[3];
+        const tagSize = ((bytes[6] & 0x7f) << 21) | ((bytes[7] & 0x7f) << 14) |
+            ((bytes[8] & 0x7f) << 7) | (bytes[9] & 0x7f);
+        const tagEnd = Math.min(bytes.length, 10 + tagSize);
+        let offset = 10;
+        if (bytes[5] & 0x40) {
+            if (offset + 4 > tagEnd) return null;
+            const extendedSize = version >= 4
+                ? ((bytes[offset] & 0x7f) << 21) | ((bytes[offset + 1] & 0x7f) << 14) |
+                    ((bytes[offset + 2] & 0x7f) << 7) | (bytes[offset + 3] & 0x7f)
+                : (bytes[offset] << 24) | (bytes[offset + 1] << 16) |
+                    (bytes[offset + 2] << 8) | bytes[offset + 3];
+            offset += 4 + extendedSize;
+        }
+        while (offset + 10 <= tagEnd) {
+            const frameId = String.fromCharCode(...bytes.subarray(offset, offset + 4));
+            if (!/^[A-Z0-9]{4}$/.test(frameId)) break;
+            const frameSize = version >= 4
+                ? ((bytes[offset + 4] & 0x7f) << 21) | ((bytes[offset + 5] & 0x7f) << 14) |
+                    ((bytes[offset + 6] & 0x7f) << 7) | (bytes[offset + 7] & 0x7f)
+                : (bytes[offset + 4] << 24) | (bytes[offset + 5] << 16) |
+                    (bytes[offset + 6] << 8) | bytes[offset + 7];
+            const frameStart = offset + 10;
+            const frameEnd = Math.min(tagEnd, frameStart + frameSize);
+            const title = id3TextFrame(bytes, frameId, frameStart, frameEnd);
+            if (title) return title;
+            offset = frameEnd;
+        }
+        return null;
+    }
+
+    function stopMetadataPolling() {
+        if (metadataTimer !== null) {
+            clearInterval(metadataTimer);
+            metadataTimer = null;
+        }
+        metadataRequestPending = null;
+        icyMetadataSupported = null;
+    }
+
+    async function pollIcyMetadata() {
+        if (!current || media.paused || icyMetadataSupported === false) return;
+        const stationUuid = current.uuid;
+        const playToken = requestToken;
+        if (metadataRequestPending === playToken) return;
+        metadataRequestPending = playToken;
+        try {
+            const result = await api('/api/radio/metadata', { uuid: stationUuid });
+            if (!current || current.uuid !== stationUuid || requestToken !== playToken) return;
+            if (result.supported === false) {
+                icyMetadataSupported = false;
+                stopMetadataPolling();
+                return;
+            }
+            icyMetadataSupported = result.supported === true;
+            if (result.title) setTrackTitle(result.title);
+        } catch (_) {
+            // Metadata is optional; keep playback running and retry on the next interval.
+        } finally {
+            if (metadataRequestPending === playToken) metadataRequestPending = null;
+        }
+    }
+
+    function startMetadataPolling() {
+        stopMetadataPolling();
+        if (!currentUrl || /\.m3u8(?:$|[?#])/i.test(currentUrl)) return;
+        pollIcyMetadata();
+        metadataTimer = setInterval(pollIcyMetadata, 15_000);
+    }
+
     function stopStream() {
+        stopMetadataPolling();
         if (hls) {
             hls.destroy();
             hls = null;
@@ -177,6 +298,7 @@
 
     async function play(station) {
         current = station;
+        currentTrackTitle = '';
         state.lastUuid = station.uuid;
         saveState();
         showStation(station);
@@ -194,6 +316,14 @@
                 hls.on(Hls.Events.ERROR, (_, data) => {
                     if (data.fatal) message(S.unavailable || 'Station unavailable');
                 });
+                if (Hls.Events.FRAG_PARSING_METADATA) {
+                    hls.on(Hls.Events.FRAG_PARSING_METADATA, (_, data) => {
+                        (data.samples || []).forEach((sample) => {
+                            const title = id3Title(sample.data);
+                            if (title) setTrackTitle(title);
+                        });
+                    });
+                }
                 hls.loadSource(info.url);
                 hls.attachMedia(media);
             } else {
@@ -230,6 +360,7 @@
             const previous = stations.find((station) => station.uuid === state.lastUuid);
             if (previous) {
                 current = previous;
+                currentTrackTitle = '';
                 showStation(previous);
                 updateMediaSession(previous);
             } else {
@@ -299,6 +430,7 @@
     media.addEventListener('playing', () => {
         document.body.classList.add('is-playing');
         message('');
+        startMetadataPolling();
     });
     media.addEventListener('pause', () => document.body.classList.remove('is-playing'));
     media.addEventListener('error', () => {

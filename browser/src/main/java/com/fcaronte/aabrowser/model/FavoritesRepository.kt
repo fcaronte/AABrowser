@@ -144,10 +144,9 @@ class FavoritesRepository(private val context: Context) {
         private const val TEST_PLAYER_URL = "https://web-player.streamlit.app"
         private const val OLD_PLAYER_NAME = "AABrowser Player"
 
-        // Nuovo preferito predefinito: aggiungilo in getDefaultFavorites() con un id nuovo, segnalo qui sotto con
-        // DEFAULTS_VERSION + 1 e alza DEFAULTS_VERSION. Chi aggiorna l'app lo trova una volta in fondo ai preferiti.
-        // Id tolti, da non riusare: "9" (DAZN, 2.5: dirette e contenuti protetti non vanno nella WebView; chi lo
-        // aveva già lo tiene)
+        // I preferiti predefiniti usano ID numerici consecutivi nell'ordine della dashboard; l'aggiunta o il
+        // riordino può rinumerarli. La migrazione riconosce le voci tramite URL normalizzato e versione, non l'ID.
+        // Il preferito DAZN è stato rimosso; chi lo aveva già mantiene la propria voce salvata.
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
         private const val DEFAULTS_VERSION = 6

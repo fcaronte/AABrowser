@@ -21,6 +21,7 @@ internal object RadioApi {
     private const val API_SUFFIX = ".api.radio-browser.info"
     private const val USER_AGENT = "CarWeb/2.5.1 (https://github.com/fcaronte/AABrowser)"
     private const val MAX_STATIONS = 200
+    private const val MAX_ICY_INTERVAL = 1024 * 1024
     private const val CACHE_MS = 30 * 60 * 1000L
 
     private data class Station(
@@ -63,6 +64,7 @@ internal object RadioApi {
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? = when (path) {
         "/api/radio/stations" -> stations(context, url.getQueryParameter("refresh") == "1")
         "/api/radio/play" -> play(context, url.getQueryParameter("uuid"))
+        "/api/radio/metadata" -> metadata(context, url.getQueryParameter("uuid"))
         else -> null
     }
 
@@ -135,6 +137,96 @@ internal object RadioApi {
 
         if (!isPublicHttpUrl(resolvedUrl)) return error(403, "station")
         return json(JSONObject().put("url", resolvedUrl))
+    }
+
+    private fun metadata(context: Context, uuid: String?): WebResourceResponse {
+        if (uuid == null || !uuid.matches(Regex("[0-9a-fA-F-]{36}"))) return error(400, "station")
+        val appContext = AppLocale.wrap(context)
+        val countryCode = countryCodeFor(appContext.resources.configuration.locales[0])
+        val station = cache[countryCode]?.stations?.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }
+            ?: return error(404, "station")
+
+        return try {
+            val result = readIcyMetadata(station.streamUrl)
+            json(JSONObject()
+                .put("supported", result.supported)
+                .put("title", result.title ?: JSONObject.NULL))
+        } catch (_: Exception) {
+            json(JSONObject().put("supported", true).put("title", JSONObject.NULL))
+        }
+    }
+
+    private data class IcyMetadata(val supported: Boolean, val title: String?)
+
+    private fun readIcyMetadata(initialUrl: String): IcyMetadata {
+        var target = URL(initialUrl)
+        repeat(6) { redirect ->
+            if (!isPublicHttpUrl(target.toString())) throw IllegalArgumentException("Invalid stream host")
+            val connection = (target.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 5_000
+                readTimeout = 8_000
+                instanceFollowRedirects = false
+                setRequestProperty("Icy-MetaData", "1")
+                setRequestProperty("User-Agent", USER_AGENT)
+            }
+            try {
+                val code = connection.responseCode
+                if (code in 300..399) {
+                    if (redirect == 5) throw IllegalStateException("Too many stream redirects")
+                    val location = connection.getHeaderField("Location")
+                        ?: throw IllegalStateException("Stream redirect without location")
+                    target = URL(target, location)
+                    return@repeat
+                }
+                if (code !in 200..299) throw IllegalStateException("Stream returned HTTP $code")
+
+                val interval = connection.getHeaderField("icy-metaint")?.toIntOrNull()
+                    ?.takeIf { it in 1..MAX_ICY_INTERVAL }
+                    ?: return IcyMetadata(supported = false, title = null)
+                connection.inputStream.use { input ->
+                    skipFully(input, interval)
+                    val blockUnits = input.read()
+                    if (blockUnits <= 0) return IcyMetadata(supported = true, title = null)
+                    val block = ByteArray(blockUnits * 16)
+                    var offset = 0
+                    while (offset < block.size) {
+                        val read = input.read(block, offset, block.size - offset)
+                        if (read < 0) break
+                        offset += read
+                    }
+                    return IcyMetadata(supported = true, title = parseIcyTitle(block))
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }
+        throw IllegalStateException("Unable to read stream metadata")
+    }
+
+    private fun skipFully(input: java.io.InputStream, count: Int) {
+        var remaining = count
+        val buffer = ByteArray(8 * 1024)
+        while (remaining > 0) {
+            val skipped = input.skip(remaining.toLong()).toInt()
+            if (skipped > 0) {
+                remaining -= skipped
+            } else {
+                val read = input.read(buffer, 0, minOf(buffer.size, remaining))
+                if (read < 0) throw IllegalStateException("Stream ended before ICY metadata")
+                remaining -= read
+            }
+        }
+    }
+
+    internal fun parseIcyTitle(metadata: ByteArray): String? {
+        val text = metadata.toString(Charsets.UTF_8).trimEnd('\u0000', ' ')
+        val match = Regex("""(?:^|;)\s*StreamTitle\s*=\s*'((?:\\.|[^'])*)'""", RegexOption.IGNORE_CASE)
+            .find(text) ?: return null
+        return match.groupValues[1]
+            .replace("\\'", "'")
+            .replace("\\\\", "\\")
+            .trim()
+            .takeIf(String::isNotEmpty)
     }
 
     private fun loadStations(countryCode: String): List<Station> {
