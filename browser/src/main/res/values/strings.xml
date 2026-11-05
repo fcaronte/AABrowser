@@ -348,6 +348,8 @@
     <string name="iptv_desc">Channel lists to watch in IPTV. Addresses and passwords stay on the phone and are not backed up.</string>
     <string name="iptv_add_m3u">Add M3U</string>
     <string name="iptv_add_m3u_file">From file…</string>
+    <string name="iptv_default_language_list">Default list (%1$s)</string>
+    <string name="iptv_source_default">Automatic language playlist</string>
     <string name="iptv_source_local_m3u">Local M3U</string>
     <string name="iptv_file_error">Could not read the selected playlist. Choose an accessible .m3u or .m3u8 file.</string>
     <string name="iptv_add_xtream">Add Xtream</string>

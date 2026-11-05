@@ -40,11 +40,12 @@ from the misuse of this application. Use at your own risk.
 * **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK). Search and favorites are available; playback controls are also sent to the Android Auto player.
-* **TV in CarWeb Media (new in 2.5):** your M3U lists (from a URL or an M3U/M3U8 file selected on the phone) and
-  Xtream accounts (added in Settings; for Xtream the full link with username and password is enough), with groups, search and favorites; HLS and
-  MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
-  passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may play without sound (WebView
-  limit).
+* **TV in CarWeb Media (new in 2.5):** an IPTV-org playlist is added automatically for the app language
+  (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
+  file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username
+  and password is enough). Groups, search and favorites; HLS and MPEG-TS streams, channel name and logo on the
+  Android Auto player, ⏮ ⏭ to change channel. Addresses and passwords stay on the phone (not in the backup).
+  Channels with AC3/E-AC3 audio may play without sound (WebView limit).
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
   tab bar and the navigation menu of CarWeb, at the top right of the Widescreen).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
@@ -203,11 +204,12 @@ proprio rischio e pericolo.
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; i controlli funzionano
   anche dal player di Android Auto.
-* **TV in CarWeb Media (novità 2.5):** le tue liste M3U (da URL o da un file M3U/M3U8 scelto sul telefono) e i tuoi
-  account Xtream (si aggiungono nelle Impostazioni; per Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
-  stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e
-  password restano sul telefono (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio
-  (limite della WebView).
+* **TV in CarWeb Media (novità 2.5):** viene aggiunta automaticamente la playlist IPTV-org nella lingua
+  dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
+  o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni; per Xtream
+  basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS e MPEG-TS, nome e logo
+  del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono
+  (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView).
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
   2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di

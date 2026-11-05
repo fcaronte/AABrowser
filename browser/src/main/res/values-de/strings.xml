@@ -343,6 +343,8 @@
     <string name="iptv_desc">Senderlisten zum Ansehen in IPTV. Adressen und Passwörter bleiben auf dem Handy und kommen nicht ins Backup.</string>
     <string name="iptv_add_m3u">M3U hinzufügen</string>
     <string name="iptv_add_m3u_file">Aus Datei…</string>
+    <string name="iptv_default_language_list">Standardliste (%1$s)</string>
+    <string name="iptv_source_default">Automatische Sprach-Playlist</string>
     <string name="iptv_source_local_m3u">Lokale M3U</string>
     <string name="iptv_file_error">Wiedergabeliste kann nicht gelesen werden. Wähle eine zugängliche .m3u- oder .m3u8-Datei.</string>
     <string name="iptv_add_xtream">Xtream hinzufügen</string>

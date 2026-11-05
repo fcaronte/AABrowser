@@ -343,6 +343,8 @@
     <string name="iptv_desc">Csatornalisták az IPTV megtekintéséhez. A címek és jelszavak a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
     <string name="iptv_add_m3u">M3U hozzáadása</string>
     <string name="iptv_add_m3u_file">Fájlból…</string>
+    <string name="iptv_default_language_list">Alapértelmezett lista (%1$s)</string>
+    <string name="iptv_source_default">Automatikus nyelvi lejátszási lista</string>
     <string name="iptv_source_local_m3u">Helyi M3U</string>
     <string name="iptv_file_error">A lejátszási lista nem olvasható. Válasszon egy elérhető .m3u vagy .m3u8 fájlt.</string>
     <string name="iptv_add_xtream">Xtream hozzáadása</string>

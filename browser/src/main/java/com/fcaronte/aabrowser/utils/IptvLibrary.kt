@@ -43,7 +43,7 @@ object IptvLibrary {
         synchronized(locks.getOrPut(source.id) { Any() }) {
             cache[source.id]?.takeIf { !refresh && it.isFresh() }?.let { return it }
             val loaded = when (source.type) {
-                IptvSources.Type.M3U -> IptvProxy.open(source.url).use { upstream ->
+                IptvSources.Type.DEFAULT_M3U, IptvSources.Type.M3U -> IptvProxy.open(source.url).use { upstream ->
                     if (upstream.status >= 400) throw IOException("HTTP ${upstream.status}")
                     parseM3u(upstream.stream)
                 }

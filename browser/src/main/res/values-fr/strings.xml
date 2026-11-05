@@ -344,6 +344,8 @@
     <string name="iptv_desc">Listes de chaînes à regarder dans IPTV. Les adresses et mots de passe restent sur le téléphone et ne sont pas sauvegardés.</string>
     <string name="iptv_add_m3u">Ajouter M3U</string>
     <string name="iptv_add_m3u_file">Depuis un fichier…</string>
+    <string name="iptv_default_language_list">Liste par défaut (%1$s)</string>
+    <string name="iptv_source_default">Playlist automatique selon la langue</string>
     <string name="iptv_source_local_m3u">M3U local</string>
     <string name="iptv_file_error">Impossible de lire la liste. Choisissez un fichier .m3u ou .m3u8 accessible.</string>
     <string name="iptv_add_xtream">Ajouter Xtream</string>

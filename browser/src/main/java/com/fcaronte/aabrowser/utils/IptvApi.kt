@@ -32,7 +32,11 @@ internal object IptvApi {
             .put("noResults", context.getString(R.string.tv_no_results))
         val sources = JSONArray()
         IptvSources.list(context).forEach { sources.put(JSONObject().put("id", it.id).put("name", it.name)) }
-        val config = JSONObject().put("token", token).put("strings", strings).put("sources", sources)
+        val config = JSONObject()
+            .put("token", token)
+            .put("locale", context.resources.configuration.locales[0].toLanguageTag())
+            .put("strings", strings)
+            .put("sources", sources)
         val html = context.assets.open("player/tv.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_TV = $config;")
             .replace("/*AAB_THEME*/", theme)

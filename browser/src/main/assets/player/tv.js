@@ -494,7 +494,11 @@
         showMessage(S.noSources);
         return;
     }
-    const source = config.sources.some((item) => item.id === state.source) ? state.source : config.sources[0].id;
+    const sameLocale = state.locale === config.locale;
+    const source = sameLocale && config.sources.some((item) => item.id === state.source)
+        ? state.source
+        : config.sources[0].id;
+    state.locale = config.locale;
     if (state.last && state.last.s === source) {
         current = state.last;
         showChannel(current);

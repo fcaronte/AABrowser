@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.XtreamLink
 import kotlin.math.abs
@@ -44,9 +45,11 @@ import kotlin.math.abs
 @Composable
 fun IptvSourcesCard(isCarMode: Boolean) {
     val context = LocalContext.current
+    val appContext = AppLocale.wrap(context)
+    val localeTag = appContext.resources.configuration.locales[0].toLanguageTag()
     val colors = MaterialTheme.colorScheme
     val version by IptvSources.version
-    val sources = remember(version) { IptvSources.list(context) }
+    val sources = remember(version, localeTag) { IptvSources.list(appContext) }
     var adding by remember { mutableStateOf<IptvSources.Type?>(null) }
     var fileError by remember { mutableStateOf(false) }
 
@@ -69,6 +72,7 @@ fun IptvSourcesCard(isCarMode: Boolean) {
                         Text(text = source.name, color = colors.onSurface, fontWeight = FontWeight.SemiBold)
                         Text(
                             text = when (source.type) {
+                                IptvSources.Type.DEFAULT_M3U -> stringResource(R.string.iptv_source_default)
                                 IptvSources.Type.M3U -> "M3U"
                                 IptvSources.Type.LOCAL_M3U -> stringResource(R.string.iptv_source_local_m3u)
                                 IptvSources.Type.XTREAM -> "Xtream"
@@ -77,8 +81,10 @@ fun IptvSourcesCard(isCarMode: Boolean) {
                             fontSize = 12.sp,
                         )
                     }
-                    IconButton(onClick = { IptvSources.remove(context, source.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.iptv_remove))
+                    if (source.type != IptvSources.Type.DEFAULT_M3U) {
+                        IconButton(onClick = { IptvSources.remove(context, source.id) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.iptv_remove))
+                        }
                     }
                 }
             }

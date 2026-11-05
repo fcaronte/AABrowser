@@ -347,6 +347,8 @@
     <string name="iptv_desc">قوائم قنوات للمشاهدة في IPTV. تبقى العناوين وكلمات المرور على الهاتف ولا تدخل في النسخة الاحتياطية.</string>
     <string name="iptv_add_m3u">إضافة M3U</string>
     <string name="iptv_add_m3u_file">من ملف…</string>
+    <string name="iptv_default_language_list">القائمة الافتراضية (%1$s)</string>
+    <string name="iptv_source_default">قائمة تلقائية حسب اللغة</string>
     <string name="iptv_source_local_m3u">ملف M3U محلي</string>
     <string name="iptv_file_error">تعذرت قراءة القائمة. اختر ملف M3U أو M3U8 يمكن الوصول إليه.</string>
     <string name="iptv_add_xtream">إضافة Xtream</string>
