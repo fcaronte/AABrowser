@@ -147,6 +147,11 @@ object LocalPlayer {
 
     fun isPlayerUrl(url: String?): Boolean = url?.startsWith(BASE_URL) == true
 
+    fun isRadioUrl(url: String?): Boolean {
+        val uri = url?.let(Uri::parse) ?: return false
+        return uri.host == HOST && uri.path == "/radio"
+    }
+
     // ------------------------------------------------------------------
     // Pagina
     // ------------------------------------------------------------------

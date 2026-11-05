@@ -100,7 +100,10 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
             val normalizedDefaultUrl = FavoritesRepository.normalizeUrl(default.url)
             if (!currentUrls.contains(normalizedDefaultUrl)) {
                 // Genera un nuovo ID unico per evitare conflitti con quelli esistenti
-                favorites.add(default.copy(id = UUID.randomUUID().toString()))
+                FavoritesRepository.insertDefaultFavorite(
+                    favorites,
+                    default.copy(id = UUID.randomUUID().toString())
+                )
                 addedCount++
             }
         }

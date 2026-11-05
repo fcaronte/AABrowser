@@ -86,7 +86,7 @@ class FavoritesRepository(private val context: Context) {
             val isNew = (DEFAULTS_ADDED_IN[default.id] ?: FIRST_DEFAULTS_VERSION) > knownVersion
             if ((isNew || isFixed(default)) && present.add(normalizeUrl(default.url))) {
                 // Id nuovo: quello del predefinito può già esistere tra i preferiti dell'utente
-                list.add(default.copy(id = UUID.randomUUID().toString()))
+                insertDefaultFavorite(list, default.copy(id = UUID.randomUUID().toString()))
                 added = true
             }
         }
@@ -100,15 +100,16 @@ class FavoritesRepository(private val context: Context) {
         return listOf(
             FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF00BCD4),
             FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFE91E63),
-            FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFF4285F4),
-            FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFFFF0000),
+            FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFF00838F),
+            FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF4285F4),
             FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFFFF0000),
-            FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFF25D366, null, true, null, 0.9f),
-            FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFF1DB954, null, false, null, 1.0f),
-            FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFF0088CC, null, true, null, 0.9f),
-            FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFFFF0000),
-            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFFFF9800),
-            FavoriteSite("10", context.getString(R.string.favorite_default_name_10), context.getString(R.string.favorite_default_url_10), 0xFF9C27B0)
+            FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFFFF0000),
+            FavoriteSite("6", context.getString(R.string.favorite_default_name_6), context.getString(R.string.favorite_default_url_6), 0xFF25D366, null, true, null, 0.9f),
+            FavoriteSite("7", context.getString(R.string.favorite_default_name_7), context.getString(R.string.favorite_default_url_7), 0xFF1DB954, null, false, null, 1.0f),
+            FavoriteSite("8", context.getString(R.string.favorite_default_name_8), context.getString(R.string.favorite_default_url_8), 0xFF0088CC, null, true, null, 0.9f),
+            FavoriteSite("9", context.getString(R.string.favorite_default_name_9), context.getString(R.string.favorite_default_url_9), 0xFFFF0000),
+            FavoriteSite("10", context.getString(R.string.favorite_default_name_10), context.getString(R.string.favorite_default_url_10), 0xFFFF9800),
+            FavoriteSite("11", context.getString(R.string.favorite_default_name_11), context.getString(R.string.favorite_default_url_11), 0xFF9C27B0)
         )
     }
 
@@ -149,10 +150,11 @@ class FavoritesRepository(private val context: Context) {
         // aveva già lo tiene)
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
-        private const val DEFAULTS_VERSION = 5
+        private const val DEFAULTS_VERSION = 6
         private val DEFAULTS_ADDED_IN = mapOf(
             "0" to 5, // Media (2.5)
-            "1" to 5  // IPTV (2.5)
+            "1" to 5, // IPTV (2.5)
+            "2" to 6 // Radio
         )
 
         private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")
@@ -161,6 +163,24 @@ class FavoritesRepository(private val context: Context) {
 
         /** CarWeb Media è fisso: non si può eliminare né cambiare indirizzo, e se manca torna. */
         fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)
+
+        fun insertDefaultFavorite(favorites: MutableList<FavoriteSite>, site: FavoriteSite) {
+            val isRadio = normalizeUrl(site.url) == normalizeUrl("${LocalPlayer.BASE_URL}radio")
+            if (!isRadio) {
+                favorites.add(site)
+                return
+            }
+            val mediaUrls = setOf(
+                normalizeUrl(LocalPlayer.BASE_URL),
+                normalizeUrl("${LocalPlayer.BASE_URL}tv")
+            )
+            val insertionIndex = favorites.indices
+                .filter { normalizeUrl(favorites[it].url) in mediaUrls }
+                .maxOrNull()
+                ?.plus(1)
+                ?: favorites.size
+            favorites.add(insertionIndex, site)
+        }
 
         fun normalizeUrl(url: String): String {
             return url.lowercase()

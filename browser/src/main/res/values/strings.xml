@@ -195,24 +195,26 @@
     <string name="favorite_default_url_0" translatable="false">https://player.local/</string>
     <string name="favorite_default_name_1" translatable="false">IPTV</string>
     <string name="favorite_default_url_1" translatable="false">https://player.local/tv</string>
-    <string name="favorite_default_name_2" translatable="false">Google</string>
-    <string name="favorite_default_url_2" translatable="false">https://www.google.com</string>
-    <string name="favorite_default_name_3" translatable="false">YouTube</string>
-    <string name="favorite_default_url_3" translatable="false">https://www.youtube.com</string>
-    <string name="favorite_default_name_4" translatable="false">YouTube Music</string>
-    <string name="favorite_default_url_4" translatable="false">https://music.youtube.com</string>
-    <string name="favorite_default_name_5" translatable="false">WhatsApp</string>
-    <string name="favorite_default_url_5" translatable="false">https://web.whatsapp.com</string>
-    <string name="favorite_default_name_6" translatable="false">Spotify</string>
-    <string name="favorite_default_url_6" translatable="false">https://open.spotify.com</string>
-    <string name="favorite_default_name_7" translatable="false">Telegram</string>
-    <string name="favorite_default_url_7" translatable="false">https://web.telegram.org</string>
-    <string name="favorite_default_name_8" translatable="false">YouTube Kids</string>
-    <string name="favorite_default_url_8" translatable="false">https://www.youtubekids.com</string>
-    <string name="favorite_default_name_9" translatable="false">Zappr</string>
-    <string name="favorite_default_url_9" translatable="false">https://zappr.stream/</string>
-    <string name="favorite_default_name_10" translatable="false">Poki</string>
-    <string name="favorite_default_url_10" translatable="false">https://poki.com</string>
+    <string name="favorite_default_name_2" translatable="false">Radio</string>
+    <string name="favorite_default_url_2" translatable="false">https://player.local/radio</string>
+    <string name="favorite_default_name_3" translatable="false">Google</string>
+    <string name="favorite_default_url_3" translatable="false">https://www.google.com</string>
+    <string name="favorite_default_name_4" translatable="false">YouTube</string>
+    <string name="favorite_default_url_4" translatable="false">https://www.youtube.com</string>
+    <string name="favorite_default_name_5" translatable="false">YouTube Music</string>
+    <string name="favorite_default_url_5" translatable="false">https://music.youtube.com</string>
+    <string name="favorite_default_name_6" translatable="false">WhatsApp</string>
+    <string name="favorite_default_url_6" translatable="false">https://web.whatsapp.com</string>
+    <string name="favorite_default_name_7" translatable="false">Spotify</string>
+    <string name="favorite_default_url_7" translatable="false">https://open.spotify.com</string>
+    <string name="favorite_default_name_8" translatable="false">Telegram</string>
+    <string name="favorite_default_url_8" translatable="false">https://web.telegram.org</string>
+    <string name="favorite_default_name_9" translatable="false">YouTube Kids</string>
+    <string name="favorite_default_url_9" translatable="false">https://www.youtubekids.com</string>
+    <string name="favorite_default_name_10" translatable="false">Zappr</string>
+    <string name="favorite_default_url_10" translatable="false">https://zappr.stream/</string>
+    <string name="favorite_default_name_11" translatable="false">Poki</string>
+    <string name="favorite_default_url_11" translatable="false">https://poki.com</string>
 
     <!-- Search Engines -->
     <string name="google_base_url" translatable="false">https://www.google.com/search?q=</string>

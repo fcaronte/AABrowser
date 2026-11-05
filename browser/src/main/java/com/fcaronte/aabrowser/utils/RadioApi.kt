@@ -57,7 +57,7 @@ internal object RadioApi {
         val html = appContext.assets.open("player/radio.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_RADIO = $config;")
             .replace("/*AAB_THEME*/", theme)
-        return response(html.toByteArray(Charsets.UTF_8), 200, "OK")
+        return response(html.toByteArray(Charsets.UTF_8), 200, "OK", "text/html")
     }
 
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? = when (path) {
@@ -273,9 +273,14 @@ internal object RadioApi {
         JSONObject().put("error", reason).toString().toByteArray(Charsets.UTF_8), code, "Error"
     )
 
-    private fun response(bytes: ByteArray, code: Int, reason: String): WebResourceResponse =
+    private fun response(
+        bytes: ByteArray,
+        code: Int,
+        reason: String,
+        mimeType: String = "application/json",
+    ): WebResourceResponse =
         WebResourceResponse(
-            "application/json",
+            mimeType,
             "utf-8",
             code,
             reason,
