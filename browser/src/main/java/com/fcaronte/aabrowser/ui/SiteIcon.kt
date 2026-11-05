@@ -28,7 +28,7 @@ private const val MAX_ICON_RETRIES = 5
  */
 fun siteIconModel(url: String, faviconUrl: String?, domain: String): Any = when {
     LocalPlayer.isRadioUrl(url) -> R.drawable.ic_radio
-    url.contains("/tv") -> R.drawable.ic_tv
+    LocalPlayer.isTvUrl(url) -> R.drawable.ic_tv
     LocalPlayer.isPlayerUrl(url) -> R.drawable.ic_aab_media
     !faviconUrl.isNullOrEmpty() -> faviconUrl
     else -> "https://www.google.com/s2/favicons?domain=$domain&sz=128"

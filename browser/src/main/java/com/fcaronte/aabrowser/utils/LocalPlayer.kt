@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -43,6 +45,8 @@ object LocalPlayer {
 
     // Icona del lettore (pagina e home della Wide) e copertina dei brani che non ne hanno una
     const val ICON_URL = "${BASE_URL}icon.svg"
+    const val TV_ICON_URL = "${BASE_URL}tv.svg"
+    const val RADIO_ICON_URL = "${BASE_URL}radio.svg"
     private const val DEFAULT_COVER_PATH = "/cover.png"
 
     // Stesso limite dell'elenco cartella di LastFileSelection
@@ -83,6 +87,7 @@ object LocalPlayer {
                 path == "/player.js" -> asset(context, "player/player.js", "application/javascript")
                 path == "/player.css" -> asset(context, "player/player.css", "text/css")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
+                path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
                 // TV (liste M3U e Xtream): pagina, script e librerie per HLS e MPEG-TS
                 path == "/tv" || path == "/tv/" -> IptvApi.page(AppLocale.wrap(context), token, themeCss(context))
@@ -137,19 +142,28 @@ object LocalPlayer {
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
     }
 
-    // La nota di CarWeb Media, per i brani senza copertina
+    // Copertina di CarWeb Media per i brani senza copertina
     private fun defaultCover(context: Context): Bitmap? {
         defaultCover?.let { return it }
-        return ContextCompat.getDrawable(context, R.drawable.ic_aab_media)
-            ?.toBitmap(COVER_SIZE, COVER_SIZE)
-            ?.also { defaultCover = it }
+        val drawable = ContextCompat.getDrawable(context, R.drawable.ic_aab_media) ?: return null
+        val bitmap = Bitmap.createBitmap(COVER_SIZE, COVER_SIZE, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(Color.rgb(0, 188, 212))
+        drawable.setBounds(0, 0, COVER_SIZE, COVER_SIZE)
+        drawable.draw(Canvas(bitmap))
+        defaultCover = bitmap
+        return bitmap
     }
 
     fun isPlayerUrl(url: String?): Boolean = url?.startsWith(BASE_URL) == true
 
     fun isRadioUrl(url: String?): Boolean {
         val uri = url?.let(Uri::parse) ?: return false
-        return uri.host == HOST && uri.path == "/radio"
+        return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/radio", "/radio/")
+    }
+
+    fun isTvUrl(url: String?): Boolean {
+        val uri = url?.let(Uri::parse) ?: return false
+        return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/tv", "/tv/")
     }
 
     // ------------------------------------------------------------------

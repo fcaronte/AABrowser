@@ -53,6 +53,8 @@ object HomePage {
      */
     private fun iconCandidates(item: Item): List<String> {
         // CarWeb Media: la sua icona la serve l'app (player.local esiste solo nelle WebView)
+        if (LocalPlayer.isTvUrl(item.url)) return listOf(LocalPlayer.TV_ICON_URL)
+        if (LocalPlayer.isRadioUrl(item.url)) return listOf(LocalPlayer.RADIO_ICON_URL)
         if (LocalPlayer.isPlayerUrl(item.url)) return listOf(LocalPlayer.ICON_URL)
         val list = mutableListOf<String>()
         item.iconUrl?.takeIf { it.isNotBlank() }?.let { list.add(it) }
@@ -99,7 +101,8 @@ object HomePage {
             val iconHtml = if (candidates.isNotEmpty()) {
                 val all = candidates.joinToString("|").htmlEncode()
                 val first = candidates.first().htmlEncode()
-                """<img class="ico-img" src="$first" data-s="$all" data-i="0" onerror="fb(this)" onload="ld(this)"><div class="ico" style="display:none">$letter</div>"""
+                val iconClass = if (LocalPlayer.isPlayerUrl(item.url)) "ico-img player-icon" else "ico-img"
+                """<img class="$iconClass" src="$first" data-s="$all" data-i="0" onerror="fb(this)" onload="ld(this)"><div class="ico" style="display:none">$letter</div>"""
             } else {
                 """<div class="ico">$letter</div>"""
             }
@@ -235,6 +238,11 @@ h1 {
     background:#ffffff;
     padding:4px;
     box-sizing:border-box;
+}
+
+.ico-img.player-icon {
+    background:transparent;
+    padding:0;
 }
 
 .name {

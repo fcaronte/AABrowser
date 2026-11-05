@@ -1,11 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-    <!-- Icona di CarWeb Media, uguale a res/drawable/ic_aab_media.xml -->
-    <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#26C6DA"/>
-            <stop offset="1" stop-color="#00838F"/>
-        </linearGradient>
-    </defs>
-    <rect width="48" height="48" rx="12" fill="url(#bg)"/>
-    <path transform="translate(6 6) scale(1.5)" fill="#fff" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+    <rect width="48" height="48" rx="12" fill="#00BCD4"/>
+    <path fill="#fff" d="M36 8H12a3 3 0 0 0-3 3v21a3 3 0 0 0 3 3h7v3h10v-3h7a3 3 0 0 0 3-3V11a3 3 0 0 0-3-3zm0 24H12V11h24v21z"/>
+    <path fill="#fff" d="M20 15v14l12-7z"/>
 </svg>
