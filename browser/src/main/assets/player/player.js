@@ -89,7 +89,6 @@
             return;
         }
 
-        byId('folderName').textContent = data.folder || '';
         const previousId = keepCurrent && current ? current.id : state.lastId;
         const all = (data.tracks || []).sort((a, b) =>
             collator.compare(a.folder, b.folder) || collator.compare(a.name, b.name));
@@ -293,7 +292,7 @@
     function showTrack(track, tags) {
         const title = (tags && tags.title) || track.name;
         const artist = (tags && tags.artist) || '';
-        const album = (tags && tags.album) || track.folder || byId('folderName').textContent;
+        const album = (tags && tags.album) || track.folder || '';
         const artUrl = tags && tags.hasArt ? withToken('/api/art/' + track.id) : '';
 
         byId('title').textContent = title;

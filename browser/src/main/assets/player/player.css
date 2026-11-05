@@ -65,20 +65,9 @@ svg {
     border-bottom: 1px solid var(--line);
 }
 
-.folder-icon {
-    width: 26px;
-    height: 26px;
-    flex: none;
-    color: var(--accent);
-}
-
-.folder {
+.bar-spacer {
     flex: 1;
     min-width: 0;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .text-button {
@@ -108,29 +97,6 @@ svg {
 }
 
 .icon-button:active {
-    background: var(--pressed);
-}
-
-.icon-text-button {
-    flex: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 48px;
-    padding: 0 16px;
-    border-radius: 24px;
-    background: var(--soft);
-    color: var(--accent);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.icon-text-button svg {
-    width: 24px;
-    height: 24px;
-}
-
-.icon-text-button:active {
     background: var(--pressed);
 }
 
