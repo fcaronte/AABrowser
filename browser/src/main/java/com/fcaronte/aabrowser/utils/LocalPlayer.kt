@@ -17,7 +17,7 @@ import android.webkit.WebResourceResponse
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
+import com.fcaronte.aabrowser.BuildConfig
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.ui.appColorScheme
 import org.json.JSONArray
@@ -86,6 +86,7 @@ object LocalPlayer {
                 path == "/" || path == "/index.html" -> page(context)
                 path == "/player.js" -> asset(context, "player/player.js", "application/javascript")
                 path == "/player.css" -> asset(context, "player/player.css", "text/css")
+                path == "/lyrics.js" -> asset(context, "player/lyrics.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
@@ -188,7 +189,17 @@ object LocalPlayer {
             .put("bars", context.getString(R.string.player_effect_bars))
             .put("wave", context.getString(R.string.player_effect_wave))
             .put("circle", context.getString(R.string.player_effect_circle))
-        val config = JSONObject().put("token", token).put("strings", strings)
+            .put("lyricsButton", context.getString(R.string.lyrics_button))
+            .put("lyricsLoading", context.getString(R.string.lyrics_loading))
+            .put("lyricsNotFound", context.getString(R.string.lyrics_not_found))
+            .put("lyricsError", context.getString(R.string.lyrics_error))
+            .put("lyricsInstrumental", context.getString(R.string.lyrics_instrumental))
+            .put("lyricsChooseMatch", context.getString(R.string.lyrics_choose_match))
+            .put("lyricsClose", context.getString(R.string.lyrics_close))
+            .put("lyricsSearchHint", context.getString(R.string.lyrics_search_hint))
+            .put("lyricsSearch", context.getString(R.string.lyrics_search))
+        val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+        val config = JSONObject().put("token", token).put("strings", strings).put("client", client)
         val html = context.assets.open("player/index.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_PLAYER = $config;")
             .replace("/*AAB_THEME*/", themeCss(context))

@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.utils
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceResponse
+import com.fcaronte.aabrowser.BuildConfig
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -54,7 +55,17 @@ internal object RadioApi {
             .put("noResults", appContext.getString(com.fcaronte.aabrowser.R.string.radio_no_results))
             .put("error", appContext.getString(com.fcaronte.aabrowser.R.string.radio_error))
             .put("unavailable", appContext.getString(com.fcaronte.aabrowser.R.string.radio_unavailable))
-        val config = JSONObject().put("token", token).put("country", countryCode).put("strings", strings)
+            .put("lyricsButton", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_button))
+            .put("lyricsLoading", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_loading))
+            .put("lyricsNotFound", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_not_found))
+            .put("lyricsError", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_error))
+            .put("lyricsInstrumental", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_instrumental))
+            .put("lyricsChooseMatch", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_choose_match))
+            .put("lyricsClose", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_close))
+            .put("lyricsSearchHint", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_search_hint))
+            .put("lyricsSearch", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_search))
+        val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+        val config = JSONObject().put("token", token).put("country", countryCode).put("strings", strings).put("client", client)
         val html = appContext.assets.open("player/radio.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_RADIO = $config;")
             .replace("/*AAB_THEME*/", theme)

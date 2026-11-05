@@ -36,6 +36,7 @@
     let order = [];      // indici di lists[queueKind] nell'ordine di riproduzione
     let position = -1;   // posizione in order del brano corrente
     let current = null;
+    let currentLyricsInfo = null;
     let pendingSeek = 0;
     let isSeeking = false;
     let lastStateSave = 0;
@@ -292,9 +293,12 @@
     function showTrack(track, tags) {
         const title = (tags && tags.title) || track.name;
         const artist = (tags && tags.artist) || '';
-        const album = (tags && tags.album) || track.folder || '';
+        const taggedAlbum = (tags && tags.album) || '';
+        const album = taggedAlbum || track.folder || '';
         const artUrl = tags && tags.hasArt ? withToken('/api/art/' + track.id) : '';
 
+        currentLyricsInfo = { title, artist, album: taggedAlbum };
+        byId('lyricsButton').hidden = kindOf(track) !== 'audio' || !title;
         byId('title').textContent = title;
         byId('subtitle').textContent = [artist, album].filter(Boolean).join(' • ');
         document.title = title;
@@ -840,6 +844,16 @@
             if (details && typeof details.seekTime === 'number') media.currentTime = details.seekTime;
         });
     }
+
+    window.createLyricsController(
+        byId('lyricsButton'),
+        media,
+        () => current && queueKind === 'audio' && currentLyricsInfo
+            ? Object.assign({}, currentLyricsInfo, { duration: media.duration, sync: true })
+            : null,
+        config.strings || {},
+        config.client || 'CarWeb (https://github.com/fcaronte/AABrowser)'
+    );
 
     updateToggles();
     loadLibrary(false);

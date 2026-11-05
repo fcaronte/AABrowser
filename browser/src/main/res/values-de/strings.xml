@@ -310,6 +310,15 @@
     <string name="player_effect_bars">Balken</string>
     <string name="player_effect_wave">Welle</string>
     <string name="player_effect_circle">Kreis</string>
+    <string name="lyrics_button">Liedtext</string>
+    <string name="lyrics_loading">Liedtext wird geladen…</string>
+    <string name="lyrics_not_found">Kein Liedtext gefunden.</string>
+    <string name="lyrics_error">Liedtext konnte nicht geladen werden.</string>
+    <string name="lyrics_instrumental">Instrumentalstück.</string>
+    <string name="lyrics_choose_match">Passenden Titel auswählen</string>
+    <string name="lyrics_close">Schließen</string>
+    <string name="lyrics_search_hint">Interpret oder Titel suchen</string>
+    <string name="lyrics_search">Suchen</string>
     <string name="ssl_warning_title">Zertifikat ungültig</string>
     <string name="ssl_warning_message">Das Zertifikat von %1$s ist nicht vertrauenswürdig (selbstsigniert, abgelaufen oder für eine andere Adresse). Fahre nur fort, wenn es dein eigenes Gerät ist, z. B. ein Server in deinem Heimnetz.</string>
     <string name="ssl_warning_message_car">Das Zertifikat von %1$s ist nicht vertrauenswürdig. Fahre nur fort, wenn es dein eigenes Gerät ist.</string>

@@ -312,6 +312,15 @@
     <string name="player_effect_bars">Столбцы</string>
     <string name="player_effect_wave">Волна</string>
     <string name="player_effect_circle">Круг</string>
+    <string name="lyrics_button">Текст песни</string>
+    <string name="lyrics_loading">Загрузка текста песни…</string>
+    <string name="lyrics_not_found">Текст песни не найден.</string>
+    <string name="lyrics_error">Не удалось загрузить текст песни.</string>
+    <string name="lyrics_instrumental">Инструментальная композиция.</string>
+    <string name="lyrics_choose_match">Выберите нужную композицию</string>
+    <string name="lyrics_close">Закрыть</string>
+    <string name="lyrics_search_hint">Поиск по исполнителю или названию</string>
+    <string name="lyrics_search">Найти</string>
     <string name="ssl_warning_title">Недействительный сертификат</string>
     <string name="ssl_warning_message">Сертификат %1$s не является доверенным (самоподписанный, просроченный или выдан для другого адреса). Продолжайте, только если это ваше устройство, например сервер в домашней сети.</string>
     <string name="ssl_warning_message_car">Сертификат %1$s не является доверенным. Продолжайте, только если это ваше устройство.</string>

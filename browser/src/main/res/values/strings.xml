@@ -315,6 +315,15 @@
     <string name="player_effect_bars">Bars</string>
     <string name="player_effect_wave">Wave</string>
     <string name="player_effect_circle">Circle</string>
+    <string name="lyrics_button">Lyrics</string>
+    <string name="lyrics_loading">Loading lyrics…</string>
+    <string name="lyrics_not_found">Lyrics not found.</string>
+    <string name="lyrics_error">Could not load lyrics.</string>
+    <string name="lyrics_instrumental">This track is instrumental.</string>
+    <string name="lyrics_choose_match">Choose a matching track</string>
+    <string name="lyrics_close">Close</string>
+    <string name="lyrics_search_hint">Search artist or title</string>
+    <string name="lyrics_search">Search</string>
     <string name="ssl_warning_title">Certificate not valid</string>
     <string name="ssl_warning_message">The certificate of %1$s is not trusted (self-signed, expired or issued for another address). Continue only if it is your own device, such as a server on your home network.</string>
     <string name="ssl_warning_message_car">The certificate of %1$s is not trusted. Continue only if it is your own device.</string>

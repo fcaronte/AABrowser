@@ -36,10 +36,13 @@ from the misuse of this application. Use at your own risk.
   YouTube playlists and on every site that declares its tracks (Media Session).
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
-  wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
+  wave, circle), lyrics from LRCLIB for local audio, and colors that follow the app theme (light, dark with
+  the phone colors, AMOLED).
 * **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
-  the UK). Search and favorites are available; playback controls are also sent to the Android Auto player.
+  the UK). Search and favorites are available; when stream metadata reports a song title, lyrics are
+  fetched automatically from LRCLIB and shown from the Lyrics button. Radio lyrics are not time-synchronized
+  because a live stream can join midway through a song. Playback controls are also sent to the Android Auto player.
 * **TV in CarWeb Media (new in 2.5):** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username

@@ -73,6 +73,8 @@
 
 \### Radio in CarWeb Media
 
+\- Quando cambia il titolo fornito dallo stream, la pagina cerca automaticamente i testi su LRCLIB e li rende disponibili dal pulsante Testi; i risultati sincronizzati sono mostrati senza evidenziazione temporale perché la riproduzione può iniziare a metà brano.
+\- Se la stazione non invia metadati, il titolo può essere cercato manualmente.
 \- Page `https://player.local/radio` (assets/player/radio.html, radio.js, radio.css), linked beside TV in the local player. Station data and stream selection use Radio-Browser.info; the native API keeps stream URLs out of the page until playback is requested, tracks station clicks, and rejects non-public stream hosts. The country follows the app's explicit locale region, or a language-based default. Search, per-station favorites, HLS playback (using the bundled hls.js), and Android Auto Media Session controls are supported. Verify network/provider compatibility on a real device; some stations may be unavailable or use codecs unsupported by WebView.
 
 \### Media & Audio Handling
@@ -81,7 +83,7 @@
 
 \- \*\*Audio Focus\*\*: Automatically pauses/ducks playback during reverse gear / rear parking camera activation.
 
-\- \*\*Media Player\*\*: Integrated player with options to disable completely or run in the background.
+\- \*\*Media Player\*\*: Integrated player with options to disable completely or run in the background. Local audio tracks can look up plain or synchronized lyrics on LRCLIB using their tags; playback-time highlighting is available for synchronized lyrics.
 
 \### Internationalization (i18n)
 

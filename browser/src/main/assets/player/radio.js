@@ -14,6 +14,8 @@
     let visibleStations = [];
     let current = null;
     let currentTrackTitle = '';
+    let lyricsLookupTimer = null;
+    let lyricsController = null;
     let currentUrl = '';
     let hls = null;
     let metadataTimer = null;
@@ -69,6 +71,7 @@
 
     function showStation(station) {
         byId('title').textContent = station ? (currentTrackTitle || station.name) : (S.title || 'Radio');
+        byId('lyricsButton').hidden = !station;
         byId('subtitle').textContent = station
             ? [station.name, station.country, station.codec].filter(Boolean).join(' · ')
             : '';
@@ -173,6 +176,28 @@
         currentTrackTitle = title;
         showStation(current);
         updateMediaSession(current);
+        clearTimeout(lyricsLookupTimer);
+        const track = getLyricsTrack();
+        lyricsLookupTimer = setTimeout(() => {
+            lyricsController?.autoLookup(track);
+        }, 800);
+    }
+
+    function getLyricsTrack() {
+        if (!current) return null;
+        if (!currentTrackTitle) {
+            return { artist: '', title: '', display: current.name, sync: false };
+        }
+        const parts = currentTrackTitle.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+        return parts
+            ? { artist: parts[1].trim(), title: parts[2].trim(), display: currentTrackTitle, sync: false }
+            : { artist: '', title: currentTrackTitle, display: current.name, sync: false };
+    }
+
+    function resetLyricsLookup() {
+        clearTimeout(lyricsLookupTimer);
+        lyricsLookupTimer = null;
+        lyricsController?.autoLookup(getLyricsTrack());
     }
 
     function decodeId3Text(bytes, offset, end) {
@@ -299,6 +324,7 @@
     async function play(station) {
         current = station;
         currentTrackTitle = '';
+        resetLyricsLookup();
         state.lastUuid = station.uuid;
         saveState();
         showStation(station);
@@ -436,6 +462,14 @@
     media.addEventListener('error', () => {
         if (current) message(S.unavailable || 'Station unavailable');
     });
+
+    lyricsController = window.createLyricsController(
+        byId('lyricsButton'),
+        media,
+        getLyricsTrack,
+        S,
+        config.client || 'CarWeb (https://github.com/fcaronte/AABrowser)'
+    );
 
     if ('mediaSession' in navigator) {
         [['play', () => current && (currentUrl ? media.play() : play(current))],

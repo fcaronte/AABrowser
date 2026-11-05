@@ -311,6 +311,15 @@
     <string name="player_effect_bars">Barras</string>
     <string name="player_effect_wave">Onda</string>
     <string name="player_effect_circle">Círculo</string>
+    <string name="lyrics_button">Letra</string>
+    <string name="lyrics_loading">Cargando letra…</string>
+    <string name="lyrics_not_found">No se encontraron letras.</string>
+    <string name="lyrics_error">No se pudo cargar la letra.</string>
+    <string name="lyrics_instrumental">Tema instrumental.</string>
+    <string name="lyrics_choose_match">Elige la canción correcta</string>
+    <string name="lyrics_close">Cerrar</string>
+    <string name="lyrics_search_hint">Buscar artista o título</string>
+    <string name="lyrics_search">Buscar</string>
     <string name="ssl_warning_title">Certificado no válido</string>
     <string name="ssl_warning_message">El certificado de %1$s no es de confianza (autofirmado, caducado o de otra dirección). Continúa solo si es un dispositivo tuyo, como un servidor de tu red doméstica.</string>
     <string name="ssl_warning_message_car">El certificado de %1$s no es de confianza. Continúa solo si es un dispositivo tuyo.</string>

@@ -309,6 +309,15 @@
     <string name="player_effect_bars">条形</string>
     <string name="player_effect_wave">波形</string>
     <string name="player_effect_circle">圆环</string>
+    <string name="lyrics_button">歌词</string>
+    <string name="lyrics_loading">正在加载歌词…</string>
+    <string name="lyrics_not_found">未找到歌词。</string>
+    <string name="lyrics_error">无法加载歌词。</string>
+    <string name="lyrics_instrumental">纯音乐曲目。</string>
+    <string name="lyrics_choose_match">选择匹配的歌曲</string>
+    <string name="lyrics_close">关闭</string>
+    <string name="lyrics_search_hint">搜索歌手或歌曲名</string>
+    <string name="lyrics_search">搜索</string>
     <string name="ssl_warning_title">证书无效</string>
     <string name="ssl_warning_message">%1$s 的证书不受信任（自签名、已过期或属于其他地址）。仅当它是你自己的设备（例如家庭网络中的服务器）时才继续。</string>
     <string name="ssl_warning_message_car">%1$s 的证书不受信任。仅当它是你自己的设备时才继续。</string>

@@ -310,6 +310,15 @@
     <string name="player_effect_bars">Oszlopok</string>
     <string name="player_effect_wave">Hullám</string>
     <string name="player_effect_circle">Kör</string>
+    <string name="lyrics_button">Dalszöveg</string>
+    <string name="lyrics_loading">Dalszöveg betöltése…</string>
+    <string name="lyrics_not_found">Nem található dalszöveg.</string>
+    <string name="lyrics_error">Nem sikerült betölteni a dalszöveget.</string>
+    <string name="lyrics_instrumental">Instrumentális szám.</string>
+    <string name="lyrics_choose_match">Válaszd ki a megfelelő számot</string>
+    <string name="lyrics_close">Bezárás</string>
+    <string name="lyrics_search_hint">Előadó vagy cím keresése</string>
+    <string name="lyrics_search">Keresés</string>
     <string name="ssl_warning_title">Érvénytelen tanúsítvány</string>
     <string name="ssl_warning_message">A(z) %1$s tanúsítványa nem megbízható (önaláírt, lejárt vagy más címre szól). Csak akkor folytasd, ha a saját eszközöd, például egy otthoni hálózaton lévő szerver.</string>
     <string name="ssl_warning_message_car">A(z) %1$s tanúsítványa nem megbízható. Csak akkor folytasd, ha a saját eszközöd.</string>

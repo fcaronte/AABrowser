@@ -310,6 +310,15 @@
     <string name="player_effect_bars">बार</string>
     <string name="player_effect_wave">तरंग</string>
     <string name="player_effect_circle">वृत्त</string>
+    <string name="lyrics_button">गीत के बोल</string>
+    <string name="lyrics_loading">बोल लोड हो रहे हैं…</string>
+    <string name="lyrics_not_found">बोल नहीं मिले।</string>
+    <string name="lyrics_error">बोल लोड नहीं हो सके।</string>
+    <string name="lyrics_instrumental">वाद्य संगीत।</string>
+    <string name="lyrics_choose_match">सही गाना चुनें</string>
+    <string name="lyrics_close">बंद करें</string>
+    <string name="lyrics_search_hint">कलाकार या शीर्षक खोजें</string>
+    <string name="lyrics_search">खोजें</string>
     <string name="ssl_warning_title">प्रमाणपत्र मान्य नहीं है</string>
     <string name="ssl_warning_message">%1$s का प्रमाणपत्र भरोसेमंद नहीं है (स्व-हस्ताक्षरित, समाप्त या किसी दूसरे पते का)। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो, जैसे घर के नेटवर्क का सर्वर।</string>
     <string name="ssl_warning_message_car">%1$s का प्रमाणपत्र भरोसेमंद नहीं है। केवल तभी जारी रखें जब यह आपका अपना डिवाइस हो।</string>
