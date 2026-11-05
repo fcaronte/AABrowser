@@ -362,4 +362,13 @@
     <string name="tv_unavailable">चैनल उपलब्ध नहीं है</string>
     <string name="tv_source_error">सूची तक नहीं पहुँचा जा सका या पहुँच अस्वीकृत</string>
     <string name="tv_no_results">कोई चैनल नहीं मिला</string>
+    <string name="radio_title">रेडियो</string>
+    <string name="radio_in_country">%1$s में लोकप्रिय स्टेशन</string>
+    <string name="radio_search">स्टेशन खोजें</string>
+    <string name="radio_all_stations">स्टेशन</string>
+    <string name="radio_favorites">पसंदीदा</string>
+    <string name="radio_loading">लोड हो रहा है…</string>
+    <string name="radio_no_results">कोई स्टेशन नहीं मिला</string>
+    <string name="radio_error">रेडियो स्टेशन लोड नहीं हो सके</string>
+    <string name="radio_unavailable">स्टेशन उपलब्ध नहीं है</string>
 </resources>

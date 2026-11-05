@@ -37,6 +37,9 @@ from the misuse of this application. Use at your own risk.
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
   Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle) and colors that follow the app theme (light, dark with the phone colors, AMOLED).
+* **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
+  is chosen from the app language and, when available, its region (for example, English (UK) selects
+  the UK). Search and favorites are available; playback controls are also sent to the Android Auto player.
 * **TV in CarWeb Media (new in 2.5):** your M3U lists (from a URL or an M3U/M3U8 file selected on the phone) and
   Xtream accounts (added in Settings; for Xtream the full link with username and password is enough), with groups, search and favorites; HLS and
   MPEG-TS streams, channel name and logo on the Android Auto player, ⏮ ⏭ to change channel. Addresses and
@@ -196,6 +199,10 @@ proprio rischio e pericolo.
 * **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
+* **Radio in CarWeb Media:** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
+  viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
+  (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; i controlli funzionano
+  anche dal player di Android Auto.
 * **TV in CarWeb Media (novità 2.5):** le tue liste M3U (da URL o da un file M3U/M3U8 scelto sul telefono) e i tuoi
   account Xtream (si aggiungono nelle Impostazioni; per Xtream basta il link completo con utente e password), con gruppi, ricerca e preferiti;
   stream HLS e MPEG-TS, nome e logo del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e

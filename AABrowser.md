@@ -71,6 +71,10 @@
 
 \- Page `https://player.local/tv` (assets/player/tv.html, tv.js, tv.css), reached from the TV button of CarWeb Media. M3U lists can be entered as URLs or selected as local M3U/M3U8 files in Settings on the phone; Xtream accounts are also added there (`IptvSources`, prefs `iptv_sources`, out of the backup). Local files use a persisted Storage Access Framework read grant. For Xtream, server + user + password or the full link that contains them (`XtreamLink`). The app reads the lists (`IptvLibrary`) and proxies every stream (`IptvProxy`): the page only gets random ids, never addresses or credentials (Xtream puts user and password in the stream URL), and HLS playlists are rewritten so segments go through the proxy too. Playback with hls.js (light build) and mpegts.js, Apache 2.0, bundled in assets/player/lib with their licenses. Never log stream addresses.
 
+\### Radio in CarWeb Media
+
+\- Page `https://player.local/radio` (assets/player/radio.html, radio.js, radio.css), linked beside TV in the local player. Station data and stream selection use Radio-Browser.info; the native API keeps stream URLs out of the page until playback is requested, tracks station clicks, and rejects non-public stream hosts. The country follows the app's explicit locale region, or a language-based default. Search, per-station favorites, HLS playback (using the bundled hls.js), and Android Auto Media Session controls are supported. Verify network/provider compatibility on a real device; some stations may be unavailable or use codecs unsupported by WebView.
+
 \### Media & Audio Handling
 
 \- \*\*DRM Support\*\*: Widevine L3 implementation.

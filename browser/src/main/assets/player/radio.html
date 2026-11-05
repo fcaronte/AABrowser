@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Radio</title>
+    <link rel="icon" href="/radio.svg">
+    <link rel="stylesheet" href="/player.css">
+    <link rel="stylesheet" href="/tv.css">
+    <link rel="stylesheet" href="/radio.css">
+    <style>/*AAB_THEME*/</style>
+    <script>/*AAB_CONFIG*/</script>
+</head>
+<body>
+<header class="bar">
+    <a class="icon-button" href="/" aria-label="CarWeb Media">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+    </a>
+    <div class="folder" id="country"></div>
+    <button class="icon-button" id="refresh" aria-label="Refresh">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+</header>
+
+<main class="layout">
+    <section class="now">
+        <div class="stage radio-stage">
+            <audio id="media" preload="none"></audio>
+            <div class="art" id="art">
+                <img id="artImage" alt="">
+                <img class="radio-mark" src="/radio.svg" alt="">
+            </div>
+        </div>
+        <div class="info">
+            <div class="title" id="title">Radio</div>
+            <div class="subtitle" id="subtitle"></div>
+        </div>
+        <div class="controls">
+            <button class="control" id="previous" aria-label="Previous">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+            </button>
+            <button class="control main" id="playToggle" aria-label="Play or pause">
+                <svg class="icon-start" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-stop" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="control" id="next" aria-label="Next">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <button class="control toggle" id="favorite" aria-label="Favorite">
+                <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </button>
+        </div>
+        <div class="message" id="message" hidden></div>
+        <a class="radio-credit" href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser</a>
+    </section>
+
+    <section class="list tv-list radio-list">
+        <div class="tv-tools">
+            <input class="search" id="search" type="search" autocomplete="off">
+            <div class="groups">
+                <button class="group active" id="allStations"></button>
+                <button class="group" id="favoriteStations"></button>
+            </div>
+        </div>
+        <div class="channels" id="channels">
+            <div class="channels-space" id="channelsSpace"></div>
+        </div>
+    </section>
+</main>
+
+<script src="/lib/hls.light.min.js"></script>
+<script src="/radio.js"></script>
+</body>
+</html>

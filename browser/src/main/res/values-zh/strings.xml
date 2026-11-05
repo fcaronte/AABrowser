@@ -361,4 +361,13 @@
     <string name="tv_unavailable">频道不可用</string>
     <string name="tv_source_error">无法访问列表或访问被拒绝</string>
     <string name="tv_no_results">未找到频道</string>
+    <string name="radio_title">收音机</string>
+    <string name="radio_in_country">%1$s 的热门电台</string>
+    <string name="radio_search">搜索电台</string>
+    <string name="radio_all_stations">电台</string>
+    <string name="radio_favorites">收藏</string>
+    <string name="radio_loading">正在加载…</string>
+    <string name="radio_no_results">未找到电台</string>
+    <string name="radio_error">无法加载电台</string>
+    <string name="radio_unavailable">电台不可用</string>
 </resources>

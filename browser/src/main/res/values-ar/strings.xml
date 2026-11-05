@@ -366,4 +366,13 @@
     <string name="tv_unavailable">القناة غير متاحة</string>
     <string name="tv_source_error">تعذر الوصول إلى القائمة أو تم رفض الوصول</string>
     <string name="tv_no_results">لم يتم العثور على قنوات</string>
+    <string name="radio_title">راديو</string>
+    <string name="radio_in_country">محطات شائعة في %1$s</string>
+    <string name="radio_search">البحث عن محطات</string>
+    <string name="radio_all_stations">المحطات</string>
+    <string name="radio_favorites">المفضلة</string>
+    <string name="radio_loading">جارٍ التحميل…</string>
+    <string name="radio_no_results">لم يتم العثور على محطات</string>
+    <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
+    <string name="radio_unavailable">المحطة غير متاحة</string>
 </resources>

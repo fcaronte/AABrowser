@@ -362,4 +362,13 @@
     <string name="tv_unavailable">Sender nicht verfügbar</string>
     <string name="tv_source_error">Liste nicht erreichbar oder Zugriff verweigert</string>
     <string name="tv_no_results">Keine Sender gefunden</string>
+    <string name="radio_title">Radio</string>
+    <string name="radio_in_country">Beliebte Sender in %1$s</string>
+    <string name="radio_search">Sender suchen</string>
+    <string name="radio_all_stations">Sender</string>
+    <string name="radio_favorites">Favoriten</string>
+    <string name="radio_loading">Wird geladen…</string>
+    <string name="radio_no_results">Keine Sender gefunden</string>
+    <string name="radio_error">Radiosender konnten nicht geladen werden</string>
+    <string name="radio_unavailable">Sender nicht verfügbar</string>
 </resources>

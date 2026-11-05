@@ -362,4 +362,13 @@
     <string name="tv_unavailable">A csatorna nem érhető el</string>
     <string name="tv_source_error">A lista nem érhető el, vagy a hozzáférés megtagadva</string>
     <string name="tv_no_results">Nincs találat</string>
+    <string name="radio_title">Rádió</string>
+    <string name="radio_in_country">Népszerű állomások itt: %1$s</string>
+    <string name="radio_search">Állomások keresése</string>
+    <string name="radio_all_stations">Állomások</string>
+    <string name="radio_favorites">Kedvencek</string>
+    <string name="radio_loading">Betöltés…</string>
+    <string name="radio_no_results">Nincs találat</string>
+    <string name="radio_error">Nem sikerült betölteni a rádióállomásokat</string>
+    <string name="radio_unavailable">Az állomás nem érhető el</string>
 </resources>

@@ -367,4 +367,13 @@
     <string name="tv_unavailable">Channel not available</string>
     <string name="tv_source_error">List not reachable or access denied</string>
     <string name="tv_no_results">No channels found</string>
+    <string name="radio_title">Radio</string>
+    <string name="radio_in_country">Popular stations in %1$s</string>
+    <string name="radio_search">Search stations</string>
+    <string name="radio_all_stations">Stations</string>
+    <string name="radio_favorites">Favorites</string>
+    <string name="radio_loading">Loading…</string>
+    <string name="radio_no_results">No stations found</string>
+    <string name="radio_error">Could not load radio stations</string>
+    <string name="radio_unavailable">Station unavailable</string>
 </resources>

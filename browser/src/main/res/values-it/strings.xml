@@ -322,4 +322,13 @@
     <string name="tv_unavailable">Canale non disponibile</string>
     <string name="tv_source_error">Lista non raggiungibile o accesso negato</string>
     <string name="tv_no_results">Nessun canale trovato</string>
+    <string name="radio_title">Radio</string>
+    <string name="radio_in_country">Stazioni popolari in %1$s</string>
+    <string name="radio_search">Cerca stazioni</string>
+    <string name="radio_all_stations">Stazioni</string>
+    <string name="radio_favorites">Preferiti</string>
+    <string name="radio_loading">Caricamento…</string>
+    <string name="radio_no_results">Nessuna stazione trovata</string>
+    <string name="radio_error">Impossibile caricare le stazioni radio</string>
+    <string name="radio_unavailable">Stazione non disponibile</string>
 </resources>

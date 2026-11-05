@@ -364,4 +364,13 @@
     <string name="tv_unavailable">Канал недоступен</string>
     <string name="tv_source_error">Список недоступен или доступ запрещён</string>
     <string name="tv_no_results">Каналы не найдены</string>
+    <string name="radio_title">Радио</string>
+    <string name="radio_in_country">Популярные станции в стране: %1$s</string>
+    <string name="radio_search">Поиск радиостанций</string>
+    <string name="radio_all_stations">Станции</string>
+    <string name="radio_favorites">Избранное</string>
+    <string name="radio_loading">Загрузка…</string>
+    <string name="radio_no_results">Станции не найдены</string>
+    <string name="radio_error">Не удалось загрузить радиостанции</string>
+    <string name="radio_unavailable">Станция недоступна</string>
 </resources>

@@ -363,4 +363,13 @@
     <string name="tv_unavailable">Canal no disponible</string>
     <string name="tv_source_error">Lista no accesible o acceso denegado</string>
     <string name="tv_no_results">No se encontraron canales</string>
+    <string name="radio_title">Radio</string>
+    <string name="radio_in_country">Emisoras populares en %1$s</string>
+    <string name="radio_search">Buscar emisoras</string>
+    <string name="radio_all_stations">Emisoras</string>
+    <string name="radio_favorites">Favoritos</string>
+    <string name="radio_loading">Cargando…</string>
+    <string name="radio_no_results">No se encontraron emisoras</string>
+    <string name="radio_error">No se pudieron cargar las emisoras</string>
+    <string name="radio_unavailable">Emisora no disponible</string>
 </resources>

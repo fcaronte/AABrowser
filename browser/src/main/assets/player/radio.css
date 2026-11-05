@@ -1,0 +1,67 @@
+.radio-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--art-from), var(--art-to));
+}
+
+.radio-stage .art {
+    background: transparent;
+}
+
+.radio-stage #artImage {
+    width: 58%;
+    height: 58%;
+    object-fit: contain;
+}
+
+.radio-stage .radio-mark {
+    display: block;
+    width: 38%;
+    height: 38%;
+    object-fit: contain;
+    opacity: 0.75;
+}
+
+.radio-stage .art.has-art .radio-mark {
+    display: none;
+}
+
+.radio-list .channels-space {
+    min-height: 100%;
+}
+
+.radio-credit {
+    width: fit-content;
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.radio-credit:active {
+    color: var(--accent);
+}
+
+.radio-list .channel img {
+    border-radius: 6px;
+}
+
+.radio-list .channel .details {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.radio-list .channel .name,
+.radio-list .channel .meta {
+    display: block;
+}
+
+.radio-list .channel .meta {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
