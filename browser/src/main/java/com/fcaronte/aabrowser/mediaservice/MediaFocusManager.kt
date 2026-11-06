@@ -33,6 +33,8 @@ object MediaFocusManager {
     private var activeClient: MediaClient? = null
     private var previousClientRef: WeakReference<MediaClient>? = null
     private var previousClientLostAt = 0L
+    private var lastReleasedSource: Source? = null
+    private var lastReleasedAt = 0L
 
     /**
      * Restituisce true se dopo la chiamata il player appartiene a [client].
@@ -73,6 +75,8 @@ object MediaFocusManager {
         if (activeClient === client) {
             AppLog.d(TAG, "Media focus RELEASED by ${client.source}")
             activeClient = null
+            lastReleasedSource = client.source
+            lastReleasedAt = SystemClock.elapsedRealtime()
         }
         if (previousClientRef?.get() === client) {
             previousClientRef = null
@@ -84,4 +88,10 @@ object MediaFocusManager {
 
     @Synchronized
     fun getActiveSource(): Source? = activeClient?.source
+
+    /** [source] ha il player, o lo aveva fino a [withinMs] fa (Android Auto può chiudere la Wide prima di riaprirla). */
+    @Synchronized
+    fun hasOrJustHadPlayer(source: Source, withinMs: Long): Boolean =
+        activeClient?.source == source ||
+                (lastReleasedSource == source && SystemClock.elapsedRealtime() - lastReleasedAt < withinMs)
 }

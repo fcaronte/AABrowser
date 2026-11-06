@@ -82,6 +82,9 @@
     <string name="weather_updating">正在更新…</string>
     <string name="media_player_label">媒体播放器</string>
     <string name="media_player_desc">在 Android Auto 上显示媒体播放器和通知</string>
+    <string name="player_card_main_label">点按播放器时打开 CarWeb</string>
+    <string name="player_card_main_desc">当 Android Auto 菜单中同时有两个应用时，点按播放器会打开 CarWebWide，它会占用已打开的导航的位置。开启后改为打开 CarWeb（CarWebWide 正在播放时除外）。从下次连接 Android Auto 起生效；你也可以在 Android Auto 菜单中隐藏 CarWebWide。</string>
+    <string name="player_card_opening_main">正在打开 CarWeb…</string>
     <string name="media_player_disabled_hint">必须启用媒体播放器才能使用天气小部件</string>
     <string name="weather_permission_toast">请在智能手机上启用定位权限以获取准确的天气信息</string>
     <string name="preload_favorites_label">启动时预加载收藏</string>

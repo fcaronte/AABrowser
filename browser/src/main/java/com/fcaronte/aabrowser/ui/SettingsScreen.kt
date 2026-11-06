@@ -153,6 +153,7 @@ fun SettingsScreen(
     val autoplayMedia by AppSettings.autoplayMedia
     val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
+    val playerCardOpensMain by AppSettings.playerCardOpensMain
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val autoSitePermissions by AppSettings.autoSitePermissions
@@ -387,6 +388,14 @@ fun SettingsScreen(
                                         restartApp()
                                     }
                                 )
+                                if (mediaPlayerEnabled) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.player_card_main_label),
+                                        description = stringResource(R.string.player_card_main_desc),
+                                        checked = playerCardOpensMain,
+                                        onCheckedChange = { AppSettings.setPlayerCardOpensMain(context, it) }
+                                    )
+                                }
                             }
 
                             // Widget Meteo nel Player

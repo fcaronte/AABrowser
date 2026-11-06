@@ -83,6 +83,9 @@
     <string name="weather_updating">Sto aggiornando…</string>
     <string name="media_player_label">Player Multimediale</string>
     <string name="media_player_desc">Mostra player e notifiche media su Android Auto</string>
+    <string name="player_card_main_label">Il tocco sul player apre CarWeb</string>
+    <string name="player_card_main_desc">Con entrambe le app nel menu di Android Auto, il tocco sul player apre CarWebWide, che prende il posto del navigatore aperto. Attivala per aprire CarWeb, tranne quando sta suonando CarWebWide. Vale dalla prossima connessione ad Android Auto; in alternativa puoi nascondere CarWebWide dal menu di Android Auto.</string>
+    <string name="player_card_opening_main">Apro CarWeb…</string>
     <string name="media_player_disabled_hint">Il player deve essere attivo per usare il widget meteo</string>
     <string name="weather_permission_toast">Attiva il permesso di localizzazione sullo smartphone per il meteo accurato</string>
     <string name="preload_favorites_label">Precarica schede preferiti all\'avvio</string>

@@ -131,6 +131,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         const val HOME = "about:home"
         var isWideResumed = false
             internal set
+        private var resumedAt = 0L
+        private const val IN_USE_MS = 1_000L
+
+        /** La Wide era già davanti da un po': non è stato un tocco sul player a portarla lì. */
+        fun isInUse(): Boolean = isWideResumed && SystemClock.elapsedRealtime() - resumedAt > IN_USE_MS
         private var activeInstanceRef: java.lang.ref.WeakReference<WideScreen>? = null
         var activeInstance: WideScreen?
             get() = activeInstanceRef?.get()
@@ -362,6 +367,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
+                resumedAt = SystemClock.elapsedRealtime()
                 mediaSessionManager.setWideActive(true)
             }
 

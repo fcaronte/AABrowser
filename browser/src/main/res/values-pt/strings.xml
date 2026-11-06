@@ -115,6 +115,9 @@
     <string name="force_english_label">Forçar o idioma inglês</string>
     <string name="media_player_label">Reprodutor de mídia</string>
     <string name="media_player_desc">Mostrar reprodutor de mídia e notificações no Android Auto</string>
+    <string name="player_card_main_label">Tocar no reprodutor abre o CarWeb</string>
+    <string name="player_card_main_desc">Com os dois apps no menu do Android Auto, tocar no reprodutor abre o CarWebWide, que toma o lugar do navegador aberto. Ative para abrir o CarWeb, exceto quando o CarWebWide estiver tocando. Vale a partir da próxima conexão ao Android Auto; você também pode ocultar o CarWebWide no menu do Android Auto.</string>
+    <string name="player_card_opening_main">Abrindo o CarWeb…</string>
     <string name="media_player_disabled_hint">O reprodutor de mídia deve estar ativado para usar o widget de clima</string>
     <string name="force_english_desc">Utilizar sempre inglês independentemente do idioma do sistema</string>
     <string name="search_engine_label">Motor de pesquisa predefinido</string>

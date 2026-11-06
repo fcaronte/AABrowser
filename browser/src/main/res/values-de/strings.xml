@@ -82,6 +82,9 @@
     <string name="weather_updating">Wird aktualisiert…</string>
     <string name="media_player_label">Mediaplayer</string>
     <string name="media_player_desc">Mediaplayer und Benachrichtigungen auf Android Auto anzeigen</string>
+    <string name="player_card_main_label">Tippen auf den Player öffnet CarWeb</string>
+    <string name="player_card_main_desc">Mit beiden Apps im Android-Auto-Menü öffnet ein Tippen auf den Player CarWebWide, das den Platz der geöffneten Navigation einnimmt. Aktiviere dies, um stattdessen CarWeb zu öffnen, außer wenn CarWebWide gerade spielt. Gilt ab der nächsten Android-Auto-Verbindung; du kannst CarWebWide auch im Android-Auto-Menü ausblenden.</string>
+    <string name="player_card_opening_main">CarWeb wird geöffnet…</string>
     <string name="media_player_disabled_hint">Der Mediaplayer muss aktiviert sein, um das Wetter-Widget zu nutzen</string>
     <string name="weather_permission_toast">Bitte aktivieren Sie die Standortberechtigung auf Ihrem Smartphone für genaues Wetter</string>
     <string name="preload_favorites_label">Favoriten beim Start vorab laden</string>

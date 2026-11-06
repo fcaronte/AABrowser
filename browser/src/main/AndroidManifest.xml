@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
     <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
+    <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" />
     <uses-permission
         android:name="android.permission.READ_PHONE_STATE"
         tools:node="remove" />
@@ -87,6 +88,23 @@
                 <category android:name="com.google.android.gms.car.category.CATEGORY_PROJECTION" />
                 <category android:name="com.google.android.gms.car.category.CATEGORY_PROJECTION_OEM" />
             </intent-filter>
+        </service>
+
+        <!-- Con l'opzione "Il tocco sul player apre CarWeb" (PlayerCard): il tocco sul player di Android Auto arriva a
+             questa app di categoria media, che apre la Main senza toccare lo spazio del navigatore. Altrimenti è spenta -->
+        <service
+            android:name=".car.CarServicePlayerCard"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/service_name"
+            tools:ignore="ExportedService">
+            <intent-filter android:priority="1">
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.MEDIA" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.car.app.minCarApiLevel"
+                android:value="5" />
         </service>
 
         <service
