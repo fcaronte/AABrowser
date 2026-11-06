@@ -28,11 +28,12 @@ from the misuse of this application. Use at your own risk.
 
 * **Two apps on Android Auto:** **CarWeb**, the full browser with tabs, and **CarWebWide
   (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
-  or the app menu, with a fixed side menu. *Limits set by Android Auto for this kind of app:* only the
+  or the app menu, with a fixed side menu whose size you choose on its home. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar).
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing. With both apps
-  in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead.
+  in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead (it adds a
+  CarWeb Player icon to that menu, which must not be hidden).
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
@@ -49,9 +50,10 @@ from the misuse of this application. Use at your own risk.
 * **TV in CarWeb Media (new in 2.5):** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username
-  and password is enough). Groups, search and favorites; HLS and MPEG-TS streams, channel name and logo on the
-  Android Auto player, ⏮ ⏭ to change channel. Addresses and passwords stay on the phone (not in the backup).
-  Channels with AC3/E-AC3 audio may play without sound (WebView limit).
+  and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
+  streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
+  to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
+  play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
   tab bar and the navigation menu of CarWeb, at the top right of the Widescreen).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
@@ -206,13 +208,14 @@ proprio rischio e pericolo.
 
 * **Due app su Android Auto:** **CarWeb**, il browser completo con le schede, e **CarWebWide
   (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
-  o al menu delle app, con il menu laterale fisso. *Limiti imposti da Android Auto a questo tipo di app:*
+  o al menu delle app, con il menu laterale fisso, di cui scegli la dimensione dalla sua home. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento).
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session). Con le due app nel
-  menu di Android Auto il tocco sul player apre CarWebWide: un'opzione nelle Impostazioni apre invece CarWeb.
+  menu di Android Auto il tocco sul player apre CarWebWide: un'opzione nelle Impostazioni apre invece CarWeb (aggiunge a
+  quel menu l'icona CarWeb Player, da non nascondere).
 * **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, ricerca, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
@@ -227,9 +230,11 @@ proprio rischio e pericolo.
 * **TV in CarWeb Media (novità 2.5):** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni; per Xtream
-  basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS e MPEG-TS, nome e logo
-  del canale sul player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono
-  (fuori dal backup). I canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView).
+  basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
+  traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
+  player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I
+  canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
+  sono supportati.
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
   2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di

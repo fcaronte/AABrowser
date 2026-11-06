@@ -35,7 +35,7 @@
 
 \- \*\*Logging\*\*: Uses custom \`AppLog\` utility to strip/sanitize sensitive user data from logs prior to export or sharing
 
-\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`)
+\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`, its APK handler resolved from the intent, not a hard-coded activity)
 
 \---
 
@@ -69,7 +69,7 @@
 
 \### TV in CarWeb Media (2.5)
 
-\- Page `https://player.local/tv` (assets/player/tv.html, tv.js, tv.css), reached from the TV button of CarWeb Media. `IptvSources` adds the IPTV-org language playlist automatically as the first, non-removable source (`languages/<ISO-639-3>.m3u`, selected from the app locale); unsupported languages use `index.m3u`. User M3U lists can be entered as URLs or selected as local M3U/M3U8 files in Settings on the phone; Xtream accounts are also added there (`iptv_sources`, out of the backup). Local files use a persisted Storage Access Framework read grant. For Xtream, server + user + password or the full link that contains them (`XtreamLink`). The app reads the lists (`IptvLibrary`) and proxies every stream (`IptvProxy`): the page only gets random ids, never addresses or credentials (Xtream puts user and password in the stream URL), and HLS playlists are rewritten so segments go through the proxy too. Playback with hls.js (light build) and mpegts.js, Apache 2.0, bundled in assets/player/lib with their licenses. Never log stream addresses.
+\- Page `https://player.local/tv` (assets/player/tv.html, tv.js, tv.css), reached from the TV button of CarWeb Media. `IptvSources` adds the IPTV-org language playlist automatically as the first, non-removable source (`languages/<ISO-639-3>.m3u`, selected from the app locale); unsupported languages use `index.m3u`. User M3U lists can be entered as URLs or selected as local M3U/M3U8 files in Settings on the phone; Xtream accounts are also added there (`iptv_sources`, out of the backup). Local files use a persisted Storage Access Framework read grant. For Xtream, server + user + password or the full link that contains them (`XtreamLink`). The app reads the lists (`IptvLibrary`) and proxies every stream (`IptvProxy`): the page only gets random ids, never addresses or credentials (Xtream puts user and password in the stream URL), and HLS playlists are rewritten so segments go through the proxy too. Playback with hls.js (full build: the light one has no separate audio tracks, about a third of the channels) and mpegts.js, Apache 2.0, bundled in assets/player/lib with their licenses. Headers asked by the lists (`#EXTVLCOPT`, `#EXTHTTP`, `#KODIPROP`, `url|User-Agent=…`, `IptvHeaders`) go with the proxied requests, segments included. DASH is not supported (most listed `.mpd` no longer answer). Never log stream addresses.
 
 \### Radio in CarWeb Media
 
@@ -84,7 +84,7 @@
 
 \### Player Card Tap
 
-\- Android Auto manda il tocco sulla scheda del player a un'app del pacchetto tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" abilita `CarServicePlayerCard` (categoria media, `car/PlayerCard.kt`), che apre la Main e si chiude; se il tocco arriva comunque alla Wide, `WideSession` passa alla Main e chiude la Wide una volta.
+\- Android Auto manda il tocco sulla scheda del player a un'app del pacchetto tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" abilita `CarServicePlayerCard` (categoria IOT, `car/PlayerCard.kt`), che apre la Main e si chiude; mai categoria media, perché Android Auto ci collega il suo player al posto di `CarMediaService`, che resta vuoto. Se il tocco arriva comunque alla Wide, `WideSession` passa alla Main e chiude la Wide una volta.
 
 \### Media & Audio Handling
 
