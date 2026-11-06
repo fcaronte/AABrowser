@@ -13,6 +13,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
@@ -23,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -36,6 +40,7 @@ object UpdateManager {
     private const val NETWORK_TIMEOUT_MS = 15_000
     private const val CHANNEL_ID = "com.fcaronte.aabrowser.updates"
     private const val NOTIFICATION_ID = 1001
+    private const val READY_NOTIFICATION_ID = 1002
 
     const val ACTION_START_UPDATE_DOWNLOAD = "com.fcaronte.aabrowser.START_UPDATE_DOWNLOAD"
     const val EXTRA_DOWNLOAD_URL = "extra_download_url"
@@ -45,6 +50,8 @@ object UpdateManager {
     private const val PREFS_NAME = "app_updates"
     private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
     private const val KEY_PENDING_APK_PATH = "pending_apk_path"
+    private const val KEY_LAST_DOWNLOAD_ID = "last_download_id"
+    private const val STAGED_APK_PREFIX = "CarWeb-update-"
 
     // Build di debug, "Test aggiornamento": l'app si comporta come se fosse installata questa versione
     private const val KEY_TEST_OLD_VERSION = "test_old_version"
@@ -75,6 +82,8 @@ object UpdateManager {
 
     suspend fun checkForUpdates(context: Context): UpdateInfo {
         return withContext(Dispatchers.IO) {
+            // L'app è ripartita: se c'era un aggiornamento pronto da installare, o è fatto o si ricomincia
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(READY_NOTIFICATION_ID)
             try {
                 val url = URL(REPO_URL)
                 val connection = url.openConnection() as HttpURLConnection
@@ -167,13 +176,13 @@ object UpdateManager {
 
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-            // 1. Rimuovi vecchio download da DownloadManager se ancora registrato
-            val oldDownloadId = prefs.getLong(KEY_PENDING_DOWNLOAD_ID, -1L)
-            if (oldDownloadId != -1L) {
+            // 1. Rimuovi i download precedenti da DownloadManager (e i loro file): quello completato resta nei Download
+            // finché non ne parte un altro, per poterlo aprire a mano
+            listOf(KEY_PENDING_DOWNLOAD_ID, KEY_LAST_DOWNLOAD_ID).map { prefs.getLong(it, -1L) }.filter { it != -1L }.forEach { oldId ->
                 try {
-                    downloadManager.remove(oldDownloadId)
+                    downloadManager.remove(oldId)
                 } catch (e: Exception) {
-                    AppLog.w(TAG, "Impossibile rimuovere vecchio download ID $oldDownloadId: ${e.message}")
+                    AppLog.w(TAG, "Impossibile rimuovere vecchio download ID $oldId: ${e.message}")
                 }
             }
 
@@ -232,6 +241,7 @@ object UpdateManager {
         }
     }
 
+    /** Da un thread di lavoro: copia e controllo di un APK da 60 MB non vanno fatti sul thread principale. */
     fun handleDownloadComplete(context: Context, downloadId: Long) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val pendingId = prefs.getLong(KEY_PENDING_DOWNLOAD_ID, -2L)
@@ -244,75 +254,82 @@ object UpdateManager {
         prefs.edit()
             .remove(KEY_PENDING_DOWNLOAD_ID)
             .remove(KEY_PENDING_APK_PATH)
+            .putLong(KEY_LAST_DOWNLOAD_ID, downloadId)
             .apply()
 
         val downloadManager =
             context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val query = DownloadManager.Query().setFilterById(downloadId)
-        val cursor = downloadManager.query(query)
-
-        if (cursor != null && cursor.moveToFirst()) {
-            val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-            if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                // DownloadManager's public Downloads path may not be readable under scoped storage.
-                // Stage its content URI in app-private cache before inspecting the APK.
-                val apkFile = stageDownloadedApk(context, downloadManager, downloadId)
-                val apkUri: Uri? = apkFile?.let { file ->
-                    if (!isValidUpdate(context, file)) {
-                        file.delete()
-                        null
-                    } else {
-                        try {
-                            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                        } catch (e: Exception) {
-                            file.delete()
-                            AppLog.e(TAG, "FileProvider URI error: ${e.message}", e)
-                            null
-                        }
-                    }
-                }
-
-                if (apkUri != null) {
-                    launchKingInstaller(context, apkUri)
-                } else {
-                    Toast.makeText(context, context.getString(R.string.update_invalid_apk), Toast.LENGTH_LONG).show()
-                }
-            } else {
-                AppLog.e(TAG, "Download finished but status was not successful")
-            }
-            cursor.close()
+        if (!isDownloadSuccessful(downloadManager, downloadId)) {
+            Log.w(TAG, "Update: the download did not finish successfully")
+            showToast(context, R.string.update_download_failed)
+            return
         }
+
+        // Il file nei Download pubblici può non essere leggibile col suo percorso (spazio di archiviazione a
+        // compartimenti, o un file rimasto con lo stesso nome): si controlla una copia privata presa dal DownloadManager
+        val apkFile = stageDownloadedApk(context, downloadManager, downloadId)
+        if (apkFile == null) {
+            showToast(context, R.string.update_unreadable)
+            return
+        }
+        val problem = updateProblem(context, apkFile)
+        if (problem != null) {
+            apkFile.delete()
+            showToast(context, problem)
+            return
+        }
+        val apkUri = try {
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
+        } catch (e: Exception) {
+            apkFile.delete()
+            Log.w(TAG, "Update: no address for the checked file: ${e.javaClass.simpleName}")
+            showToast(context, R.string.update_unreadable)
+            return
+        }
+        Log.d(TAG, "Update: checked, handing it to KingInstaller")
+        showReadyNotification(context, apkUri)
+        launchKingInstaller(context, apkUri)
     }
 
-    private fun stageDownloadedApk(context: Context, downloadManager: DownloadManager, downloadId: Long): File? {
-        val downloadUri = downloadManager.getUriForDownloadedFile(downloadId)
-        if (downloadUri == null) {
-            AppLog.e(TAG, "DownloadManager returned no URI for completed download $downloadId")
-            return null
+    private fun isDownloadSuccessful(downloadManager: DownloadManager, downloadId: Long): Boolean =
+        downloadManager.query(DownloadManager.Query().setFilterById(downloadId))?.use { cursor ->
+            val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+            cursor.moveToFirst() && statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL
+        } == true
+
+    private fun localFileOf(downloadManager: DownloadManager, downloadId: Long): File? =
+        downloadManager.query(DownloadManager.Query().setFilterById(downloadId))?.use { cursor ->
+            val index = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
+            if (cursor.moveToFirst() && index != -1) cursor.getString(index)?.toUri()?.path?.let(::File) else null
         }
+
+    private fun stageDownloadedApk(context: Context, downloadManager: DownloadManager, downloadId: Long): File? {
+        // Le copie degli aggiornamenti precedenti: KingInstaller ha già finito con loro
+        context.cacheDir.listFiles { file -> file.name.startsWith(STAGED_APK_PREFIX) }?.forEach { it.delete() }
 
         val stagedFile = try {
-            File.createTempFile("CarWeb-update-$downloadId-", ".apk", context.cacheDir)
+            File.createTempFile("$STAGED_APK_PREFIX$downloadId-", ".apk", context.cacheDir)
         } catch (e: Exception) {
-            AppLog.e(TAG, "Cannot create a private staging file for the update: ${e.javaClass.simpleName}", e)
+            Log.w(TAG, "Update: no private copy possible: ${e.javaClass.simpleName}")
             return null
         }
-
-        return try {
-            val input = context.contentResolver.openInputStream(downloadUri)
-                ?: throw IllegalStateException("DownloadManager URI could not be opened")
-            input.use { source ->
-                stagedFile.outputStream().use { destination -> source.copyTo(destination) }
+        // Prima l'indirizzo del DownloadManager, poi il percorso del file
+        val sources = listOf<() -> InputStream?>(
+            { downloadManager.getUriForDownloadedFile(downloadId)?.let { context.contentResolver.openInputStream(it) } },
+            { localFileOf(downloadManager, downloadId)?.inputStream() }
+        )
+        for (source in sources) {
+            try {
+                val input = source() ?: continue
+                input.use { from -> stagedFile.outputStream().use { to -> from.copyTo(to) } }
+                if (stagedFile.length() > 0L) return stagedFile
+                Log.w(TAG, "Update: the downloaded file is empty")
+            } catch (e: Exception) {
+                Log.w(TAG, "Update: downloaded file not readable: ${e.javaClass.simpleName}")
             }
-            if (stagedFile.length() == 0L) {
-                throw IllegalStateException("Downloaded APK is empty")
-            }
-            stagedFile
-        } catch (e: Exception) {
-            stagedFile.delete()
-            AppLog.e(TAG, "Cannot stage downloaded APK: ${e.javaClass.simpleName}", e)
-            null
         }
+        stagedFile.delete()
+        return null
     }
 
     /** Indirizzo di un APK delle release di AABrowser su GitHub, letto come indirizzo e non come testo. */
@@ -323,36 +340,43 @@ object UpdateManager {
     }
 
     /**
-     * Stesso pacchetto, stessa firma dell'app installata e versione più nuova (il test di debug salta solo
-     * quest'ultimo controllo, così una release più vecchia arriva fino a KingInstaller).
+     * null se è un aggiornamento valido, altrimenti il messaggio da mostrare: stesso pacchetto, stessa firma dell'app
+     * installata e versione più nuova (il test di debug salta solo quest'ultimo controllo, così una release più vecchia
+     * arriva fino a KingInstaller). Il motivo finisce nel log anche nelle release: senza non si capisce mai cosa è successo.
      */
-    private fun isValidUpdate(context: Context, apkFile: File): Boolean = try {
+    private fun updateProblem(context: Context, apkFile: File): Int? = try {
         val pm = context.packageManager
         val apk = pm.getPackageArchiveInfo(apkFile.absolutePath, PackageManager.GET_SIGNING_CERTIFICATES)
         val installed = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
         val apkSigners = apk?.let(::signers).orEmpty()
         when {
             apk == null -> {
-                AppLog.e(TAG, "PackageManager could not parse the staged APK")
-                false
+                Log.w(TAG, "Update: Android cannot read the APK (${apkFile.length()} bytes)")
+                R.string.update_unreadable
             }
             apk.packageName != context.packageName -> {
-                AppLog.e(TAG, "Downloaded APK is not CarWeb: not installing")
-                false
+                Log.w(TAG, "Update: the APK is another app")
+                R.string.update_invalid_apk
             }
             apkSigners.isEmpty() || apkSigners != signers(installed) -> {
-                AppLog.e(TAG, "Downloaded APK is signed with another key: not installing")
-                false
+                Log.w(TAG, "Update: the APK has another signature (signers: ${apkSigners.size})")
+                R.string.update_invalid_apk
             }
             apk.longVersionCode <= installed.longVersionCode && !isTestingOldVersion(context) -> {
-                AppLog.e(TAG, "Downloaded APK is not newer (${apk.longVersionCode} <= ${installed.longVersionCode})")
-                false
+                Log.w(TAG, "Update: the APK is not newer (${apk.longVersionCode} <= ${installed.longVersionCode})")
+                R.string.update_not_newer
             }
-            else -> true
+            else -> null
         }
     } catch (e: Exception) {
-        AppLog.w(TAG, "Cannot read the downloaded APK: ${e.javaClass.simpleName}")
-        false
+        Log.w(TAG, "Update: the APK could not be checked: ${e.javaClass.simpleName}")
+        R.string.update_unreadable
+    }
+
+    private fun showToast(context: Context, message: Int) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, context.getString(message), Toast.LENGTH_LONG).show()
+        }
     }
 
     // Impronte SHA-256 dei certificati con cui è firmato il contenuto dell'APK
@@ -361,36 +385,65 @@ object UpdateManager {
             MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).joinToString("") { "%02x".format(it) }
         }.toSet()
 
-    fun launchKingInstaller(context: Context, apkUri: Uri) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(apkUri, "application/vnd.android.package-archive")
-            setClassName(KING_INSTALLER_PACKAGE, "$KING_INSTALLER_PACKAGE.MainActivity")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+    // Chi gestisce gli APK in KingInstaller lo dice lui (ApkHandler nella 2.6): MainActivity è solo il suo schermo principale
+    private fun installerIntent(apkUri: Uri): Intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(apkUri, "application/vnd.android.package-archive")
+        setPackage(KING_INSTALLER_PACKAGE)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
 
+    fun launchKingInstaller(context: Context, apkUri: Uri) {
         try {
-            AppLog.d(TAG, "Opening KingInstaller ($KING_INSTALLER_PACKAGE.MainActivity) for URI: $apkUri")
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            AppLog.w(TAG, "MainActivity component not found, trying general package intent...")
-            val genericIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(apkUri, "application/vnd.android.package-archive")
-                setPackage(KING_INSTALLER_PACKAGE)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            context.startActivity(installerIntent(apkUri))
+        } catch (_: ActivityNotFoundException) {
+            AppLog.w(TAG, "No APK handler declared, trying MainActivity")
             try {
-                context.startActivity(genericIntent)
-            } catch (ex: Exception) {
-                AppLog.e(TAG, "KingInstaller ($KING_INSTALLER_PACKAGE) not installed", ex)
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.kinginstaller_not_found),
-                    Toast.LENGTH_LONG
-                ).show()
+                context.startActivity(installerIntent(apkUri).setClassName(KING_INSTALLER_PACKAGE, "$KING_INSTALLER_PACKAGE.MainActivity"))
+            } catch (e: Exception) {
+                Log.w(TAG, "Update: KingInstaller not found: ${e.javaClass.simpleName}")
+                showToast(context, R.string.kinginstaller_not_found)
             }
         } catch (e: Exception) {
-            AppLog.e(TAG, "Error opening KingInstaller: ${e.message}", e)
+            Log.w(TAG, "Update: KingInstaller not opened: ${e.javaClass.simpleName}")
         }
+    }
+
+    private fun createChannel(notificationManager: NotificationManager) {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "App Updates",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Notifications for new app versions"
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    /**
+     * Aggiornamento controllato, pronto da installare. A download finito l'app può non essere davanti (si è passati ad
+     * altro, o si è in auto) e allora Android non le fa aprire KingInstaller, senza errori: con la notifica si apre da lì.
+     */
+    private fun showReadyNotification(context: Context, apkUri: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        createChannel(notificationManager)
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, installerIntent(apkUri),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(context.getString(R.string.update_ready_title))
+            .setContentText(context.getString(R.string.update_ready_text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+        notificationManager.notify(READY_NOTIFICATION_ID, notification)
     }
 
     fun showUpdateNotification(context: Context, info: UpdateInfo) {
@@ -407,16 +460,9 @@ object UpdateManager {
             }
         }
 
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "App Updates",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notifications for new app versions"
-        }
-        notificationManager.createNotificationChannel(channel)
+        createChannel(notificationManager)
 
-        val intent = Intent(context, UpdateDownloadReceiver::class.java).apply {
+        val intent = Intent(context, UpdateStartReceiver::class.java).apply {
             action = ACTION_START_UPDATE_DOWNLOAD
             putExtra(EXTRA_DOWNLOAD_URL, info.downloadUrl)
             putExtra(EXTRA_VERSION, info.latestVersion)

@@ -175,6 +175,10 @@
     <string name="update_download_started">Update-Download gestartet</string>
     <string name="update_download_failed">Herunterladen des Updates fehlgeschlagen</string>
     <string name="update_invalid_apk">Das heruntergeladene Update ist für diese App nicht gültig und wurde nicht installiert</string>
+    <string name="update_not_newer">Diese oder eine neuere Version ist bereits installiert</string>
+    <string name="update_unreadable">Das heruntergeladene Update konnte nicht gelesen werden: Öffne es unter Downloads mit KingInstaller</string>
+    <string name="update_ready_title">CarWeb-Update bereit</string>
+    <string name="update_ready_text">Tippen, um es mit KingInstaller zu installieren</string>
     <string name="kinginstaller_not_found">KingInstaller nicht gefunden! Update abgebrochen, um die Android Auto-Sichtbarkeit zu wahren.</string>
 
     <string name="settings_footer_github">GitHub-Projekt</string>

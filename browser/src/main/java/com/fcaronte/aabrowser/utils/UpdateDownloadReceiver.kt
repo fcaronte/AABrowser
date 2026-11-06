@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import kotlin.concurrent.thread
 
 class UpdateDownloadReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -15,7 +16,16 @@ class UpdateDownloadReceiver : BroadcastReceiver() {
             DownloadManager.ACTION_DOWNLOAD_COMPLETE -> {
                 val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
                 if (downloadId != -1L) {
-                    UpdateManager.handleDownloadComplete(context, downloadId)
+                    // Un APK da 60 MB da copiare e controllare: non sul thread principale
+                    val pending = goAsync()
+                    val appContext = context.applicationContext
+                    thread {
+                        try {
+                            UpdateManager.handleDownloadComplete(appContext, downloadId)
+                        } finally {
+                            pending.finish()
+                        }
+                    }
                 }
             }
         }

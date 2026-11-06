@@ -175,6 +175,10 @@
     <string name="update_download_started">Descarregamento da atualização iniciado</string>
     <string name="update_download_failed">Falha ao descarregar a atualização</string>
     <string name="update_invalid_apk">A atualização transferida não é válida para esta app: não foi instalada</string>
+    <string name="update_not_newer">Esta versão ou uma mais recente já está instalada</string>
+    <string name="update_unreadable">Não foi possível ler a atualização baixada: abra-a em Downloads com o KingInstaller</string>
+    <string name="update_ready_title">Atualização do CarWeb pronta</string>
+    <string name="update_ready_text">Toque para instalar com o KingInstaller</string>
     <string name="kinginstaller_not_found">KingInstaller não encontrado! Atualização cancelada para manter a visibilidade no Android Auto.</string>
 
     <string name="settings_footer_github">Projeto GitHub</string>
