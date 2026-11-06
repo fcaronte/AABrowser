@@ -24,6 +24,9 @@ object IptvLibrary {
 
     /** [groups]: nomi dei gruppi, nell'ordine della lista ("" = canali senza gruppo). */
     class Lineup(val groups: List<String>, val channels: List<Channel>, private val loadedAt: Long) {
+        /** Nomi pronti per la ricerca, nell'ordine di [channels]: si calcolano alla prima ricerca e poi restano. */
+        val searchKeys: List<MediaMatcher.Key> by lazy { channels.map { MediaMatcher.key(it.name) } }
+
         private val byKey: Map<String, Channel> by lazy { channels.associateBy { it.key } }
 
         fun channel(key: String?): Channel? = key?.let { byKey[it] }

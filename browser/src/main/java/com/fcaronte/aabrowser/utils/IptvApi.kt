@@ -7,7 +7,6 @@ import com.fcaronte.aabrowser.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
-import java.text.Normalizer
 
 /**
  * TV di CarWeb Media (https://player.local/tv): la pagina e le sue richieste di dati (gruppi, canali, avvio di un
@@ -18,7 +17,6 @@ internal object IptvApi {
     private const val TAG = "IptvApi"
     private const val MAX_SEARCH_RESULTS = 300
     private const val MAX_GROUP_CHANNELS = 20_000
-    private val COMBINING_MARKS = Regex("\\p{M}+")
 
     fun page(context: Context, token: String, theme: String): WebResourceResponse {
         val strings = JSONObject()
@@ -85,28 +83,38 @@ internal object IptvApi {
         return json(JSONObject().put("groups", groups).put("total", lineup.channels.size))
     }
 
-    // Un gruppo, o la ricerca per nome su tutta la lista (senza maiuscole e accenti)
+    // Un gruppo, o la ricerca per nome su tutta la lista (MediaMatcher), dal canale più simile; "m" e "confident" dicono
+    // alla pagina se il primo è abbastanza sicuro da partire da solo (comandi vocali)
     private fun channels(lineup: IptvLibrary.Lineup, url: Uri): WebResourceResponse {
-        val query = normalize(url.getQueryParameter("q").orEmpty().trim())
+        val query = url.getQueryParameter("q").orEmpty().trim()
         val group = url.getQueryParameter("group")?.toIntOrNull()
-        val selected = when {
-            query.isNotEmpty() -> lineup.channels.asSequence()
-                .filter { normalize(it.name).contains(query) }
-                .take(MAX_SEARCH_RESULTS)
-            group != null -> lineup.channels.asSequence().filter { it.group == group }.take(MAX_GROUP_CHANNELS)
-            else -> emptySequence()
-        }
         val channels = JSONArray()
-        selected.forEach { channel ->
+        fun add(channel: IptvLibrary.Channel, score: Int?) {
             channels.put(
                 JSONObject()
                     .put("k", channel.key)
                     .put("n", channel.name)
                     .put("l", channel.logo ?: JSONObject.NULL)
                     .put("g", lineup.groups[channel.group])
+                    .apply { if (score != null) put("m", score) }
             )
         }
-        return json(JSONObject().put("channels", channels))
+        when {
+            query.isNotEmpty() -> {
+                val key = MediaMatcher.key(query)
+                lineup.channels.indices.asSequence()
+                    .map { it to MediaMatcher.score(key, lineup.searchKeys[it]) }
+                    .filter { it.second > 0 }
+                    .sortedByDescending { it.second }
+                    .take(MAX_SEARCH_RESULTS)
+                    .forEach { (index, score) -> add(lineup.channels[index], score) }
+            }
+            group != null -> lineup.channels.asSequence()
+                .filter { it.group == group }
+                .take(MAX_GROUP_CHANNELS)
+                .forEach { add(it, null) }
+        }
+        return json(JSONObject().put("channels", channels).put("confident", MediaMatcher.CONFIDENT))
     }
 
     private fun play(lineup: IptvLibrary.Lineup, url: Uri): WebResourceResponse {
@@ -114,9 +122,6 @@ internal object IptvApi {
         val kind = IptvProxy.kindOf(channel.url)
         return json(JSONObject().put("url", IptvProxy.proxyPath(channel.url)).put("kind", kind))
     }
-
-    private fun normalize(text: String): String =
-        Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
 
     private fun json(value: JSONObject): WebResourceResponse =
         response(value.toString().toByteArray(Charsets.UTF_8), "application/json", 200, mapOf("Cache-Control" to "no-store"))
