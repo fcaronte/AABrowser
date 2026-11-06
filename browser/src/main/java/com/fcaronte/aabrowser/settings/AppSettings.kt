@@ -89,6 +89,11 @@ object AppSettings {
     private val _wideSidebarFixed = mutableStateOf(true)
     val wideSidebarFixed: State<Boolean> = _wideSidebarFixed
 
+    // Dimensione del menu fisso della Wide, in percentuale: con schermi piccoli occupa troppo spazio
+    val wideSidebarSizes = listOf(60, 70, 80, 90, 100, 115, 130)
+    private val _wideSidebarSize = mutableStateOf(100)
+    val wideSidebarSize: State<Int> = _wideSidebarSize
+
     private val _fabLocation = mutableStateOf(FABLocation.BOTTOM_RIGHT)
     val fabLocation: State<FABLocation> = _fabLocation
 
@@ -185,6 +190,7 @@ object AppSettings {
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
         _wideSidebarFixed.value = prefs.getBoolean("wide_sidebar_fixed", true)
+        _wideSidebarSize.value = prefs.getInt("wide_sidebar_size", 100).takeIf { it in wideSidebarSizes } ?: 100
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
                 ?: FABLocation.BOTTOM_RIGHT.name
@@ -314,6 +320,13 @@ object AppSettings {
     fun setWideSidebarFixed(context: Context, enabled: Boolean) {
         _wideSidebarFixed.value = enabled
         saveBoolean(context, "wide_sidebar_fixed", enabled)
+    }
+
+    /** Un passo più grande (+1) o più piccolo (-1) tra [wideSidebarSizes]. */
+    fun stepWideSidebarSize(context: Context, step: Int) {
+        val index = (wideSidebarSizes.indexOf(_wideSidebarSize.value) + step).coerceIn(wideSidebarSizes.indices)
+        _wideSidebarSize.value = wideSidebarSizes[index]
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt("wide_sidebar_size", _wideSidebarSize.value).apply()
     }
 
     fun setDarkPages(context: Context, enabled: Boolean) {

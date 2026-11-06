@@ -255,6 +255,7 @@
     <string name="skip_onboarding_button">So quello che faccio (Salta)</string>
     <string name="wide_reopen_last_page">Riapri ultima pagina</string>
     <string name="wide_sidebar_fixed">Menu fisso</string>
+    <string name="wide_sidebar_size">Dimensione menu</string>
     <string name="wide_no_favorites">Nessun preferito. Usa la lente per cercare.</string>
 
     <!-- File chooser -->

@@ -179,6 +179,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
 
+        // Sidebar fissa alla dimensione 100% (AppSettings.wideSidebarSize)
+        const val SIDEBAR_WIDTH_DP = 52
+        const val SIDEBAR_ICON_DP = 42
+        const val SIDEBAR_GAP_DP = 20
+        const val SIDEBAR_MIN_GAP_PX = 2
+
         // All'avvio (e quando la surface viene ricreata) l'host sta ancora caricando la sua UI e la
         // visible area dei primi istanti può essere incompleta. L'inset viene applicato SUBITO
         // (la pagina non resta mai sotto il widget) e poi ricalcolato a questi ritardi,
@@ -521,7 +527,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val items = favorites().map { HomePage.Item(it.name, it.url) }
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
-        return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText)
+        return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)
     }
 
     // Come la home della Main: all'apertura controlla se c'è una versione nuova e la mostra in cima alla home
@@ -859,9 +865,46 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Misure della visible area (sidebar e inset)
     // ------------------------------------------------------------------
 
-    private fun sidebarWidthPx(): Int {
-        val density = if (surfaceDensity > 0) surfaceDensity.toFloat() else 160f
-        return (52 * density / 160f).toInt()
+    private fun surfaceScale(): Float = (if (surfaceDensity > 0) surfaceDensity.toFloat() else 160f) / 160f
+
+    private fun sidebarSizeScale(): Float = AppSettings.wideSidebarSize.value / 100f
+
+    private fun sidebarWidthPx(): Int = (SIDEBAR_WIDTH_DP * sidebarSizeScale() * surfaceScale()).toInt()
+
+    /**
+     * Larghezza del menu fisso ([width]) più lo spazio tra il bordo dello schermo e l'area libera ([edgeInset], dove può
+     * esserci un pannello dell'host): anche quello è colorato come il menu. Sotto un pannello non si vede, senza pannello
+     * (il margine dell'host accanto alla sua barra, un pannello più stretto dell'area riservata) resterebbe un vuoto tra
+     * il menu e il bordo. I tasti stanno centrati nell'area libera; su schermi bassi si stringono, mai fuori.
+     */
+    private fun layoutSidebar(sb: LinearLayout, width: Int, edgeInset: Int, rtl: Boolean) {
+        sb.layoutParams = FrameLayout.LayoutParams(edgeInset + width, ViewGroup.LayoutParams.MATCH_PARENT).apply {
+            gravity = Gravity.TOP or (if (rtl) Gravity.END else Gravity.START)
+        }
+        if (rtl) sb.setPadding(0, 0, edgeInset, 0) else sb.setPadding(edgeInset, 0, 0, 0)
+
+        val scale = sidebarSizeScale() * surfaceScale()
+        val top = stableArea?.top ?: 0
+        val height = (stableArea?.bottom ?: surfaceHeight) - top
+        val count = sb.childCount
+        if (count == 0) return
+        var icon = minOf((SIDEBAR_ICON_DP * scale).toInt(), width)
+        var gap = (SIDEBAR_GAP_DP * scale).toInt()
+        if (count * icon + (count - 1) * gap > height) {
+            gap = ((height - count * icon) / (count - 1)).coerceAtLeast(SIDEBAR_MIN_GAP_PX)
+            icon = minOf(icon, (height - (count - 1) * gap) / count).coerceAtLeast(1)
+        }
+        val firstTop = (top + (height - count * icon - (count - 1) * gap) / 2).coerceAtLeast(0)
+        val iconPadding = icon / 10
+        for (i in 0 until count) {
+            val button = sb.getChildAt(i)
+            button.setPadding(iconPadding, iconPadding, iconPadding, iconPadding)
+            button.layoutParams = LinearLayout.LayoutParams(icon, icon).apply {
+                topMargin = if (i == 0) firstTop else 0
+                bottomMargin = if (i == count - 1) 0 else gap
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+        }
     }
 
     /**
@@ -1019,8 +1062,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         // La fascia stretta sul bordo (angoli arrotondati dell'host) resta alla sidebar fissa; un pannello
         // dell'host da quel lato (es. il menu delle app in split, con la Wide a destra) la sposta accanto a sé.
-        // Prima veniva ignorato: sidebar e pagina restavano sotto il menu
-        val sidebarStart = if (leftAreaM >= sidebarWidthPx) leftAreaM else 0
+        // Prima veniva ignorato: sidebar e pagina restavano sotto il menu. Il confine non cambia con la dimensione
+        // scelta per il menu: la fascia stretta è sempre la stessa
+        val panelThreshold = (SIDEBAR_WIDTH_DP * surfaceScale()).toInt()
+        val sidebarEdge = (if (rtl) rightAreaM else leftAreaM).let { if (it >= panelThreshold) it else 0 }
 
         Log.d(
             TAG,
@@ -1032,23 +1077,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (fixed) {
             sb.visibility = View.VISIBLE
             sb.alpha = 1f
-            if (rtl) {
-                sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
-                    gravity = Gravity.TOP or Gravity.END
-                    rightMargin = rightAreaM
-                    leftMargin = 0
-                    topMargin = 0
-                    bottomMargin = 0
-                }
-            } else {
-                sb.layoutParams = FrameLayout.LayoutParams(sidebarWidthPx, ViewGroup.LayoutParams.MATCH_PARENT).apply {
-                    gravity = Gravity.TOP or Gravity.START
-                    leftMargin = sidebarStart
-                    rightMargin = 0
-                    topMargin = 0
-                    bottomMargin = 0
-                }
-            }
+            layoutSidebar(sb, sidebarWidthPx, sidebarEdge, rtl)
         } else {
             sb.visibility = View.GONE
         }
@@ -1060,9 +1089,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (fixed) {
             if (rtl) {
                 lp.leftMargin = leftAreaM
-                lp.rightMargin = sidebarWidthPx + rightAreaM
+                lp.rightMargin = sidebarEdge + sidebarWidthPx
             } else {
-                lp.leftMargin = sidebarStart + sidebarWidthPx
+                lp.leftMargin = sidebarEdge + sidebarWidthPx
                 lp.rightMargin = rightAreaM
             }
         } else {
@@ -1910,6 +1939,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     return true
                                 }
 
+                                if (url.startsWith(HomePage.SIDEBAR_SMALLER) || url.startsWith(HomePage.SIDEBAR_LARGER)) {
+                                    AppSettings.stepWideSidebarSize(carContext, if (url.startsWith(HomePage.SIDEBAR_LARGER)) 1 else -1)
+                                    applyVisibleArea()
+                                    showHome()
+                                    return true
+                                }
+
                                 if (url.startsWith("about:toggle_sidebar_fixed")) {
                                     toggleSidebarFixed()
                                     homeHtml = null
@@ -2088,22 +2124,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     webView = wv
 
-                    val iconSize = (42 * ctx.resources.displayMetrics.density).toInt()
-                    val totalButtonsHeight = 5 * iconSize + 6 * 20
-                    val topOffset = ((surfaceHeight - totalButtonsHeight) / 2).coerceAtLeast(10)
-
+                    // Misure, posizione e dimensione dei tasti: layoutSidebar
                     val sidebarContainer = LinearLayout(ctx).apply {
                         orientation = LinearLayout.VERTICAL
                         setBackgroundColor("#1e1e1e".toColorInt())
                         gravity = Gravity.TOP
-                        setPadding(4, 0, 4, 0)
                     }
                     sidebarContainerReference = sidebarContainer
 
                     val btnSidebarStyle = { btn: ImageButton ->
                         btn.background = null
                         btn.scaleType = ImageView.ScaleType.FIT_CENTER
-                        btn.setPadding(4, 4, 4, 4)
                     }
 
                     val btnHome = ImageButton(ctx).apply {
@@ -2134,22 +2165,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     }
                     sidebarVoiceButton = btnVoice
 
-                    val homeLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
-                        topMargin = topOffset
-                        bottomMargin = 20
-                        gravity = Gravity.CENTER_HORIZONTAL
-                    }
-                    val buttonLp = LinearLayout.LayoutParams(iconSize, iconSize).apply {
-                        topMargin = 0
-                        bottomMargin = 20
-                        gravity = Gravity.CENTER_HORIZONTAL
-                    }
-
-                    sidebarContainer.addView(btnHome, homeLp)
-                    sidebarContainer.addView(btnBack, buttonLp)
-                    sidebarContainer.addView(btnReload, buttonLp)
-                    sidebarContainer.addView(btnSearch, buttonLp)
-                    sidebarContainer.addView(btnVoice, buttonLp)
+                    sidebarContainer.addView(btnHome)
+                    sidebarContainer.addView(btnBack)
+                    sidebarContainer.addView(btnReload)
+                    sidebarContainer.addView(btnSearch)
+                    sidebarContainer.addView(btnVoice)
 
                     frame.addView(
                         wv,
@@ -2158,7 +2178,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                     )
-                    frame.addView(sidebarContainer, FrameLayout.LayoutParams(52, ViewGroup.LayoutParams.MATCH_PARENT))
+                    frame.addView(sidebarContainer, FrameLayout.LayoutParams(sidebarWidthPx(), ViewGroup.LayoutParams.MATCH_PARENT))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(keyboard.view, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))

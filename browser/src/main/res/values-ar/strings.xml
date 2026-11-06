@@ -301,6 +301,7 @@
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>
     <string name="wide_sidebar_fixed">قائمة ثابتة</string>
+    <string name="wide_sidebar_size">حجم القائمة</string>
     <string name="wide_no_favorites">لا توجد مفضلة. استخدم العدسة للبحث.</string>
 
     <!-- File chooser -->

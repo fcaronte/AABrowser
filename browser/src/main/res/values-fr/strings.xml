@@ -298,6 +298,7 @@
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>
     <string name="wide_sidebar_fixed">Menu fixe</string>
+    <string name="wide_sidebar_size">Taille du menu</string>
     <string name="wide_no_favorites">Aucun favori. Utilisez la loupe pour rechercher.</string>
 
     <!-- File chooser -->

@@ -299,6 +299,7 @@
     <string name="skip_onboarding_button">Я знаю, что делаю (Пропустить)</string>
     <string name="wide_reopen_last_page">Открыть последнюю страницу</string>
     <string name="wide_sidebar_fixed">Фикс. меню</string>
+    <string name="wide_sidebar_size">Размер меню</string>
     <string name="wide_no_favorites">Нет избранного. Нажмите на лупу для поиска.</string>
 
     <!-- File chooser -->

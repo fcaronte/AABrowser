@@ -297,6 +297,7 @@
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>
     <string name="wide_sidebar_fixed">Rögzített menü</string>
+    <string name="wide_sidebar_size">Menü mérete</string>
     <string name="wide_no_favorites">Nincs kedvenc. A kereséshez használd a nagyítót.</string>
 
     <!-- File chooser -->

@@ -303,6 +303,7 @@
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
     <string name="wide_reopen_last_page">Reopen last page</string>
     <string name="wide_sidebar_fixed">Fixed menu</string>
+    <string name="wide_sidebar_size">Menu size</string>
     <string name="wide_no_favorites">No favorites. Use the magnifier to search.</string>
 
     <!-- File chooser -->

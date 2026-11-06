@@ -297,6 +297,7 @@
     <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>
     <string name="wide_reopen_last_page">पिछला पृष्ठ फिर से खोलें</string>
     <string name="wide_sidebar_fixed">स्थिर मेनू</string>
+    <string name="wide_sidebar_size">मेनू का आकार</string>
     <string name="wide_no_favorites">कोई पसंदीदा नहीं। खोजने के लिए आवर्धक लेंस का उपयोग करें।</string>
 
     <!-- File chooser -->

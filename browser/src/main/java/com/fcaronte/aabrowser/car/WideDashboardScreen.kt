@@ -23,6 +23,10 @@ object HomePage {
     const val UPDATE_DOWNLOAD = "about:update_download"
     const val UPDATE_DISMISS = "about:update_dismiss"
 
+    // Dimensione del menu fisso, un passo alla volta (valgono solo dalla home, come tutti gli "about:toggle_…")
+    const val SIDEBAR_SMALLER = "about:toggle_sidebar_smaller"
+    const val SIDEBAR_LARGER = "about:toggle_sidebar_larger"
+
     data class Item(
         val name: String,
         val url: String,
@@ -75,7 +79,8 @@ object HomePage {
         items: List<Item>,
         reopenLastPage: Boolean,
         sidebarFixed: Boolean = true,
-        updateText: String? = null
+        updateText: String? = null,
+        sidebarSize: Int = 100
     ): String {
         val version = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
@@ -91,6 +96,15 @@ object HomePage {
 
         val reopenLabel = context.getString(R.string.wide_reopen_last_page)
         val fixedLabel = context.getString(R.string.wide_sidebar_fixed)
+        val sizeControl = if (sidebarFixed) {
+            """<span class="stepper">
+        <a class="toggle step" href="$SIDEBAR_SMALLER">−</a>
+        <span class="toggle size">${context.getString(R.string.wide_sidebar_size).htmlEncode()}: $sidebarSize%</span>
+        <a class="toggle step" href="$SIDEBAR_LARGER">+</a>
+    </span>"""
+        } else {
+            ""
+        }
 
         val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()
@@ -192,6 +206,9 @@ h1 {
     text-decoration:none;
 }
 .toggle:active { background: rgba(51, 51, 51, 0.95); }
+.stepper { display:inline-flex; gap:6px; align-items:center; }
+.step { font-weight:bold; font-size:18px; padding:7px 18px; }
+.size:active { background: rgba(30, 30, 30, 0.85); }
 
 .grid {
     display:grid;
@@ -301,6 +318,7 @@ $updateBanner
     <a class="toggle" href="about:toggle_sidebar_fixed">
         $fixedLabel: <span style="color:$fixedColor">$fixedText</span>
     </a>
+    $sizeControl
 </div>
 
 <div class="grid">
