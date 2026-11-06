@@ -31,7 +31,8 @@ from the misuse of this application. Use at your own risk.
   or the app menu, with a fixed side menu. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar).
-* **Android Auto player connected to the page:** title, artist, cover and controls of what is playing.
+* **Android Auto player connected to the page:** title, artist, cover and controls of what is playing. With both apps
+  in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
@@ -41,8 +42,10 @@ from the misuse of this application. Use at your own risk.
 * **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK). Search and favorites are available; when stream metadata reports a song title, lyrics are
-  fetched automatically from LRCLIB and shown from the Lyrics button. Radio lyrics are not time-synchronized
-  because a live stream can join midway through a song. Playback controls are also sent to the Android Auto player.
+  fetched automatically from LRCLIB and shown from the Lyrics button. The text sent by the station is cleaned first
+  ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
+  orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
+  controls are also sent to the Android Auto player.
 * **TV in CarWeb Media (new in 2.5):** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username
@@ -114,7 +117,16 @@ app is set to)
 | "search *something* on Google" | search with your search engine |
 | "open *favorite*", "open repubblica dot it" | opens a favorite (by name or site) or a spoken address |
 | "back", "reload", "home" | page navigation |
-| "pause", "resume", "next", "previous" | the Android Auto player |
+| "pause", "resume", "next", "previous", "next channel", "next station" | the Android Auto player |
+| "play *station* on the radio", "tune to *station*", "play radio *name*" | plays the station in CarWeb Media Radio, also outside your country's list; "play the radio" resumes the last one |
+| "watch *channel* on TV", "put on channel *name*", "watch *channel*" | plays the channel in CarWeb Media TV, looking in all your lists; "watch the TV" resumes the last one |
+| "play *song* from my music", "play *song* on Media" | your files, by title, artist or folder: an artist or a folder plays all its tracks in order |
+| "search *something* on the radio", "… on TV", "… on Media" | shows the results on that page without starting anything |
+| "open the radio", "open the TV", "open my music" | opens the page |
+
+With Radio, TV or Media open, "play …" and "search …" act on that page, and saying just a name plays it. Names are
+understood as they are spoken: "rai uno" finds "Rai 1 HD", "la sette" finds "La7". A favorite channel or station
+comes first. If "play radio …" or "watch …" finds nothing, the phrase goes to YouTube as usual.
 
 Anything else is searched on the open site or with your search engine.
 
@@ -199,14 +211,19 @@ proprio rischio e pericolo.
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento).
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
-  YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session).
+  YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session). Con le due app nel
+  menu di Android Auto il tocco sul player apre CarWebWide: un'opzione nelle Impostazioni apre invece CarWeb.
 * **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
-  separate Audio e Video, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
-  cerchio) e colori che seguono il tema dell'app (chiaro, scuro con i colori del telefono, AMOLED).
+  separate Audio e Video, ricerca, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
+  cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
+  telefono, AMOLED).
 * **Radio in CarWeb Media:** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
-  (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; i controlli funzionano
-  anche dal player di Android Auto.
+  (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
+  del brano, il testo viene cercato su LRCLIB e si apre dal pulsante Testi. Il testo mandato dalla stazione viene
+  prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
+  artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
+  iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
 * **TV in CarWeb Media (novità 2.5):** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni; per Xtream
@@ -278,7 +295,16 @@ impostata)
 | "cerca *qualcosa* su Google" | ricerca col motore di ricerca scelto |
 | "apri *preferito*", "apri repubblica punto it" | apre un preferito (per nome o sito) o un indirizzo detto a voce |
 | "indietro", "ricarica", "home" | navigazione della pagina |
-| "pausa", "riprendi", "prossimo", "precedente" | il player di Android Auto |
+| "pausa", "riprendi", "prossimo", "precedente", "prossimo canale", "stazione successiva" | il player di Android Auto |
+| "metti *stazione* alla radio", "sintonizza *stazione*", "metti radio *nome*" | fa partire la stazione nella Radio di CarWeb Media, anche fuori dall'elenco del tuo Paese; "metti la radio" riprende l'ultima |
+| "guarda *canale* in tv", "metti il canale *nome*", "guarda *canale*" | fa partire il canale nella TV di CarWeb Media, cercando in tutte le tue liste; "guarda la tv" riprende l'ultimo |
+| "metti *canzone* dalla mia musica", "metti *canzone* su Media" | i tuoi file, per titolo, artista o cartella: un artista o una cartella fanno partire tutti i loro brani in ordine |
+| "cerca *qualcosa* alla radio", "… in tv", "… su Media" | mostra i risultati in quella pagina senza far partire niente |
+| "apri la radio", "apri la tv", "apri la mia musica" | apre la pagina |
+
+Con Radio, TV o Media aperte, "metti …" e "cerca …" valgono per quella pagina, e basta dire un nome per farlo partire.
+I nomi si capiscono come si dicono: "rai uno" trova "Rai 1 HD", "la sette" trova "La7". Un canale o una stazione tra i
+preferiti ha la precedenza. Se "metti radio …" o "guarda …" non trovano niente, la frase va su YouTube come sempre.
 
 Tutto il resto viene cercato sul sito aperto o col motore di ricerca.
 

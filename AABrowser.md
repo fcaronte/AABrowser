@@ -74,8 +74,17 @@
 \### Radio in CarWeb Media
 
 \- Quando cambia il titolo fornito dallo stream, la pagina cerca automaticamente i testi su LRCLIB e li rende disponibili dal pulsante Testi; i risultati sincronizzati sono mostrati senza evidenziazione temporale perché la riproduzione può iniziare a metà brano.
+\- Il testo della stazione passa da `assets/player/track-parser.js` (brano in onda, non il successivo; formati `Titolo~Artista~…`, `Song*…`, `text="…" song_spot="M"`; nome della stazione, indirizzi, pubblicità, telefoni). Test: `node --test browser/src/test/js/`, con testi veri campionati da Radio Browser.
 \- Se la stazione non invia metadati, il titolo può essere cercato manualmente.
 \- Page `https://player.local/radio` (assets/player/radio.html, radio.js, radio.css), linked beside TV in the local player. Station data and stream selection use Radio-Browser.info; the native API keeps stream URLs out of the page until playback is requested, tracks station clicks, and rejects non-public stream hosts. The country follows the app's explicit locale region, or a language-based default. Search, per-station favorites, HLS playback (using the bundled hls.js), and Android Auto Media Session controls are supported. Verify network/provider compatibility on a real device; some stations may be unavailable or use codecs unsupported by WebView.
+
+\### Voice Commands in CarWeb Media
+
+\- `VoiceCommands` capisce le frasi (11 lingue) e decide la pagina; `MediaVoice` tiene la richiesta e la pagina la viene a prendere (`/api/voice`, con il token) quando si apre o quando l'app la avvisa: niente parametri nell'indirizzo, così nessun sito può far partire qualcosa e ricaricare non ripete il comando. `MediaMatcher` (Kotlin, con test) trova i nomi per TV, Radio e file.
+
+\### Player Card Tap
+
+\- Android Auto manda il tocco sulla scheda del player a un'app del pacchetto tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" abilita `CarServicePlayerCard` (categoria media, `car/PlayerCard.kt`), che apre la Main e si chiude; se il tocco arriva comunque alla Wide, `WideSession` passa alla Main e chiude la Wide una volta.
 
 \### Media & Audio Handling
 
