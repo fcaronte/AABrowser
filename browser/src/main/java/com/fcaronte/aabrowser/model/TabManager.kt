@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
+import com.fcaronte.aabrowser.utils.VoiceCommands
 import java.net.URI
 import java.util.UUID
 
@@ -108,6 +109,11 @@ object TabManager {
 
     fun findTabIndexByUrlOrHost(targetUrl: String): Int {
         if (targetUrl.isBlank()) return -1
+        // Media, TV e Radio hanno lo stesso host ma sono tre pagine: il preferito della Radio non deve finire sulla
+        // scheda di Media
+        VoiceCommands.mediaSectionOf(targetUrl)?.let { section ->
+            return tabs.indexOfFirst { VoiceCommands.mediaSectionOf(it.url) == section }
+        }
         val targetHost = extractHost(targetUrl)
         if (targetHost.isEmpty()) return -1
         

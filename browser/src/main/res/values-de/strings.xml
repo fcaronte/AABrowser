@@ -310,6 +310,8 @@
     <string name="player_effect_bars">Balken</string>
     <string name="player_effect_wave">Welle</string>
     <string name="player_effect_circle">Kreis</string>
+    <string name="player_search">Dateien suchen</string>
+    <string name="player_no_results">Keine Dateien gefunden</string>
     <string name="lyrics_button">Liedtext</string>
     <string name="lyrics_loading">Liedtext wird geladen…</string>
     <string name="lyrics_not_found">Kein Liedtext gefunden.</string>
@@ -325,7 +327,7 @@
     <string name="ssl_warning_proceed">Trotzdem fortfahren</string>
     <string name="ssl_warning_cancel">Abbrechen</string>
     <string name="voice_command_button">Sprachbefehl</string>
-    <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „suche … auf Amazon“, „öffne …“, „Pause“</string>
+    <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „spiele … im Radio“, „schau … im Fernsehen“, „suche … auf Amazon“, „öffne …“, „Pause“</string>
     <string name="voice_command_hint_wheel">Nachdem in AABrowser etwas abgespielt wurde: drücken Sie zweimal ⏮ am Lenkrad</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -333,6 +335,9 @@
     <string name="voice_command_site">Suche auf %1$s: %2$s</string>
     <string name="voice_command_open">Öffne %1$s</string>
     <string name="voice_command_navigate">Route nach %1$s</string>
+    <string name="voice_command_radio">Radio: %1$s</string>
+    <string name="voice_command_tv">TV: %1$s</string>
+    <string name="voice_command_media">Medien: %1$s</string>
     <string name="voice_command_not_heard">Nichts gehört, bitte erneut versuchen</string>
     <string name="voice_command_unavailable">Spracherkennung ist nicht verfügbar</string>
     <string name="voice_command_mic_permission">AABrowser braucht die Mikrofonberechtigung: Erteilen Sie sie auf dem Handy</string>

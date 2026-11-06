@@ -75,10 +75,13 @@
     </section>
 
     <section class="list" id="listPanel">
-        <!-- Audio e video in code separate: compaiono solo se la cartella li contiene entrambi -->
-        <div class="tabs" id="tabs" hidden>
-            <button class="tab" id="tabAudio"></button>
-            <button class="tab" id="tabVideo"></button>
+        <div class="list-head">
+            <input class="search" id="search" type="search" autocomplete="off">
+            <!-- Audio e video in code separate: compaiono solo se la cartella li contiene entrambi -->
+            <div class="tabs" id="tabs" hidden>
+                <button class="tab" id="tabAudio"></button>
+                <button class="tab" id="tabVideo"></button>
+            </div>
         </div>
         <ul id="tracks"></ul>
     </section>

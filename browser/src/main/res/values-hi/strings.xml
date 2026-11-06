@@ -310,6 +310,8 @@
     <string name="player_effect_bars">बार</string>
     <string name="player_effect_wave">तरंग</string>
     <string name="player_effect_circle">वृत्त</string>
+    <string name="player_search">फ़ाइलें खोजें</string>
+    <string name="player_no_results">कोई फ़ाइल नहीं मिली</string>
     <string name="lyrics_button">गीत के बोल</string>
     <string name="lyrics_loading">बोल लोड हो रहे हैं…</string>
     <string name="lyrics_not_found">बोल नहीं मिले।</string>
@@ -325,7 +327,7 @@
     <string name="ssl_warning_proceed">फिर भी जारी रखें</string>
     <string name="ssl_warning_cancel">रद्द करें</string>
     <string name="voice_command_button">वॉइस कमांड</string>
-    <string name="voice_command_hint">आज़माएँ: «YouTube पर … चलाओ», «Amazon पर … खोजो», «… खोलो», «रोको»</string>
+    <string name="voice_command_hint">आज़माएँ: «YouTube पर … चलाओ», «रेडियो पर … चलाओ», «टीवी पर … लगाओ», «Amazon पर … खोजो», «… खोलो», «रोको»</string>
     <string name="voice_command_hint_wheel">AABrowser में कुछ चलाने के बाद: स्टीयरिंग पर ⏮ दो बार दबाएँ</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -333,6 +335,9 @@
     <string name="voice_command_site">%1$s पर खोज रहे हैं: %2$s</string>
     <string name="voice_command_open">%1$s खोल रहे हैं</string>
     <string name="voice_command_navigate">%1$s के लिए रास्ता</string>
+    <string name="voice_command_radio">रेडियो: %1$s</string>
+    <string name="voice_command_tv">टीवी: %1$s</string>
+    <string name="voice_command_media">मीडिया: %1$s</string>
     <string name="voice_command_not_heard">कुछ सुनाई नहीं दिया, फिर से कोशिश करें</string>
     <string name="voice_command_unavailable">आवाज़ पहचान उपलब्ध नहीं है</string>
     <string name="voice_command_mic_permission">AABrowser को माइक्रोफ़ोन की अनुमति चाहिए: फ़ोन पर दें</string>

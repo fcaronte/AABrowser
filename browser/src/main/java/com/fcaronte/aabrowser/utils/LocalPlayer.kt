@@ -105,7 +105,14 @@ object LocalPlayer {
                 url.getQueryParameter("t") != token -> status(403, "Forbidden")
                 path.startsWith("/api/tv/") -> IptvApi.handle(context, path, url) ?: status(404, "Not Found")
                 path.startsWith("/api/radio/") -> RadioApi.handle(context, path, url) ?: status(404, "Not Found")
+                // Comandi vocali: quello in attesa per la pagina che chiede, e cosa fare se non ha trovato niente
+                path == "/api/voice" -> json(MediaVoice.take(url.getQueryParameter("section")))
+                path == "/api/voice/fallback" -> {
+                    MediaVoice.runFallback()
+                    json(JSONObject())
+                }
                 path == "/api/library" -> library(context)
+                path == "/api/library/find" -> findInLibrary(context, url.getQueryParameter("q").orEmpty())
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
                 path.startsWith("/api/tags/") -> tags(context, path.removePrefix("/api/tags/"))
                 path.startsWith("/api/art/") -> artwork(context, path.removePrefix("/api/art/"))
@@ -199,6 +206,8 @@ object LocalPlayer {
             .put("lyricsClose", context.getString(R.string.lyrics_close))
             .put("lyricsSearchHint", context.getString(R.string.lyrics_search_hint))
             .put("lyricsSearch", context.getString(R.string.lyrics_search))
+            .put("search", context.getString(R.string.player_search))
+            .put("noResults", context.getString(R.string.player_no_results))
         val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
         val config = JSONObject().put("token", token).put("strings", strings).put("client", client)
         val html = context.assets.open("player/index.html").bufferedReader().use { it.readText() }
@@ -259,6 +268,35 @@ object LocalPlayer {
             .put("folder", folder?.let { LastFileSelection.rememberedFolderName(context) } ?: JSONObject.NULL)
             .put("tracks", tracks)
         return json(result)
+    }
+
+    // Ricerca per nome (comandi vocali e casella di ricerca): nome del file e cartelle, con i tag dei brani già letti.
+    // Con i soli nomi delle cartelle vale un po' meno: "vasco rossi" preferisce un file che si chiama così
+    private fun findInLibrary(context: Context, text: String): WebResourceResponse {
+        val query = MediaMatcher.key(text)
+        val matches = JSONArray()
+        LastFileSelection.rememberedFolderUri(context)?.let { folder ->
+            listMedia(context.contentResolver, folder)
+                .map { it to trackScore(query, it) }
+                .filter { it.second > 0 }
+                .sortedByDescending { it.second }
+                .forEach { (track, score) -> matches.put(JSONObject().put("id", track.getString("id")).put("m", score)) }
+        }
+        return json(JSONObject().put("matches", matches).put("confident", MediaMatcher.CONFIDENT))
+    }
+
+    private fun trackScore(query: MediaMatcher.Key, track: JSONObject): Int {
+        val name = track.getString("name")
+        val byName = MediaMatcher.score(query, MediaMatcher.fileKey(name))
+        val withFolder = MediaMatcher.score(query, MediaMatcher.key(track.getString("folder") + " " + name)) - 100
+        val tags = tagsCache.get(track.getString("id"))
+        val byTags = tags?.optString("title")?.takeIf { it.isNotEmpty() }?.let { title ->
+            maxOf(
+                MediaMatcher.score(query, MediaMatcher.key(title)),
+                MediaMatcher.score(query, MediaMatcher.key(tags.optString("artist") + " " + title))
+            )
+        } ?: 0
+        return maxOf(byName, withFolder, byTags, 0)
     }
 
     // Una query per cartella, sottocartelle comprese; l'ordinamento naturale lo fa la pagina

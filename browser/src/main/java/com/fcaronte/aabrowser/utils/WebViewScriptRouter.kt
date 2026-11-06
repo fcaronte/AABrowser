@@ -265,8 +265,9 @@ object WebViewScriptRouter {
             }
 
             else -> {
-                // Tutti gli altri siti generici: solo utility base e media listener HTML5
-                if (!autoplayMedia) {
+                // Tutti gli altri siti generici: solo utility base e media listener HTML5. Le pagine di CarWeb Media
+                // partono solo se glielo si chiede: col comando vocale l'audio può essere già partito qui
+                if (!autoplayMedia && !LocalPlayer.isPlayerUrl(urlString)) {
                     webView.evaluateJavascript("(function() { document.querySelectorAll('video, audio').forEach(el => el.pause()); })();", null)
                 }
 

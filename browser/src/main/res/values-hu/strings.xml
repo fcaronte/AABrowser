@@ -310,6 +310,8 @@
     <string name="player_effect_bars">Oszlopok</string>
     <string name="player_effect_wave">Hullám</string>
     <string name="player_effect_circle">Kör</string>
+    <string name="player_search">Fájlok keresése</string>
+    <string name="player_no_results">Nincs találat</string>
     <string name="lyrics_button">Dalszöveg</string>
     <string name="lyrics_loading">Dalszöveg betöltése…</string>
     <string name="lyrics_not_found">Nem található dalszöveg.</string>
@@ -325,7 +327,7 @@
     <string name="ssl_warning_proceed">Folytatás mégis</string>
     <string name="ssl_warning_cancel">Mégse</string>
     <string name="voice_command_button">Hangparancs</string>
-    <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „keresd meg … az Amazon oldalon”, „nyisd meg …”, „szünet”</string>
+    <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „játszd le … a rádióban”, „mutasd … a tévében”, „keresd meg … az Amazon oldalon”, „nyisd meg …”, „szünet”</string>
     <string name="voice_command_hint_wheel">Miután az AABrowserben lejátszottál valamit: nyomd meg kétszer a ⏮ gombot a kormányon</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -333,6 +335,9 @@
     <string name="voice_command_site">Keresés (%1$s): %2$s</string>
     <string name="voice_command_open">Megnyitás: %1$s</string>
     <string name="voice_command_navigate">Útvonal ide: %1$s</string>
+    <string name="voice_command_radio">Rádió: %1$s</string>
+    <string name="voice_command_tv">TV: %1$s</string>
+    <string name="voice_command_media">Média: %1$s</string>
     <string name="voice_command_not_heard">Nem hallottam semmit, próbáld újra</string>
     <string name="voice_command_unavailable">A hangfelismerés nem érhető el</string>
     <string name="voice_command_mic_permission">Az AABrowsernek mikrofonengedély kell: add meg a telefonon</string>

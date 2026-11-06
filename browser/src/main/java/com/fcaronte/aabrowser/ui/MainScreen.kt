@@ -64,6 +64,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.mediaservice.CarMediaService
+import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -74,6 +75,7 @@ import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.MediaVoice
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
@@ -325,7 +327,8 @@ fun MainScreen(
             command,
             currentUrl,
             favoritesViewModel.favorites.toList(),
-            webSearchUrl = { query -> UrlUtils.normalizeInput(query, searchBase) }
+            webSearchUrl = { query -> UrlUtils.normalizeInput(query, searchBase) },
+            playerOwned = MediaFocusManager.getActiveSource() != null
         )
         // Con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) l'interfaccia è ferma e la pagina
         // non si carica finché non torna davanti: Android Auto la riporta in primo piano. I comandi del player vanno
@@ -388,6 +391,17 @@ fun MainScreen(
             VoiceCommands.Plan.Back ->
                 if (currentScreen == Screen.Browser) backTrigger++
                 else if (TabManager.activeTab != null) currentScreen = Screen.Browser
+
+            // Media, TV e Radio: la scheda di quella pagina; la richiesta la prende la pagina (MediaVoice, BrowserScreen)
+            is VoiceCommands.Plan.Media -> {
+                MediaVoice.submit(plan, VoiceCommandRouter.Target.MAIN)
+                TabManager.openOrSwitchTo(
+                    url = VoiceCommands.mediaSectionUrl(plan.section),
+                    title = MediaVoice.title(localizedContext, plan.section)
+                )
+                currentScreen = Screen.Browser
+                MediaVoice.message(localizedContext, plan)?.let { feedbackMessage = it }
+            }
 
             VoiceCommands.Plan.Reload -> if (currentScreen == Screen.Browser) reloadTrigger++
             VoiceCommands.Plan.Home -> currentScreen = Screen.Dashboard

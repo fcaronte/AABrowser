@@ -89,6 +89,7 @@ import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.MediaVoice
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebLocation
@@ -510,6 +511,14 @@ fun BrowserScreen(
 
     LaunchedEffect(Unit) {
         mediaSessionManager?.connect()
+    }
+
+    // Comando vocale per CarWeb Media con la pagina già aperta in questa scheda (quella che si apre chiede da sola)
+    val mediaVoiceVersion by MediaVoice.version
+    LaunchedEffect(isTabActive, mediaVoiceVersion) {
+        if (isTabActive && MediaVoice.hasPending() && LocalPlayer.isPlayerUrl(webViewReference?.url)) {
+            webViewReference?.evaluateJavascript(MediaVoice.CHECK_SCRIPT, null)
+        }
     }
 
     LaunchedEffect(url, isYouTubeAdBlockEnabled) {
@@ -1134,8 +1143,9 @@ fun BrowserScreen(
                                 jsDialog = null
 
                                 if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
+                                // Le pagine di CarWeb Media partono solo se glielo si chiede (tocco o comando vocale)
                                 view?.settings?.mediaPlaybackRequiresUserGesture =
-                                    !autoplayMedia && !isDaznUrl(url) && !voiceAutoplay
+                                    !autoplayMedia && !isDaznUrl(url) && !voiceAutoplay && !LocalPlayer.isPlayerUrl(url)
                                 if (needsDesktopForUrl(url)) {
                                     view?.let { webView ->
                                         val ua = setDesktopUserAgent(webView, context)

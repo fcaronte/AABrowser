@@ -312,6 +312,8 @@
     <string name="player_effect_bars">Столбцы</string>
     <string name="player_effect_wave">Волна</string>
     <string name="player_effect_circle">Круг</string>
+    <string name="player_search">Поиск файлов</string>
+    <string name="player_no_results">Файлы не найдены</string>
     <string name="lyrics_button">Текст песни</string>
     <string name="lyrics_loading">Загрузка текста песни…</string>
     <string name="lyrics_not_found">Текст песни не найден.</string>
@@ -327,7 +329,7 @@
     <string name="ssl_warning_proceed">Всё равно продолжить</string>
     <string name="ssl_warning_cancel">Отмена</string>
     <string name="voice_command_button">Голосовая команда</string>
-    <string name="voice_command_hint">Например: «включи … на YouTube», «найди … на Amazon», «открой …», «пауза»</string>
+    <string name="voice_command_hint">Например: «включи … на YouTube», «включи … на радио», «покажи … на ТВ», «найди … на Amazon», «открой …», «пауза»</string>
     <string name="voice_command_hint_wheel">После воспроизведения чего-либо в AABrowser: дважды нажмите ⏮ на руле</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -335,6 +337,9 @@
     <string name="voice_command_site">Поиск на %1$s: %2$s</string>
     <string name="voice_command_open">Открываю %1$s</string>
     <string name="voice_command_navigate">Маршрут до %1$s</string>
+    <string name="voice_command_radio">Радио: %1$s</string>
+    <string name="voice_command_tv">ТВ: %1$s</string>
+    <string name="voice_command_media">Медиа: %1$s</string>
     <string name="voice_command_not_heard">Ничего не слышно, попробуйте ещё раз</string>
     <string name="voice_command_unavailable">Распознавание речи недоступно</string>
     <string name="voice_command_mic_permission">AABrowser нужен доступ к микрофону: разрешите его на телефоне</string>

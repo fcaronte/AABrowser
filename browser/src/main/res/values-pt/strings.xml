@@ -311,6 +311,8 @@
     <string name="player_effect_bars">Barras</string>
     <string name="player_effect_wave">Onda</string>
     <string name="player_effect_circle">Círculo</string>
+    <string name="player_search">Pesquisar arquivos</string>
+    <string name="player_no_results">Nenhum arquivo encontrado</string>
     <string name="lyrics_button">Letras</string>
     <string name="lyrics_loading">Carregando letras…</string>
     <string name="lyrics_not_found">Letras não encontradas.</string>
@@ -326,7 +328,7 @@
     <string name="ssl_warning_proceed">Continuar mesmo assim</string>
     <string name="ssl_warning_cancel">Cancelar</string>
     <string name="voice_command_button">Comando de voz</string>
-    <string name="voice_command_hint">Experimente: «toca … no YouTube», «pesquisa … na Amazon», «abre …», «pausa»</string>
+    <string name="voice_command_hint">Experimente: «toca … no YouTube», «toca … no rádio», «coloca … na TV», «pesquisa … na Amazon», «abre …», «pausa»</string>
     <string name="voice_command_hint_wheel">Depois de reproduzir algo no AABrowser: prima duas vezes ⏮ no volante</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -334,6 +336,9 @@
     <string name="voice_command_site">A pesquisar em %1$s: %2$s</string>
     <string name="voice_command_open">A abrir %1$s</string>
     <string name="voice_command_navigate">Percurso para %1$s</string>
+    <string name="voice_command_radio">Rádio: %1$s</string>
+    <string name="voice_command_tv">TV: %1$s</string>
+    <string name="voice_command_media">Mídia: %1$s</string>
     <string name="voice_command_not_heard">Não ouvi nada, tente novamente</string>
     <string name="voice_command_unavailable">O reconhecimento de voz não está disponível</string>
     <string name="voice_command_mic_permission">O AABrowser precisa da autorização do microfone: conceda-a no telemóvel</string>

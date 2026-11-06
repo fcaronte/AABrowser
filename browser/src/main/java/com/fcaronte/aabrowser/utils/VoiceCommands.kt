@@ -16,6 +16,9 @@ import java.util.Locale
  */
 object VoiceCommands {
 
+    /** Le tre pagine di CarWeb Media. */
+    enum class MediaSection { MEDIA, TV, RADIO }
+
     sealed interface Command {
         /** "cerca …": sul sito aperto se si può (YouTube, ...), altrimenti col motore di ricerca. */
         data class Search(val query: String) : Command
@@ -27,8 +30,12 @@ object VoiceCommands {
         data class YouTubePlay(val query: String) : Command
         data class YouTubeMusicSearch(val query: String) : Command
         data class YouTubeMusicPlay(val query: String) : Command
-        /** "metti …": YouTube, o YouTube Music se è quello aperto. */
+        /** "metti …": YouTube, o YouTube Music se è quello aperto; sulle pagine di CarWeb Media, quella aperta. */
         data class Play(val query: String) : Command
+        /** "guarda …": un canale della TV, altrimenti come [Play]. */
+        data class Watch(val query: String) : Command
+        /** "metti … alla radio", "guarda … in tv", "cerca … su media": [play] = parte il risultato migliore. */
+        data class MediaRequest(val section: MediaSection, val query: String, val play: Boolean) : Command
         /** "apri …": un preferito per nome, altrimenti un indirizzo, altrimenti una ricerca. */
         data class Open(val target: String) : Command
         data class Navigate(val destination: String) : Command
@@ -57,6 +64,18 @@ object VoiceCommands {
         ) : Plan
         data class Navigate(val destination: String) : Plan
         data class Player(val action: PlayerAction) : Plan
+        /**
+         * Una pagina di CarWeb Media (MediaVoice le porta la richiesta). [query] null = solo la pagina, o con [play] quello
+         * che aveva in riproduzione; [action]: un tasto del player, quando il player di Android Auto non è di nessuno.
+         * [fallback]: la pagina è stata dedotta dalla frase ("metti radio ga ga"), se non trova niente si fa questo.
+         */
+        data class Media(
+            val section: MediaSection,
+            val query: String? = null,
+            val play: Boolean = false,
+            val action: PlayerAction? = null,
+            val fallback: Command? = null
+        ) : Plan
         data object Back : Plan
         data object Reload : Plan
         data object Home : Plan
@@ -73,7 +92,8 @@ object VoiceCommands {
     private enum class Kind {
         BACK, RELOAD, HOME, PAUSE, RESUME, NEXT, PREVIOUS,
         MUSIC_PLAY, MUSIC_SEARCH, YOUTUBE_PLAY, YOUTUBE_SEARCH,
-        NAVIGATE, SITE_SEARCH, WEB_SEARCH, OPEN, SEARCH, PLAY
+        RADIO_PLAY, RADIO_SEARCH, TV_PLAY, TV_SEARCH, MEDIA_PLAY, MEDIA_SEARCH,
+        NAVIGATE, SITE_SEARCH, WEB_SEARCH, OPEN, SEARCH, WATCH, PLAY
     }
 
     // Schemi: {q} = la parte libera, {site} = il nome di un sito; uno spazio = uno o più spazi;
@@ -149,30 +169,45 @@ object VoiceCommands {
         Kind.NEXT to listOf(
             "prossimo", "prossima", "successivo", "successiva", "avanti", "salta", "prossimo video",
             "prossima canzone", "brano successivo", "canzone successiva", "video successivo",
+            "prossimo canale", "canale successivo", "prossima stazione", "stazione successiva", "prossima radio",
             "next", "skip", "next video", "next song", "next track", "skip this", "skip this song",
+            "next channel", "channel up", "next station",
             "siguiente", "salta", "saltar", "la siguiente", "siguiente canción", "siguiente vídeo", "siguiente video",
+            "siguiente canal", "canal siguiente", "siguiente emisora", "siguiente estación",
             "suivant", "suivante", "passe", "chanson suivante", "vidéo suivante", "morceau suivant",
+            "chaîne suivante", "station suivante",
             "nächster", "nächstes", "nächste", "überspringen", "nächstes lied", "nächstes video", "nächster titel",
+            "nächster kanal", "nächster sender",
             "próximo", "próxima", "proximo", "proxima", "pular", "pula", "seguinte", "próxima música", "próximo vídeo",
+            "próximo canal", "próxima estação", "próxima rádio",
             "следующий", "следующая", "следующее", "дальше", "пропусти", "следующий трек", "следующая песня",
-            "следующее видео",
+            "следующее видео", "следующий канал", "следующая станция",
             "következő", "ugrás", "ugord át", "következő szám", "következő videó", "következő dal",
+            "következő csatorna", "következő adó",
             "التالي", "التالية", "تخطي", "تخطى", "المقطع التالي", "الاغنية التالية", "الفيديو التالي",
-            "अगला", "अगली", "अगला गाना", "अगला वीडियो", "स्किप", "स्किप करो",
-            "下一个", "下一首", "下一集", "下一个视频", "跳过"
+            "القناة التالية", "المحطة التالية",
+            "अगला", "अगली", "अगला गाना", "अगला वीडियो", "स्किप", "स्किप करो", "अगला चैनल", "अगला स्टेशन",
+            "下一个", "下一首", "下一集", "下一个视频", "跳过", "下一个频道", "下一个电台"
         ),
         Kind.PREVIOUS to listOf(
             "precedente", "brano precedente", "canzone precedente", "video precedente",
+            "canale precedente", "stazione precedente",
             "previous", "previous song", "previous track", "previous video",
+            "previous channel", "channel down", "previous station",
             "anterior", "la anterior", "canción anterior", "vídeo anterior", "video anterior",
+            "canal anterior", "emisora anterior", "estación anterior",
             "précédent", "précédente", "chanson précédente", "vidéo précédente", "morceau précédent",
+            "chaîne précédente", "station précédente",
             "vorheriger", "vorheriges", "vorherige", "vorheriges lied", "vorheriges video", "vorheriger titel",
-            "música anterior",
+            "vorheriger kanal", "vorheriger sender",
+            "música anterior", "estação anterior", "rádio anterior",
             "предыдущий", "предыдущая", "предыдущее", "предыдущий трек", "предыдущая песня", "предыдущее видео",
-            "előző", "előző szám", "előző videó", "előző dal",
+            "предыдущий канал", "предыдущая станция",
+            "előző", "előző szám", "előző videó", "előző dal", "előző csatorna", "előző adó",
             "السابق", "السابقة", "الاغنية السابقة", "الفيديو السابق", "المقطع السابق",
-            "पिछला", "पिछली", "पिछला गाना", "पिछला वीडियो",
-            "上一个", "上一首", "上一集", "上一个视频"
+            "القناة السابقة", "المحطة السابقة",
+            "पिछला", "पिछली", "पिछला गाना", "पिछला वीडियो", "पिछला चैनल", "पिछला स्टेशन",
+            "上一个", "上一首", "上一集", "上一个视频", "上一个频道", "上一个电台"
         ),
         Kind.MUSIC_PLAY to listOf(
             "metti {q} su youtube music", "riproduci {q} su youtube music", "ascolta {q} su youtube music",
@@ -247,6 +282,143 @@ object VoiceCommands {
             "youtube पर {q} ढूंढो", "{q} youtube पर ढूंढो",
             "在~youtube~上搜索~{q}", "在~youtube~搜索~{q}", "youtube~搜索~{q}", "在~youtube~上找~{q}",
             "搜索~youtube~上的~{q}"
+        ),
+        Kind.RADIO_PLAY to listOf(
+            "metti {q} alla radio", "metti {q} in radio", "metti {q} sulla radio", "ascolta {q} alla radio",
+            "ascolta {q} in radio", "riproduci {q} alla radio", "fammi sentire {q} alla radio", "metti la radio {q}",
+            "metti la stazione {q}", "ascolta la radio {q}", "ascolta la stazione {q}", "sintonizza {q}",
+            "sintonizzati su {q}", "sintonizza la radio su {q}",
+            "play {q} on the radio", "play {q} on radio", "listen to {q} on the radio", "listen to {q} on radio",
+            "put on {q} on the radio", "tune to {q}", "tune in to {q}", "tune into {q}", "play the station {q}",
+            "play station {q}", "play radio station {q}", "listen to the station {q}", "listen to station {q}",
+            "pon {q} en la radio", "ponme {q} en la radio", "reproduce {q} en la radio", "escucha {q} en la radio",
+            "sintoniza {q}", "pon la emisora {q}", "pon la estación {q}",
+            "mets {q} à la radio", "mets {q} sur la radio", "écoute {q} à la radio", "joue {q} à la radio",
+            "mets la station {q}", "écoute la station {q}",
+            "spiele {q} im radio", "spiel {q} im radio", "höre {q} im radio", "hör {q} im radio",
+            "spiele den sender {q}", "spiel den sender {q}", "schalte auf {q}",
+            "toca {q} no rádio", "toque {q} no rádio", "coloca {q} no rádio", "coloque {q} no rádio",
+            "põe {q} no rádio", "ouve {q} no rádio", "ouça {q} no rádio", "toca {q} na rádio", "põe {q} na rádio",
+            "sintonize {q}", "coloca a estação {q}", "toca a estação {q}", "põe a estação {q}",
+            "включи {q} на радио", "поставь {q} на радио", "включи радио {q}", "поставь радио {q}",
+            "включи станцию {q}", "поставь станцию {q}",
+            "játszd le {q} a rádióban", "játszd {q} a rádióban", "indítsd el {q} a rádióban",
+            "kapcsold be a {q} rádiót", "kapcsold be {q} rádiót",
+            "شغل {q} على الراديو", "شغل {q} في الراديو", "شغل اذاعة {q}", "شغل راديو {q}", "شغل محطة {q}",
+            "रेडियो पर {q} चलाओ", "{q} रेडियो पर चलाओ", "रेडियो पर {q} लगाओ", "{q} रेडियो पर लगाओ",
+            "रेडियो पर {q} बजाओ", "{q} रेडियो पर बजाओ", "{q} स्टेशन लगाओ",
+            "在~收音机~上播放~{q}", "在~电台~播放~{q}", "用~收音机~播放~{q}", "收听~{q}", "播放~电台~{q}", "打开~电台~{q}"
+        ),
+        Kind.RADIO_SEARCH to listOf(
+            "cerca {q} alla radio", "cerca {q} in radio", "cerca {q} sulla radio", "cerca la radio {q}",
+            "cerca la stazione radio {q}", "cerca la stazione {q}", "cerca stazione {q}",
+            "search {q} on the radio", "search for {q} on the radio", "search {q} on radio", "search for {q} on radio",
+            "find {q} on the radio", "find the station {q}", "find station {q}", "search for the station {q}",
+            "search the radio for {q}", "search radio for {q}",
+            "busca {q} en la radio", "busca la emisora {q}", "busca la estación {q}",
+            "cherche {q} à la radio", "recherche {q} à la radio", "cherche la station {q}", "recherche la station {q}",
+            "suche {q} im radio", "such {q} im radio", "suche den sender {q}", "such den sender {q}",
+            "pesquisa {q} no rádio", "pesquise {q} no rádio", "procura {q} no rádio", "procure {q} no rádio",
+            "procura a estação {q}", "procure a estação {q}", "pesquisa a estação {q}",
+            "найди {q} на радио", "поищи {q} на радио", "найди станцию {q}", "найди радио {q}",
+            "keresd meg {q} a rádióban", "keress {q} a rádióban",
+            "ابحث عن {q} في الراديو", "ابحث عن {q} على الراديو", "ابحث عن محطة {q}", "ابحث عن اذاعة {q}",
+            "रेडियो पर {q} खोजो", "{q} रेडियो पर खोजो", "रेडियो पर {q} ढूंढो", "{q} रेडियो पर ढूंढो",
+            "在~收音机~上搜索~{q}", "在~电台~搜索~{q}", "搜索~电台~{q}"
+        ),
+        Kind.TV_PLAY to listOf(
+            "metti {q} in tv", "metti {q} in televisione", "metti {q} sulla tv", "metti {q} su iptv",
+            "guarda {q} in tv", "guarda {q} in televisione", "guarda {q} sulla tv", "guarda {q} su iptv",
+            "riproduci {q} in tv", "fammi vedere {q} in tv", "metti il canale {q}", "guarda il canale {q}",
+            "vai sul canale {q}", "passa al canale {q}",
+            "play {q} on tv", "play {q} on the tv", "play {q} on iptv", "watch {q} on tv", "watch {q} on the tv",
+            "watch {q} on iptv", "put on {q} on tv", "put {q} on tv", "show {q} on tv", "play channel {q}",
+            "watch channel {q}", "put on channel {q}", "go to channel {q}", "switch to channel {q}",
+            "change to channel {q}",
+            "pon {q} en la tele", "pon {q} en la tv", "ponme {q} en la tele", "ponme {q} en la tv",
+            "mira {q} en la tele", "mira {q} en la tv", "ver {q} en la tele", "ver {q} en la tv",
+            "pon el canal {q}", "ponme el canal {q}", "cambia al canal {q}", "ver el canal {q}",
+            "mets {q} à la télé", "mets {q} à la tv", "mets {q} sur la télé", "regarde {q} à la télé",
+            "regarde {q} à la tv", "mets la chaîne {q}", "regarde la chaîne {q}", "passe à la chaîne {q}",
+            "zeige {q} im fernsehen", "zeig {q} im fernsehen", "schau {q} im fernsehen", "schaue {q} im fernsehen",
+            "spiele {q} im fernsehen", "spiel {q} im fernsehen", "spiele {q} im tv", "zeig {q} im tv",
+            "schau {q} im tv", "schalte auf kanal {q}", "wechsle zu kanal {q}", "zeige kanal {q}", "zeig kanal {q}",
+            "toca {q} na tv", "toque {q} na tv", "coloca {q} na tv", "coloque {q} na tv", "põe {q} na tv",
+            "vê {q} na tv", "veja {q} na tv", "assiste {q} na tv", "assista {q} na tv", "coloca o canal {q}",
+            "coloque o canal {q}", "põe o canal {q}", "muda para o canal {q}", "vê o canal {q}",
+            "включи {q} на тв", "включи {q} по телевизору", "поставь {q} на тв", "покажи {q} на тв",
+            "покажи {q} по телевизору", "включи канал {q}", "поставь канал {q}", "переключи на канал {q}",
+            "покажи канал {q}",
+            "játszd le {q} a tévében", "játszd le {q} a tv-ben", "mutasd {q} a tévében", "mutasd {q} a tv-ben",
+            "kapcsold a {q} csatornát", "kapcsold be a {q} csatornát",
+            "شغل {q} على التلفزيون", "شغل {q} في التلفزيون", "اعرض {q} على التلفزيون", "شغل قناة {q}", "اعرض قناة {q}",
+            "افتح قناة {q}",
+            "टीवी पर {q} चलाओ", "{q} टीवी पर चलाओ", "टीवी पर {q} लगाओ", "{q} टीवी पर लगाओ", "टीवी पर {q} दिखाओ",
+            "{q} टीवी पर दिखाओ", "{q} चैनल लगाओ", "{q} चैनल चलाओ",
+            "在~电视~上播放~{q}", "在~电视~播放~{q}", "用~电视~播放~{q}", "在~电视~上看~{q}", "播放~频道~{q}",
+            "切换到~频道~{q}", "打开~频道~{q}"
+        ),
+        Kind.TV_SEARCH to listOf(
+            "cerca {q} in tv", "cerca {q} in televisione", "cerca {q} sulla tv", "cerca il canale {q}", "cerca canale {q}",
+            "search {q} on tv", "search for {q} on tv", "search {q} on the tv", "find {q} on tv", "find the channel {q}",
+            "find channel {q}", "search channel {q}", "search for the channel {q}", "search for channel {q}",
+            "busca {q} en la tele", "busca {q} en la tv", "busca el canal {q}",
+            "cherche {q} à la télé", "cherche {q} à la tv", "recherche {q} à la télé", "cherche la chaîne {q}",
+            "recherche la chaîne {q}",
+            "suche {q} im fernsehen", "such {q} im fernsehen", "suche {q} im tv", "such {q} im tv", "suche kanal {q}",
+            "such kanal {q}", "suche den kanal {q}", "such den kanal {q}",
+            "pesquisa {q} na tv", "pesquise {q} na tv", "procura {q} na tv", "procure {q} na tv", "procura o canal {q}",
+            "procure o canal {q}", "pesquisa o canal {q}",
+            "найди {q} на тв", "поищи {q} на тв", "найди канал {q}", "поищи канал {q}",
+            "keresd meg {q} a tévében", "keresd meg {q} a tv-ben", "keress {q} a tévében", "keresd meg a {q} csatornát",
+            "ابحث عن {q} في التلفزيون", "ابحث عن {q} على التلفزيون", "ابحث عن قناة {q}",
+            "टीवी पर {q} खोजो", "{q} टीवी पर खोजो", "टीवी पर {q} ढूंढो", "{q} टीवी पर ढूंढो", "{q} चैनल खोजो",
+            "在~电视~上搜索~{q}", "在~电视~搜索~{q}", "搜索~频道~{q}"
+        ),
+        Kind.MEDIA_PLAY to listOf(
+            "metti {q} su media", "metti {q} su carweb media", "riproduci {q} su media", "riproduci {q} su carweb media",
+            "ascolta {q} su media", "ascolta {q} su carweb media", "metti {q} dal lettore", "metti {q} sul lettore",
+            "riproduci {q} dal lettore", "metti {q} dai miei file", "riproduci {q} dai miei file",
+            "metti {q} dalla mia musica", "ascolta {q} dalla mia musica", "riproduci {q} dalla mia musica",
+            "play {q} on media", "play {q} on carweb media", "play {q} from media", "play {q} from my music",
+            "play {q} from my files", "play {q} in my music", "play {q} on the player", "listen to {q} from my music",
+            "listen to {q} on media",
+            "pon {q} en media", "pon {q} de mi música", "ponme {q} de mi música", "reproduce {q} en media",
+            "reproduce {q} de mi música", "reproduce {q} de mis archivos", "escucha {q} de mi música",
+            "pon {q} en el reproductor",
+            "mets {q} sur media", "joue {q} sur media", "mets {q} de ma musique", "joue {q} de ma musique",
+            "joue {q} de mes fichiers", "écoute {q} de ma musique", "mets {q} sur le lecteur",
+            "spiele {q} auf media", "spiel {q} auf media", "spiele {q} aus meiner musik", "spiel {q} aus meiner musik",
+            "spiele {q} aus meinen dateien", "spiel {q} aus meinen dateien", "spiele {q} im player",
+            "toca {q} no media", "toque {q} no media", "coloca {q} no media", "toca {q} da minha música",
+            "toque {q} da minha música", "coloca {q} da minha música", "põe {q} da minha música",
+            "toca {q} dos meus arquivos", "toque {q} dos meus arquivos", "ouve {q} da minha música",
+            "ouça {q} da minha música",
+            "включи {q} на медиа", "поставь {q} на медиа", "включи {q} из моей музыки", "поставь {q} из моей музыки",
+            "включи {q} из моих файлов", "поставь {q} из моих файлов", "включи {q} в плеере",
+            "játszd le {q} a médiában", "játszd le {q} a zenéim közül", "játszd {q} a zenéim közül",
+            "játszd le {q} a fájljaim közül",
+            "شغل {q} من موسيقاي", "شغل {q} من ملفاتي", "شغل {q} في الوسائط", "شغل {q} في المشغل",
+            "मीडिया पर {q} चलाओ", "{q} मीडिया पर चलाओ", "मेरे गानों में से {q} चलाओ", "{q} मेरे गानों से चलाओ",
+            "मेरी फाइलों से {q} चलाओ", "{q} मेरी फाइलों से चलाओ",
+            "播放~我的音乐~里的~{q}", "播放~我的音乐~中的~{q}", "在~我的音乐~里播放~{q}", "在~播放器~里播放~{q}",
+            "在~媒体~上播放~{q}"
+        ),
+        Kind.MEDIA_SEARCH to listOf(
+            "cerca {q} su media", "cerca {q} su carweb media", "cerca {q} nel lettore", "cerca {q} nei miei file",
+            "cerca {q} nella mia musica",
+            "search {q} on media", "search for {q} on media", "search {q} in my music", "search for {q} in my music",
+            "search {q} in my files", "search for {q} in my files", "find {q} in my music",
+            "busca {q} en media", "busca {q} en mi música", "busca {q} en mis archivos", "busca {q} en el reproductor",
+            "cherche {q} sur media", "cherche {q} dans ma musique", "cherche {q} dans mes fichiers",
+            "suche {q} auf media", "suche {q} in meiner musik", "such {q} in meiner musik", "suche {q} in meinen dateien",
+            "pesquisa {q} no media", "pesquisa {q} na minha música", "procura {q} na minha música",
+            "procure {q} na minha música", "procura {q} nos meus arquivos",
+            "найди {q} на медиа", "найди {q} в моей музыке", "поищи {q} в моей музыке", "найди {q} в моих файлах",
+            "keresd meg {q} a médiában", "keresd meg {q} a zenéim között", "keress {q} a zenéim között",
+            "ابحث عن {q} في موسيقاي", "ابحث عن {q} في ملفاتي", "ابحث عن {q} في الوسائط",
+            "मीडिया पर {q} खोजो", "{q} मीडिया पर खोजो", "मेरे गानों में {q} खोजो", "{q} मेरे गानों में खोजो",
+            "在~我的音乐~里搜索~{q}", "在~我的音乐~中搜索~{q}", "在~媒体~上搜索~{q}", "在~播放器~里搜索~{q}"
         ),
         Kind.NAVIGATE to listOf(
             "portami a {q}", "portami in {q}", "portami da {q}", "portami al {q}", "portami alla {q}",
@@ -332,6 +504,19 @@ object VoiceCommands {
             "{q} खोजो", "{q} सर्च करो", "{q} ढूंढो",
             "搜索~{q}", "搜~{q}", "查找~{q}", "查一下~{q}", "找~{q}"
         ),
+        Kind.WATCH to listOf(
+            "guarda {q}", "fammi vedere {q}",
+            "watch {q}",
+            "mira {q}", "ver {q}",
+            "regarde {q}",
+            "schau {q}", "schaue {q}",
+            "assiste {q}", "assista {q}", "veja {q}",
+            "смотри {q}", "посмотри {q}",
+            "nézd {q}", "nézd meg {q}",
+            "شاهد {q}",
+            "{q} देखो",
+            "看~{q}", "观看~{q}"
+        ),
         Kind.PLAY to listOf(
             "metti {q}", "riproduci {q}", "fai partire {q}", "ascolta {q}", "fammi sentire {q}", "voglio sentire {q}",
             "voglio vedere {q}",
@@ -363,6 +548,10 @@ object VoiceCommands {
         word("यू\\s*ट्यूब|यूटयूब") to "youtube",
         Regex("油管") to "youtube",
         Regex("youtube\\s*(?:(?:музыка|музыке|мьюзик|ميوزك|ميوزيك|म्यूजिक)$NO_LETTER_AFTER|音乐)") to "youtube music",
+        word("car\\s+web") to "carweb",
+        word("a\\s*a\\s*b\\s+media") to "carweb media",
+        word("i\\s*p\\s*t\\s*v") to "iptv",
+        word("t\\s+v|tiv[uù]") to "tv",
         word("гугл[еау]?") to "google",
         word("جوجل|غوغل|قوقل") to "google",
         word("गूगल") to "google",
@@ -444,7 +633,12 @@ object VoiceCommands {
                 } else {
                     values["site"].orEmpty() to q
                 }
-                if (site in WEB_NAMES) Command.WebSearch(query) else Command.SiteSearch(site, query)
+                val section = sectionNamed(site)
+                when {
+                    section != null -> Command.MediaRequest(section, query, play = false)
+                    site in WEB_NAMES -> Command.WebSearch(query)
+                    else -> Command.SiteSearch(site, query)
+                }
             }
             else -> toCommand(rule.kind, q)
         }
@@ -462,27 +656,39 @@ object VoiceCommands {
         Kind.MUSIC_SEARCH -> Command.YouTubeMusicSearch(q)
         Kind.YOUTUBE_PLAY -> Command.YouTubePlay(q)
         Kind.YOUTUBE_SEARCH -> Command.YouTubeSearch(q)
+        Kind.RADIO_PLAY -> Command.MediaRequest(MediaSection.RADIO, q, play = true)
+        Kind.RADIO_SEARCH -> Command.MediaRequest(MediaSection.RADIO, q, play = false)
+        Kind.TV_PLAY -> Command.MediaRequest(MediaSection.TV, q, play = true)
+        Kind.TV_SEARCH -> Command.MediaRequest(MediaSection.TV, q, play = false)
+        Kind.MEDIA_PLAY -> Command.MediaRequest(MediaSection.MEDIA, q, play = true)
+        Kind.MEDIA_SEARCH -> Command.MediaRequest(MediaSection.MEDIA, q, play = false)
         Kind.NAVIGATE -> Command.Navigate(q)
         Kind.WEB_SEARCH -> Command.WebSearch(q)
         Kind.SITE_SEARCH -> Command.Search(q)
         Kind.OPEN -> Command.Open(q)
         Kind.SEARCH -> Command.Search(q)
+        Kind.WATCH -> Command.Watch(q)
         Kind.PLAY -> Command.Play(q)
     }
 
     /**
      * Cosa fare. [currentUrl] = pagina aperta (decide YouTube o YouTube Music e la ricerca sul sito);
-     * [webSearchUrl] = ricerca col motore scelto; [siteSearchUrl] = ricerca sul sito aperto quando lo permette.
+     * [webSearchUrl] = ricerca col motore scelto; [siteSearchUrl] = ricerca sul sito aperto quando lo permette;
+     * [playerOwned] = il player di Android Auto è di una pagina, che riceve i suoi tasti. Sennò i tasti detti a voce
+     * vanno alla pagina di CarWeb Media aperta: può non aver ancora suonato niente.
      */
     fun plan(
         command: Command,
         currentUrl: String?,
         favorites: List<FavoriteSite>,
         webSearchUrl: (String) -> String,
-        siteSearchUrl: (String) -> String = { q -> defaultSiteSearchUrl(currentUrl, q, webSearchUrl) }
+        siteSearchUrl: (String) -> String = { q -> defaultSiteSearchUrl(currentUrl, q, webSearchUrl) },
+        playerOwned: Boolean = true
     ): Plan = when (command) {
-        is Command.Search -> searchPlan(siteSearchUrl(command.query), command.query)
-        is Command.Unmatched -> searchPlan(siteSearchUrl(command.text), command.text)
+        is Command.Search -> mediaSectionOf(currentUrl)?.let { Plan.Media(it, command.query) }
+            ?: searchPlan(siteSearchUrl(command.query), command.query)
+        is Command.Unmatched -> unmatchedPlan(command.text, currentUrl, siteSearchUrl)
+        is Command.MediaRequest -> Plan.Media(command.section, command.query, command.play)
         is Command.WebSearch -> Plan.Load(webSearchUrl(command.query), command.query, LoadKind.SEARCH)
         is Command.SiteSearch -> sitePlan(command, favorites, webSearchUrl)
             ?: "${command.query} ${command.site}".let { searchPlan(siteSearchUrl(it), it) }
@@ -492,18 +698,18 @@ object VoiceCommands {
             Plan.Load(youTubeMusicSearchUrl(command.query), command.query, LoadKind.YOUTUBE_MUSIC)
         is Command.YouTubeMusicPlay ->
             Plan.Load(youTubeMusicSearchUrl(command.query), command.query, LoadKind.YOUTUBE_MUSIC, playFirst = true)
-        is Command.Play ->
-            if (isYouTubeMusic(currentUrl)) {
-                Plan.Load(youTubeMusicSearchUrl(command.query), command.query, LoadKind.YOUTUBE_MUSIC, playFirst = true)
-            } else {
-                Plan.Load(youTubeSearchUrl(command.query), command.query, LoadKind.YOUTUBE, playFirst = true)
-            }
+        is Command.Play -> playPlan(command.query, currentUrl)
+        is Command.Watch -> watchPlan(command.query, currentUrl)
         is Command.Open -> {
             val favorite = findFavorite(command.target, favorites)
             val address = if (favorite == null) addressOf(command.target) else null
+            val section = sectionNamed(command.target)
+            val implied = impliedSection(command.target)
             when {
                 favorite != null -> Plan.Load(favorite.url, favorite.name, LoadKind.PAGE, favorite = favorite)
                 address != null -> Plan.Load(address, command.target, LoadKind.PAGE)
+                section != null -> Plan.Media(section)
+                implied != null -> Plan.Media(implied, command.target, play = true, fallback = Command.WebSearch(command.target))
                 else -> searchPlan(siteSearchUrl(command.target), command.target)
             }
         }
@@ -511,10 +717,50 @@ object VoiceCommands {
         Command.Back -> Plan.Back
         Command.Reload -> Plan.Reload
         Command.Home -> Plan.Home
-        Command.Pause -> Plan.Player(PlayerAction.PAUSE)
-        Command.Resume -> Plan.Player(PlayerAction.PLAY)
-        Command.Next -> Plan.Player(PlayerAction.NEXT)
-        Command.Previous -> Plan.Player(PlayerAction.PREVIOUS)
+        Command.Pause -> playerPlan(PlayerAction.PAUSE, currentUrl, playerOwned)
+        Command.Resume -> playerPlan(PlayerAction.PLAY, currentUrl, playerOwned)
+        Command.Next -> playerPlan(PlayerAction.NEXT, currentUrl, playerOwned)
+        Command.Previous -> playerPlan(PlayerAction.PREVIOUS, currentUrl, playerOwned)
+    }
+
+    private fun playerPlan(action: PlayerAction, currentUrl: String?, playerOwned: Boolean): Plan {
+        val open = if (playerOwned) null else mediaSectionOf(currentUrl)
+        return if (open != null) Plan.Media(open, action = action) else Plan.Player(action)
+    }
+
+    // "metti la radio" = l'ultima ascoltata; sulle pagine di CarWeb Media "metti …" cerca lì; "metti radio deejay" da
+    // un'altra parte prova la radio e, se non c'è una stazione così ("radio ga ga"), torna a YouTube
+    private fun playPlan(query: String, currentUrl: String?): Plan {
+        sectionNamed(query)?.let { return Plan.Media(it, play = true) }
+        mediaSectionOf(currentUrl)?.let { return Plan.Media(it, query, play = true) }
+        val youTube = youTubePlayPlan(query, currentUrl)
+        if (isYouTube(currentUrl)) return youTube
+        return impliedSection(query)?.let { Plan.Media(it, query, play = true, fallback = Command.YouTubePlay(query)) } ?: youTube
+    }
+
+    // "guarda rai 1": prima la TV; se non c'è un canale così è un video
+    private fun watchPlan(query: String, currentUrl: String?): Plan {
+        sectionNamed(query)?.let { return Plan.Media(it, play = true) }
+        mediaSectionOf(currentUrl)?.let { return Plan.Media(it, query, play = true) }
+        if (isYouTube(currentUrl)) return youTubePlayPlan(query, currentUrl)
+        return Plan.Media(MediaSection.TV, query, play = true, fallback = Command.YouTubePlay(query))
+    }
+
+    private fun youTubePlayPlan(query: String, currentUrl: String?): Plan.Load =
+        if (isYouTubeMusic(currentUrl)) {
+            Plan.Load(youTubeMusicSearchUrl(query), query, LoadKind.YOUTUBE_MUSIC, playFirst = true)
+        } else {
+            Plan.Load(youTubeSearchUrl(query), query, LoadKind.YOUTUBE, playFirst = true)
+        }
+
+    // Solo un nome: "radio" apre la pagina, "radio deejay" prova la stazione; su una pagina di CarWeb Media è quello
+    // che si vuole sentire lì
+    private fun unmatchedPlan(text: String, currentUrl: String?, siteSearchUrl: (String) -> String): Plan {
+        sectionNamed(text)?.let { return Plan.Media(it) }
+        mediaSectionOf(currentUrl)?.let { return Plan.Media(it, text, play = true) }
+        val search = searchPlan(siteSearchUrl(text), text)
+        if (isYouTube(currentUrl)) return search
+        return impliedSection(text)?.let { Plan.Media(it, text, play = true, fallback = Command.WebSearch(text)) } ?: search
     }
 
     /**
@@ -550,6 +796,87 @@ object VoiceCommands {
         isYouTubeMusic(currentUrl) -> youTubeMusicSearchUrl(query)
         isYouTube(currentUrl) -> youTubeSearchUrl(query)
         else -> webSearchUrl(query)
+    }
+
+    // ------------------------------------------------------------------
+    // Pagine di CarWeb Media
+    // ------------------------------------------------------------------
+
+    private const val PLAYER_HOST = "player.local"
+
+    // Come si chiamano nelle varie lingue, con o senza articolo. Lingue in ordine: it, en, es, fr, de, pt, ru, hu, ar, hi, zh
+    private val SECTION_NAMES: Map<String, MediaSection> by lazy {
+        buildMap {
+            fun add(section: MediaSection, vararg names: String) = names.forEach { put(foldChars(it), section) }
+            add(
+                MediaSection.RADIO,
+                "radio", "la radio", "le radio", "the radio", "das radio", "o rádio", "a rádio", "rádio", "rádió",
+                "a rádió", "rádiót", "a rádiót", "радио", "راديو", "الراديو", "रेडियो", "收音机", "电台", "广播"
+            )
+            add(
+                MediaSection.TV,
+                "tv", "la tv", "televisione", "la televisione", "iptv", "la iptv",
+                "the tv", "television", "the television",
+                "tele", "la tele", "televisión", "la televisión",
+                "télé", "la télé", "télévision", "la télévision",
+                "fernsehen", "das fernsehen", "fernseher", "den fernseher",
+                "a tv", "televisão", "a televisão",
+                "тв", "телевизор", "телевидение",
+                "tévé", "a tévé", "tévét", "a tévét", "televízió", "a televízió",
+                "تلفزيون", "التلفزيون", "التلفاز", "टीवी", "电视"
+            )
+            add(
+                MediaSection.MEDIA,
+                "media", "carweb media", "lettore", "il lettore", "la mia musica", "i miei file",
+                "player", "the player", "my music", "my files",
+                "reproductor", "el reproductor", "mi música", "mis archivos",
+                "lecteur", "le lecteur", "ma musique", "mes fichiers",
+                "meine musik", "meine dateien",
+                "reprodutor", "o reprodutor", "minha música", "a minha música", "meus arquivos",
+                "плеер", "медиа", "моя музыка", "мою музыку", "мои файлы",
+                "média", "a média", "lejátszó", "a lejátszó", "a zeném", "a zenéim", "zenéim", "a fájljaim",
+                "المشغل", "الوسائط", "موسيقاي", "ملفاتي",
+                "मीडिया", "प्लेयर", "मेरा संगीत", "मेरे गाने", "मेरी फाइलें",
+                "媒体", "播放器", "我的音乐", "我的文件"
+            )
+        }
+    }
+
+    private val RADIO_WORDS by lazy { setOf("radio", "rádio", "rádió", "радио", "راديو", "रेडियो", "电台").map(::foldChars).toSet() }
+    private val CHANNEL_WORDS by lazy {
+        setOf("canale", "channel", "canal", "chaîne", "kanal", "канал", "csatorna", "قناة", "चैनल", "频道").map(::foldChars).toSet()
+    }
+
+    private fun sectionNamed(text: String): MediaSection? = SECTION_NAMES[foldChars(text.trim())]
+
+    // Una frase che si capisce da sola: "radio deejay", "virgin radio", "rai radio 1", "canale 5". Con la parola più
+    // avanti è probabile una canzone ("video killed the radio star"): lì si cerca dove si cercherebbe comunque
+    private fun impliedSection(text: String): MediaSection? {
+        val words = foldChars(text).split(SPACES).filter { it.isNotEmpty() }
+        if (words.size < 2) return null
+        val radio = words.indexOfFirst { it in RADIO_WORDS }
+        return when {
+            radio == 0 || radio == 1 || radio == words.lastIndex -> MediaSection.RADIO
+            words.first() in CHANNEL_WORDS -> MediaSection.TV
+            else -> null
+        }
+    }
+
+    /** La pagina di CarWeb Media di un indirizzo; null se è un altro sito. */
+    fun mediaSectionOf(url: String?): MediaSection? {
+        val uri = parseUri(url) ?: return null
+        if (uri.host?.lowercase() != PLAYER_HOST) return null
+        return when (uri.path.orEmpty().trimEnd('/')) {
+            "/tv" -> MediaSection.TV
+            "/radio" -> MediaSection.RADIO
+            else -> MediaSection.MEDIA
+        }
+    }
+
+    fun mediaSectionUrl(section: MediaSection): String = when (section) {
+        MediaSection.MEDIA -> "https://$PLAYER_HOST/"
+        MediaSection.TV -> "https://$PLAYER_HOST/tv"
+        MediaSection.RADIO -> "https://$PLAYER_HOST/radio"
     }
 
     // ------------------------------------------------------------------

@@ -48,9 +48,9 @@
         }
     }
 
-    function api(path, params) {
-        const query = new URLSearchParams(Object.assign({}, params, { source: state.source || '', t: config.token }));
-        return fetch('/api/tv/' + path + '?' + query).then((response) => {
+    function request(path, params) {
+        const query = new URLSearchParams(Object.assign({}, params, { t: config.token }));
+        return fetch(path + '?' + query).then((response) => {
             // App riavviata: la pagina si ricarica per avere il token nuovo
             if (response.status === 403) {
                 location.reload();
@@ -58,6 +58,10 @@
             }
             return response.ok ? response.json() : Promise.reject(new Error(String(response.status)));
         });
+    }
+
+    function api(path, params) {
+        return request('/api/tv/' + path, Object.assign({ source: state.source || '' }, params));
     }
 
     function showMessage(text) {
@@ -88,17 +92,17 @@
         setItems([]);
         showMessage(S.loading);
         const token = ++loadToken;
-        api('groups', refresh ? { refresh: '1' } : {}).then((data) => {
-            if (token !== loadToken) return;
+        return api('groups', refresh ? { refresh: '1' } : {}).then((data) => {
+            if (token !== loadToken) return null;
             groups = data.groups;
             showMessage('');
             renderGroups();
             if (state.group === 'fav' && favorites().length) {
                 showFavorites();
-            } else {
-                const known = groups.some((group) => group.i === state.group);
-                showGroup(known ? state.group : (groups.length ? groups[0].i : null));
+                return null;
             }
+            const known = groups.some((group) => group.i === state.group);
+            return showGroup(known ? state.group : (groups.length ? groups[0].i : null));
         }).catch(() => {
             if (token === loadToken) showMessage(S.sourceError);
         });
@@ -136,14 +140,14 @@
     function showGroup(index) {
         if (index === null || index === undefined) {
             setItems([]);
-            return;
+            return null;
         }
         state.group = index;
         saveState();
         markGroup();
         showMessage(S.loading);
         const token = ++loadToken;
-        api('channels', { group: String(index) }).then((data) => {
+        return api('channels', { group: String(index) }).then((data) => {
             if (token !== loadToken) return;
             showMessage('');
             setItems(data.channels);
@@ -317,7 +321,7 @@
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: channel.n,
                     artist: channel.g || 'TV',
-                    album: 'AAB TV',
+                    album: 'CarWeb TV',
                     artwork: channel.l ? [{ src: channel.l, sizes: '512x512' }] : []
                 });
             } catch (_) {
@@ -475,6 +479,75 @@
     }
 
     // ------------------------------------------------------------------
+    // Comandi vocali: la richiesta la tiene l'app (MediaVoice)
+    // ------------------------------------------------------------------
+
+    let ready = Promise.resolve();
+
+    // Prima nella lista scelta, poi nelle altre: i risultati sicuri vincono, altrimenti i primi trovati
+    async function findChannels(query) {
+        let first = null;
+        const others = config.sources.map((source) => source.id).filter((id) => id !== state.source);
+        for (const id of [state.source].concat(others)) {
+            let data;
+            try {
+                data = await api('channels', { q: query, source: id });
+            } catch (_) {
+                continue;
+            }
+            if (data.channels.some((channel) => channel.m >= data.confident)) return { id, data };
+            if (!first && data.channels.length) first = { id, data };
+        }
+        return first;
+    }
+
+    async function runVoiceSearch(voice) {
+        const token = ++loadToken;
+        clearTimeout(searchTimer);
+        showMessage(S.loading);
+        const found = await findChannels(voice.query);
+        if (token !== loadToken) return;
+        const channels = found ? found.data.channels : [];
+        const confident = found ? channels.filter((channel) => channel.m >= found.data.confident) : [];
+        if (!confident.length && voice.fallback) {
+            showMessage('');
+            request('/api/voice/fallback').catch(() => {});
+            return;
+        }
+        if (found && found.id !== state.source) await selectSource(found.id, false);
+        ++loadToken;
+        searchInput.value = voice.query;
+        setItems(channels);
+        showMessage(channels.length ? '' : S.noResults);
+        if (voice.play && confident.length) play(confident.find(isFavorite) || confident[0]);
+    }
+
+    async function runVoice(voice) {
+        if (voice.action === 'pause') {
+            media.pause();
+        } else if (voice.action === 'next') {
+            step(1);
+        } else if (voice.action === 'previous') {
+            step(-1);
+        } else if (voice.query) {
+            await runVoiceSearch(voice);
+        } else if ((voice.play || voice.action === 'play') && media.paused) {
+            if (current) resume();
+            else if (items.length) play(items[0]);
+        }
+    }
+
+    window.aabVoice = async function () {
+        await ready;
+        try {
+            const voice = await request('/api/voice', { section: 'tv' });
+            if (voice.query || voice.play || voice.action) await runVoice(voice);
+        } catch (_) {
+            // Il comando resta senza effetto: la pagina continua come prima
+        }
+    };
+
+    // ------------------------------------------------------------------
     // Avvio
     // ------------------------------------------------------------------
 
@@ -503,5 +576,6 @@
         current = state.last;
         showChannel(current);
     }
-    selectSource(source, false);
+    ready = selectSource(source, false);
+    window.aabVoice();
 })();

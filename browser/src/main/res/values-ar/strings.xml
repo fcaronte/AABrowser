@@ -314,6 +314,8 @@
     <string name="player_effect_bars">أعمدة</string>
     <string name="player_effect_wave">موجة</string>
     <string name="player_effect_circle">دائرة</string>
+    <string name="player_search">البحث في الملفات</string>
+    <string name="player_no_results">لم يتم العثور على ملفات</string>
     <string name="lyrics_button">كلمات الأغنية</string>
     <string name="lyrics_loading">جارٍ تحميل الكلمات…</string>
     <string name="lyrics_not_found">لم يتم العثور على الكلمات.</string>
@@ -329,7 +331,7 @@
     <string name="ssl_warning_proceed">المتابعة على أي حال</string>
     <string name="ssl_warning_cancel">إلغاء</string>
     <string name="voice_command_button">أمر صوتي</string>
-    <string name="voice_command_hint">جرّب: «شغّل … على YouTube»، «ابحث عن … في Amazon»، «افتح …»، «إيقاف مؤقت»</string>
+    <string name="voice_command_hint">جرّب: «شغّل … على YouTube»، «شغّل … على الراديو»، «شغّل … على التلفزيون»، «ابحث عن … في Amazon»، «افتح …»، «إيقاف مؤقت»</string>
     <string name="voice_command_hint_wheel">بعد تشغيل شيء في AABrowser: اضغط مرتين على ⏮ في المقود</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -337,6 +339,9 @@
     <string name="voice_command_site">جارٍ البحث في %1$s: %2$s</string>
     <string name="voice_command_open">جارٍ فتح %1$s</string>
     <string name="voice_command_navigate">الاتجاهات إلى %1$s</string>
+    <string name="voice_command_radio">راديو: %1$s</string>
+    <string name="voice_command_tv">التلفزيون: %1$s</string>
+    <string name="voice_command_media">الوسائط: %1$s</string>
     <string name="voice_command_not_heard">لم أسمع شيئاً، حاول مرة أخرى</string>
     <string name="voice_command_unavailable">التعرّف على الكلام غير متاح</string>
     <string name="voice_command_mic_permission">يحتاج AABrowser إلى إذن الميكروفون: امنحه من الهاتف</string>

@@ -3,6 +3,7 @@ package com.fcaronte.aabrowser.utils
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.utils.VoiceCommands.Command
 import com.fcaronte.aabrowser.utils.VoiceCommands.LoadKind
+import com.fcaronte.aabrowser.utils.VoiceCommands.MediaSection
 import com.fcaronte.aabrowser.utils.VoiceCommands.Plan
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -195,6 +196,228 @@ class VoiceCommandsTest {
         assertEquals(Command.Play("never gonna give you up"), VoiceCommands.forAssistant("never gonna give you up"))
         assertEquals(Command.Play("gatti"), VoiceCommands.forAssistant("cerca gatti"))
         assertEquals(Command.YouTubeMusicPlay("queen"), VoiceCommands.forAssistant("play queen on youtube music"))
+    }
+
+    @Test
+    fun radioPhrases() {
+        val radio = { q: String -> Command.MediaRequest(MediaSection.RADIO, q, play = true) }
+        assertParsed(radio("deejay"), "Metti Deejay alla radio")
+        assertParsed(radio("rtl 102.5"), "ascolta RTL 102.5 alla radio")
+        assertParsed(radio("subasio"), "sintonizza subasio")
+        assertParsed(radio("deejay"), "metti la radio deejay")
+        assertParsed(radio("bbc"), "play BBC on the radio")
+        assertParsed(radio("kiss fm"), "tune to kiss fm")
+        assertParsed(radio("los 40"), "pon los 40 en la radio")
+        assertParsed(radio("nrj"), "mets nrj à la radio")
+        assertParsed(radio("antenne bayern"), "spiele antenne bayern im radio")
+        assertParsed(radio("comercial"), "toca comercial no rádio")
+        assertParsed(radio("максимум"), "включи максимум на радио")
+        assertParsed(radio("petőfi"), "játszd le petőfi a rádióban")
+        assertParsed(radio("مكس"), "شغّل مكس على الراديو")
+        assertParsed(radio("मिर्ची"), "रेडियो पर मिर्ची चलाओ")
+        assertParsed(radio("新闻"), "在收音机上播放新闻")
+
+        val find = { q: String -> Command.MediaRequest(MediaSection.RADIO, q, play = false) }
+        assertParsed(find("deejay"), "cerca deejay alla radio")
+        assertParsed(find("deejay"), "cerca la stazione deejay")
+        assertParsed(find("jazz"), "search for jazz on the radio")
+        assertParsed(find("jazz"), "busca jazz en la radio")
+        // Con le altre parole di "cerca … su …": il nome del sito è la pagina
+        assertParsed(find("jazz"), "cerca jazz su radio")
+        assertParsed(find("jazz"), "cherche jazz sur la radio")
+        assertParsed(find("deejay"), "cerca su radio deejay")
+    }
+
+    @Test
+    fun tvPhrases() {
+        val tv = { q: String -> Command.MediaRequest(MediaSection.TV, q, play = true) }
+        assertParsed(tv("rai 1"), "Metti Rai 1 in TV")
+        assertParsed(tv("rai 1"), "guarda rai 1 in televisione")
+        assertParsed(tv("rai 1"), "guarda rai 1 su iptv")
+        assertParsed(tv("rai 1"), "guarda rai 1 in tivù")
+        assertParsed(tv("cinque"), "metti il canale cinque")
+        assertParsed(tv("bbc one"), "watch BBC One on TV")
+        assertParsed(tv("4"), "switch to channel 4")
+        assertParsed(tv("la 1"), "pon la 1 en la tele")
+        assertParsed(tv("tf1"), "mets TF1 à la télé")
+        assertParsed(tv("zdf"), "schau ZDF im Fernsehen")
+        assertParsed(tv("globo"), "coloca globo na tv")
+        assertParsed(tv("первый"), "включи первый на тв")
+        assertParsed(tv("m1"), "játszd le M1 a tévében")
+        assertParsed(tv("الجزيرة"), "شغل الجزيرة على التلفزيون")
+        assertParsed(tv("आज तक"), "टीवी पर आज तक चलाओ")
+        assertParsed(tv("中央一台"), "在电视上播放中央一台")
+
+        val find = { q: String -> Command.MediaRequest(MediaSection.TV, q, play = false) }
+        assertParsed(find("sport"), "cerca sport in tv")
+        assertParsed(find("rai"), "cerca il canale rai")
+        assertParsed(find("news"), "search for news on tv")
+        assertParsed(find("news"), "busca news en la tele")
+        assertParsed(find("sport"), "cerca sport su iptv")
+    }
+
+    @Test
+    fun mediaPhrases() {
+        val media = { q: String -> Command.MediaRequest(MediaSection.MEDIA, q, play = true) }
+        assertParsed(media("albachiara"), "Metti Albachiara su Media")
+        assertParsed(media("albachiara"), "metti albachiara su car web media")
+        assertParsed(media("vasco"), "riproduci vasco dalla mia musica")
+        assertParsed(media("queen"), "play queen from my music")
+        assertParsed(media("shakira"), "pon shakira de mi música")
+        assertParsed(media("stromae"), "mets stromae de ma musique")
+        assertParsed(media("rammstein"), "spiele rammstein aus meiner musik")
+        assertParsed(media("anitta"), "toca anitta da minha música")
+        assertParsed(media("кино"), "включи кино из моей музыки")
+        assertParsed(media("queen"), "játszd le queen a zenéim közül")
+        assertParsed(media("فيروز"), "شغل فيروز من موسيقاي")
+        assertParsed(media("अरिजीत"), "मेरे गानों में से अरिजीत चलाओ")
+        assertParsed(media("周杰伦"), "在我的音乐里播放周杰伦")
+
+        val find = { q: String -> Command.MediaRequest(MediaSection.MEDIA, q, play = false) }
+        assertParsed(find("vasco"), "cerca vasco su media")
+        assertParsed(find("vasco"), "cerca vasco nella mia musica")
+        assertParsed(find("queen"), "search for queen in my music")
+    }
+
+    @Test
+    fun nextChannelAndStation() {
+        assertParsed(Command.Next, "prossimo canale")
+        assertParsed(Command.Next, "stazione successiva")
+        assertParsed(Command.Next, "next channel")
+        assertParsed(Command.Previous, "canale precedente")
+        assertParsed(Command.Previous, "previous station")
+        assertParsed(Command.Next, "siguiente canal")
+        assertParsed(Command.Next, "chaîne suivante")
+        assertParsed(Command.Next, "nächster sender")
+        assertParsed(Command.Next, "próximo canal")
+        assertParsed(Command.Next, "следующий канал")
+        assertParsed(Command.Next, "következő csatorna")
+        assertParsed(Command.Next, "القناة التالية")
+        assertParsed(Command.Next, "अगला चैनल")
+        assertParsed(Command.Next, "下一个频道")
+    }
+
+    @Test
+    fun mediaSections() {
+        assertEquals(MediaSection.RADIO, VoiceCommands.mediaSectionOf("https://player.local/radio"))
+        assertEquals(MediaSection.RADIO, VoiceCommands.mediaSectionOf("https://player.local/radio/"))
+        assertEquals(MediaSection.TV, VoiceCommands.mediaSectionOf("https://player.local/tv"))
+        assertEquals(MediaSection.MEDIA, VoiceCommands.mediaSectionOf("https://player.local/"))
+        assertNull(VoiceCommands.mediaSectionOf("https://www.youtube.com/tv"))
+        assertNull(VoiceCommands.mediaSectionOf(null))
+        MediaSection.entries.forEach {
+            assertEquals(it, VoiceCommands.mediaSectionOf(VoiceCommands.mediaSectionUrl(it)))
+        }
+    }
+
+    private fun plan(text: String, currentUrl: String? = null, playerOwned: Boolean = true) =
+        VoiceCommands.plan(VoiceCommands.parse(text), currentUrl, favorites, webSearch, playerOwned = playerOwned)
+
+    @Test
+    fun openingThePages() {
+        assertEquals(Plan.Media(MediaSection.RADIO), plan("apri la radio"))
+        assertEquals(Plan.Media(MediaSection.TV), plan("apri la tv"))
+        assertEquals(Plan.Media(MediaSection.TV), plan("open the tv"))
+        assertEquals(Plan.Media(MediaSection.TV), plan("открой тв"))
+        assertEquals(Plan.Media(MediaSection.MEDIA), plan("apri la mia musica"))
+        // Solo il nome
+        assertEquals(Plan.Media(MediaSection.RADIO), plan("radio"))
+        assertEquals(Plan.Media(MediaSection.TV), plan("televisione"))
+        // "Accendila": l'ultima stazione, l'ultimo canale, l'ultimo brano
+        assertEquals(Plan.Media(MediaSection.RADIO, play = true), plan("metti la radio"))
+        assertEquals(Plan.Media(MediaSection.TV, play = true), plan("guarda la tv"))
+        assertEquals(Plan.Media(MediaSection.MEDIA, play = true), plan("play my music"))
+    }
+
+    @Test
+    fun aFavoriteWithThatNameComesFirst() {
+        val withRadio = favorites + FavoriteSite(id = "6", name = "Radio", url = "https://myradio.example/")
+        val open = VoiceCommands.plan(Command.Open("radio"), null, withRadio, webSearch) as Plan.Load
+        assertEquals("6", open.favorite?.id)
+    }
+
+    @Test
+    fun theOpenPageDecides() {
+        val radioPage = "https://player.local/radio"
+        val tvPage = "https://player.local/tv"
+        val mediaPage = "https://player.local/"
+        assertEquals(Plan.Media(MediaSection.RADIO, "deejay", play = true), plan("metti deejay", radioPage))
+        assertEquals(Plan.Media(MediaSection.TV, "rai 1", play = true), plan("metti rai 1", tvPage))
+        assertEquals(Plan.Media(MediaSection.MEDIA, "albachiara", play = true), plan("metti albachiara", mediaPage))
+        assertEquals(Plan.Media(MediaSection.TV, "rai 1", play = true), plan("guarda rai 1", tvPage))
+        assertEquals(Plan.Media(MediaSection.RADIO, "jazz"), plan("cerca jazz", radioPage))
+        // Solo il nome: è quello che si vuole sentire
+        assertEquals(Plan.Media(MediaSection.RADIO, "deejay", play = true), plan("deejay", radioPage))
+        // Un'altra pagina di CarWeb Media detta per nome vince su quella aperta
+        assertEquals(Plan.Media(MediaSection.TV, play = true), plan("metti la tv", radioPage))
+        assertEquals(Plan.Media(MediaSection.TV, "rai 1", play = true), plan("metti rai 1 in tv", radioPage))
+        // YouTube detto per nome resta YouTube
+        assertTrue(plan("metti queen su youtube", radioPage) is Plan.Load)
+    }
+
+    @Test
+    fun playerKeysWithoutAnOwnerGoToTheOpenPage() {
+        val radioPage = "https://player.local/radio"
+        assertEquals(Plan.Player(VoiceCommands.PlayerAction.PLAY), plan("riprendi", radioPage))
+        assertEquals(
+            Plan.Media(MediaSection.RADIO, action = VoiceCommands.PlayerAction.PLAY),
+            plan("riprendi", radioPage, playerOwned = false)
+        )
+        assertEquals(
+            Plan.Media(MediaSection.RADIO, action = VoiceCommands.PlayerAction.NEXT),
+            plan("prossimo", radioPage, playerOwned = false)
+        )
+        assertEquals(Plan.Player(VoiceCommands.PlayerAction.NEXT), plan("prossimo", "https://example.com/", playerOwned = false))
+    }
+
+    @Test
+    fun phrasesThatSoundLikeAPage() {
+        assertEquals(
+            Plan.Media(MediaSection.RADIO, "radio deejay", play = true, fallback = Command.YouTubePlay("radio deejay")),
+            plan("metti radio deejay")
+        )
+        assertEquals(MediaSection.RADIO, (plan("metti virgin radio") as Plan.Media).section)
+        assertEquals(MediaSection.RADIO, (plan("metti rai radio 1") as Plan.Media).section)
+        assertEquals(MediaSection.TV, (plan("metti canale 5") as Plan.Media).section)
+        assertEquals(MediaSection.TV, (plan("guarda rai 1") as Plan.Media).section)
+        assertEquals(Command.YouTubePlay("rai 1"), (plan("guarda rai 1") as Plan.Media).fallback)
+        // Solo il nome, senza verbo
+        val station = plan("radio deejay") as Plan.Media
+        assertEquals(MediaSection.RADIO, station.section)
+        assertEquals(Command.WebSearch("radio deejay"), station.fallback)
+        assertEquals(MediaSection.RADIO, (plan("apri radio deejay") as Plan.Media).section)
+        // Le canzoni restano canzoni
+        assertTrue(plan("metti video killed the radio star") is Plan.Load)
+        assertTrue(plan("metti albachiara") is Plan.Load)
+        // Con YouTube aperto "metti …" resta lì
+        assertTrue(plan("metti radio ga ga", "https://music.youtube.com/watch?v=x") is Plan.Load)
+    }
+
+    @Test
+    fun hintExamples() {
+        // Gli esempi del suggerimento del microfono, in tutte le lingue (…= il testo libero)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("metti rtl alla radio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("guarda rai 1 in tv") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("play bbc on the radio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("watch cnn on tv") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("pon rock en la radio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("mira rock en la tele") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("mets rock à la radio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("regarde rock à la télé") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("spiele rock im radio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("schau rock im fernsehen") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("toca rock no rádio") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("coloca rock na tv") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("включи рок на радио") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("покажи рок на тв") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("játszd le rock a rádióban") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("mutasd rock a tévében") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("شغل روك على الراديو") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("شغل روك على التلفزيون") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("रेडियो पर रॉक चलाओ") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("टीवी पर रॉक लगाओ") as Command.MediaRequest).section)
+        assertEquals(MediaSection.RADIO, (VoiceCommands.parse("在收音机上播放摇滚") as Command.MediaRequest).section)
+        assertEquals(MediaSection.TV, (VoiceCommands.parse("在电视上看摇滚") as Command.MediaRequest).section)
     }
 
     private val favorites = listOf(

@@ -94,6 +94,9 @@
         }
 
         const previousId = keepCurrent && current ? current.id : state.lastId;
+        queueSubset = null;
+        filterIds = null;
+        byId('search').value = '';
         const all = (data.tracks || []).sort((a, b) =>
             collator.compare(a.folder, b.folder) || collator.compare(a.name, b.name));
         lists = {
@@ -146,7 +149,7 @@
 
     function buildOrder(startIndex) {
         const start = Math.max(0, startIndex);
-        order = lists[queueKind].map((_, index) => index);
+        order = queueSubset ? queueSubset.slice() : lists[queueKind].map((_, index) => index);
         if (state.shuffle && order.length > 1) {
             for (let i = order.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -162,7 +165,7 @@
             }
             position = 0;
         } else {
-            position = start;
+            position = Math.max(0, order.indexOf(start));
         }
     }
 
@@ -189,6 +192,7 @@
         list.textContent = '';
         const fragment = document.createDocumentFragment();
         lists[viewKind].forEach((track, index) => {
+            if (filterIds && !filterIds.has(track.id)) return;
             const item = document.createElement('li');
             item.dataset.index = String(index);
             const name = document.createElement('div');
@@ -809,9 +813,10 @@
         const item = event.target.closest('li');
         if (!item) return;
         const index = Number(item.dataset.index);
-        if (viewKind !== queueKind) {
-            // File dell'altra scheda: la coda diventa quella (la precedente si ferma qui)
+        if (viewKind !== queueKind || filterIds || queueSubset) {
+            // File dell'altra scheda o di una ricerca: la coda diventa quell'elenco (la precedente si ferma qui)
             queueKind = viewKind;
+            queueSubset = filterIds ? indicesIn(viewKind, filterIds) : null;
             buildOrder(index);
         } else {
             const inOrder = order.indexOf(index);
@@ -822,6 +827,110 @@
 
     byId('tabAudio').addEventListener('click', () => showKind('audio'));
     byId('tabVideo').addEventListener('click', () => showKind('video'));
+
+    // --- Ricerca nell'elenco e comandi vocali ---
+
+    function indicesIn(kind, ids) {
+        const indices = [];
+        lists[kind].forEach((track, index) => {
+            if (ids.has(track.id)) indices.push(index);
+        });
+        return indices;
+    }
+
+    function findTracks(query) {
+        return fetch(withToken('/api/library/find?q=' + encodeURIComponent(query)), { cache: 'no-store' })
+            .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))));
+    }
+
+    function showFound(matches) {
+        filterIds = new Set(matches.map((match) => match.id));
+        // Niente in questa scheda ma qualcosa nell'altra: si passa lì
+        if (filterIds.size && !indicesIn(viewKind, filterIds).length) viewKind = otherKind(viewKind);
+        renderTabs();
+        renderList();
+        byId('listPanel').scrollTop = 0;
+        highlight();
+        showMessage(filterIds.size ? '' : text('noResults', 'No files found'));
+    }
+
+    function clearFound() {
+        if (!filterIds) return;
+        filterIds = null;
+        renderList();
+        highlight();
+        showMessage('');
+    }
+
+    const searchBox = byId('search');
+    let searchTimer = 0;
+    let searchToken = 0;
+    searchBox.placeholder = text('search', 'Search files');
+    searchBox.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        const token = ++searchToken;
+        searchTimer = setTimeout(async () => {
+            const query = searchBox.value.trim();
+            if (query.length < 2) {
+                clearFound();
+                return;
+            }
+            try {
+                const data = await findTracks(query);
+                if (token === searchToken) showFound(data.matches || []);
+            } catch (e) {}
+        }, 350);
+    });
+
+    // Un titolo preciso parte subito; un artista o una cartella dal loro primo brano, con solo quelli in coda
+    function playFound(matches) {
+        const best = lists.audio.concat(lists.video).find((track) => track.id === matches[0].id);
+        if (!best) return;
+        const kind = kindOf(best);
+        queueKind = kind;
+        viewKind = kind;
+        queueSubset = indicesIn(kind, new Set(matches.map((match) => match.id)));
+        buildOrder(matches[0].m >= 1000 ? lists[kind].indexOf(best) : queueSubset[0]);
+        renderTabs();
+        renderList();
+        select(order[position], 0, true);
+    }
+
+    async function runVoiceSearch(request) {
+        const data = await findTracks(request.query);
+        const matches = data.matches || [];
+        const confident = matches.filter((match) => match.m >= data.confident);
+        if (!confident.length && request.fallback) {
+            fetch(withToken('/api/voice/fallback'), { cache: 'no-store' }).catch(() => {});
+            return;
+        }
+        clearTimeout(searchTimer);
+        ++searchToken;
+        searchBox.value = request.query;
+        showFound(matches);
+        if (request.play && confident.length) playFound(confident);
+    }
+
+    async function runVoice(request) {
+        if (request.action === 'pause') media.pause();
+        else if (request.action === 'next') next(false);
+        else if (request.action === 'previous') previous();
+        else if (request.query) await runVoiceSearch(request);
+        else if ((request.play || request.action === 'play') && media.paused) start();
+    }
+
+    // La richiesta la tiene l'app (MediaVoice): la pagina la chiede appena pronta e quando l'app la avvisa
+    let libraryReady = Promise.resolve();
+    window.aabVoice = async function () {
+        await libraryReady;
+        try {
+            const response = await fetch(withToken('/api/voice?section=media'), { cache: 'no-store' });
+            const request = response.ok ? await response.json() : {};
+            if (request.query || request.play || request.action) await runVoice(request);
+        } catch (e) {
+            // Il comando resta senza effetto: la pagina continua come prima
+        }
+    };
 
     const pickFolder = byId('pickFolder');
     const folderInput = byId('folderInput');
@@ -872,5 +981,6 @@
     );
 
     updateToggles();
-    loadLibrary(false);
+    libraryReady = loadLibrary(false);
+    window.aabVoice();
 })();

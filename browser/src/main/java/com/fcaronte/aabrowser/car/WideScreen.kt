@@ -106,6 +106,7 @@ import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
+import com.fcaronte.aabrowser.utils.MediaVoice
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
@@ -1980,8 +1981,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 // Autoplay: su DAZN sempre consentito, e su YouTube dopo il comando vocale "metti …"
                                 if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
+                                // Le pagine di CarWeb Media partono solo se glielo si chiede (tocco o comando vocale)
                                 view?.settings?.mediaPlaybackRequiresUserGesture =
-                                    !AppSettings.autoplayMedia.value && !isDazn(url) && !voiceAutoplay
+                                    !AppSettings.autoplayMedia.value && !isDazn(url) && !voiceAutoplay &&
+                                            !LocalPlayer.isPlayerUrl(url)
 
                                 // Uscendo da DAZN si torna alla modalità normale
                                 if (!isHomePage && !isDazn(url)) daznDesktopForced = false
@@ -2027,6 +2030,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         }
                                         // Ricerca del comando vocale "metti …": parte il primo risultato
                                         if (VoiceCommandRouter.consumePlayFirstResult(VoiceCommandRouter.Target.WIDE, url)) {
+                                            voiceAutoplay = true
+                                            it.settings.mediaPlaybackRequiresUserGesture = false
                                             it.evaluateJavascript(YouTubeManager.getPlayFirstResultScript(), null)
                                         }
                                         val favorite = favoriteFor(url)
@@ -2273,7 +2278,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             webSearchUrl = { query ->
                 strings.getString(AppSettings.effectiveSearchEngine.baseUrlRes) + Uri.encode(query)
             },
-            siteSearchUrl = { query -> SiteSearch.resolve(strings, from, query) }
+            siteSearchUrl = { query -> SiteSearch.resolve(strings, from, query) },
+            playerOwned = MediaFocusManager.getActiveSource() != null
         )
         // Con la Wide dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) si riporta davanti: si vede quello
         // che è stato chiesto e la pagina può far partire il video (una pagina nascosta non avvia l'audio da sola).
@@ -2299,6 +2305,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 showVoiceToast(message)
             }
             is VoiceCommands.Plan.Navigate -> startNavigation(plan.destination)
+            // Media, TV e Radio: la richiesta la prende la pagina, quando si apre o avvisata qui se è già aperta (MediaVoice)
+            is VoiceCommands.Plan.Media -> {
+                MediaVoice.submit(plan, VoiceCommandRouter.Target.WIDE)
+                val view = webView
+                if (view != null && VoiceCommands.mediaSectionOf(view.url) == plan.section) {
+                    view.evaluateJavascript(MediaVoice.CHECK_SCRIPT, null)
+                } else {
+                    hideCustomView()
+                    loadUrl(VoiceCommands.mediaSectionUrl(plan.section))
+                }
+                MediaVoice.message(strings, plan)?.let { showVoiceToast(it) }
+            }
             VoiceCommands.Plan.Back -> goBack()
             VoiceCommands.Plan.Reload -> webView?.reload()
             VoiceCommands.Plan.Home -> showHome()

@@ -315,6 +315,8 @@
     <string name="player_effect_bars">Bars</string>
     <string name="player_effect_wave">Wave</string>
     <string name="player_effect_circle">Circle</string>
+    <string name="player_search">Search files</string>
+    <string name="player_no_results">No files found</string>
     <string name="lyrics_button">Lyrics</string>
     <string name="lyrics_loading">Loading lyrics…</string>
     <string name="lyrics_not_found">Lyrics not found.</string>
@@ -330,7 +332,7 @@
     <string name="ssl_warning_proceed">Continue anyway</string>
     <string name="ssl_warning_cancel">Cancel</string>
     <string name="voice_command_button">Voice command</string>
-    <string name="voice_command_hint">Try: “play … on YouTube”, “search … on Amazon”, “open …”, “pause”</string>
+    <string name="voice_command_hint">Try: “play … on YouTube”, “play … on the radio”, “watch … on TV”, “search … on Amazon”, “open …”, “pause”</string>
     <string name="voice_command_hint_wheel">After something has played in CarWeb: double tap ⏮ on the steering wheel</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
@@ -338,6 +340,9 @@
     <string name="voice_command_site">Searching %1$s: %2$s</string>
     <string name="voice_command_open">Opening %1$s</string>
     <string name="voice_command_navigate">Directions to %1$s</string>
+    <string name="voice_command_radio">Radio: %1$s</string>
+    <string name="voice_command_tv">TV: %1$s</string>
+    <string name="voice_command_media">Media: %1$s</string>
     <string name="voice_command_not_heard">I didn\'t hear anything, try again</string>
     <string name="voice_command_unavailable">Speech recognition is not available</string>
     <string name="voice_command_mic_permission">CarWeb needs the microphone permission: allow it on the phone</string>
