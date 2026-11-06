@@ -30,9 +30,10 @@ import com.fcaronte.aabrowser.utils.AppLocale
  * tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che però è un'app di navigazione e prende il posto
  * del navigatore aperto, anche se poi si passa alla Main (prova dell'utente, 06/11/2026).
  *
- * Con l'opzione attiva c'è un'altra app del pacchetto, di categoria media ([CarServicePlayerCard]): non tocca lo spazio
- * del navigatore, apre la Main e si chiude. Se Android Auto manda comunque il tocco alla Wide, ci pensa WideSession.
- * Log con tag PlayerCard, anche nelle build di release.
+ * Con l'opzione attiva c'è un'altra app del pacchetto ([CarServicePlayerCard]): non è di navigazione, quindi non tocca
+ * lo spazio del navigatore, apre la Main e si chiude. Non può essere di categoria media: Android Auto la prendeva per il
+ * servizio del suo player, invece di CarMediaService, e il player restava vuoto (prova dell'utente, log GH.Media*). Se
+ * Android Auto manda comunque il tocco alla Wide, ci pensa WideSession. Log con tag PlayerCard, anche nelle release.
  */
 internal object PlayerCard {
     const val TAG = "PlayerCard"

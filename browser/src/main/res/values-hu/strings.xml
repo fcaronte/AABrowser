@@ -83,7 +83,7 @@
     <string name="media_player_label">Médialejátszó</string>
     <string name="media_player_desc">Médialejátszó és értesítések megjelenítése az Android Auto-n</string>
     <string name="player_card_main_label">A lejátszó érintése a CarWebet nyitja meg</string>
-    <string name="player_card_main_desc">Ha mindkét alkalmazás szerepel az Android Auto menüjében, a lejátszó érintése a CarWebWide-ot nyitja meg, amely a megnyitott navigáció helyére kerül. Kapcsold be, hogy a CarWeb nyíljon meg, kivéve ha a CarWebWide szól. A következő Android Auto-kapcsolattól érvényes; a CarWebWide-ot el is rejtheted az Android Auto menüjében.</string>
+    <string name="player_card_main_desc">Ha mindkét alkalmazás szerepel az Android Auto menüjében, a lejátszó érintése a CarWebWide-ot nyitja meg, amely a megnyitott navigáció helyére kerül. Kapcsold be, hogy a CarWeb nyíljon meg, kivéve ha a CarWebWide szól. Az Android Auto menüjébe bekerül a CarWeb Player ikon, amelyet nem szabad elrejteni; a következő kapcsolattól érvényes.</string>
     <string name="player_card_opening_main">CarWeb megnyitása…</string>
     <string name="media_player_disabled_hint">Az időjárás widget használatához engedélyezni kell a médiavajátszót</string>
     <string name="weather_permission_toast">Kérjük, engedélyezze a helymeghatározást okostelefonján a pontos időjáráshoz</string>
