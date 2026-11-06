@@ -83,7 +83,7 @@
     <string name="media_player_label">Lecteur multimédia</string>
     <string name="media_player_desc">Afficher le lecteur multimédia et les notifications sur Android Auto</string>
     <string name="player_card_main_label">Toucher le lecteur ouvre CarWeb</string>
-    <string name="player_card_main_desc">Avec les deux applis dans le menu d\'Android Auto, toucher le lecteur ouvre CarWebWide, qui prend la place du navigateur GPS ouvert. Activez cette option pour ouvrir CarWeb, sauf quand CarWebWide est en lecture. Elle ajoute au menu d\'Android Auto l\'icône CarWeb Player, à ne pas masquer, et prend effet à la prochaine connexion.</string>
+    <string name="player_card_main_desc">Avec les deux applis dans le menu d\'Android Auto, toucher le lecteur ouvre CarWebWide, qui prend la place du navigateur GPS ouvert. Activez cette option pour ouvrir CarWeb, sauf quand CarWebWide est en lecture. Effectif à la prochaine connexion à Android Auto.</string>
     <string name="player_card_opening_main">Ouverture de CarWeb…</string>
     <string name="media_player_disabled_hint">Le lecteur multimédia doit être activé pour utiliser le widget météo</string>
     <string name="weather_permission_toast">Veuillez activer l\'autorisation de localisation sur votre smartphone pour obtenir une météo précise</string>

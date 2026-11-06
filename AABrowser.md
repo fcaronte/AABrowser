@@ -84,7 +84,7 @@
 
 \### Player Card Tap
 
-\- Android Auto manda il tocco sulla scheda del player a un'app del pacchetto tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" abilita `CarServicePlayerCard` (categoria IOT, `car/PlayerCard.kt`), che apre la Main e si chiude; mai categoria media, perché Android Auto ci collega il suo player al posto di `CarMediaService`, che resta vuoto. Se il tocco arriva comunque alla Wide, `WideSession` passa alla Main e chiude la Wide una volta.
+\- Android Auto manda il tocco sulla scheda del player a un'app del pacchetto tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" abilita `CarServicePlayerCard` (categoria media, `car/PlayerCard.kt`), che riceve il tocco, apre la Main e si chiude. Solo la categoria media riceve il tocco (con IOT va alla Wide, e chiudere la Wide è inutile: Android Auto la riapre). Con questa categoria Android Auto si collega allo stesso componente anche come MediaBrowser: il servizio smista per azione e passa il player a `CarMediaService`, altrimenti il player resta vuoto.
 
 \### Media & Audio Handling
 

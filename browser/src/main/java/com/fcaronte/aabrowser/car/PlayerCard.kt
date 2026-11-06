@@ -1,11 +1,16 @@
 package com.fcaronte.aabrowser.car
 
+import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.os.Binder
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
+import android.os.Parcel
 import android.os.SystemClock
 import android.util.Log
 import androidx.car.app.CarAppService
@@ -19,21 +24,26 @@ import androidx.car.app.model.Template
 import androidx.car.app.validation.HostValidator
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.media.MediaBrowserServiceCompat
 import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.MainCarActivity
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.mediaservice.CarMediaService
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
 import com.fcaronte.aabrowser.utils.AppLocale
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Opzione "Il tocco sul player apre CarWeb". Android Auto manda il tocco sulla scheda del player a un'app del pacchetto
  * tra quelle nel suo menu: con Wide e Main visibili sceglie la Wide, che però è un'app di navigazione e prende il posto
- * del navigatore aperto, anche se poi si passa alla Main (prova dell'utente, 06/11/2026).
+ * del navigatore aperto, anche se poi si passa alla Main. Chiuderla non serve: la riapre subito (log del 06/11/2026).
  *
- * Con l'opzione attiva c'è un'altra app del pacchetto ([CarServicePlayerCard]): non è di navigazione, quindi non tocca
- * lo spazio del navigatore, apre la Main e si chiude. Non può essere di categoria media: Android Auto la prendeva per il
- * servizio del suo player, invece di CarMediaService, e il player restava vuoto (prova dell'utente, log GH.Media*). Se
- * Android Auto manda comunque il tocco alla Wide, ci pensa WideSession. Log con tag PlayerCard, anche nelle release.
+ * Con l'opzione attiva c'è un'altra app del pacchetto, di categoria media ([CarServicePlayerCard]): riceve lei il tocco,
+ * senza toccare lo spazio del navigatore, apre la Main e si chiude. Le altre categorie non bastano: con IOT il tocco
+ * andava alla Wide. La categoria media però ha un prezzo: Android Auto prende quel componente anche per il servizio del
+ * suo player, come fa con quello di Spotify. Se non risponde come MediaBrowser il player resta vuoto: lo fa, passando
+ * da CarMediaService. Log con tag PlayerCard, anche nelle build di release.
  */
 internal object PlayerCard {
     const val TAG = "PlayerCard"
@@ -101,22 +111,90 @@ internal object PlayerCard {
     }
 }
 
-/** L'app di passaggio, attiva solo con l'opzione: vedi [PlayerCard]. */
-class CarServicePlayerCard : CarAppService() {
-    override fun createHostValidator(): HostValidator = carHostValidator(applicationContext)
+/**
+ * L'app di passaggio, attiva solo con l'opzione: vedi [PlayerCard]. Android Auto si collega a questo componente in due
+ * modi e CarAppService.onBind è final: un servizio semplice che smista per azione, tra un CarAppService che vive qui
+ * dentro (il tocco sulla scheda) e [CarMediaService] (il player).
+ */
+class CarServicePlayerCard : Service() {
+    private class PassageApp : CarAppService() {
+        fun attachTo(base: Context) = attachBaseContext(base)
 
-    override fun onCreateSession(): Session = object : Session() {
-        override fun onCreateScreen(intent: Intent): Screen {
-            Log.d(PlayerCard.TAG, "Player card app, onCreateScreen: ${PlayerCard.describe(intent)}")
-            return PassageScreen(carContext) {
-                carContext.finishCarApp()
+        override fun createHostValidator(): HostValidator = carHostValidator(applicationContext)
+
+        override fun onCreateSession(): Session = object : Session() {
+            override fun onCreateScreen(intent: Intent): Screen {
+                Log.d(PlayerCard.TAG, "Player card app, onCreateScreen: ${PlayerCard.describe(intent)}")
+                return PassageScreen(carContext) { carContext.finishCarApp() }
+            }
+
+            override fun onNewIntent(intent: Intent) {
+                Log.d(PlayerCard.TAG, "Player card app, onNewIntent: ${PlayerCard.describe(intent)}")
+                (carContext.getCarService(ScreenManager::class.java).top as? PassageScreen)?.start()
             }
         }
+    }
 
-        override fun onNewIntent(intent: Intent) {
-            Log.d(PlayerCard.TAG, "Player card app, onNewIntent: ${PlayerCard.describe(intent)}")
-            (carContext.getCarService(ScreenManager::class.java).top as? PassageScreen)?.start()
+    private val carApp = PassageApp()
+
+    private val mediaReady = CountDownLatch(1)
+
+    @Volatile
+    private var mediaBinder: IBinder? = null
+    private var mediaBound = false
+
+    private val mediaConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            mediaBinder = service
+            mediaReady.countDown()
         }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            mediaBinder = null
+        }
+    }
+
+    // Le richieste del MediaBrowser di Android Auto passano al CarMediaService vero. Stesso processo: la chiamata resta
+    // nello stesso thread e il servizio vede ancora Android Auto come chiamante, come quando si collega direttamente
+    private val mediaForward = object : Binder() {
+        override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+            mediaReady.await(MEDIA_WAIT_MS, TimeUnit.MILLISECONDS)
+            val target = mediaBinder
+            if (target == null) {
+                Log.w(PlayerCard.TAG, "Player card app: media service not available")
+                return false
+            }
+            return target.transact(code, data, reply, flags)
+        }
+    }
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        carApp.attachTo(this)
+    }
+
+    override fun onBind(intent: Intent): IBinder? {
+        if (intent.action != MediaBrowserServiceCompat.SERVICE_INTERFACE) return carApp.onBind(intent)
+        if (!mediaBound) {
+            Log.d(PlayerCard.TAG, "Player card app: Android Auto connects its player")
+            val media = Intent(MediaBrowserServiceCompat.SERVICE_INTERFACE).setComponent(ComponentName(this, CarMediaService::class.java))
+            mediaBound = bindService(media, mediaConnection, BIND_AUTO_CREATE)
+        }
+        return mediaForward
+    }
+
+    override fun onUnbind(intent: Intent): Boolean =
+        if (intent.action != MediaBrowserServiceCompat.SERVICE_INTERFACE) carApp.onUnbind(intent) else false
+
+    override fun onDestroy() {
+        carApp.onDestroy()
+        if (mediaBound) unbindService(mediaConnection)
+        mediaBound = false
+        super.onDestroy()
+    }
+
+    private companion object {
+        const val MEDIA_WAIT_MS = 5_000L
     }
 }
 

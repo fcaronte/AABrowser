@@ -32,8 +32,7 @@ from the misuse of this application. Use at your own risk.
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar).
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing. With both apps
-  in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead (it adds a
-  CarWeb Player icon to that menu, which must not be hidden).
+  in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
@@ -214,8 +213,7 @@ proprio rischio e pericolo.
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session). Con le due app nel
-  menu di Android Auto il tocco sul player apre CarWebWide: un'opzione nelle Impostazioni apre invece CarWeb (aggiunge a
-  quel menu l'icona CarWeb Player, da non nascondere).
+  menu di Android Auto il tocco sul player apre CarWebWide: un'opzione nelle Impostazioni apre invece CarWeb.
 * **CarWeb Media:** lettore per i file audio e video di una cartella del telefono, con code
   separate Audio e Video, ricerca, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
