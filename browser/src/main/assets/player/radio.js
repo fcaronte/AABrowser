@@ -17,6 +17,7 @@
     let lyricsLookupTimer = null;
     let lyricsController = null;
     let currentUrl = '';
+    let currentIsHls = false;
     let hls = null;
     let metadataTimer = null;
     let metadataRequestPending = null;
@@ -303,7 +304,7 @@
 
     function startMetadataPolling() {
         stopMetadataPolling();
-        if (!currentUrl || /\.m3u8(?:$|[?#])/i.test(currentUrl)) return;
+        if (!currentUrl || currentIsHls) return;
         pollIcyMetadata();
         metadataTimer = setInterval(pollIcyMetadata, 15_000);
     }
@@ -318,6 +319,7 @@
         media.removeAttribute('src');
         media.load();
         currentUrl = '';
+        currentIsHls = false;
         document.body.classList.remove('is-playing');
     }
 
@@ -337,7 +339,8 @@
             const info = await api('/api/radio/play', { uuid: station.uuid });
             if (token !== requestToken) return;
             currentUrl = info.url;
-            if (/\.m3u8(?:$|[?#])/i.test(info.url) && window.Hls && Hls.isSupported()) {
+            currentIsHls = info.kind === 'hls';
+            if (currentIsHls && window.Hls && Hls.isSupported()) {
                 hls = new Hls({ backBufferLength: 30, maxBufferLength: 30 });
                 hls.on(Hls.Events.ERROR, (_, data) => {
                     if (data.fatal) message(S.unavailable || 'Station unavailable');

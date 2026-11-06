@@ -12,6 +12,11 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URL
+import java.net.URLEncoder
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
@@ -20,8 +25,10 @@ internal object RadioApi {
     private const val TAG = "RadioApi"
     private const val DISCOVERY_HOST = "all.api.radio-browser.info"
     private const val API_SUFFIX = ".api.radio-browser.info"
-    private const val USER_AGENT = "CarWeb/2.5.1 (https://github.com/fcaronte/AABrowser)"
+    private val USER_AGENT = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
     private const val MAX_STATIONS = 200
+    private const val MAX_FOUND_STATIONS = 30
+    private const val MAX_KEPT_STATIONS = 500
     private const val MAX_ICY_INTERVAL = 1024 * 1024
     private const val CACHE_MS = 30 * 60 * 1000L
 
@@ -31,14 +38,23 @@ internal object RadioApi {
         val streamUrl: String,
         val favicon: String?,
         val country: String,
-        val codec: String
+        val codec: String,
+        val isHls: Boolean
     )
 
     private data class CachedStations(val loadedAt: Long, val stations: List<Station>)
 
     private val cache = ConcurrentHashMap<String, CachedStations>()
+
+    // Stazioni trovate fuori dall'elenco del Paese (comandi vocali): anche loro si possono ascoltare
+    private val foundStations = ConcurrentHashMap<String, Station>()
     @Volatile
     private var discoveredServers: List<String>? = null
+
+    private val STATION_ID = Regex("[0-9a-fA-F-]{36}")
+    private val ICY_TITLE_START = Regex("""(?:^|;)\s*StreamTitle\s*=\s*'""", RegexOption.IGNORE_CASE)
+    private val ICY_TITLE_END = Regex("""(?<!\\)';\s*(?:[A-Za-z_]+\s*=|$)""")
+    private val GENERIC_STATION_WORDS = Regex("""(?<![\p{L}\p{N}])(?:radio|rádio|rádió|радио|fm)(?![\p{L}\p{N}])""", RegexOption.IGNORE_CASE)
 
     fun page(context: Context, token: String, theme: String): WebResourceResponse {
         val appContext = AppLocale.wrap(context)
@@ -75,6 +91,7 @@ internal object RadioApi {
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? = when (path) {
         "/api/radio/stations" -> stations(context, url.getQueryParameter("refresh") == "1")
         "/api/radio/play" -> play(context, url.getQueryParameter("uuid"))
+        "/api/radio/find" -> find(context, url.getQueryParameter("q").orEmpty())
         "/api/radio/metadata" -> metadata(context, url.getQueryParameter("uuid"))
         else -> null
     }
@@ -98,44 +115,109 @@ internal object RadioApi {
         }
     }
 
-    private fun stations(context: Context, refresh: Boolean): WebResourceResponse {
-        val appContext = AppLocale.wrap(context)
-        val locale = appContext.resources.configuration.locales[0]
-        val countryCode = countryCodeFor(locale)
-        val current = cache[countryCode]
-        val entries = if (!refresh && current != null && System.currentTimeMillis() - current.loadedAt < CACHE_MS) {
-            current.stations
-        } else {
-            try {
-                loadStations(countryCode).also {
-                    cache[countryCode] = CachedStations(System.currentTimeMillis(), it)
-                }
-            } catch (e: Exception) {
-                AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
-                return error(502, "stations")
-            }
-        }
+    private fun countryCode(context: Context): String =
+        countryCodeFor(AppLocale.wrap(context).resources.configuration.locales[0])
 
-        val jsonStations = JSONArray()
-        entries.forEach { station ->
-            jsonStations.put(
-                JSONObject()
-                    .put("uuid", station.uuid)
-                    .put("name", station.name)
-                    .put("favicon", station.favicon ?: JSONObject.NULL)
-                    .put("country", station.country)
-                    .put("codec", station.codec)
-            )
+    private fun stationList(countryCode: String, refresh: Boolean): List<Station> {
+        val current = cache[countryCode]
+        if (!refresh && current != null && System.currentTimeMillis() - current.loadedAt < CACHE_MS) return current.stations
+        return loadStations(countryCode).also {
+            cache[countryCode] = CachedStations(System.currentTimeMillis(), it)
         }
+    }
+
+    private fun stationJson(station: Station): JSONObject = JSONObject()
+        .put("uuid", station.uuid)
+        .put("name", station.name)
+        .put("favicon", station.favicon ?: JSONObject.NULL)
+        .put("country", station.country)
+        .put("codec", station.codec)
+
+    private fun stations(context: Context, refresh: Boolean): WebResourceResponse {
+        val countryCode = countryCode(context)
+        val entries = try {
+            stationList(countryCode, refresh)
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
+            return error(502, "stations")
+        }
+        val jsonStations = JSONArray()
+        entries.forEach { jsonStations.put(stationJson(it)) }
         return json(JSONObject().put("country", countryCode).put("stations", jsonStations))
     }
 
+    /**
+     * Ricerca per nome dei comandi vocali: prima tra le più ascoltate del Paese, poi su Radio Browser, nel Paese e nel
+     * mondo. Dal più simile, con "m" e "confident" per dire alla pagina se il primo può partire da solo.
+     */
+    private fun find(context: Context, text: String): WebResourceResponse {
+        val countryCode = countryCode(context)
+        val query = MediaMatcher.key(text)
+        fun rank(stations: List<Station>) = MediaMatcher.rank(query, stations) { MediaMatcher.key(it.name) }
+        var ranked = try {
+            rank(stationList(countryCode, refresh = false))
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
+            emptyList()
+        }
+        if (ranked.none { it.second >= MediaMatcher.CONFIDENT }) {
+            val found = try {
+                searchStations(text, countryCode, ::rank)
+            } catch (e: Exception) {
+                AppLog.w(TAG, "Station search unavailable: ${e.javaClass.simpleName}")
+                emptyList()
+            }
+            ranked = (ranked + found).sortedByDescending { it.second }.distinctBy { it.first.uuid }
+        }
+        val stations = JSONArray()
+        ranked.take(MAX_STATIONS).forEach { (station, score) -> stations.put(stationJson(station).put("m", score)) }
+        return json(JSONObject().put("stations", stations).put("confident", MediaMatcher.CONFIDENT))
+    }
+
+    // Radio Browser cerca un pezzo del nome così com'è: senza "radio" davanti trova anche "Subasio Radio"
+    private fun searchStations(
+        text: String,
+        countryCode: String,
+        rank: (List<Station>) -> List<Pair<Station, Int>>
+    ): List<Pair<Station, Int>> {
+        val names = listOf(text, text.replace(GENERIC_STATION_WORDS, " ").trim()).filter { it.isNotEmpty() }.distinct()
+        val scopes = listOf("&countrycode=$countryCode", "")
+        for (scope in scopes) {
+            for (name in names) {
+                val encoded = URLEncoder.encode(name, "UTF-8")
+                val array = getArray(
+                    "/json/stations/search?name=$encoded$scope&hidebroken=true&order=clickcount&reverse=true&limit=$MAX_FOUND_STATIONS"
+                )
+                val ranked = rank(parseStations(array, MAX_FOUND_STATIONS))
+                if (ranked.any { it.second >= MediaMatcher.CONFIDENT }) {
+                    keepFound(ranked.map { it.first })
+                    return ranked
+                }
+            }
+        }
+        return emptyList()
+    }
+
+    private fun keepFound(stations: List<Station>) {
+        if (foundStations.size > MAX_KEPT_STATIONS) foundStations.clear()
+        stations.forEach { foundStations[it.uuid.lowercase(Locale.ROOT)] = it }
+    }
+
+    // Anche una stazione trovata a voce in un'altra sessione (l'ultima ascoltata, un preferito)
+    private fun stationById(context: Context, uuid: String): Station? {
+        cache[countryCode(context)]?.stations?.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }?.let { return it }
+        foundStations[uuid.lowercase(Locale.ROOT)]?.let { return it }
+        return try {
+            parseStations(getArray("/json/stations/byuuid/$uuid"), 1).firstOrNull()?.also { keepFound(listOf(it)) }
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Station not found: ${e.javaClass.simpleName}")
+            null
+        }
+    }
+
     private fun play(context: Context, uuid: String?): WebResourceResponse {
-        if (uuid == null || !uuid.matches(Regex("[0-9a-fA-F-]{36}"))) return error(400, "station")
-        val appContext = AppLocale.wrap(context)
-        val countryCode = countryCodeFor(appContext.resources.configuration.locales[0])
-        val station = cache[countryCode]?.stations?.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }
-            ?: return error(404, "station")
+        if (uuid == null || !uuid.matches(STATION_ID)) return error(400, "station")
+        val station = stationById(context, uuid) ?: return error(404, "station")
 
         val resolvedUrl = try {
             val click = getJson("/json/url/${station.uuid}")
@@ -147,15 +229,17 @@ internal object RadioApi {
         }
 
         if (!isPublicHttpUrl(resolvedUrl)) return error(403, "station")
-        return json(JSONObject().put("url", resolvedUrl))
+        val isHls = station.isHls || isHlsAddress(resolvedUrl)
+        // hls.js legge lista e segmenti dalla pagina (https): in http la Main li bloccherebbe, l'audio diretto no
+        val url = if (isHls && resolvedUrl.startsWith("http:", ignoreCase = true)) IptvProxy.proxyPath(resolvedUrl) else resolvedUrl
+        return json(JSONObject().put("url", url).put("kind", if (isHls) "hls" else "file"))
     }
 
+    private fun isHlsAddress(url: String): Boolean = Uri.parse(url).path.orEmpty().endsWith(".m3u8", ignoreCase = true)
+
     private fun metadata(context: Context, uuid: String?): WebResourceResponse {
-        if (uuid == null || !uuid.matches(Regex("[0-9a-fA-F-]{36}"))) return error(400, "station")
-        val appContext = AppLocale.wrap(context)
-        val countryCode = countryCodeFor(appContext.resources.configuration.locales[0])
-        val station = cache[countryCode]?.stations?.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }
-            ?: return error(404, "station")
+        if (uuid == null || !uuid.matches(STATION_ID)) return error(400, "station")
+        val station = stationById(context, uuid) ?: return error(404, "station")
 
         return try {
             val result = readIcyMetadata(station.streamUrl)
@@ -229,24 +313,44 @@ internal object RadioApi {
         }
     }
 
+    /**
+     * Il titolo dentro StreamTitle='…';. Le stazioni di solito non proteggono gli apostrofi ("Don't", "L'emozione"): il
+     * titolo finisce dove "';" è seguito dal campo successivo o dalla fine, non al primo apostrofo.
+     */
     internal fun parseIcyTitle(metadata: ByteArray): String? {
-        val text = metadata.toString(Charsets.UTF_8).trimEnd('\u0000', ' ')
-        val match = Regex("""(?:^|;)\s*StreamTitle\s*=\s*'((?:\\.|[^'])*)'""", RegexOption.IGNORE_CASE)
-            .find(text) ?: return null
-        return match.groupValues[1]
+        val text = decodeIcy(metadata).trimEnd('\u0000', ' ')
+        val start = ICY_TITLE_START.find(text) ?: return null
+        val rest = text.substring(start.range.last + 1)
+        val end = ICY_TITLE_END.find(rest)?.range?.first ?: rest.lastIndexOf('\'').takeIf { it >= 0 } ?: rest.length
+        return rest.substring(0, end)
             .replace("\\'", "'")
             .replace("\\\\", "\\")
             .trim()
             .takeIf(String::isNotEmpty)
     }
 
-    private fun loadStations(countryCode: String): List<Station> {
-        val array = getArray("/json/stations/bycountrycodeexact/$countryCode?hidebroken=true&limit=$MAX_STATIONS&order=clickcount&reverse=true")
-        val result = ArrayList<Station>(minOf(array.length(), MAX_STATIONS))
+    // Molte stazioni mandano ancora Latin-1: "Bertè" letto come UTF-8 perde la lettera
+    private fun decodeIcy(bytes: ByteArray): String = try {
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes))
+            .toString()
+    } catch (_: CharacterCodingException) {
+        String(bytes, Charset.forName("windows-1252"))
+    }
+
+    private fun loadStations(countryCode: String): List<Station> = parseStations(
+        getArray("/json/stations/bycountrycodeexact/$countryCode?hidebroken=true&limit=$MAX_STATIONS&order=clickcount&reverse=true"),
+        MAX_STATIONS
+    )
+
+    private fun parseStations(array: JSONArray, limit: Int): List<Station> {
+        val result = ArrayList<Station>(minOf(array.length(), limit))
         val seen = HashSet<String>()
         for (index in 0 until array.length()) {
             val item = array.optJSONObject(index) ?: continue
-            val uuid = item.optString("stationuuid").takeIf { it.matches(Regex("[0-9a-fA-F-]{36}")) } ?: continue
+            val uuid = item.optString("stationuuid").takeIf { it.matches(STATION_ID) } ?: continue
             val name = item.optString("name").trim().takeIf(String::isNotEmpty) ?: continue
             val streamUrl = item.optString("url_resolved").takeIf(String::isNotBlank)
                 ?: item.optString("url").takeIf(String::isNotBlank)
@@ -259,9 +363,10 @@ internal object RadioApi {
                 streamUrl = streamUrl,
                 favicon = favicon,
                 country = item.optString("country"),
-                codec = item.optString("codec")
+                codec = item.optString("codec"),
+                isHls = item.optInt("hls", 0) == 1
             )
-            if (result.size >= MAX_STATIONS) break
+            if (result.size >= limit) break
         }
         return result
     }
