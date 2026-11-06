@@ -35,13 +35,14 @@ class FavoritesRepository(private val context: Context) {
             // Il lettore di prova su streamlit è stato sostituito dal lettore locale dell'app
             if (url.startsWith(TEST_PLAYER_URL)) {
                 url = LocalPlayer.BASE_URL
-                name = context.getString(R.string.favorite_default_name_1)
+                name = context.getString(R.string.favorite_default_name_0)
                 faviconUrl = null
                 migrationNeeded = true
             }
-            // Il lettore locale si chiamava "AABrowser Player" o "CarWeb Media"
-            if (url == LocalPlayer.BASE_URL && (name == OLD_PLAYER_NAME || name == "CarWeb Media")) {
-                name = context.getString(R.string.favorite_default_name_1)
+            // Il lettore locale si chiamava "AABrowser Player" o "CarWeb Media". "IPTV": questa stessa migrazione, quando
+            // i predefiniti sono stati rinumerati, gli ha dato il nome della TV
+            if (url == LocalPlayer.BASE_URL && (name == OLD_PLAYER_NAME || name == "CarWeb Media" || name == WRONG_PLAYER_NAME)) {
+                name = context.getString(R.string.favorite_default_name_0)
                 migrationNeeded = true
             }
 
@@ -143,6 +144,7 @@ class FavoritesRepository(private val context: Context) {
     companion object {
         private const val TEST_PLAYER_URL = "https://web-player.streamlit.app"
         private const val OLD_PLAYER_NAME = "AABrowser Player"
+        private const val WRONG_PLAYER_NAME = "IPTV"
 
         // I preferiti predefiniti usano ID numerici consecutivi nell'ordine della dashboard; l'aggiunta o il
         // riordino può rinumerarli. La migrazione riconosce le voci tramite URL normalizzato e versione, non l'ID.
