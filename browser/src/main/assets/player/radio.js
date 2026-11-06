@@ -13,6 +13,8 @@
     let stations = [];
     let visibleStations = [];
     let current = null;
+    let currentRawTitle = '';   // il testo come lo manda la stazione
+    let currentTrack = null;    // quello che ne capisce AABTrackParser
     let currentTrackTitle = '';
     let lyricsLookupTimer = null;
     let lyricsController = null;
@@ -172,9 +174,11 @@
     }
 
     function setTrackTitle(value) {
-        const title = String(value || '').trim();
-        if (!current || !title || title === currentTrackTitle) return;
-        currentTrackTitle = title;
+        const raw = String(value || '').trim();
+        if (!current || !raw || raw === currentRawTitle) return;
+        currentRawTitle = raw;
+        currentTrack = window.AABTrackParser.parse(raw, current.name);
+        currentTrackTitle = currentTrack.display;
         showStation(current);
         updateMediaSession(current);
         clearTimeout(lyricsLookupTimer);
@@ -186,13 +190,10 @@
 
     function getLyricsTrack() {
         if (!current) return null;
-        if (!currentTrackTitle) {
-            return { artist: '', title: '', display: current.name, sync: false };
+        if (!currentTrack || !currentTrack.isSong) {
+            return { artist: '', title: '', display: currentTrackTitle || current.name, sync: false };
         }
-        const parts = currentTrackTitle.match(/^(.+?)\s*[-–—]\s*(.+)$/);
-        return parts
-            ? { artist: parts[1].trim(), title: parts[2].trim(), display: currentTrackTitle, sync: false }
-            : { artist: '', title: currentTrackTitle, display: current.name, sync: false };
+        return Object.assign({}, currentTrack, { sync: false });
     }
 
     function resetLyricsLookup() {
@@ -325,6 +326,8 @@
 
     async function play(station) {
         current = station;
+        currentRawTitle = '';
+        currentTrack = null;
         currentTrackTitle = '';
         resetLyricsLookup();
         state.lastUuid = station.uuid;
@@ -387,8 +390,13 @@
             byId('allStations').textContent = S.allStations || 'Stations';
             byId('favoriteStations').textContent = S.favorites || 'Favorites';
             const previous = stations.find((station) => station.uuid === state.lastUuid);
-            if (previous) {
+            // Aggiornando l'elenco mentre suona non si perde quello che si sta ascoltando
+            if (currentUrl && current) {
+                current = previous || current;
+            } else if (previous) {
                 current = previous;
+                currentRawTitle = '';
+                currentTrack = null;
                 currentTrackTitle = '';
                 showStation(previous);
                 updateMediaSession(previous);

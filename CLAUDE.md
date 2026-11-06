@@ -11,3 +11,5 @@ Contesto e regole del progetto, caricati automaticamente a ogni sessione di Clau
 ```
 ./gradlew --offline :browser:compileDebugKotlin
 ```
+
+Test: `./gradlew --offline :browser:testDebugUnitTest` (Kotlin) e `node --test browser/src/test/js/` (titoli dei brani, `assets/player/track-parser.js`).

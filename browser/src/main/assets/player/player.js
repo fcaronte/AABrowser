@@ -37,6 +37,9 @@
     let position = -1;   // posizione in order del brano corrente
     let current = null;
     let currentLyricsInfo = null;
+    let lyricsController = null;
+    let queueSubset = null;     // indici della coda quando è il risultato di una ricerca, altrimenti tutti
+    let filterIds = null;       // ricerca nell'elenco: i file trovati
     let pendingSeek = 0;
     let isSeeking = false;
     let lastStateSave = 0;
@@ -298,6 +301,8 @@
         const artUrl = tags && tags.hasArt ? withToken('/api/art/' + track.id) : '';
 
         currentLyricsInfo = { title, artist, album: taggedAlbum };
+        // Letti i tag del brano nuovo: se il pannello dei testi è aperto si aggiorna
+        if (tags && lyricsController) lyricsController.trackChanged();
         byId('lyricsButton').hidden = kindOf(track) !== 'audio' || !title;
         byId('title').textContent = title;
         byId('subtitle').textContent = [artist, album].filter(Boolean).join(' • ');
@@ -845,12 +850,23 @@
         });
     }
 
-    window.createLyricsController(
+    // Il brano per i testi: dai tag, o dal nome del file se non ne ha ("01 - Artista - Titolo (Official Video)").
+    // [exact]: i tag così come sono, con album e durata, sono la prima cosa da provare
+    function lyricsTrack() {
+        if (!current || kindOf(current) !== 'audio' || !currentLyricsInfo) return null;
+        const info = currentLyricsInfo;
+        const duration = media.duration;
+        return Object.assign(window.AABTrackParser.fromTags(info), {
+            duration,
+            sync: true,
+            exact: info.artist ? { artist: info.artist, title: info.title, album: info.album, duration } : null
+        });
+    }
+
+    lyricsController = window.createLyricsController(
         byId('lyricsButton'),
         media,
-        () => current && queueKind === 'audio' && currentLyricsInfo
-            ? Object.assign({}, currentLyricsInfo, { duration: media.duration, sync: true })
-            : null,
+        lyricsTrack,
         config.strings || {},
         config.client || 'CarWeb (https://github.com/fcaronte/AABrowser)'
     );

@@ -87,6 +87,7 @@ object LocalPlayer {
                 path == "/player.js" -> asset(context, "player/player.js", "application/javascript")
                 path == "/player.css" -> asset(context, "player/player.css", "text/css")
                 path == "/lyrics.js" -> asset(context, "player/lyrics.js", "application/javascript")
+                path == "/track-parser.js" -> asset(context, "player/track-parser.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")

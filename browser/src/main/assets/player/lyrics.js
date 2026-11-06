@@ -161,6 +161,47 @@
             return 'https://lrclib.net/api/search?' + params.toString();
         }
 
+        async function searchRecords(track, query) {
+            const response = await requestJson(searchUrl(track, query));
+            if (response.status === 429 || response.status === 503) throw new Error('rate-limit');
+            if (response.status !== 200 || !Array.isArray(response.data)) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.data;
+        }
+
+        function hasLyrics(record) {
+            return !!record && !!(record.plainLyrics || record.syncedLyrics);
+        }
+
+        // Il risultato che è davvero quel brano, in un ordine o nell'altro (AABTrackParser.matches); con la riproduzione
+        // da un file meglio il testo sincronizzato
+        function bestResult(records, track) {
+            const good = records.filter((record) => hasLyrics(record) &&
+                window.AABTrackParser.matches(record.trackName, record.artistName, track));
+            return (track.sync && good.find((record) => record.syncedLyrics)) || good[0] || null;
+        }
+
+        // Prima la firma esatta del brano (i tag del file, con album e durata; poi artista e titolo puliti), poi la ricerca
+        // libera. null = nessun brano sicuro: meglio niente testo che quello di un'altra canzone
+        async function findRecord(track, isCurrent) {
+            const signatures = [];
+            if (track.exact) signatures.push(track.exact);
+            if (track.artist) signatures.push({ artist: track.artist, title: track.title, duration: track.duration });
+            for (const signature of signatures) {
+                const record = await getRecord(signature);
+                if (!isCurrent()) return null;
+                if (record && (hasLyrics(record) || record.instrumental)) return record;
+            }
+            for (const query of track.queries || [track.title]) {
+                const records = await searchRecords(track, query);
+                if (!isCurrent()) return null;
+                const record = bestResult(records, track);
+                if (record) return record;
+            }
+            return null;
+        }
+
         function parseLrc(value) {
             const lines = [];
             String(value || '').split(/\r?\n/).forEach((line) => {
@@ -245,13 +286,13 @@
             status(text('lyricsError', 'Could not load lyrics.'));
         }
 
-        async function showSearchResults(track, records, version) {
+        // [owner]: il brano in ascolto quando si cerca a mano; la scelta vale per lui, anche la prossima volta
+        async function showSearchResults(track, records, version, owner) {
             if (version !== lookupVersion) return;
-            const candidates = Array.isArray(records)
-                ? records.filter((record) => record && (record.plainLyrics || record.syncedLyrics))
-                : [];
+            const target = owner || track;
+            const candidates = Array.isArray(records) ? records.filter(hasLyrics) : [];
             if (!candidates.length) {
-                store(keyFor(track), null, true);
+                if (!owner) store(keyFor(track), null, true);
                 status(text('lyricsNotFound', 'Lyrics not found.'));
                 return;
             }
@@ -262,8 +303,8 @@
                     status(text('lyricsNotFound', 'Lyrics not found.'));
                     return;
                 }
-                store(keyFor(track), record, false);
-                showRecord(record, track);
+                store(keyFor(target), record, false);
+                showRecord(record, target);
                 return;
             }
             heading.textContent = text('lyricsChooseMatch', 'Choose a matching track');
@@ -290,8 +331,8 @@
                             status(text('lyricsNotFound', 'Lyrics not found.'));
                             return;
                         }
-                        store(keyFor(track), selected, false);
-                        showRecord(selected, track);
+                        store(keyFor(target), selected, false);
+                        showRecord(selected, target);
                     } catch (error) {
                         if (selectionVersion === lookupVersion) failure(error);
                     }
@@ -300,16 +341,12 @@
             });
         }
 
-        async function search(track, query, version) {
+        async function search(track, query, version, owner) {
             status(text('lyricsLoading', 'Loading lyrics…'));
             try {
-                const response = await requestJson(searchUrl(track, query));
+                const records = await searchRecords(track, query);
                 if (version !== lookupVersion) return;
-                if (response.status === 429 || response.status === 503) throw new Error('rate-limit');
-                if (response.status !== 200 || !Array.isArray(response.data)) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                await showSearchResults(track, response.data, version);
+                await showSearchResults(track, records, version, owner);
             } catch (error) {
                 if (version === lookupVersion) failure(error);
             }
@@ -325,32 +362,49 @@
             }
             status(text('lyricsLoading', 'Loading lyrics…'));
             try {
-                if (track.artist) {
-                    const direct = await getRecord(track);
-                    if (version !== lookupVersion) return;
-                    if (direct) {
-                        store(cacheKey, direct, false);
-                        showRecord(direct, track);
-                        return;
-                    }
+                const record = await findRecord(track, () => version === lookupVersion);
+                if (version !== lookupVersion) return;
+                if (record) {
+                    store(cacheKey, record, false);
+                    showRecord(record, track);
+                    return;
                 }
-                await search(track, null, version);
+                // Nessun brano sicuro: l'elenco da cui scegliere
+                await search(track, (track.queries || [])[0] || null, version);
             } catch (error) {
                 if (version === lookupVersion) failure(error);
             }
         }
 
-        function normalized(value) {
-            return String(value || '').normalize('NFKC').toLocaleLowerCase()
-                .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+        function showHeader(track) {
+            heading.textContent = track.display || [track.title, track.artist].filter(Boolean).join(' — ')
+                || text('lyricsButton', 'Lyrics');
+            searchInput.value = [track.artist, track.title].filter(Boolean).join(' - ');
+        }
+
+        // Pannello aperto o da aprire sul brano attuale
+        function openPanel() {
+            const track = getTrack();
+            if (!track) return;
+            const version = ++lookupVersion;
+            overlay.hidden = false;
+            showHeader(track);
+            if (track.title) load(track, version);
+            else status(text('lyricsSearchHint', 'Search artist or title'));
+        }
+
+        // Cambio brano con il pannello aperto: niente testo della canzone di prima
+        function trackChanged() {
+            if (!overlay.hidden) openPanel();
         }
 
         async function autoLookup(track) {
             const version = ++lookupVersion;
             if (!track) return;
-            if (!track.title) {
+            // Pubblicità, slogan, trasmissioni: niente ricerca (a mano resta possibile)
+            if (!track.title || track.searchable === false) {
                 if (!overlay.hidden) {
-                    heading.textContent = track.display || text('lyricsButton', 'Lyrics');
+                    showHeader(track);
                     status(text('lyricsSearchHint', 'Search artist or title'));
                 }
                 return;
@@ -358,7 +412,7 @@
             const cacheKey = keyFor(track);
             const entry = cached(cacheKey);
             if (overlay.hidden === false) {
-                heading.textContent = track.display || [track.title, track.artist].filter(Boolean).join(' — ');
+                showHeader(track);
                 status(entry
                     ? (entry.value ? '' : text('lyricsNotFound', 'Lyrics not found.'))
                     : text('lyricsLoading', 'Loading lyrics…'));
@@ -367,23 +421,7 @@
             if (entry) return;
 
             try {
-                let record = track.artist ? await getRecord(track) : null;
-                if (version !== lookupVersion) return;
-                if (!record) {
-                    const response = await requestJson(searchUrl(track, null));
-                    if (version !== lookupVersion) return;
-                    if (response.status === 429 || response.status === 503) throw new Error('rate-limit');
-                    if (response.status !== 200 || !Array.isArray(response.data)) {
-                        throw new Error('HTTP ' + response.status);
-                    }
-                    const titleKey = normalized(track.title);
-                    const artistKey = normalized(track.artist);
-                    record = response.data.find((candidate) =>
-                        candidate && (candidate.plainLyrics || candidate.syncedLyrics) &&
-                        normalized(candidate.trackName) === titleKey &&
-                        (!artistKey || normalized(candidate.artistName) === artistKey)
-                    ) || null;
-                }
+                const record = await findRecord(track, () => version === lookupVersion);
                 if (version !== lookupVersion) return;
                 store(cacheKey, record, !record);
                 if (!overlay.hidden) {
@@ -395,26 +433,14 @@
             }
         }
 
-        button.addEventListener('click', () => {
-            const track = getTrack();
-            if (!track) return;
-            const version = ++lookupVersion;
-            overlay.hidden = false;
-            heading.textContent = track.display || [track.title, track.artist].filter(Boolean).join(' — ')
-                || text('lyricsButton', 'Lyrics');
-            searchInput.value = [track.artist, track.title].filter(Boolean).join(' - ');
-            if (track.title) load(track, version);
-            else status(text('lyricsSearchHint', 'Search artist or title'));
-        });
+        button.addEventListener('click', openPanel);
         searchForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const query = searchInput.value.trim();
             if (!query) return;
-            const parts = query.match(/^(.+?)\s*[-–—]\s*(.+)$/);
-            const track = parts
-                ? { artist: parts[1].trim(), title: parts[2].trim(), sync: false }
-                : { artist: '', title: query, sync: false };
-            search(track, query, ++lookupVersion);
+            // "Artista - Titolo" è precompilato così: alla ricerca libera servono solo le parole
+            const words = query.replace(/\s+[-–—]+\s+/g, ' ');
+            search({ artist: '', title: words, sync: false }, words, ++lookupVersion, getTrack());
         });
         closeButton.addEventListener('click', close);
         overlay.addEventListener('click', (event) => {
@@ -425,7 +451,7 @@
         });
         media.addEventListener('timeupdate', updateActiveLine);
 
-        return { update: updateActiveLine, autoLookup };
+        return { update: updateActiveLine, autoLookup, trackChanged };
     }
 
     window.createLyricsController = createController;
