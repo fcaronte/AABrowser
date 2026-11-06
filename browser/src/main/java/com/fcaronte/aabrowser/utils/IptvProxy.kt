@@ -30,24 +30,29 @@ object IptvProxy {
 
     const val STREAM_PATH = "/tv/stream/"
 
+    /** Un indirizzo con gli header che la lista chiede per aprirlo (IptvHeaders): valgono anche per i suoi segmenti. */
+    private data class Target(val url: String, val headers: Map<String, String>)
+
     // id -> indirizzo, e al contrario: le liste HLS dal vivo si ricaricano ogni pochi secondi con gli stessi segmenti
-    private val idsByUrl = HashMap<String, String>()
-    private val ids = object : LinkedHashMap<String, String>(256, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
+    private val idsByTarget = HashMap<Target, String>()
+    private val ids = object : LinkedHashMap<String, Target>(256, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Target>): Boolean {
             if (size <= MAX_IDS) return false
-            idsByUrl.remove(eldest.value)
+            idsByTarget.remove(eldest.value)
             return true
         }
     }
 
     private val NO_STORE = mapOf("Cache-Control" to "no-store")
     private val URI_ATTRIBUTE = Regex("""URI="([^"]+)"""")
+    private val XTREAM_STREAM = Regex("""/[^/]+/[^/]+/\d+/?""")
 
     /** Indirizzo per la pagina (percorso di player.local) al posto di [url]. */
-    fun proxyPath(url: String): String = synchronized(ids) {
-        val id = idsByUrl[url]?.takeIf { ids[it] != null } ?: UUID.randomUUID().toString().replace("-", "").also {
-            ids[it] = url
-            idsByUrl[url] = it
+    fun proxyPath(url: String, headers: Map<String, String> = emptyMap()): String = synchronized(ids) {
+        val target = Target(url, headers)
+        val id = idsByTarget[target]?.takeIf { ids[it] != null } ?: UUID.randomUUID().toString().replace("-", "").also {
+            ids[it] = target
+            idsByTarget[target] = it
         }
         STREAM_PATH + id
     }
@@ -65,8 +70,8 @@ object IptvProxy {
         }
     }
 
-    /** Apre [address] con un user agent da player e segue i redirect, anche da http a https (HttpURLConnection no). */
-    fun open(address: String, readTimeoutMs: Int = 30_000): Upstream {
+    /** Apre [address] con un user agent da player (o gli header dati) e segue i redirect, anche da http a https (HttpURLConnection no). */
+    fun open(address: String, readTimeoutMs: Int = 30_000, headers: Map<String, String> = emptyMap()): Upstream {
         var url = URL(address)
         repeat(MAX_REDIRECTS + 1) {
             if (url.protocol != "http" && url.protocol != "https") throw IOException("Unsupported scheme")
@@ -76,6 +81,7 @@ object IptvProxy {
                 readTimeout = readTimeoutMs
                 setRequestProperty("User-Agent", USER_AGENT)
                 setRequestProperty("Accept", "*/*")
+                headers.forEach { (name, value) -> setRequestProperty(name, value) }
             }
             val status = connection.responseCode
             if (status in 300..399) {
@@ -90,25 +96,33 @@ object IptvProxy {
         throw IOException("Too many redirects")
     }
 
-    /** Come riprodurre [url] nella pagina: "hls" (hls.js), "ts" (mpegts.js) o "file" (direttamente nel video). */
-    fun kindOf(url: String): String {
-        val path = URL(url).path.lowercase()
+    /** Come riprodurre [url] nella pagina: "hls" (hls.js), "ts" o "flv" (mpegts.js) o "file" (direttamente nel video). */
+    fun kindOf(url: String, headers: Map<String, String> = emptyMap()): String = kindOfPath(URL(url).path) ?: probe(url, headers)
+
+    /** Dal percorso, quando basta; null se bisogna guardare l'inizio dello stream. */
+    internal fun kindOfPath(rawPath: String): String? {
+        val path = rawPath.lowercase()
         return when {
             path.endsWith(".m3u8") || path.endsWith(".m3u") -> "hls"
             path.endsWith(".ts") || path.endsWith(".mpegts") -> "ts"
+            path.endsWith(".flv") -> "flv"
             listOf(".mp4", ".m4v", ".mkv", ".webm", ".mp3", ".aac", ".m4a").any { path.endsWith(it) } -> "file"
-            else -> probe(url)
+            // "/utente/password/12345" delle liste Xtream è sempre MPEG-TS: una connessione di prova non serve, e con
+            // un account da una connessione sola il server rifiuterebbe quella vera appena dopo
+            XTREAM_STREAM.matches(path) -> "ts"
+            else -> null
         }
     }
 
     // Senza estensione (tanti "/live/123"): si guarda l'inizio dello stream
-    private fun probe(url: String): String = try {
-        open(url, readTimeoutMs = 10_000).use { upstream ->
+    private fun probe(url: String, headers: Map<String, String>): String = try {
+        open(url, readTimeoutMs = 10_000, headers = headers).use { upstream ->
             val head = ByteArray(8)
             val read = upstream.stream.read(head)
             val type = upstream.contentType.orEmpty()
             when {
                 "mpegurl" in type || (read >= 7 && String(head, 0, 7, Charsets.US_ASCII) == "#EXTM3U") -> "hls"
+                "flv" in type || (read >= 3 && String(head, 0, 3, Charsets.US_ASCII) == "FLV") -> "flv"
                 "mp2t" in type || (read > 0 && head[0] == 0x47.toByte()) -> "ts"
                 else -> "file"
             }
@@ -119,9 +133,9 @@ object IptvProxy {
 
     /** Risposta per [STREAM_PATH]<id>: lo stream, o la lista HLS con gli indirizzi sostituiti. */
     fun serve(id: String): WebResourceResponse {
-        val address = synchronized(ids) { ids[id] } ?: return status(404, "Not Found")
+        val target = synchronized(ids) { ids[id] } ?: return status(404, "Not Found")
         val upstream = try {
-            open(address, readTimeoutMs = 20_000)
+            open(target.url, readTimeoutMs = 20_000, headers = target.headers)
         } catch (e: Exception) {
             AppLog.w("IptvProxy", "Stream not reachable: ${e.javaClass.simpleName}")
             return status(502, "Bad Gateway")
@@ -137,7 +151,7 @@ object IptvProxy {
             } finally {
                 upstream.close()
             }
-            val rewritten = rewritePlaylist(text, upstream.url)
+            val rewritten = rewritePlaylist(text, upstream.url, target.headers)
             return WebResourceResponse(
                 "application/vnd.apple.mpegurl", "utf-8", 200, "OK", NO_STORE,
                 ByteArrayInputStream(rewritten.toByteArray(Charsets.UTF_8))
@@ -181,17 +195,17 @@ object IptvProxy {
     }
 
     // Ogni indirizzo della lista (segmenti, sottoliste, chiavi, mappe) passa dal tramite
-    private fun rewritePlaylist(text: String, base: URL): String = text.lineSequence().joinToString("\n") { line ->
+    private fun rewritePlaylist(text: String, base: URL, headers: Map<String, String>): String = text.lineSequence().joinToString("\n") { line ->
         val trimmed = line.trim()
         when {
             trimmed.isEmpty() -> line
-            trimmed.startsWith("#") -> URI_ATTRIBUTE.replace(line) { "URI=\"${proxied(it.groupValues[1], base)}\"" }
-            else -> proxied(trimmed, base)
+            trimmed.startsWith("#") -> URI_ATTRIBUTE.replace(line) { "URI=\"${proxied(it.groupValues[1], base, headers)}\"" }
+            else -> proxied(trimmed, base, headers)
         }
     }
 
-    private fun proxied(reference: String, base: URL): String = try {
-        proxyPath(URL(base, reference).toString())
+    private fun proxied(reference: String, base: URL, headers: Map<String, String>): String = try {
+        proxyPath(URL(base, reference).toString(), headers)
     } catch (_: Exception) {
         reference
     }

@@ -74,7 +74,7 @@ object LocalPlayer {
     private val videoExtensions = setOf("mp4", "m4v", "webm", "mkv", "mov", "3gp")
     private val playlistExtensions = setOf("m3u", "m3u8", "pls", "cue")
 
-    private val TV_LIBRARIES = setOf("/lib/hls.light.min.js", "/lib/mpegts.min.js")
+    private val TV_LIBRARIES = setOf("/lib/hls.min.js", "/lib/mpegts.min.js")
 
     /** Risposta per gli indirizzi di player.local; null per tutti gli altri (la WebView li carica normalmente). */
     fun intercept(context: Context, request: WebResourceRequest?): WebResourceResponse? {

@@ -119,8 +119,8 @@ internal object IptvApi {
 
     private fun play(lineup: IptvLibrary.Lineup, url: Uri): WebResourceResponse {
         val channel = lineup.channel(url.getQueryParameter("ch")) ?: return error(404, "channel")
-        val kind = IptvProxy.kindOf(channel.url)
-        return json(JSONObject().put("url", IptvProxy.proxyPath(channel.url)).put("kind", kind))
+        val kind = IptvProxy.kindOf(channel.url, channel.headers)
+        return json(JSONObject().put("url", IptvProxy.proxyPath(channel.url, channel.headers)).put("kind", kind))
     }
 
     private fun json(value: JSONObject): WebResourceResponse =

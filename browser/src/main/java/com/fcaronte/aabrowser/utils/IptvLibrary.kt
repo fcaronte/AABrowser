@@ -20,7 +20,14 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object IptvLibrary {
     /** [key]: id stabile del canale nella lista (preferiti, ultimo canale); [group]: indice in [Lineup.groups]. */
-    class Channel(val key: String, val name: String, val group: Int, val logo: String?, val url: String)
+    class Channel(
+        val key: String,
+        val name: String,
+        val group: Int,
+        val logo: String?,
+        val url: String,
+        val headers: Map<String, String> = emptyMap()
+    )
 
     /** [groups]: nomi dei gruppi, nell'ordine della lista ("" = canali senza gruppo). */
     class Lineup(val groups: List<String>, val channels: List<Channel>, private val loadedAt: Long) {
@@ -73,10 +80,10 @@ object IptvLibrary {
 
         fun group(name: String): Int = groups.getOrPut(name.trim()) { groups.size }
 
-        fun add(key: String, name: String, group: Int, logo: String?, url: String) {
+        fun add(key: String, name: String, group: Int, logo: String?, url: String, headers: Map<String, String> = emptyMap()) {
             if (channels.size >= MAX_CHANNELS) return
             val title = name.trim().ifEmpty { Uri.parse(url).lastPathSegment.orEmpty() }
-            channels.add(Channel(key, title, group, logo?.trim()?.takeIf { UrlUtils.isWebUrl(it) }, url))
+            channels.add(Channel(key, title, group, logo?.trim()?.takeIf { UrlUtils.isWebUrl(it) }, url, headers))
         }
 
         fun build() = Lineup(groups.keys.toList(), channels, System.currentTimeMillis())
@@ -93,6 +100,7 @@ object IptvLibrary {
         var name: String? = null
         var group: String? = null
         var logo: String? = null
+        var headers = emptyMap<String, String>()
         InputStreamReader(stream, Charsets.UTF_8).buffered().useLines { lines ->
             lines.forEach { raw ->
                 val line = raw.trim()
@@ -105,17 +113,21 @@ object IptvLibrary {
                             .ifEmpty { attributes["tvg-name"].orEmpty() }
                         group = attributes["group-title"]
                         logo = attributes["tvg-logo"]
+                        headers = headers + IptvHeaders.fromAttributes(attributes)
                     }
                     line.startsWith("#EXTGRP:", ignoreCase = true) -> group = line.substringAfter(':')
-                    line.isEmpty() || line.startsWith("#") -> Unit
+                    line.startsWith("#") -> headers = headers + IptvHeaders.fromDirective(line)
+                    line.isEmpty() -> Unit
                     else -> {
+                        val (address, inline) = IptvHeaders.splitAddress(line)
                         // Solo stream http(s): rtmp, udp e simili la WebView non li apre
-                        if (UrlUtils.isWebUrl(line)) {
-                            builder.add(line.hashCode().toUInt().toString(36), name.orEmpty(), builder.group(group.orEmpty()), logo, line)
+                        if (UrlUtils.isWebUrl(address)) {
+                            builder.add(line.hashCode().toUInt().toString(36), name.orEmpty(), builder.group(group.orEmpty()), logo, address, headers + inline)
                         }
                         name = null
                         group = null
                         logo = null
+                        headers = emptyMap()
                     }
                 }
             }

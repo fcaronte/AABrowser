@@ -393,9 +393,9 @@
             });
             hls.loadSource(info.url);
             hls.attachMedia(media);
-        } else if (info.kind === 'ts' && window.mpegts && mpegts.getFeatureList().mseLivePlayback) {
+        } else if ((info.kind === 'ts' || info.kind === 'flv') && window.mpegts && mpegts.getFeatureList().mseLivePlayback) {
             ts = mpegts.createPlayer(
-                { type: 'mpegts', isLive: true, url: info.url },
+                { type: info.kind === 'flv' ? 'flv' : 'mpegts', isLive: true, url: info.url },
                 { enableWorker: false, lazyLoad: false, autoCleanupSourceBuffer: true }
             );
             ts.on(mpegts.Events.ERROR, () => showMessage(S.unavailable));
