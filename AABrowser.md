@@ -35,7 +35,7 @@
 
 \- \*\*Logging\*\*: Uses custom \`AppLog\` utility to strip/sanitize sensitive user data from logs prior to export or sharing
 
-\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`, its APK handler resolved from the intent, not a hard-coded activity)
+\- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`, opened on its MainActivity, which loads the file and lets the user choose how to install; the APK is downloaded into the app's own external folder, because the public Downloads are not readable by the app)
 
 \---
 

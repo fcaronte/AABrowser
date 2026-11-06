@@ -176,7 +176,7 @@
     <string name="update_download_failed">下载更新失败</string>
     <string name="update_invalid_apk">下载的更新对此应用无效，未进行安装</string>
     <string name="update_not_newer">已安装此版本或更新的版本</string>
-    <string name="update_unreadable">无法读取已下载的更新：请在“下载”中用 KingInstaller 打开</string>
+    <string name="update_unreadable">无法读取已下载的更新：请重试，或从发布页面下载</string>
     <string name="update_ready_title">CarWeb 更新已就绪</string>
     <string name="update_ready_text">点按即可用 KingInstaller 安装</string>
     <string name="kinginstaller_not_found">未找到 KingInstaller！已取消更新以保持在 Android Auto 中的可见性。</string>

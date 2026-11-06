@@ -176,7 +176,7 @@
     <string name="update_download_failed">A frissítés letöltése sikertelen</string>
     <string name="update_invalid_apk">A letöltött frissítés nem érvényes ehhez az alkalmazáshoz, ezért nem lett telepítve</string>
     <string name="update_not_newer">Ez vagy egy újabb verzió már telepítve van</string>
-    <string name="update_unreadable">A letöltött frissítés nem olvasható: nyisd meg a Letöltésekből a KingInstallerrel</string>
+    <string name="update_unreadable">A letöltött frissítés nem olvasható: próbáld újra, vagy töltsd le a kiadások oldaláról</string>
     <string name="update_ready_title">A CarWeb frissítése kész</string>
     <string name="update_ready_text">Érintsd meg a telepítéshez a KingInstallerrel</string>
     <string name="kinginstaller_not_found">KingInstaller nem található! A frissítés megszakítva az Android Auto láthatóságának megőrzése érdekében.</string>

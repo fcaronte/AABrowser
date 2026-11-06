@@ -51,7 +51,7 @@ object UpdateManager {
     private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
     private const val KEY_PENDING_APK_PATH = "pending_apk_path"
     private const val KEY_LAST_DOWNLOAD_ID = "last_download_id"
-    private const val STAGED_APK_PREFIX = "CarWeb-update-"
+    private const val STAGED_APK_DIR = "update"
 
     // Build di debug, "Test aggiornamento": l'app si comporta come se fosse installata questa versione
     private const val KEY_TEST_OLD_VERSION = "test_old_version"
@@ -176,8 +176,7 @@ object UpdateManager {
 
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-            // 1. Rimuovi i download precedenti da DownloadManager (e i loro file): quello completato resta nei Download
-            // finché non ne parte un altro, per poterlo aprire a mano
+            // 1. Rimuovi i download precedenti da DownloadManager (e i loro file)
             listOf(KEY_PENDING_DOWNLOAD_ID, KEY_LAST_DOWNLOAD_ID).map { prefs.getLong(it, -1L) }.filter { it != -1L }.forEach { oldId ->
                 try {
                     downloadManager.remove(oldId)
@@ -186,32 +185,19 @@ object UpdateManager {
                 }
             }
 
-            // 2. Mantiene il nome file originale dall'URL di GitHub (es. CarWeb-v2.5.apk)
+            // 2. Mantiene il nome file originale dall'URL di GitHub (es. CarWeb-v2.5.apk), nella cartella dell'app. Nei
+            // Download pubblici l'app non può leggere né cancellare i file che non ha creato lei (sul telefono "Permission
+            // denied" su un APK copiato lì): con un file rimasto con quel nome, quello nuovo ne prende un altro e il
+            // controllo guardava il vecchio, dicendo che l'aggiornamento non era valido
             val fileName = getApkFileName(info.downloadUrl, info.latestVersion)
-            val downloadsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            if (downloadsDir.exists() && downloadsDir.isDirectory) {
-                downloadsDir.listFiles()?.forEach { file ->
-                    if ((file.name.startsWith("AABrowser") || file.name.startsWith("CarWeb")) && file.name.endsWith(".apk")) {
-                        try {
-                            file.delete()
-                        } catch (e: Exception) {
-                            AppLog.w(TAG, "Impossibile eliminare vecchio file APK: ${file.name}")
-                        }
-                    }
-                }
-            }
-
-            val destinationFile = File(downloadsDir, fileName)
-            if (destinationFile.exists()) {
-                destinationFile.delete()
-            }
+            val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            downloadsDir?.listFiles { file -> file.name.endsWith(".apk") }?.forEach { it.delete() }
 
             val request = DownloadManager.Request(info.downloadUrl.toUri()).apply {
                 setTitle(fileName)
                 setDescription(context.getString(R.string.downloading_update))
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+                setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
                 setMimeType("application/vnd.android.package-archive")
             }
 
@@ -228,7 +214,7 @@ object UpdateManager {
                 Toast.LENGTH_SHORT
             ).show()
 
-            AppLog.d(TAG, "Enqueued download ID: $downloadId for file $fileName at ${destinationFile.absolutePath}")
+            AppLog.d(TAG, "Enqueued download ID: $downloadId for file $fileName")
             return true
         } catch (e: Exception) {
             AppLog.e(TAG, "Failed to start download: ${e.message}", e)
@@ -265,8 +251,7 @@ object UpdateManager {
             return
         }
 
-        // Il file nei Download pubblici può non essere leggibile col suo percorso (spazio di archiviazione a
-        // compartimenti, o un file rimasto con lo stesso nome): si controlla una copia privata presa dal DownloadManager
+        // Si controlla una copia nella cache dell'app, quella che poi va a KingInstaller: da lì nessuno la può cambiare
         val apkFile = stageDownloadedApk(context, downloadManager, downloadId)
         if (apkFile == null) {
             showToast(context, R.string.update_unreadable)
@@ -304,20 +289,17 @@ object UpdateManager {
         }
 
     private fun stageDownloadedApk(context: Context, downloadManager: DownloadManager, downloadId: Long): File? {
-        // Le copie degli aggiornamenti precedenti: KingInstaller ha già finito con loro
-        context.cacheDir.listFiles { file -> file.name.startsWith(STAGED_APK_PREFIX) }?.forEach { it.delete() }
-
-        val stagedFile = try {
-            File.createTempFile("$STAGED_APK_PREFIX$downloadId-", ".apk", context.cacheDir)
-        } catch (e: Exception) {
-            Log.w(TAG, "Update: no private copy possible: ${e.javaClass.simpleName}")
-            return null
-        }
-        // Prima l'indirizzo del DownloadManager, poi il percorso del file
+        val updateDir = File(context.cacheDir, STAGED_APK_DIR)
+        updateDir.deleteRecursively()
+        val downloaded = localFileOf(downloadManager, downloadId)
+        // Il nome giusto, quello che KingInstaller mostra
+        val stagedFile = File(updateDir, downloaded?.name?.takeIf { it.endsWith(".apk") } ?: "CarWeb-update.apk")
+        // Prima il file nella cartella dell'app, poi l'indirizzo del DownloadManager
         val sources = listOf<() -> InputStream?>(
-            { downloadManager.getUriForDownloadedFile(downloadId)?.let { context.contentResolver.openInputStream(it) } },
-            { localFileOf(downloadManager, downloadId)?.inputStream() }
+            { downloaded?.inputStream() },
+            { downloadManager.getUriForDownloadedFile(downloadId)?.let { context.contentResolver.openInputStream(it) } }
         )
+        updateDir.mkdirs()
         for (source in sources) {
             try {
                 val input = source() ?: continue
@@ -385,10 +367,11 @@ object UpdateManager {
             MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).joinToString("") { "%02x".format(it) }
         }.toSet()
 
-    // Chi gestisce gli APK in KingInstaller lo dice lui (ApkHandler nella 2.6): MainActivity è solo il suo schermo principale
+    // MainActivity apre KingInstaller con il file caricato, pronto per scegliere come installarlo. ApkHandler, quello che
+    // risponde a una richiesta generica, passa invece subito all'installazione standard di Android
     private fun installerIntent(apkUri: Uri): Intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(apkUri, "application/vnd.android.package-archive")
-        setPackage(KING_INSTALLER_PACKAGE)
+        setClassName(KING_INSTALLER_PACKAGE, "$KING_INSTALLER_PACKAGE.MainActivity")
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
@@ -396,9 +379,9 @@ object UpdateManager {
         try {
             context.startActivity(installerIntent(apkUri))
         } catch (_: ActivityNotFoundException) {
-            AppLog.w(TAG, "No APK handler declared, trying MainActivity")
+            AppLog.w(TAG, "MainActivity component not found, trying general package intent...")
             try {
-                context.startActivity(installerIntent(apkUri).setClassName(KING_INSTALLER_PACKAGE, "$KING_INSTALLER_PACKAGE.MainActivity"))
+                context.startActivity(installerIntent(apkUri).setComponent(null).setPackage(KING_INSTALLER_PACKAGE))
             } catch (e: Exception) {
                 Log.w(TAG, "Update: KingInstaller not found: ${e.javaClass.simpleName}")
                 showToast(context, R.string.kinginstaller_not_found)

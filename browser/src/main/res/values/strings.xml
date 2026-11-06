@@ -178,7 +178,7 @@
     <string name="update_download_failed">Failed to download update</string>
     <string name="update_invalid_apk">The downloaded update is not valid for this app: it was not installed</string>
     <string name="update_not_newer">This version or a newer one is already installed</string>
-    <string name="update_unreadable">Could not read the downloaded update: open it from Downloads with KingInstaller</string>
+    <string name="update_unreadable">Could not read the downloaded update: try again, or download it from the releases page</string>
     <string name="update_ready_title">CarWeb update ready</string>
     <string name="update_ready_text">Tap to install it with KingInstaller</string>
     <string name="debug_update_test_label" translatable="false">Update test (debug build)</string>

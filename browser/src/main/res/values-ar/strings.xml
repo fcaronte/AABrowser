@@ -176,7 +176,7 @@
     <string name="update_download_failed">فشل تنزيل التحديث</string>
     <string name="update_invalid_apk">التحديث الذي تم تنزيله غير صالح لهذا التطبيق: لم يتم تثبيته</string>
     <string name="update_not_newer">هذا الإصدار أو إصدار أحدث مثبت بالفعل</string>
-    <string name="update_unreadable">تعذر قراءة التحديث الذي تم تنزيله: افتحه من التنزيلات باستخدام KingInstaller</string>
+    <string name="update_unreadable">تعذر قراءة التحديث الذي تم تنزيله: أعد المحاولة أو نزّله من صفحة الإصدارات</string>
     <string name="update_ready_title">تحديث CarWeb جاهز</string>
     <string name="update_ready_text">المس للتثبيت باستخدام KingInstaller</string>
     <string name="kinginstaller_not_found">لم يتم العثور على KingInstaller! تم إلغاء التحديث للحفاظ على ظهور التطبيق في Android Auto.</string>

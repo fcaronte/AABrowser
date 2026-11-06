@@ -176,7 +176,7 @@
     <string name="update_download_failed">अपडेट डाउनलोड करने में विफल</string>
     <string name="update_invalid_apk">डाउनलोड किया गया अपडेट इस ऐप के लिए मान्य नहीं है: इसे इंस्टॉल नहीं किया गया</string>
     <string name="update_not_newer">यह या इससे नया संस्करण पहले से इंस्टॉल है</string>
-    <string name="update_unreadable">डाउनलोड किया गया अपडेट पढ़ा नहीं जा सका: इसे Downloads से KingInstaller के साथ खोलें</string>
+    <string name="update_unreadable">डाउनलोड किया गया अपडेट पढ़ा नहीं जा सका: फिर से कोशिश करें या इसे रिलीज़ पेज से डाउनलोड करें</string>
     <string name="update_ready_title">CarWeb अपडेट तैयार है</string>
     <string name="update_ready_text">KingInstaller से इंस्टॉल करने के लिए छुएं</string>
     <string name="kinginstaller_not_found">KingInstaller नहीं मिला! एंड्रॉइड ऑटो दृश्यता बनाए रखने के लिए अपडेट रद्द किया गया।</string>

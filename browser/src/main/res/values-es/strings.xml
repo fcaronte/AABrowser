@@ -176,7 +176,7 @@
     <string name="update_download_failed">Error al descargar la actualización</string>
     <string name="update_invalid_apk">La actualización descargada no es válida para esta app: no se ha instalado</string>
     <string name="update_not_newer">Ya está instalada esta versión o una más reciente</string>
-    <string name="update_unreadable">No se pudo leer la actualización descargada: ábrela desde Descargas con KingInstaller</string>
+    <string name="update_unreadable">No se pudo leer la actualización descargada: inténtalo de nuevo o descárgala desde la página de versiones</string>
     <string name="update_ready_title">Actualización de CarWeb lista</string>
     <string name="update_ready_text">Toca para instalarla con KingInstaller</string>
     <string name="kinginstaller_not_found">¡KingInstaller no encontrado! Actualización cancelada para mantener la visibilidad en Android Auto.</string>

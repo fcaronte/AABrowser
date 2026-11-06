@@ -176,7 +176,7 @@
     <string name="update_download_failed">Не удалось загрузить обновление</string>
     <string name="update_invalid_apk">Загруженное обновление не подходит для этого приложения и не было установлено</string>
     <string name="update_not_newer">Эта или более новая версия уже установлена</string>
-    <string name="update_unreadable">Не удалось прочитать загруженное обновление: откройте его из «Загрузок» через KingInstaller</string>
+    <string name="update_unreadable">Не удалось прочитать загруженное обновление: повторите попытку или скачайте его со страницы релизов</string>
     <string name="update_ready_title">Обновление CarWeb готово</string>
     <string name="update_ready_text">Нажмите, чтобы установить через KingInstaller</string>
     <string name="kinginstaller_not_found">KingInstaller не найден! Обновление отменено для сохранения видимости в Android Auto.</string>
