@@ -397,4 +397,5 @@
     <string name="radio_no_results">No se encontraron emisoras</string>
     <string name="radio_error">No se pudieron cargar las emisoras</string>
     <string name="radio_unavailable">Emisora no disponible</string>
+    <string name="poi_needs_car_api">Esta prueba requiere un Android Auto más reciente (Car API 7 o posterior).</string>
 </resources>

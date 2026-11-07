@@ -398,4 +398,5 @@
     <string name="radio_no_results">Станции не найдены</string>
     <string name="radio_error">Не удалось загрузить радиостанции</string>
     <string name="radio_unavailable">Станция недоступна</string>
+    <string name="poi_needs_car_api">Для этой пробы нужен более новый Android Auto (Car API 7 или выше).</string>
 </resources>

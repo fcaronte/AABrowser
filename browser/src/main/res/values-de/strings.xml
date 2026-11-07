@@ -396,4 +396,5 @@
     <string name="radio_no_results">Keine Sender gefunden</string>
     <string name="radio_error">Radiosender konnten nicht geladen werden</string>
     <string name="radio_unavailable">Sender nicht verfügbar</string>
+    <string name="poi_needs_car_api">Dieser Test benötigt ein neueres Android Auto (Car API 7 oder höher).</string>
 </resources>

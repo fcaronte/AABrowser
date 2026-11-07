@@ -5,7 +5,7 @@ import androidx.car.app.Session
 import androidx.car.app.validation.HostValidator
 import com.fcaronte.aabrowser.BuildConfig
 
-class CarServiceWide : CarAppService() {
+open class CarServiceWide : CarAppService() {
     override fun createHostValidator(): HostValidator =
         if (BuildConfig.DEBUG) {
             HostValidator.ALLOW_ALL_HOSTS_VALIDATOR

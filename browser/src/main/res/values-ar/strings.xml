@@ -400,4 +400,5 @@
     <string name="radio_no_results">لم يتم العثور على محطات</string>
     <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
     <string name="radio_unavailable">المحطة غير متاحة</string>
+    <string name="poi_needs_car_api">تتطلب هذه التجربة إصدارًا أحدث من Android Auto (Car API 7 أو أحدث).</string>
 </resources>

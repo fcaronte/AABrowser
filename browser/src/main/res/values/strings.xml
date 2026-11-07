@@ -401,4 +401,6 @@
     <string name="radio_no_results">No stations found</string>
     <string name="radio_error">Could not load radio stations</string>
     <string name="radio_unavailable">Station unavailable</string>
+    <string name="poi_app_name" translatable="false">CarWeb POI</string>
+    <string name="poi_needs_car_api">This test needs a newer Android Auto (Car API 7 or later).</string>
 </resources>
