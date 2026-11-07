@@ -414,4 +414,11 @@
     <string name="adblock_lists_updating">Updating…</string>
     <string name="adblock_lists_failed">last update failed</string>
     <string name="adblock_lists_update">Update</string>
+    <string name="sponsorblock_label">Skip sponsors on YouTube (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Skips by itself the sponsors and the other parts marked by SponsorBlock users (sponsor.ajay.app), also on YouTube Music. Only the first characters of a fingerprint of the video reach SponsorBlock.</string>
+    <string name="sponsorblock_level_label">What to skip</string>
+    <string name="sponsorblock_level_sponsor">Sponsors only</string>
+    <string name="sponsorblock_level_default">Sponsors, self-promotion and subscribe reminders</string>
+    <string name="sponsorblock_level_all">Also intros, endings, previews and non-music parts</string>
+    <string name="sponsorblock_skipped">Skipped with SponsorBlock</string>
 </resources>

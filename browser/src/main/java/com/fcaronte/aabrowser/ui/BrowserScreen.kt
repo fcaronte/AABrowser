@@ -88,6 +88,7 @@ import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SitePermissions
+import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.MediaVoice
@@ -729,6 +730,12 @@ fun BrowserScreen(
                                 YouTubeManager.getPreventPlaylistScrollScript(),
                                 AdBlockJavascript.YOUTUBE_ORIGINS
                             )
+                            // SponsorBlock: salta sponsor e le altre parti scelte (chiede le categorie al ponte)
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                SponsorBlock.script(context),
+                                AdBlockJavascript.YOUTUBE_ORIGINS
+                            )
                         }
 
                         val needsDesktop = actualDesktopMode || isDesktopRequired(url)
@@ -1014,6 +1021,15 @@ fun BrowserScreen(
                                 @Suppress("unused")
                                 fun allowsPopup(url: String, tappedLink: String): Boolean =
                                     PopupGuard.allowsPopup(url, pageHost.get(), tappedLink, popupAttempts, isWindow = false)
+
+                                // Lo script di SponsorBlock all'inizio delle pagine di YouTube: cosa saltare e il messaggio
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun sponsorBlockCategories(): String = SponsorBlock.categoriesJson()
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun sponsorBlockMessage(): String = context.getString(R.string.sponsorblock_skipped)
                             },
                             "AndroidBridge",
                         )

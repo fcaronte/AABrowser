@@ -413,4 +413,11 @@
     <string name="adblock_lists_updating">جارٍ التحديث…</string>
     <string name="adblock_lists_failed">فشل آخر تحديث</string>
     <string name="adblock_lists_update">تحديث</string>
+    <string name="sponsorblock_label">تخطي الرعاة على YouTube (SponsorBlock)</string>
+    <string name="sponsorblock_desc">يتخطى تلقائيًا الرعايات والأجزاء الأخرى التي حدّدها مستخدمو SponsorBlock (sponsor.ajay.app)، وأيضًا في YouTube Music. لا يصل إلى SponsorBlock إلا الأحرف الأولى من بصمة الفيديو.</string>
+    <string name="sponsorblock_level_label">ما الذي يُتخطّى</string>
+    <string name="sponsorblock_level_sponsor">الرعاة فقط</string>
+    <string name="sponsorblock_level_default">الرعاة والترويج الذاتي وطلبات الاشتراك</string>
+    <string name="sponsorblock_level_all">وأيضًا المقدّمات والنهايات والمعاينات والأجزاء غير الموسيقية</string>
+    <string name="sponsorblock_skipped">تم التخطي بواسطة SponsorBlock</string>
 </resources>

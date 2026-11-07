@@ -17,6 +17,7 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.ShareToCarActivity
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
+import com.fcaronte.aabrowser.utils.SponsorBlock
 
 enum class ThemeMode {
     LIGHT, DARK, AMOLED
@@ -63,6 +64,12 @@ object AppSettings {
 
     private val _forceMaxYouTubeQuality = mutableStateOf(false)
     val forceMaxYouTubeQuality: State<Boolean> = _forceMaxYouTubeQuality
+
+    // SponsorBlock su YouTube (acceso) e quanto saltare (SponsorBlock.LEVEL_…)
+    private val _sponsorBlock = mutableStateOf(true)
+    val sponsorBlock: State<Boolean> = _sponsorBlock
+    private val _sponsorBlockLevel = mutableStateOf(SponsorBlock.LEVEL_DEFAULT)
+    val sponsorBlockLevel: State<String> = _sponsorBlockLevel
 
     // Qualità massima di YouTube con forceMaxYouTubeQuality attiva: livello del player (hd1080, hd1440, ...)
     const val DEFAULT_YOUTUBE_QUALITY = "hd1440"
@@ -189,6 +196,9 @@ object AppSettings {
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
         _forceMaxYouTubeQuality.value = prefs.getBoolean("force_max_youtube_quality", false)
+        _sponsorBlock.value = prefs.getBoolean("sponsorblock", true)
+        _sponsorBlockLevel.value = prefs.getString("sponsorblock_level", null)
+            ?.takeIf { it in SponsorBlock.LEVELS } ?: SponsorBlock.LEVEL_DEFAULT
         _youtubeQuality.value = prefs.getString("youtube_quality", DEFAULT_YOUTUBE_QUALITY)
             ?.takeIf { level -> youtubeQualityOptions.any { it.first == level } }
             ?: DEFAULT_YOUTUBE_QUALITY
@@ -359,6 +369,16 @@ object AppSettings {
     fun setYouTubeQuality(context: Context, level: String) {
         _youtubeQuality.value = level
         saveString(context, "youtube_quality", level)
+    }
+
+    fun setSponsorBlock(context: Context, enabled: Boolean) {
+        _sponsorBlock.value = enabled
+        saveBoolean(context, "sponsorblock", enabled)
+    }
+
+    fun setSponsorBlockLevel(context: Context, level: String) {
+        _sponsorBlockLevel.value = level
+        saveString(context, "sponsorblock_level", level)
     }
 
     fun setWideReopenLastPage(context: Context, enabled: Boolean) {

@@ -410,4 +410,11 @@
     <string name="adblock_lists_updating">Mise à jour…</string>
     <string name="adblock_lists_failed">la dernière mise à jour a échoué</string>
     <string name="adblock_lists_update">Mettre à jour</string>
+    <string name="sponsorblock_label">Passer les sponsors sur YouTube (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Passe automatiquement les sponsors et les autres parties signalées par les utilisateurs de SponsorBlock (sponsor.ajay.app), aussi sur YouTube Music. Seuls les premiers caractères d\'une empreinte de la vidéo sont envoyés à SponsorBlock.</string>
+    <string name="sponsorblock_level_label">Que passer</string>
+    <string name="sponsorblock_level_sponsor">Sponsors uniquement</string>
+    <string name="sponsorblock_level_default">Sponsors, autopromotion et rappels d\'abonnement</string>
+    <string name="sponsorblock_level_all">Aussi les génériques, fins, aperçus et parties non musicales</string>
+    <string name="sponsorblock_skipped">Passé avec SponsorBlock</string>
 </resources>

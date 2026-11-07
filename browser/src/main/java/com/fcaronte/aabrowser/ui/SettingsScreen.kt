@@ -88,6 +88,7 @@ import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockLists
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.SitePermissions
+import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslExceptions
 import com.fcaronte.aabrowser.utils.UpdateManager
 import kotlinx.coroutines.CoroutineScope
@@ -156,6 +157,7 @@ fun SettingsScreen(
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
     val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
+    val sponsorBlockOn by AppSettings.sponsorBlock
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val playerCardOpensMain by AppSettings.playerCardOpensMain
     val shareToCar by AppSettings.shareToCar
@@ -1052,6 +1054,34 @@ fun SettingsScreen(
                                             expanded = expandedYouTubeQuality,
                                             onExpandedChange = { expandedYouTubeQuality = it },
                                             onSelect = { AppSettings.setYouTubeQuality(context, it) }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // SponsorBlock: salta sponsor e altre parti dei video di YouTube, si sceglie quanto
+                            val sponsorBlockLevel by AppSettings.sponsorBlockLevel
+                            var expandedSponsorBlock by remember { mutableStateOf(false) }
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(bottom = if (sponsorBlockOn && expandedSponsorBlock) 16.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.sponsorblock_label),
+                                        description = stringResource(R.string.sponsorblock_desc),
+                                        checked = sponsorBlockOn,
+                                        onCheckedChange = { AppSettings.setSponsorBlock(context, it) }
+                                    )
+                                    if (sponsorBlockOn) {
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.sponsorblock_level_label),
+                                            options = listOf(
+                                                SponsorBlock.LEVEL_SPONSOR to stringResource(R.string.sponsorblock_level_sponsor),
+                                                SponsorBlock.LEVEL_DEFAULT to stringResource(R.string.sponsorblock_level_default),
+                                                SponsorBlock.LEVEL_ALL to stringResource(R.string.sponsorblock_level_all)
+                                            ),
+                                            selectedKey = sponsorBlockLevel,
+                                            expanded = expandedSponsorBlock,
+                                            onExpandedChange = { expandedSponsorBlock = it },
+                                            onSelect = { AppSettings.setSponsorBlockLevel(context, it) }
                                         )
                                     }
                                 }

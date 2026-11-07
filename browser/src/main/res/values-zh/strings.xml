@@ -408,4 +408,11 @@
     <string name="adblock_lists_updating">正在更新…</string>
     <string name="adblock_lists_failed">上次更新失败</string>
     <string name="adblock_lists_update">更新</string>
+    <string name="sponsorblock_label">跳过 YouTube 上的赞助（SponsorBlock）</string>
+    <string name="sponsorblock_desc">自动跳过 SponsorBlock 用户（sponsor.ajay.app）标记的赞助和其他片段，YouTube Music 中也有效。只会把视频指纹的前几个字符发送给 SponsorBlock。</string>
+    <string name="sponsorblock_level_label">跳过哪些内容</string>
+    <string name="sponsorblock_level_sponsor">仅赞助</string>
+    <string name="sponsorblock_level_default">赞助、自我推广和订阅提醒</string>
+    <string name="sponsorblock_level_all">还有片头、片尾、预告和非音乐部分</string>
+    <string name="sponsorblock_skipped">已通过 SponsorBlock 跳过</string>
 </resources>

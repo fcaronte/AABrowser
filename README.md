@@ -62,7 +62,10 @@ from the misuse of this application. Use at your own risk.
   sites is the [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) (about 190,000 domains of
   ads, trackers and pop-ups), downloaded by the app and renewed every three days (Settings shows when).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
-  speed (ads and music excluded), tap on the progress bar to seek.
+  speed (ads and music excluded), tap on the progress bar to seek. **SponsorBlock:** sponsors and the other parts
+  marked by [SponsorBlock](https://sponsor.ajay.app) users are skipped by themselves, also on YouTube Music (choose
+  how much in Settings; only the first characters of a fingerprint of the video are sent, never which video).
+  SponsorBlock data is CC BY-NC-SA 4.0.
 * **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs and videos, search, open
   favorites and sites and control the player. See [Voice commands](#voice-commands).
@@ -257,7 +260,9 @@ proprio rischio e pericolo.
   Impostazioni dicono quando).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
-  video.
+  video. **SponsorBlock:** gli sponsor e le altre parti segnate dagli utenti di [SponsorBlock](https://sponsor.ajay.app)
+  si saltano da soli, anche su YouTube Music (quanto saltare si sceglie nelle Impostazioni; parte solo l'inizio di
+  un'impronta del video, mai quale video). I dati di SponsorBlock sono CC BY-NC-SA 4.0.
 * **Comandi vocali (novità 2.4):** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti
   e comandare il player. Vedi [Comandi vocali](#comandi-vocali).

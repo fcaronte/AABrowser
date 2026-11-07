@@ -411,4 +411,11 @@
     <string name="adblock_lists_updating">Обновление…</string>
     <string name="adblock_lists_failed">последнее обновление не удалось</string>
     <string name="adblock_lists_update">Обновить</string>
+    <string name="sponsorblock_label">Пропуск спонсоров на YouTube (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Сам пропускает спонсорские вставки и другие части, отмеченные пользователями SponsorBlock (sponsor.ajay.app), также в YouTube Music. В SponsorBlock передаются только первые символы отпечатка видео.</string>
+    <string name="sponsorblock_level_label">Что пропускать</string>
+    <string name="sponsorblock_level_sponsor">Только спонсоров</string>
+    <string name="sponsorblock_level_default">Спонсоров, самопродвижение и просьбы подписаться</string>
+    <string name="sponsorblock_level_all">Также заставки, концовки, превью и части без музыки</string>
+    <string name="sponsorblock_skipped">Пропущено с SponsorBlock</string>
 </resources>

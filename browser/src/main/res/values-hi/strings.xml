@@ -409,4 +409,11 @@
     <string name="adblock_lists_updating">अपडेट हो रही है…</string>
     <string name="adblock_lists_failed">पिछला अपडेट विफल रहा</string>
     <string name="adblock_lists_update">अपडेट करें</string>
+    <string name="sponsorblock_label">YouTube पर स्पॉन्सर छोड़ें (SponsorBlock)</string>
+    <string name="sponsorblock_desc">SponsorBlock उपयोगकर्ताओं (sponsor.ajay.app) द्वारा चिह्नित स्पॉन्सर और अन्य हिस्सों को अपने आप छोड़ देता है, YouTube Music पर भी। SponsorBlock तक वीडियो के फ़िंगरप्रिंट के केवल पहले अक्षर जाते हैं।</string>
+    <string name="sponsorblock_level_label">क्या छोड़ें</string>
+    <string name="sponsorblock_level_sponsor">केवल स्पॉन्सर</string>
+    <string name="sponsorblock_level_default">स्पॉन्सर, स्व-प्रचार और सब्सक्राइब के अनुरोध</string>
+    <string name="sponsorblock_level_all">इंट्रो, अंत, प्रीव्यू और बिना संगीत वाले हिस्से भी</string>
+    <string name="sponsorblock_skipped">SponsorBlock से छोड़ा गया</string>
 </resources>

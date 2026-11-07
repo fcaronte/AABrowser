@@ -409,4 +409,11 @@
     <string name="adblock_lists_updating">Frissítés…</string>
     <string name="adblock_lists_failed">a legutóbbi frissítés nem sikerült</string>
     <string name="adblock_lists_update">Frissítés</string>
+    <string name="sponsorblock_label">Szponzorok átugrása a YouTube-on (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Magától átugorja a szponzorokat és a SponsorBlock felhasználói által megjelölt többi részt (sponsor.ajay.app), a YouTube Musicon is. A SponsorBlockhoz csak a videó ujjlenyomatának első karakterei jutnak el.</string>
+    <string name="sponsorblock_level_label">Mit ugorjon át</string>
+    <string name="sponsorblock_level_sponsor">Csak a szponzorokat</string>
+    <string name="sponsorblock_level_default">Szponzorok, önreklám és feliratkozási kérések</string>
+    <string name="sponsorblock_level_all">Intrók, végek, előzetesek és nem zenei részek is</string>
+    <string name="sponsorblock_skipped">Átugorva a SponsorBlockkal</string>
 </resources>

@@ -410,4 +410,11 @@
     <string name="adblock_lists_updating">A atualizar…</string>
     <string name="adblock_lists_failed">a última atualização falhou</string>
     <string name="adblock_lists_update">Atualizar</string>
+    <string name="sponsorblock_label">Saltar patrocínios no YouTube (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Salta sozinho os patrocínios e as outras partes marcadas pelos utilizadores do SponsorBlock (sponsor.ajay.app), também no YouTube Music. Ao SponsorBlock só chegam os primeiros caracteres de uma impressão digital do vídeo.</string>
+    <string name="sponsorblock_level_label">O que saltar</string>
+    <string name="sponsorblock_level_sponsor">Só patrocínios</string>
+    <string name="sponsorblock_level_default">Patrocínios, autopromoção e pedidos de subscrição</string>
+    <string name="sponsorblock_level_all">Também introduções, finais, antevisões e partes sem música</string>
+    <string name="sponsorblock_skipped">Saltado com o SponsorBlock</string>
 </resources>

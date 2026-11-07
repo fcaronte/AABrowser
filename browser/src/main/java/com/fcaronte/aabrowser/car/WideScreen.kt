@@ -104,6 +104,7 @@ import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
+import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
@@ -1559,6 +1560,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 YouTubeManager.getPreventPlaylistScrollScript(),
                                 AdBlockJavascript.YOUTUBE_ORIGINS
                             )
+                            // SponsorBlock: salta sponsor e le altre parti scelte (chiede le categorie al ponte)
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                SponsorBlock.script(carContext),
+                                AdBlockJavascript.YOUTUBE_ORIGINS
+                            )
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
                             // Aggiungi anche lo script per salvare l'elemento attivo
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
@@ -1770,6 +1777,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun allowsPopup(url: String, tappedLink: String): Boolean =
                                     PopupGuard.allowsPopup(url, pageHost, tappedLink, popupAttempts, isWindow = false)
+
+                                // Lo script di SponsorBlock all'inizio delle pagine di YouTube: cosa saltare e il messaggio
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun sponsorBlockCategories(): String = SponsorBlock.categoriesJson()
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun sponsorBlockMessage(): String = strings.getString(R.string.sponsorblock_skipped)
                             },
                             "AndroidBridge"
                         )

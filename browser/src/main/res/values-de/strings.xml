@@ -409,4 +409,11 @@
     <string name="adblock_lists_updating">Wird aktualisiert…</string>
     <string name="adblock_lists_failed">letzte Aktualisierung fehlgeschlagen</string>
     <string name="adblock_lists_update">Aktualisieren</string>
+    <string name="sponsorblock_label">Sponsoren auf YouTube überspringen (SponsorBlock)</string>
+    <string name="sponsorblock_desc">Überspringt automatisch Sponsoren und andere von SponsorBlock-Nutzern markierte Teile (sponsor.ajay.app), auch auf YouTube Music. An SponsorBlock gehen nur die ersten Zeichen eines Fingerabdrucks des Videos.</string>
+    <string name="sponsorblock_level_label">Was überspringen</string>
+    <string name="sponsorblock_level_sponsor">Nur Sponsoren</string>
+    <string name="sponsorblock_level_default">Sponsoren, Eigenwerbung und Abo-Erinnerungen</string>
+    <string name="sponsorblock_level_all">Auch Intros, Abspänne, Vorschauen und Teile ohne Musik</string>
+    <string name="sponsorblock_skipped">Mit SponsorBlock übersprungen</string>
 </resources>
