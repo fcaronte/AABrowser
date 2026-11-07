@@ -405,4 +405,10 @@
     <string name="share_to_car_waiting">Откройте CarWeb в машине в течение минуты: ссылка откроется там</string>
     <string name="share_to_car_no_link">Нет ссылки для открытия</string>
     <string name="share_to_car_opened">С телефона: %1$s</string>
+    <string name="adblock_lists_label">Список рекламных сайтов</string>
+    <string name="adblock_lists_info">%1$s: %2$s сайтов, обновлено %3$s</string>
+    <string name="adblock_lists_none">Ещё не загружен: загрузится сам при подключении к интернету</string>
+    <string name="adblock_lists_updating">Обновление…</string>
+    <string name="adblock_lists_failed">последнее обновление не удалось</string>
+    <string name="adblock_lists_update">Обновить</string>
 </resources>

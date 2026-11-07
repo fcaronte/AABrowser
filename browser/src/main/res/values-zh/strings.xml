@@ -402,4 +402,10 @@
     <string name="share_to_car_waiting">请在一分钟内在车上打开 CarWeb：链接将在那里打开</string>
     <string name="share_to_car_no_link">没有可打开的链接</string>
     <string name="share_to_car_opened">来自手机：%1$s</string>
+    <string name="adblock_lists_label">广告网站列表</string>
+    <string name="adblock_lists_info">%1$s：%2$s 个网站，更新于 %3$s</string>
+    <string name="adblock_lists_none">尚未下载：联网后会自动下载</string>
+    <string name="adblock_lists_updating">正在更新…</string>
+    <string name="adblock_lists_failed">上次更新失败</string>
+    <string name="adblock_lists_update">更新</string>
 </resources>

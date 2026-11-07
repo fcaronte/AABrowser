@@ -113,18 +113,33 @@ object AdBlockHost {
     fun shouldBlock(url: String, pageHost: String? = null): Boolean {
         if (!AdBlockSettings.isEnabled.value) return false
         // Uri e non URL: niente eccezioni con blob:, data:, about: e javascript:
-        val host = Uri.parse(url).host?.lowercase() ?: return false
+        val uri = Uri.parse(url)
+        val host = uri.host?.lowercase() ?: return false
         if (matches(host, scriptManagedHosts) || matches(pageHost?.lowercase(), scriptManagedHosts)) return false
         if (isWhitelisted(pageHost) || isWhitelisted(host)) return false
         // L'host o un suo sottodominio è nella lista nera
-        return isAdHost(host)
+        return isAdHost(host) || isRotatingAdScript(uri.path, host, pageHost)
     }
 
-    /** L'host (o un dominio che lo contiene) è nelle liste dell'AdBlock. Mai quelli di YouTube ([scriptManagedHosts]). */
+    /**
+     * L'host (o un dominio che lo contiene) è nei domini scritti qui o nella lista scaricata (AdBlockLists). Mai quelli
+     * di YouTube ([scriptManagedHosts]).
+     */
     fun isAdHost(host: String?): Boolean {
         val name = host?.lowercase() ?: return false
         if (matches(name, scriptManagedHosts)) return false
-        return matches(name, blockedHosts)
+        return matches(name, blockedHosts) || AdBlockLists.contains(name)
+    }
+
+    // Script dei circuiti pubblicitari che cambiano dominio di continuo (pop-under come quelli di Adsterra): sempre
+    // "/c7/93/5c/c7935c….js", le cartelle sono l'inizio del nome; da un sito diverso da quello della pagina
+    private val rotatingAdScript = Regex("/([0-9a-f]{2})/([0-9a-f]{2})/([0-9a-f]{2})/([0-9a-f]{32})\\.js")
+
+    fun isRotatingAdScript(path: String?, host: String, pageHost: String?): Boolean {
+        val match = rotatingAdScript.matchEntire(path ?: return false) ?: return false
+        val (first, second, third, name) = match.destructured
+        if (!name.startsWith(first + second + third)) return false
+        return pageHost == null || PopupGuard.siteOf(pageHost) != PopupGuard.siteOf(host)
     }
 
     fun isWhitelisted(host: String?): Boolean = matches(siteKey(host), whitelist)

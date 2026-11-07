@@ -403,4 +403,10 @@
     <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: लिंक वहीं खुलेगा</string>
     <string name="share_to_car_no_link">खोलने के लिए कोई लिंक नहीं</string>
     <string name="share_to_car_opened">फ़ोन से: %1$s</string>
+    <string name="adblock_lists_label">विज्ञापन साइटों की सूची</string>
+    <string name="adblock_lists_info">%1$s: %2$s साइटें, %3$s को अपडेट की गई</string>
+    <string name="adblock_lists_none">अभी डाउनलोड नहीं हुई: इंटरनेट कनेक्शन होने पर अपने आप डाउनलोड होगी</string>
+    <string name="adblock_lists_updating">अपडेट हो रही है…</string>
+    <string name="adblock_lists_failed">पिछला अपडेट विफल रहा</string>
+    <string name="adblock_lists_update">अपडेट करें</string>
 </resources>

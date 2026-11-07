@@ -6,6 +6,7 @@ import com.fcaronte.aabrowser.model.WebStateRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockLists
 import com.google.android.material.color.DynamicColors
 
 class CarApplication : Application() {
@@ -20,6 +21,7 @@ class CarApplication : Application() {
         // (AdBlock di YouTube spento) finché non si apriva la Main
         AdBlockSettings.init(this)
         AdBlockHost.init(this)
+        AdBlockLists.init(this)
         WebStateRepository.init(this)
     }
 

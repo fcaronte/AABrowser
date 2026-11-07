@@ -85,6 +85,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.utils.AdBlockLists
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslExceptions
@@ -95,6 +96,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.text.DateFormat
+import java.text.NumberFormat
+import java.util.Date
 
 private enum class PendingPassengerToggle { MODE, KEYBOARD }
 
@@ -992,6 +996,16 @@ fun SettingsScreen(
                                             )
                                         }
                                     )
+                                    // Lista dei siti pubblicitari scaricata (AdBlockLists): quanti, quando, aggiorna
+                                    if (isAdBlockEnabled) {
+                                        val listInfo by AdBlockLists.info
+                                        SettingsButtonItem(
+                                            label = stringResource(R.string.adblock_lists_label),
+                                            description = adBlockListText(listInfo),
+                                            buttonText = stringResource(R.string.adblock_lists_update),
+                                            onClick = { AdBlockLists.refresh(context) }
+                                        )
+                                    }
                                     SettingsSwitchItem(
                                         label = stringResource(R.string.adblock_youtube_label),
                                         description = stringResource(R.string.adblock_youtube_desc),
@@ -1575,6 +1589,23 @@ fun ColumnScope.SettingsChoiceList(
             }
         }
     }
+}
+
+/** Stato della lista dei siti pubblicitari: fonte, quanti siti, quando è stata scaricata. */
+@Composable
+private fun adBlockListText(info: AdBlockLists.Info): String {
+    val locale = LocalContext.current.resources.configuration.locales[0]
+    val state = when {
+        info.updating -> stringResource(R.string.adblock_lists_updating)
+        info.count == 0 -> stringResource(R.string.adblock_lists_none)
+        else -> stringResource(
+            R.string.adblock_lists_info,
+            AdBlockLists.SOURCE_NAME,
+            NumberFormat.getIntegerInstance(locale).format(info.count),
+            DateFormat.getDateInstance(DateFormat.SHORT, locale).format(Date(info.updatedAt))
+        )
+    }
+    return if (info.failed) state + " · " + stringResource(R.string.adblock_lists_failed) else state
 }
 
 @Composable

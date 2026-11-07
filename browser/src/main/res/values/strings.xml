@@ -408,4 +408,10 @@
     <string name="share_to_car_waiting">Open CarWeb in the car within a minute: the link will open there</string>
     <string name="share_to_car_no_link">No link to open</string>
     <string name="share_to_car_opened">From the phone: %1$s</string>
+    <string name="adblock_lists_label">Ad site list</string>
+    <string name="adblock_lists_info">%1$s: %2$s sites, updated %3$s</string>
+    <string name="adblock_lists_none">Not downloaded yet: it downloads by itself with an internet connection</string>
+    <string name="adblock_lists_updating">Updating…</string>
+    <string name="adblock_lists_failed">last update failed</string>
+    <string name="adblock_lists_update">Update</string>
 </resources>

@@ -58,7 +58,9 @@ from the misuse of this application. Use at your own risk.
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
   tab bar and the navigation menu of CarWeb, at the top right of the Widescreen). It also stops the ads that open
   at every tap on streaming sites: a page opened by a script goes through only toward the same site, the link you
-  tapped or a sign-in. If a button of a site does nothing, turn the shield off for that site.
+  tapped or a sign-in. If a button of a site does nothing, turn the shield off for that site. The list of ad
+  sites is the [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) (about 190,000 domains of
+  ads, trackers and pop-ups), downloaded by the app and renewed every three days (Settings shows when).
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
   speed (ads and music excluded), tap on the progress bar to seek.
 * **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
@@ -250,7 +252,9 @@ proprio rischio e pericolo.
   2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Ferma
   anche le pubblicità che si aprono a ogni tocco sui siti di streaming: una pagina aperta da uno script passa solo
   verso lo stesso sito, il link toccato o un accesso. Se un pulsante di un sito non fa niente, spegni lo scudo per
-  quel sito.
+  quel sito. La lista dei siti pubblicitari è l'[AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter)
+  (circa 190.000 domini di pubblicità, tracciamento e pop-up), scaricata dall'app e rinnovata ogni tre giorni (le
+  Impostazioni dicono quando).
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
   video.

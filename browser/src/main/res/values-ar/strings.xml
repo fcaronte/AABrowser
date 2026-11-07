@@ -407,4 +407,10 @@
     <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح الرابط هناك</string>
     <string name="share_to_car_no_link">لا يوجد رابط لفتحه</string>
     <string name="share_to_car_opened">من الهاتف: %1$s</string>
+    <string name="adblock_lists_label">قائمة مواقع الإعلانات</string>
+    <string name="adblock_lists_info">%1$s: %2$s موقع، حُدّثت في %3$s</string>
+    <string name="adblock_lists_none">لم تُنزَّل بعد: تُنزَّل تلقائيًا عند الاتصال بالإنترنت</string>
+    <string name="adblock_lists_updating">جارٍ التحديث…</string>
+    <string name="adblock_lists_failed">فشل آخر تحديث</string>
+    <string name="adblock_lists_update">تحديث</string>
 </resources>

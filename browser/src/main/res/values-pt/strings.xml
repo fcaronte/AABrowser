@@ -404,4 +404,10 @@
     <string name="share_to_car_waiting">Abra o CarWeb no automóvel dentro de um minuto: o link vai abrir lá</string>
     <string name="share_to_car_no_link">Nenhum link para abrir</string>
     <string name="share_to_car_opened">Do telemóvel: %1$s</string>
+    <string name="adblock_lists_label">Lista de sites de publicidade</string>
+    <string name="adblock_lists_info">%1$s: %2$s sites, atualizada em %3$s</string>
+    <string name="adblock_lists_none">Ainda não transferida: transfere-se sozinha com ligação à internet</string>
+    <string name="adblock_lists_updating">A atualizar…</string>
+    <string name="adblock_lists_failed">a última atualização falhou</string>
+    <string name="adblock_lists_update">Atualizar</string>
 </resources>

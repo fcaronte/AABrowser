@@ -403,4 +403,10 @@
     <string name="share_to_car_waiting">Nyisd meg a CarWebet az autóban egy percen belül: a link ott nyílik meg</string>
     <string name="share_to_car_no_link">Nincs megnyitható link</string>
     <string name="share_to_car_opened">A telefonról: %1$s</string>
+    <string name="adblock_lists_label">Hirdetési oldalak listája</string>
+    <string name="adblock_lists_info">%1$s: %2$s oldal, frissítve: %3$s</string>
+    <string name="adblock_lists_none">Még nincs letöltve: internetkapcsolattal magától letöltődik</string>
+    <string name="adblock_lists_updating">Frissítés…</string>
+    <string name="adblock_lists_failed">a legutóbbi frissítés nem sikerült</string>
+    <string name="adblock_lists_update">Frissítés</string>
 </resources>
