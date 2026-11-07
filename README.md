@@ -31,9 +31,8 @@ from the misuse of this application. Use at your own risk.
   or the app menu, with a fixed side menu whose size you choose on its home. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar). Each app opens the other: **CarWebWide** at the top of the CarWeb
-  dashboard, **↗ CarWeb** on the CarWebWide home. To keep a single icon, hide the other app in Android Auto's
-  settings (Customize launcher): it still opens from these buttons, and Gemini's "open CarWeb" and the player
-  tap use the visible one.
+  dashboard, **↗ CarWeb** on the CarWebWide home. Keep both apps in the Android Auto menu: CarWebWide hidden
+  there does not open from CarWeb.
 * **Android Auto player connected to the page:** title, artist, cover and controls of what is playing. With both apps
   in the Android Auto menu, tapping the player opens CarWebWide: an option in Settings opens CarWeb instead.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
@@ -217,9 +216,8 @@ proprio rischio e pericolo.
   o al menu delle app, con il menu laterale fisso, di cui scegli la dimensione dalla sua home. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento). Ogni app apre l'altra:
-  **CarWebWide** in alto nella dashboard di CarWeb, **↗ CarWeb** nella home di CarWebWide. Per tenere una sola
-  icona nascondi l'altra app nelle impostazioni di Android Auto (Personalizza menu): si apre comunque da questi
-  pulsanti, e "apri CarWeb" di Gemini e il tocco sul player usano quella visibile.
+  **CarWebWide** in alto nella dashboard di CarWeb, **↗ CarWeb** nella home di CarWebWide. Tieni entrambe le app
+  nel menu di Android Auto: CarWebWide nascosta lì non si apre da CarWeb.
 * **Player di Android Auto collegato alla pagina:** titolo, artista, copertina e comandi di quello che
   suona. Con più schede il player va all'ultima riproduzione avviata. Tasti avanti/indietro su Spotify,
   YouTube Music, playlist di YouTube e su ogni sito che dichiara i suoi brani (Media Session). Con le due app nel

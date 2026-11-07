@@ -88,7 +88,7 @@
 
 \### Switching Between the Two Car Apps
 
-- La Main ha il tasto «CarWebWide» in alto nella dashboard (solo in auto) e la home della Wide ha «↗ CarWeb» (`HomePage.OPEN_MAIN`, solo dalla home come gli altri `about:toggle_…`). Main → Wide: `startCarActivity` dell'SDK con il componente della Wide; Wide → Main: `MainHandOver.openMainSoon`. Nel codice di Android Auto 18.1 tutti gli avvii (menu, tocco sul player, Gemini, `startCarApp`, `startCarActivity`) passano dallo stesso lanciatore (`niu.i`), che non dipende dalla visibilità nel menu (con l'app nascosta: da provare). Una sola icona: l'utente nasconde l'altra app in Android Auto (Personalizza menu); il codice non può togliere la Wide dal menu (è elencata per la sua categoria). La Wide aperta dalla Main non passa la mano alla Main (`EXTRA_FROM_MAIN` e 5 s dal tasto).
+- La Main ha il tasto «CarWebWide» in alto nella dashboard (solo in auto) e la home della Wide ha «↗ CarWeb» (`HomePage.OPEN_MAIN`, solo dalla home come gli altri `about:toggle_…`). Main → Wide: `startCarActivity` dell'SDK con il componente della Wide; Wide → Main: `MainHandOver.openMainSoon`. La Wide aperta dalla Main non passa la mano alla Main (`EXTRA_FROM_MAIN` e 5 s dal tasto). Servono entrambe le app nel menu di Android Auto: con la Wide nascosta il tasto della Main non la apre (prova dell'utente del 07/11/2026), e il codice non può togliere la Wide dal menu (è elencata per la sua categoria). Provate e tolte anche la Wide come app POI o meteo (template mappa con pannello): niente terza app.
 
 \### Gemini and Assistant in the Car
 
