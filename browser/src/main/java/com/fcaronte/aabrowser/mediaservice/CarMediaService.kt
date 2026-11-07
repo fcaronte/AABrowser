@@ -509,8 +509,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
     // A chi va il tocco sulla scheda del player. Con una car app nel pacchetto questo servizio non è un'app media nel menu
     // di Android Auto: il tocco va al componente che la sessione scrive in questo extra, se è nel menu, altrimenti alla
     // prima app del pacchetto nel menu, cioè la Wide, che prende il posto del navigatore aperto. Con l'opzione "Il tocco
-    // sul player apre CarWeb" si scrive la Main, tranne quando suona la Wide. Il player resta collegato alla sessione come
-    // sempre. Visto nel codice di Android Auto 18.1: una versione che non legge l'extra apre la Wide, come senza opzione
+    // sul player apre CarWeb" si scrive la Main, tranne quando suona la Wide. Android Auto si collega a quel componente anche
+    // come MediaBrowser: risponde CarService. Visto nel codice di Android Auto 18.1: una versione che non legge l'extra apre
+    // la Wide, come senza opzione
     private var playerCardTarget: String? = null
 
     private fun applyPlayerCardTarget() {
