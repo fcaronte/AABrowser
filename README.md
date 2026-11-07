@@ -91,7 +91,8 @@ from the misuse of this application. Use at your own risk.
   when the side menu is off.
 * **Android Auto player:** in the car, while the "CarWeb Media" player shows the weather, it has a 🎤 button, which
   works even when nothing has played yet (with a page playing, the player keeps its own buttons: use the double
-  tap).
+  tap). With "Player tap opens CarWeb" on, this 🎤 and the double tap use CarWeb (CarWebWide while it is the one
+  playing), like a tap on the player.
 * **Steering wheel:** a quick double tap on ⏮ (previous) opens the microphone of the open app (CarWeb or
   Widescreen, also in the background). It needs the Android Auto player enabled in Settings, and it works
   once something has played in CarWeb (also if paused afterwards): Android sends the media keys to the app
@@ -271,7 +272,8 @@ proprio rischio e pericolo.
   alla ricerca se il menu laterale è spento.
 * **Player di Android Auto:** in auto, quando il player "CarWeb Media" mostra il meteo, ha un tasto 🎤 che funziona
   anche quando non ha ancora suonato niente (con una pagina che suona il player tiene i suoi tasti: usa il doppio
-  tocco).
+  tocco). Con "Il tocco sul player apre CarWeb" attiva, questo 🎤 e il doppio tocco usano CarWeb (CarWebWide quando
+  sta suonando lei), come il tocco sul player.
 * **Volante:** un doppio tocco veloce su ⏮ (indietro) apre il microfono dell'app aperta (CarWeb o
   Widescreen, anche in secondo piano). Serve il player di Android Auto attivo nelle impostazioni, e funziona
   dopo che in CarWeb ha suonato qualcosa (anche se poi l'hai messo in pausa): Android manda i tasti

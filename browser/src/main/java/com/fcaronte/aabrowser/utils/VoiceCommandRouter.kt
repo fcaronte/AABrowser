@@ -2,6 +2,7 @@ package com.fcaronte.aabrowser.utils
 
 import android.os.SystemClock
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
+import com.fcaronte.aabrowser.settings.AppSettings
 
 /**
  * Smista i comandi vocali che non arrivano dal tasto microfono di una schermata: "Ok Google, metti … su AABrowser"
@@ -85,14 +86,21 @@ object VoiceCommandRouter {
         return true
     }
 
-    // Quella in primo piano; altrimenti quella che ha il player di Android Auto; altrimenti la Wide (in auto)
+    // Quella in primo piano; altrimenti quella che ha il player di Android Auto; altrimenti la Wide (in auto). Con
+    // "Il tocco sul player apre CarWeb" prima di tutto quella che apre il tocco sul player: la Main, tranne quando suona
+    // la Wide. La Wide risulta in primo piano anche quando sta solo nella mappa della schermata principale di Android
+    // Auto, e il microfono del player e il doppio tocco al volante andavano sempre a lei
     private fun choose(): Target? {
-        Target.entries.firstOrNull { registrations[it]?.isInForeground?.invoke() == true }?.let { return it }
         val owner = when (MediaFocusManager.getActiveSource()) {
             MediaFocusManager.Source.WIDE_APP -> Target.WIDE
             MediaFocusManager.Source.MAIN_APP -> Target.MAIN
             null -> null
         }
+        if (AppSettings.playerCardOpensMain.value) {
+            val card = if (owner == Target.WIDE) Target.WIDE else Target.MAIN
+            if (registrations.containsKey(card)) return card
+        }
+        Target.entries.firstOrNull { registrations[it]?.isInForeground?.invoke() == true }?.let { return it }
         if (owner != null && registrations.containsKey(owner)) return owner
         return listOf(Target.WIDE, Target.MAIN).firstOrNull { registrations.containsKey(it) }
     }

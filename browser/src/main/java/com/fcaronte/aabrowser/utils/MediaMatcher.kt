@@ -15,8 +15,9 @@ object MediaMatcher {
     /** Un nome pronto per il confronto: conviene tenerlo da parte con liste da migliaia di canali. */
     class Key(val tokens: List<String>, val compact: String)
 
-    // Tra parentesi quadre o tonde di solito c'è altro: qualità, paese, "Geo-blocked", "AAC 64KB"
-    private val BRACKETS = Regex("""\[[^\]]*]|\([^)]*\)|\{[^}]*}""")
+    // Tra parentesi quadre o tonde di solito c'è altro: qualità, paese, "Geo-blocked", "AAC 64KB". Le parentesi di
+    // chiusura vanno con la barra: Android (ICU) rifiuta una } da sola e il programma si chiudeva, la JVM dei test no
+    private val BRACKETS = Regex("""\[[^\]]*\]|\([^)]*\)|\{[^}]*\}""")
     private val LIST_PREFIX = Regex("""^\W*[A-Z]{2,3}\s*[:|]+\s*""")
     private val QUALITY = Regex(
         """(?<![\p{L}\p{N}])(?:hd|fhd|uhd|sd|hq|4k|8k|hevc|h26[45]|\d{3,4}[pi]|\d{2,3}\s?kbps)(?![\p{L}\p{N}])""",
