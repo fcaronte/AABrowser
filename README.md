@@ -56,7 +56,9 @@ from the misuse of this application. Use at your own risk.
   to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
-  tab bar and the navigation menu of CarWeb, at the top right of the Widescreen).
+  tab bar and the navigation menu of CarWeb, at the top right of the Widescreen). It also stops the ads that open
+  at every tap on streaming sites: a page opened by a script goes through only toward the same site, the link you
+  tapped or a sign-in. If a button of a site does nothing, turn the shield off for that site.
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
   speed (ads and music excluded), tap on the progress bar to seek.
 * **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
@@ -245,7 +247,10 @@ proprio rischio e pericolo.
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
   sono supportati.
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
-  2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen).
+  2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Ferma
+  anche le pubblicità che si aprono a ogni tocco sui siti di streaming: una pagina aperta da uno script passa solo
+  verso lo stesso sito, il link toccato o un accesso. Se un pulsante di un sito non fa niente, spegni lo scudo per
+  quel sito.
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
   video.

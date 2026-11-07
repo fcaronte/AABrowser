@@ -65,10 +65,44 @@ object GoogleLoginManager {
         })();
     """
 
+    // window.open delle pagine: i login di Google come sono, gli altri accessi nel popup dell'app, il resto in una scheda
+    // (nella Wide al posto della pagina). Le pubblicità che si aprono a ogni tocco no: l'app apre solo verso il sito
+    // della pagina, quello del link toccato o un accesso (PopupGuard); a quelle bloccate una finestra finta, perché
+    // con null molti script ripiegano spostando la pagina stessa sulla pubblicità
     private const val POPUP_INTERCEPTOR_JS = """
         (function() {
             if (window.aabWindowOpenIntercepted) return;
             window.aabWindowOpenIntercepted = true;
+
+            // Il link sotto l'ultimo tocco vero dell'utente (vuoto se ha toccato altro)
+            var tap = { link: '', at: 0 };
+            function onTap(e) {
+                if (!e.isTrusted) return;
+                var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+                tap = { link: a ? String(a.href) : '', at: Date.now() };
+            }
+            ['pointerdown', 'touchstart', 'mousedown', 'click'].forEach(function(type) {
+                window.addEventListener(type, onTap, true);
+            });
+            function tappedLink() {
+                return Date.now() - tap.at < 10000 ? tap.link : '';
+            }
+            function allowed(url) {
+                try {
+                    if (!window.AndroidBridge || !window.AndroidBridge.allowsPopup) return true;
+                    return AndroidBridge.allowsPopup(String(url), tappedLink());
+                } catch (e) {
+                    return true;
+                }
+            }
+            function fakeWindow() {
+                var noop = function() {};
+                return {
+                    closed: false, opener: null, close: noop, focus: noop, blur: noop, postMessage: noop,
+                    document: { write: noop, writeln: noop, open: noop, close: noop },
+                    location: { href: 'about:blank', assign: noop, replace: noop }
+                };
+            }
 
             const origOpen = window.open;
             window.open = function(url, target, features) {
@@ -76,9 +110,17 @@ object GoogleLoginManager {
                 // Google) e con null il sito ripiegava sulla pagina intera, senza ritorno. Il tocco recente lo
                 // controlla l'app nei metodi del ponte (openPopup, openInNewTab)
                 if (url) {
-                    const low = url.toLowerCase();
-                    const isGoogleAuth = low.includes('accounts.google.com') ||
-                        (low.includes('google.com') && (low.includes('oauth') || low.includes('signin') || low.includes('account')));
+                    var full = String(url);
+                    var host = '', path = '';
+                    try {
+                        var parsed = new URL(full, location.href);
+                        full = parsed.href;
+                        host = parsed.hostname.toLowerCase();
+                        path = parsed.pathname.toLowerCase();
+                    } catch (e) {}
+                    const isGoogleAuth = host === 'accounts.google.com' ||
+                        ((host === 'google.com' || host.endsWith('.google.com')) &&
+                            (path.includes('oauth') || path.includes('signin') || path.includes('account')));
 
                     if (isGoogleAuth) {
                         if (origOpen) {
@@ -87,9 +129,13 @@ object GoogleLoginManager {
                         return null;
                     }
 
+                    var link = tappedLink();
+                    if (!allowed(full)) return fakeWindow();
+
+                    const low = full.toLowerCase();
                     if (low.includes('oauth') || low.includes('login') || low.includes('signin') || low.includes('auth')) {
                         if (window.AndroidBridge && window.AndroidBridge.openPopup) {
-                            AndroidBridge.openPopup(url);
+                            AndroidBridge.openPopup(full, link);
                             return {
                                 postMessage: function() {},
                                 close: function() {},
@@ -98,12 +144,27 @@ object GoogleLoginManager {
                         }
                     }
                     if (window.AndroidBridge && window.AndroidBridge.openInNewTab) {
-                        AndroidBridge.openInNewTab(url);
+                        AndroidBridge.openInNewTab(full, link);
                     } else if (origOpen) {
                         return origOpen.apply(this, arguments);
                     }
                 }
                 return null;
+            };
+
+            // Link aperti da uno script senza che l'utente li tocchi (a.click() di un link creato al volo)
+            const origClick = HTMLAnchorElement.prototype.click;
+            HTMLAnchorElement.prototype.click = function() {
+                if (this.href && !allowed(this.href)) return;
+                return origClick.apply(this, arguments);
+            };
+            const origDispatch = EventTarget.prototype.dispatchEvent;
+            EventTarget.prototype.dispatchEvent = function(event) {
+                if (event && event.type === 'click' && !event.isTrusted && this instanceof HTMLAnchorElement &&
+                        this.href && !allowed(this.href)) {
+                    return false;
+                }
+                return origDispatch.apply(this, arguments);
             };
         })();
     """

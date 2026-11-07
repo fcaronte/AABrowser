@@ -85,6 +85,7 @@ import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.PendingSslError
+import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
@@ -592,6 +593,8 @@ fun BrowserScreen(
                 factory = { context ->
                     // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
                     val pageHost = AtomicReference(Uri.parse(url).host)
+                    // Finestre aperte dagli script di questa scheda: le pubblicità a ogni tocco (PopupGuard)
+                    val popupAttempts = PopupGuard.Attempts()
                     // Comando vocale "metti …" su questa scheda: su YouTube il video parte anche con l'autoplay spento
                     var voiceAutoplay = false
                     val webView = object : WebView(context) {
@@ -929,11 +932,13 @@ fun BrowserScreen(
                                     fileChooser.onFolderInputClicked()
                                 }
 
+                                // window.open delle pagine (GoogleLoginManager): [tappedLink] = il link toccato, se c'era
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun openInNewTab(url: String) {
+                                fun openInNewTab(url: String, tappedLink: String) {
                                     // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
                                     if (!UrlUtils.isWebUrl(url) || !hasRecentTouch("openInNewTab")) return
+                                    if (!PopupGuard.allowsPopup(url, pageHost.get(), tappedLink, popupAttempts, isWindow = true)) return
                                     post {
                                         AppLog.d("##BrowserScreen", "openInNewTab requested for host=${safeUrlForLog(url)}")
                                         TabManager.openOrSwitchTo(url = url)
@@ -957,9 +962,10 @@ fun BrowserScreen(
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun openPopup(url: String) {
+                                fun openPopup(url: String, tappedLink: String) {
                                     // Solo pagine web, e solo subito dopo un tocco
                                     if (!UrlUtils.isWebUrl(url) || !hasRecentTouch("openPopup")) return
+                                    if (!PopupGuard.allowsPopup(url, pageHost.get(), tappedLink, popupAttempts, isWindow = true)) return
                                     post {
                                         AppLog.d("##BrowserScreen", "openPopup requested for host=${safeUrlForLog(url)}")
                                         popupUrl = url
@@ -1002,6 +1008,12 @@ fun BrowserScreen(
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun isYouTubeAdPruneOn(): Boolean = AdBlockSettings.isYouTubePruneOn(pageHost.get())
+
+                                // Window.open e link cliccati da uno script: si aprono? (PopupGuard)
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun allowsPopup(url: String, tappedLink: String): Boolean =
+                                    PopupGuard.allowsPopup(url, pageHost.get(), tappedLink, popupAttempts, isWindow = false)
                             },
                             "AndroidBridge",
                         )
@@ -1201,6 +1213,13 @@ fun BrowserScreen(
                                     } catch (e: Exception) {
                                         AppLog.w("BrowserScreen", "Intent parse error: ${e.javaClass.simpleName}")
                                     }
+                                    return true
+                                }
+                                // Pagine pubblicitarie, e la pagina che va altrove subito dopo un pop-up: si resta qui
+                                if (request?.isForMainFrame == true && !PopupGuard.allowsNavigation(
+                                        uri, pageHost.get(), request.hasGesture(), request.isRedirect, popupAttempts
+                                    )
+                                ) {
                                     return true
                                 }
                                 if (uri.contains("dazn.com", ignoreCase = true) && (uri.contains("/watch/") || uri.contains("/event/") || uri.contains("/video/"))) {

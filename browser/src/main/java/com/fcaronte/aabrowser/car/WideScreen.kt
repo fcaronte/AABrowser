@@ -101,6 +101,7 @@ import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
+import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
@@ -292,6 +293,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
     @Volatile
     private var pageHost: String? = null
+    // Finestre aperte dagli script della pagina: le pubblicità a ogni tocco (PopupGuard)
+    private val popupAttempts = PopupGuard.Attempts()
 
     // Certificato non valido (es. server di casa autofirmato): conferma con una schermata di Android Auto
     private val sslPrompts = SslErrorPrompts(carContext) { handler.post { refreshSslWarning() } }
@@ -1734,11 +1737,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     }
                                 }
 
+                                // window.open delle pagine (GoogleLoginManager): [tappedLink] = il link toccato, se c'era
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun openInNewTab(url: String) {
+                                fun openInNewTab(url: String, tappedLink: String) {
                                     // Solo pagine web: dalle pagine non devono arrivare file://, content://, intent://...
-                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openInNewTab")) post { this@WideScreen.loadUrl(url) }
+                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openInNewTab") &&
+                                        PopupGuard.allowsPopup(url, pageHost, tappedLink, popupAttempts, isWindow = true)
+                                    ) {
+                                        post { this@WideScreen.loadUrl(url) }
+                                    }
                                 }
 
                                 @JavascriptInterface
@@ -1749,9 +1757,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun openPopup(url: String) {
-                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openPopup")) post { this@WideScreen.loadUrl(url) }
+                                fun openPopup(url: String, tappedLink: String) {
+                                    if (UrlUtils.isWebUrl(url) && hasRecentTap("openPopup") &&
+                                        PopupGuard.allowsPopup(url, pageHost, tappedLink, popupAttempts, isWindow = true)
+                                    ) {
+                                        post { this@WideScreen.loadUrl(url) }
+                                    }
                                 }
+
+                                // Window.open e link cliccati da uno script: si aprono? (PopupGuard)
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun allowsPopup(url: String, tappedLink: String): Boolean =
+                                    PopupGuard.allowsPopup(url, pageHost, tappedLink, popupAttempts, isWindow = false)
                             },
                             "AndroidBridge"
                         )
@@ -1966,6 +1984,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     } catch (e: Exception) {
                                         AppLog.w(TAG, "Intent parse error: ${e.javaClass.simpleName}")
                                     }
+                                    return true
+                                }
+
+                                // Pagine pubblicitarie, e la pagina che va altrove subito dopo un pop-up: si resta qui
+                                if (request?.isForMainFrame == true && !PopupGuard.allowsNavigation(
+                                        url, pageHost, request.hasGesture(), request.isRedirect, popupAttempts
+                                    )
+                                ) {
                                     return true
                                 }
 

@@ -117,7 +117,14 @@ object AdBlockHost {
         if (matches(host, scriptManagedHosts) || matches(pageHost?.lowercase(), scriptManagedHosts)) return false
         if (isWhitelisted(pageHost) || isWhitelisted(host)) return false
         // L'host o un suo sottodominio è nella lista nera
-        return matches(host, blockedHosts)
+        return isAdHost(host)
+    }
+
+    /** L'host (o un dominio che lo contiene) è nelle liste dell'AdBlock. Mai quelli di YouTube ([scriptManagedHosts]). */
+    fun isAdHost(host: String?): Boolean {
+        val name = host?.lowercase() ?: return false
+        if (matches(name, scriptManagedHosts)) return false
+        return matches(name, blockedHosts)
     }
 
     fun isWhitelisted(host: String?): Boolean = matches(siteKey(host), whitelist)
