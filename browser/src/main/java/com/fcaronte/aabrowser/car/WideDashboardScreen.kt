@@ -27,6 +27,9 @@ object HomePage {
     const val SIDEBAR_SMALLER = "about:toggle_sidebar_smaller"
     const val SIDEBAR_LARGER = "about:toggle_sidebar_larger"
 
+    // Apre CarWeb (la Main), anche se nascosta dal menu di Android Auto
+    const val OPEN_MAIN = "about:toggle_open_main"
+
     data class Item(
         val name: String,
         val url: String,
@@ -312,6 +315,7 @@ h1 {
 $updateBanner
 
 <div class="settings">
+    <a class="toggle" href="$OPEN_MAIN">↗ ${context.getString(R.string.app_name).htmlEncode()}</a>
     <a class="toggle" href="about:toggle_reopen">
         $reopenLabel: <span style="color:$toggleColor">$toggleText</span>
     </a>

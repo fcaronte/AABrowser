@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
@@ -38,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,6 +80,7 @@ fun DashboardScreen(
     onOpenSearch: () -> Unit = {},
     onVoiceCommand: () -> Unit = {},
     onShowFeedback: (String) -> Unit = {},
+    onOpenWide: (() -> Unit)? = null,
 ) {
     val favorites = viewModel.favorites
     var isEditMode by remember { mutableStateOf(value = false) }
@@ -193,7 +196,23 @@ fun DashboardScreen(
                         )
                     }
 
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Solo in auto: apre CarWebWide, anche se nascosta dal menu di Android Auto
+                        if (onOpenWide != null) {
+                            TextButton(onClick = onOpenWide) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.wide_app_name),
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                                )
+                            }
+                        }
                         IconButton(onClick = onVoiceCommand) {
                             Icon(
                                 imageVector = Icons.Default.Mic,

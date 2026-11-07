@@ -19,6 +19,8 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.fcaronte.aabrowser.car.CarServiceWide
+import com.fcaronte.aabrowser.car.MainHandOver
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.utils.AppLog
@@ -85,7 +87,12 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
             }
 
             setContent {
-                MainScreen(carInputManager = inputManager, isAutomotive = true, bringToFront = ::bringToFront)
+                MainScreen(
+                    carInputManager = inputManager,
+                    isAutomotive = true,
+                    bringToFront = ::bringToFront,
+                    openWide = ::openWide
+                )
             }
         }
 
@@ -129,11 +136,28 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     // di riportarla davanti, come quando la si apre dal menu delle app
     private fun bringToFront() {
         try {
-            startCarActivity(Intent().setComponent(ComponentName(this, CarService::class.java)))
+            startCarActivity(ownCarApp(CarService::class.java))
         } catch (e: Exception) {
             AppLog.w("MainCarActivity", "Main not brought to front: ${e.message}")
         }
     }
+
+    // Tasto "CarWebWide" della dashboard: con la Wide nascosta dal menu di Android Auto resta il modo di aprirla.
+    // Android Auto la avvia come per il tocco sul player e per "apri CarWeb" di Gemini (stesso lanciatore)
+    private fun openWide() {
+        MainHandOver.noteMainOpensWide()
+        Log.d(MainHandOver.TAG, "Opening the Wide from the Main")
+        try {
+            startCarActivity(ownCarApp(CarServiceWide::class.java).putExtra(MainHandOver.EXTRA_FROM_MAIN, true))
+        } catch (e: Exception) {
+            Log.w(MainHandOver.TAG, "Android Auto refused to open the Wide: ${e.javaClass.simpleName} ${e.message}")
+        }
+    }
+
+    // Android Auto avvia un componente chiesto dall'app solo se è del suo pacchetto: secondo la versione lo
+    // controlla dal chiamante o da questo extra (Android Auto 18.1, AppDecorService)
+    private fun ownCarApp(service: Class<*>): Intent =
+        Intent().setComponent(ComponentName(this, service)).putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
 
     private fun getCarWindow(): android.view.Window? {
         return try {

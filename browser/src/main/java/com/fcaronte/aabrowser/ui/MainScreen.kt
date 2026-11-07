@@ -147,7 +147,8 @@ private fun getDirSize(dir: java.io.File): Long {
 fun MainScreen(
     carInputManager: CarInputManager? = null,
     isAutomotive: Boolean = false,
-    bringToFront: (() -> Unit)? = null
+    bringToFront: (() -> Unit)? = null,
+    openWide: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -631,6 +632,7 @@ fun MainScreen(
                             },
                             onOpenSearch = { showDashboardSearch = true },
                             onVoiceCommand = toggleVoiceCommand,
+                            onOpenWide = openWide,
                             onShowFeedback = { feedbackMessage = it }
                         )
 

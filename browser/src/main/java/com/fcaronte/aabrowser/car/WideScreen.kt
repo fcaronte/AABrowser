@@ -1927,6 +1927,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     return true
                                 }
 
+                                if (url.startsWith(HomePage.OPEN_MAIN)) {
+                                    MainHandOver.openMainSoon(carContext)
+                                    return true
+                                }
+
                                 if (url.startsWith(HomePage.UPDATE_DISMISS)) {
                                     UpdateManager.isBannerDismissed = true
                                     showHome()
