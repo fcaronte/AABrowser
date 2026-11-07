@@ -84,6 +84,9 @@
     <string name="media_player_desc">Mediaplayer und Benachrichtigungen auf Android Auto anzeigen</string>
     <string name="player_card_main_label">Tippen auf den Player öffnet CarWeb</string>
     <string name="player_card_main_desc">Mit beiden Apps im Android-Auto-Menü öffnet ein Tippen auf den Player CarWebWide, das den Platz der geöffneten Navigation einnimmt. Aktiviere dies, um stattdessen CarWeb zu öffnen, außer wenn CarWebWide gerade spielt.</string>
+    <string name="media_app_menu_label">CarWeb unter den Medien-Apps von Android Auto</string>
+    <string name="media_app_menu_desc">Für Befehle von Gemini und Assistant im Auto („spiele … auf CarWeb“): Das CarWeb-Symbol im Android-Auto-Menü wird zu einer Medien-App, die CarWeb öffnet, damit Android Auto ihr die Anfragen weitergibt. Gilt ab der nächsten Android-Auto-Verbindung. Wenn sich CarWeb im Auto nicht mehr öffnet, schalte dies aus.</string>
+    <string name="media_app_opening">CarWeb wird geöffnet…</string>
     <string name="media_player_disabled_hint">Der Mediaplayer muss aktiviert sein, um das Wetter-Widget zu nutzen</string>
     <string name="weather_permission_toast">Bitte aktivieren Sie die Standortberechtigung auf Ihrem Smartphone für genaues Wetter</string>
     <string name="preload_favorites_label">Favoriten beim Start vorab laden</string>

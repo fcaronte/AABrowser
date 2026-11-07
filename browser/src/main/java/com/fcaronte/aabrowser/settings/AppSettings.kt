@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.car.CarMediaApp
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
 
@@ -152,6 +153,11 @@ object AppSettings {
     private val _playerCardOpensMain = mutableStateOf(false)
     val playerCardOpensMain: State<Boolean> = _playerCardOpensMain
 
+    // L'icona "CarWeb" del menu di Android Auto è un'app media che apre la Main: i comandi di Gemini e dell'Assistente
+    // «metti … su CarWeb» arrivano all'app (CarMediaApp)
+    private val _mediaAppInMenu = mutableStateOf(false)
+    val mediaAppInMenu: State<Boolean> = _mediaAppInMenu
+
     private val _multiWindow = mutableStateOf(false)
     val multiWindow: State<Boolean> = _multiWindow
 
@@ -215,6 +221,8 @@ object AppSettings {
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
+        _mediaAppInMenu.value = prefs.getBoolean("media_app_in_menu", false)
+        CarMediaApp.applySetting(context, _mediaAppInMenu.value)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
         _autoSitePermissions.value = prefs.getBoolean("site_permissions_auto", false)
@@ -268,6 +276,12 @@ object AppSettings {
     fun setPlayerCardOpensMain(context: Context, enabled: Boolean) {
         _playerCardOpensMain.value = enabled
         saveBoolean(context, "player_card_opens_main", enabled)
+    }
+
+    fun setMediaAppInMenu(context: Context, enabled: Boolean) {
+        _mediaAppInMenu.value = enabled
+        saveBoolean(context, "media_app_in_menu", enabled)
+        CarMediaApp.applySetting(context, enabled)
     }
 
     fun setMediaPlayerEnabled(context: Context, enabled: Boolean) {

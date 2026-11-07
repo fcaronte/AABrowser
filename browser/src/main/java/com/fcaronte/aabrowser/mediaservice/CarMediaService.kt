@@ -30,7 +30,7 @@ import androidx.core.content.IntentCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
-import com.fcaronte.aabrowser.CarService
+import com.fcaronte.aabrowser.car.CarMediaApp
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -515,7 +515,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private var playerCardTarget: String? = null
 
     private fun applyPlayerCardTarget() {
-        val target = CarService::class.java.name.takeIf {
+        val target = CarMediaApp.mainComponent(this).className.takeIf {
             settingsPreferences.getBoolean(PLAYER_CARD_OPENS_MAIN, false) &&
                     MediaFocusManager.getActiveSource() != MediaFocusManager.Source.WIDE_APP
         }

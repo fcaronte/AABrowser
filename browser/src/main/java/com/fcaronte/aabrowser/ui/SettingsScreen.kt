@@ -154,6 +154,7 @@ fun SettingsScreen(
     val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val playerCardOpensMain by AppSettings.playerCardOpensMain
+    val mediaAppInMenu by AppSettings.mediaAppInMenu
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val autoSitePermissions by AppSettings.autoSitePermissions
@@ -394,6 +395,16 @@ fun SettingsScreen(
                                         description = stringResource(R.string.player_card_main_desc),
                                         checked = playerCardOpensMain,
                                         onCheckedChange = { AppSettings.setPlayerCardOpensMain(context, it) }
+                                    )
+                                    // Spegne la Main con l'icona: dall'auto si chiuderebbe la Main su cui si sta toccando
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.media_app_menu_label),
+                                        description = stringResource(R.string.media_app_menu_desc),
+                                        checked = mediaAppInMenu,
+                                        onCheckedChange = {
+                                            if (isCarMode) onShowFeedback(notAvailableInCarMsg)
+                                            else AppSettings.setMediaAppInMenu(context, it)
+                                        }
                                     )
                                 }
                             }

@@ -84,6 +84,9 @@
     <string name="media_player_desc">Mostrar reproductor multimedia y notificaciones en Android Auto</string>
     <string name="player_card_main_label">Al tocar el reproductor se abre CarWeb</string>
     <string name="player_card_main_desc">Con las dos apps en el menú de Android Auto, al tocar el reproductor se abre CarWebWide, que ocupa el lugar del navegador abierto. Actívalo para abrir CarWeb, salvo cuando esté sonando CarWebWide.</string>
+    <string name="media_app_menu_label">CarWeb entre las apps multimedia de Android Auto</string>
+    <string name="media_app_menu_desc">Para los comandos de Gemini y del Asistente en el coche («pon … en CarWeb»): el icono de CarWeb en el menú de Android Auto pasa a ser una app multimedia que abre CarWeb, para que Android Auto le pase las peticiones. Se aplica desde la próxima conexión a Android Auto. Si CarWeb ya no se abre en el coche, desactívalo.</string>
+    <string name="media_app_opening">Abriendo CarWeb…</string>
     <string name="media_player_disabled_hint">El reproductor multimedia debe estar habilitado para usar el widget del tiempo</string>
     <string name="weather_permission_toast">Habilite el permiso de ubicación en su teléfono inteligente para obtener información meteorológica precisa</string>
     <string name="preload_favorites_label">Precargar favoritos al inicio</string>

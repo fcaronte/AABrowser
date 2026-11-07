@@ -86,6 +86,10 @@
 
 \- Android Auto manda il tocco sulla scheda del player al componente che la sessione scrive nell'extra `android.media.session.BROWSE_SERVICE`, se è nel suo menu; senza, alla prima app del pacchetto nel menu: la Wide, che è di categoria navigazione e prende il posto del navigatore aperto. L'opzione "Il tocco sul player apre CarWeb" scrive la Main (`CarMediaService.applyPlayerCardTarget`), tranne quando suona la Wide. Niente componenti in più: un servizio di categoria media riceve il tocco ma aggiunge un'icona al menu, e un'app nascosta dal menu non lo riceve. Android Auto si collega al componente dichiarato anche come MediaBrowser, altrimenti la scheda resta vuota: `CarService` smista per azione e passa queste richieste a `CarMediaService`. Visto nel codice di Android Auto 18.1: una versione che non legge l'extra apre la Wide, come senza opzione.
 
+\### Gemini and Assistant in the Car
+
+\- Android Auto passa «metti … su <app>» (Assistente e Gemini, `MEDIA_PLAY_FROM_SEARCH` con il pacchetto) solo alle app media del suo menu ("Cannot identify app to process search intent. Dropping intent" nel log di Android Auto), e il MediaBrowserService di un pacchetto con una car app non ci compare. L'opzione "CarWeb tra le app media di Android Auto" (`AppSettings.mediaAppInMenu`, `car/CarMediaApp.kt`) accende `CarServiceMediaApp` (categoria media, nome "CarWeb": dall'icona apre la Main, dalla scheda del player segue "Il tocco sul player apre CarWeb", risponde come MediaBrowser passando a `CarMediaService`) e `CarServiceUnlisted` (la Main senza `CATEGORY_PROJECTION_OEM`, da cui viene la sua icona; Android Auto la avvia da `CATEGORY_PROJECTION`), e spegne `CarService`. Le richieste arrivano a `onPlayFromSearch` e poi a `VoiceCommandRouter`. Sul telefono Gemini usa solo app partner di Google; AppFunctions (Android 16) è in anteprima privata.
+
 \### Media & Audio Handling
 
 \- \*\*DRM Support\*\*: Widevine L3 implementation.
