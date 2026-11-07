@@ -17,18 +17,15 @@ import androidx.car.app.Session
 class WideSession : Session() {
     override fun onCreateScreen(intent: Intent): Screen {
         Log.d(TAG, "onCreateScreen: ${describe(intent)}")
-        if (MainHandOver.isAssistantOpen(intent) && MainHandOver.wantsMain()) {
-            if (!MainHandOver.justClosedForMain()) return HandOverScreen(carContext)
-            Log.d(TAG, "Android Auto reopened the Wide right after it closed for the Main: it stays")
-        }
+        if (MainHandOver.isAssistantOpen(intent) && MainHandOver.wantsMain()) MainHandOver.openMainSoon(carContext)
         return WideScreen(carContext)
     }
 
     override fun onNewIntent(intent: Intent) {
         Log.d(TAG, "onNewIntent: ${describe(intent)}")
-        // Aperta da Gemini mentre era già avviata: davanti va la Main, e la Wide si chiude se non era in uso
+        // Aperta da Gemini mentre era già avviata: davanti va la Main
         if (MainHandOver.isAssistantOpen(intent) && MainHandOver.wantsMain()) {
-            MainHandOver.handOver(carContext, closeWide = !WideScreen.wasInUseBeforeLaunch())
+            MainHandOver.openMainSoon(carContext)
             return
         }
         // "Portami a …" ridato alla Wide: è lei il navigatore attivo di Android Auto. La pagina di Maps è già aperta

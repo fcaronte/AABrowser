@@ -131,24 +131,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         const val HOME = "about:home"
         var isWideResumed = false
             internal set
-        private var resumedAt = 0L
-        private var pausedAt = 0L
-        private var pausedBeforeResume = 0L
-        private const val IN_USE_MS = 1_000L
-        private const val RECENTLY_VISIBLE_MS = 10_000L
-
-        /**
-         * La Wide era già in uso prima di un avvio appena arrivato: davanti da più di un secondo, o coperta solo da poco
-         * (la schermata di Gemini mentre si parla). No se è appena arrivata davanti da dietro.
-         */
-        fun wasInUseBeforeLaunch(): Boolean {
-            val now = SystemClock.elapsedRealtime()
-            return if (isWideResumed) {
-                now - resumedAt > IN_USE_MS || (pausedBeforeResume != 0L && resumedAt - pausedBeforeResume < RECENTLY_VISIBLE_MS)
-            } else {
-                pausedAt != 0L && now - pausedAt < RECENTLY_VISIBLE_MS
-            }
-        }
         private var activeInstanceRef: java.lang.ref.WeakReference<WideScreen>? = null
         var activeInstance: WideScreen?
             get() = activeInstanceRef?.get()
@@ -386,14 +368,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
-                pausedBeforeResume = pausedAt
-                resumedAt = SystemClock.elapsedRealtime()
                 mediaSessionManager.setWideActive(true)
             }
 
             override fun onPause(owner: LifecycleOwner) {
                 isWideResumed = false
-                pausedAt = SystemClock.elapsedRealtime()
                 mediaSessionManager.setWideActive(false)
             }
 

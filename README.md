@@ -136,7 +136,8 @@ Anything else is searched on the open site or with your search engine.
 *song* on CarWeb"), the one the classic Google Assistant used. Gemini, which replaced it in the car too, does not
 send these requests to CarWeb (tested in the car: neither Android Auto nor the app receive them, also with CarWeb
 listed among the Android Auto media apps): use the 🎤 button or the double tap on ⏮. "Ok Google, open CarWeb"
-opens CarWebWide, or CarWeb when "Player tap opens CarWeb" is on.
+opens CarWebWide, or CarWeb when "Player tap opens CarWeb" is on (CarWebWide stays open in the map area: Gemini
+always opens it first).
 
 ## The "Gemini-Powered" Development
 
@@ -319,7 +320,8 @@ Tutto il resto viene cercato sul sito aperto o col motore di ricerca.
 metti *canzone* su CarWeb"), quella che usava il vecchio Assistente Google. Gemini, che lo ha sostituito anche in
 auto, non manda queste richieste a CarWeb (provato in auto: non arrivano né ad Android Auto né all'app, nemmeno
 con CarWeb tra le app media di Android Auto): usa il pulsante 🎤 o il doppio tocco su ⏮. "Ok Google, apri CarWeb"
-apre CarWebWide, oppure CarWeb quando è attiva "Il tocco sul player apre CarWeb".
+apre CarWebWide, oppure CarWeb quando è attiva "Il tocco sul player apre CarWeb" (CarWebWide resta aperta
+nell'area della mappa: Gemini apre sempre prima lei).
 
 ## Sviluppo "Gemini-Powered"
 

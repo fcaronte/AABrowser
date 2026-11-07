@@ -84,7 +84,6 @@
     <string name="media_player_desc">Android Auto पर मीडिया प्लेयर और सूचनाएं दिखाएं</string>
     <string name="player_card_main_label">प्लेयर छूने पर CarWeb खुलता है</string>
     <string name="player_card_main_desc">Android Auto मेनू में दोनों ऐप होने पर प्लेयर छूने से CarWebWide खुलता है, जो खुले नेविगेटर की जगह ले लेता है। CarWeb खोलने के लिए इसे चालू करें, सिवाय तब जब CarWebWide चल रहा हो।</string>
-    <string name="opening_main">CarWeb खुल रहा है…</string>
     <string name="media_player_disabled_hint">मौसम विजेट का उपयोग करने के लिए मीडिया प्लेयर सक्षम होना चाहिए</string>
     <string name="weather_permission_toast">सटीक मौसम के लिए कृपया अपने स्मार्टफोन पर स्थान की अनुमति सक्षम करें</string>
     <string name="preload_favorites_label">शुरुआत में पसंदीदा प्रीलोड करें</string>

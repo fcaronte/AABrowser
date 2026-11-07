@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
@@ -152,15 +151,12 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
 
     override fun onResume() {
         super.onResume()
-        isResumedNow = true
-        lastResumedAt = SystemClock.elapsedRealtime()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         AppSettings.enableWeatherByDefaultIfLocationGranted(this)
         updateSystemUi(true)
     }
 
     override fun onPause() {
-        isResumedNow = false
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         super.onPause()
     }
@@ -281,12 +277,6 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     companion object {
         // La Main aperta in auto: dalla Wide (aperta da Gemini) si può riportare davanti con l'SDK di Android Auto
         private var running: WeakReference<MainCarActivity>? = null
-        private var isResumedNow = false
-        private var lastResumedAt = 0L
-
-        /** La Main è davanti, o ci è arrivata dopo [startedAt] (Android Auto può già averla messa in pausa). */
-        fun isInFrontSince(startedAt: Long): Boolean = isResumedNow || lastResumedAt >= startedAt
-
         /** Chiede ad Android Auto di riportare davanti la Main; false se non è aperta. */
         fun bringRunningToFront(): Boolean {
             val activity = running?.get() ?: return false
