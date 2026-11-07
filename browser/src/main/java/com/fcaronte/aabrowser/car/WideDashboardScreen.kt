@@ -127,7 +127,7 @@ object HomePage {
             """<a class="tile" href="$url">$iconHtml<div class="name">$name</div></a>"""
         }
 
-        val titleText = "CarWeb v$version"
+        val titleText = "CarWebWide v$version"
 
         val updateBanner = updateText?.let {
             """<div class="update"><a class="update-go" href="$UPDATE_DOWNLOAD">⬇ ${it.htmlEncode()}</a><a class="update-x" href="$UPDATE_DISMISS">✕</a></div>"""
