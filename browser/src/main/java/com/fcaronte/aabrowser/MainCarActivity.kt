@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
@@ -28,7 +27,6 @@ import com.fcaronte.aabrowser.utils.DrivingState
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.CarSensorManager
 import com.google.android.gms.car.input.InputManager
-import java.lang.ref.WeakReference
 
 class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
@@ -56,7 +54,6 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     override fun onCreate(bundle: Bundle?) {
         setTheme(R.style.AppTheme)
         super.onCreate(bundle)
-        running = WeakReference(this)
 
         // Controlla permessi critici
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -152,15 +149,12 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
 
     override fun onResume() {
         super.onResume()
-        isResumedNow = true
-        lastResumedAt = SystemClock.elapsedRealtime()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         AppSettings.enableWeatherByDefaultIfLocationGranted(this)
         updateSystemUi(true)
     }
 
     override fun onPause() {
-        isResumedNow = false
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         super.onPause()
     }
@@ -171,7 +165,6 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     }
 
     override fun onDestroy() {
-        if (running?.get() === this) running = null
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mViewModelStore.clear()
 
@@ -279,21 +272,6 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     }
 
     companion object {
-        // La Main aperta in auto: dalla Wide si può riportare davanti con l'SDK di Android Auto
-        private var running: WeakReference<MainCarActivity>? = null
-        private var isResumedNow = false
-        private var lastResumedAt = 0L
-
-        /** La Main è davanti, o ci è arrivata dopo [startedAt] (Android Auto può già averla messa in pausa). */
-        fun isInFrontSince(startedAt: Long): Boolean = isResumedNow || lastResumedAt >= startedAt
-
-        /** Chiede ad Android Auto di riportare davanti la Main; false se non è aperta. */
-        fun bringRunningToFront(): Boolean {
-            val activity = running?.get() ?: return false
-            activity.bringToFront()
-            return true
-        }
-
         // Sensori di Android Auto (stessi valori di android.support.car.hardware.CarSensorManager)
         private const val DRIVING_STATUS = 11
         private const val SENSOR_RATE_NORMAL = 3

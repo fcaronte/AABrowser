@@ -23,12 +23,14 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.KeyEvent
 import androidx.car.app.connection.CarConnection
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
+import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -70,6 +72,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 checkAndUpdateWeatherMetadata()
                 updateNotification()
             }
+        } else if (key == PLAYER_CARD_OPENS_MAIN) {
+            applyPlayerCardTarget()
         }
     }
 
@@ -201,6 +205,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         sessionToken = mMediasessioncompat!!.sessionToken
         runningService = WeakReference(this)
         applySessionActivity()
+        applyPlayerCardTarget()
 
         settingsPreferences.registerOnSharedPreferenceChangeListener(settingsListener)
         registerNetworkCallback()
@@ -501,9 +506,28 @@ class CarMediaService : MediaBrowserServiceCompat() {
         result.sendResult(null)
     }
 
+    // A chi va il tocco sulla scheda del player. Con una car app nel pacchetto questo servizio non è un'app media nel menu
+    // di Android Auto: il tocco va al componente che la sessione scrive in questo extra, se è nel menu, altrimenti alla
+    // prima app del pacchetto nel menu, cioè la Wide, che prende il posto del navigatore aperto. Con l'opzione "Il tocco
+    // sul player apre CarWeb" si scrive la Main, tranne quando suona la Wide. Il player resta collegato alla sessione come
+    // sempre. Visto nel codice di Android Auto 18.1: una versione che non legge l'extra apre la Wide, come senza opzione
+    private var playerCardTarget: String? = null
+
+    private fun applyPlayerCardTarget() {
+        val target = CarService::class.java.name.takeIf {
+            settingsPreferences.getBoolean(PLAYER_CARD_OPENS_MAIN, false) &&
+                    MediaFocusManager.getActiveSource() != MediaFocusManager.Source.WIDE_APP
+        }
+        if (target == playerCardTarget) return
+        playerCardTarget = target
+        mMediasessioncompat?.setExtras(Bundle().apply { target?.let { putString(EXTRA_BROWSE_SERVICE, it) } })
+        Log.d(TAG, "Player card tap goes to: ${target ?: "the first app of the package in the menu"}")
+    }
+
     // Ogni stato pubblicato dichiara anche la ricerca vocale: senza, l'Assistente (e Gemini) non manda
     // "metti … su AABrowser" all'app
     private fun publishPlaybackState(state: PlaybackStateCompat) {
+        applyPlayerCardTarget()
         val withVoiceSearch = PlaybackStateCompat.Builder(state)
             .setActions(state.actions or VOICE_SEARCH_ACTIONS)
             .build()
@@ -518,6 +542,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
     /** Metadati del player, tranne mentre si ascolta un comando vocale: allora restano da parte fino alla fine. */
     private fun setSessionMetadata(metadata: MediaMetadataCompat) {
+        applyPlayerCardTarget()
         if (voiceListening) metadataUnderVoice = metadata else mMediasessioncompat?.setMetadata(metadata)
     }
 
@@ -800,6 +825,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val MEDIA_METADATA_COMPAT = "MediaMetadataCompat"
         private const val PLAYBACK_ACTION = "PlaybackAction"
         private const val REQUEST_NO_OP_ACTIVITY = 2001
+        private const val PLAYER_CARD_OPENS_MAIN = "player_card_opens_main"
+        private const val EXTRA_BROWSE_SERVICE = "android.media.session.BROWSE_SERVICE"
         // Stesso id di CarMediaNotificationManager
         private const val NOTIFICATION_ID = 600
         private const val ANDROID_AUTO_PACKAGE = "com.google.android.projection.gearhead"

@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
-import com.fcaronte.aabrowser.car.PlayerCard
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
@@ -216,7 +215,6 @@ object AppSettings {
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
-        PlayerCard.applySetting(context, _playerCardOpensMain.value)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
         _autoSitePermissions.value = prefs.getBoolean("site_permissions_auto", false)
@@ -270,7 +268,6 @@ object AppSettings {
     fun setPlayerCardOpensMain(context: Context, enabled: Boolean) {
         _playerCardOpensMain.value = enabled
         saveBoolean(context, "player_card_opens_main", enabled)
-        PlayerCard.applySetting(context, enabled)
     }
 
     fun setMediaPlayerEnabled(context: Context, enabled: Boolean) {
