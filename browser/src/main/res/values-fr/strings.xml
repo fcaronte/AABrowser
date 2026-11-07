@@ -397,4 +397,11 @@
     <string name="radio_no_results">Aucune station trouvée</string>
     <string name="radio_error">Impossible de charger les stations radio</string>
     <string name="radio_unavailable">Station indisponible</string>
+    <string name="share_to_car_target">CarWeb en voiture</string>
+    <string name="share_to_car_label">Partager vers la voiture</string>
+    <string name="share_to_car_desc">Ajoute « CarWeb en voiture » au menu Partager du téléphone : un lien ou une vidéo partagés s\'ouvrent dans l\'app ouverte dans la voiture (CarWeb ou CarWebWide), et une vidéo YouTube démarre toute seule.</string>
+    <string name="share_to_car_sent">Envoyé à CarWeb en voiture</string>
+    <string name="share_to_car_waiting">Ouvrez CarWeb dans la voiture d\'ici une minute : le lien s\'ouvrira là</string>
+    <string name="share_to_car_no_link">Aucun lien à ouvrir</string>
+    <string name="share_to_car_opened">Depuis le téléphone : %1$s</string>
 </resources>

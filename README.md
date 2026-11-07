@@ -62,6 +62,9 @@ from the misuse of this application. Use at your own risk.
 * **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs and videos, search, open
   favorites and sites and control the player. See [Voice commands](#voice-commands).
+* **Share to the car (optional):** turn it on in Settings and the phone's Share menu gets "CarWeb in the car":
+  a link or a video shared from any app opens in the app open in the car (CarWeb or CarWebWide), and a YouTube
+  video starts by itself. With no app open in the car, it waits a minute for the one you open.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -249,6 +252,9 @@ proprio rischio e pericolo.
 * **Comandi vocali (novità 2.4):** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti
   e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
+* **Condividi verso l'auto (facoltativo):** accendilo nelle Impostazioni e il menu Condividi del telefono ha
+  «CarWeb in auto»: un link o un video condiviso da qualsiasi app si apre nell'app aperta in auto (CarWeb o
+  CarWebWide), e un video di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel

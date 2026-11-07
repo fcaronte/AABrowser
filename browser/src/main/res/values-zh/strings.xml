@@ -395,4 +395,11 @@
     <string name="radio_no_results">未找到电台</string>
     <string name="radio_error">无法加载电台</string>
     <string name="radio_unavailable">电台不可用</string>
+    <string name="share_to_car_target">车内的 CarWeb</string>
+    <string name="share_to_car_label">分享到车上</string>
+    <string name="share_to_car_desc">在手机的分享菜单中添加“车内的 CarWeb”：分享的链接或视频会在车上已打开的应用（CarWeb 或 CarWebWide）中打开，YouTube 视频会自动播放。</string>
+    <string name="share_to_car_sent">已发送到车内的 CarWeb</string>
+    <string name="share_to_car_waiting">请在一分钟内在车上打开 CarWeb：链接将在那里打开</string>
+    <string name="share_to_car_no_link">没有可打开的链接</string>
+    <string name="share_to_car_opened">来自手机：%1$s</string>
 </resources>

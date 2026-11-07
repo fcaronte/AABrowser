@@ -48,6 +48,8 @@ object VoiceCommands {
         data object Previous : Command
         /** Nessuno schema: la frase intera si cerca come con [Search]. */
         data class Unmatched(val text: String) : Command
+        /** Un link condiviso dal telefono con "CarWeb in auto" (non è una frase detta). */
+        data class OpenLink(val url: String) : Command
     }
 
     /** Cosa fare, uguale per la Main e la Wide: ognuna poi lo esegue a modo suo. */
@@ -60,7 +62,9 @@ object VoiceCommands {
             val playFirst: Boolean = false,
             val favorite: FavoriteSite? = null,
             /** Ricerca su un sito ([LoadKind.SITE]): il suo nome, per il messaggio. */
-            val siteName: String? = null
+            val siteName: String? = null,
+            /** Il video aperto parte da solo, anche con la riproduzione automatica spenta (link condiviso). */
+            val autoplay: Boolean = false
         ) : Plan
         data class Navigate(val destination: String) : Plan
         data class Player(val action: PlayerAction) : Plan
@@ -82,7 +86,7 @@ object VoiceCommands {
     }
 
     /** Per il messaggio che conferma il comando. */
-    enum class LoadKind { YOUTUBE, YOUTUBE_MUSIC, SEARCH, SITE, PAGE }
+    enum class LoadKind { YOUTUBE, YOUTUBE_MUSIC, SEARCH, SITE, PAGE, LINK }
 
     enum class PlayerAction { PLAY, PAUSE, NEXT, PREVIOUS }
 
@@ -721,6 +725,12 @@ object VoiceCommands {
         Command.Resume -> playerPlan(PlayerAction.PLAY, currentUrl, playerOwned)
         Command.Next -> playerPlan(PlayerAction.NEXT, currentUrl, playerOwned)
         Command.Previous -> playerPlan(PlayerAction.PREVIOUS, currentUrl, playerOwned)
+        is Command.OpenLink -> Plan.Load(
+            command.url,
+            parseUri(command.url)?.host?.removePrefix("www.")?.removePrefix("m.") ?: command.url,
+            LoadKind.LINK,
+            autoplay = isYouTubeVideoUrl(command.url)
+        )
     }
 
     private fun playerPlan(action: PlayerAction, currentUrl: String?, playerOwned: Boolean): Plan {
@@ -1045,6 +1055,15 @@ object VoiceCommands {
 
     /** Pagina di YouTube o YouTube Music: lì il video di "metti …" parte anche con l'autoplay spento. */
     fun isYouTubeUrl(url: String?): Boolean = isYouTube(url)
+
+    /** Un video di YouTube o YouTube Music (non la home, una ricerca o un canale). */
+    fun isYouTubeVideoUrl(url: String?): Boolean {
+        if (!isYouTube(url)) return false
+        val uri = parseUri(url) ?: return false
+        val path = uri.path.orEmpty()
+        return (uri.host.equals("youtu.be", ignoreCase = true) && path.length > 1) ||
+                path == "/watch" || listOf("/shorts/", "/live/", "/embed/").any { path.startsWith(it) }
+    }
 
     private fun isYouTube(url: String?): Boolean {
         val host = parseUri(url)?.host?.lowercase() ?: return false

@@ -361,7 +361,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
                 // "Ok Google, metti … su CarWeb Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
-                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, { isWideResumed }, voiceExecutor) {
+                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, inCar = true, { isWideResumed }, voiceExecutor) {
                     if (!isVoiceListening) toggleVoiceCommand()
                 }
             }
@@ -2310,11 +2310,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (plan !is VoiceCommands.Plan.Player && !isWideResumed) bringToFront()
         when (plan) {
             is VoiceCommands.Plan.Load -> {
-                if (plan.playFirst) {
+                // "metti …" e i video condivisi dal telefono partono da soli anche con la riproduzione automatica spenta
+                if (plan.playFirst || plan.autoplay) {
                     voiceAutoplay = true
                     webView?.settings?.mediaPlaybackRequiresUserGesture = false
-                    VoiceCommandRouter.requestPlayFirstResult(VoiceCommandRouter.Target.WIDE)
                 }
+                if (plan.playFirst) VoiceCommandRouter.requestPlayFirstResult(VoiceCommandRouter.Target.WIDE)
                 hideCustomView()
                 loadUrl(plan.url)
                 val message = when (plan.kind) {
@@ -2324,6 +2325,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     VoiceCommands.LoadKind.SITE ->
                         strings.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
                     VoiceCommands.LoadKind.PAGE -> strings.getString(R.string.voice_command_open, plan.label)
+                    VoiceCommands.LoadKind.LINK -> strings.getString(R.string.share_to_car_opened, plan.label)
                 }
                 showVoiceToast(message)
             }

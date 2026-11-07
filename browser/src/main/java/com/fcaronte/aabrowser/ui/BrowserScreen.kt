@@ -1143,6 +1143,12 @@ fun BrowserScreen(
                                 jsDialog = null
 
                                 if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
+                                // Video condiviso dal telefono con "CarWeb in auto": parte da solo, come con "metti …"
+                                if (currentIsTabActive &&
+                                    VoiceCommandRouter.consumeAutoplay(VoiceCommandRouter.Target.MAIN, url)
+                                ) {
+                                    voiceAutoplay = true
+                                }
                                 // Le pagine di CarWeb Media partono solo se glielo si chiede (tocco o comando vocale)
                                 view?.settings?.mediaPlaybackRequiresUserGesture =
                                     !autoplayMedia && !isDaznUrl(url) && !voiceAutoplay && !LocalPlayer.isPlayerUrl(url)

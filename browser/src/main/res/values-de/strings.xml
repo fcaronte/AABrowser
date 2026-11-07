@@ -396,4 +396,11 @@
     <string name="radio_no_results">Keine Sender gefunden</string>
     <string name="radio_error">Radiosender konnten nicht geladen werden</string>
     <string name="radio_unavailable">Sender nicht verfügbar</string>
+    <string name="share_to_car_target">CarWeb im Auto</string>
+    <string name="share_to_car_label">Ans Auto senden</string>
+    <string name="share_to_car_desc">Fügt „CarWeb im Auto“ zum Teilen-Menü des Telefons hinzu: Ein geteilter Link oder ein Video öffnet sich in der App, die im Auto offen ist (CarWeb oder CarWebWide), und ein YouTube-Video startet von selbst.</string>
+    <string name="share_to_car_sent">An CarWeb im Auto gesendet</string>
+    <string name="share_to_car_waiting">Öffne CarWeb im Auto innerhalb einer Minute: Der Link wird dort geöffnet</string>
+    <string name="share_to_car_no_link">Kein Link zum Öffnen</string>
+    <string name="share_to_car_opened">Vom Telefon: %1$s</string>
 </resources>

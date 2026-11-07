@@ -65,6 +65,23 @@
             </intent-filter>
         </activity>
 
+        <!-- "CarWeb in auto" nel menu Condividi: spenta finché non si accende l'opzione (AppSettings.shareToCar) -->
+        <activity
+            android:name=".ShareToCarActivity"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/share_to_car_target"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".WelcomeActivity"
             android:exported="false">

@@ -477,4 +477,17 @@ class VoiceCommandsTest {
         )
         assertEquals("geo:0,0?q=via+roma+10", VoiceCommands.navigationGeoUri("via roma 10"))
     }
+
+    // Link condivisi dal telefono con "CarWeb in auto": un video di YouTube parte da solo, il resto si apre e basta
+    @Test
+    fun sharedLinks() {
+        val video = VoiceCommands.plan(Command.OpenLink("https://m.youtube.com/watch?v=abc"), null, favorites, webSearch)
+        assertEquals(Plan.Load("https://m.youtube.com/watch?v=abc", "youtube.com", LoadKind.LINK, autoplay = true), video)
+        val short = VoiceCommands.plan(Command.OpenLink("https://m.youtube.com/shorts/xyz"), null, favorites, webSearch)
+        assertTrue((short as Plan.Load).autoplay)
+        val channel = VoiceCommands.plan(Command.OpenLink("https://m.youtube.com/@canale"), null, favorites, webSearch)
+        assertFalse((channel as Plan.Load).autoplay)
+        val page = VoiceCommands.plan(Command.OpenLink("https://www.repubblica.it/a.html"), null, favorites, webSearch)
+        assertEquals(Plan.Load("https://www.repubblica.it/a.html", "repubblica.it", LoadKind.LINK), page)
+    }
 }

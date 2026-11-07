@@ -352,8 +352,10 @@ fun MainScreen(
                         desktopZoomOverride = favorite.desktopZoom
                     )
 
-                    // YouTube e YouTube Music: nella scheda che c'è già, così non se ne aprono di nuove a ogni comando
-                    plan.kind == VoiceCommands.LoadKind.YOUTUBE || plan.kind == VoiceCommands.LoadKind.YOUTUBE_MUSIC -> {
+                    // YouTube e YouTube Music (anche un video condiviso dal telefono): nella scheda che c'è già, così
+                    // non se ne aprono di nuove a ogni comando
+                    plan.kind == VoiceCommands.LoadKind.YOUTUBE || plan.kind == VoiceCommands.LoadKind.YOUTUBE_MUSIC ||
+                            (plan.kind == VoiceCommands.LoadKind.LINK && VoiceCommands.isYouTubeUrl(plan.url)) -> {
                         val index = TabManager.findTabIndexByUrlOrHost(plan.url)
                         if (index == -1) {
                             TabManager.addTab(url = plan.url, title = plan.label, setActive = true)
@@ -367,6 +369,7 @@ fun MainScreen(
                     else -> TabManager.addTab(url = plan.url, title = plan.label, setActive = true)
                 }
                 if (plan.playFirst) VoiceCommandRouter.requestPlayFirstResult(VoiceCommandRouter.Target.MAIN)
+                if (plan.autoplay) VoiceCommandRouter.requestAutoplay(VoiceCommandRouter.Target.MAIN)
                 currentScreen = Screen.Browser
                 feedbackMessage = when (plan.kind) {
                     VoiceCommands.LoadKind.YOUTUBE -> localizedContext.getString(R.string.voice_command_youtube, plan.label)
@@ -376,6 +379,7 @@ fun MainScreen(
                     VoiceCommands.LoadKind.SITE ->
                         localizedContext.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
                     VoiceCommands.LoadKind.PAGE -> localizedContext.getString(R.string.voice_command_open, plan.label)
+                    VoiceCommands.LoadKind.LINK -> localizedContext.getString(R.string.share_to_car_opened, plan.label)
                 }
             }
 
@@ -459,6 +463,7 @@ fun MainScreen(
             DisposableEffect(voiceExecutor, voiceInput) {
                 VoiceCommandRouter.register(
                     VoiceCommandRouter.Target.MAIN,
+                    inCar = isAutomotive,
                     isInForeground = { lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) },
                     executor = voiceExecutor,
                     listen = { if (!voiceInput.isListening) voiceInput.start() }

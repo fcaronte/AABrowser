@@ -400,4 +400,11 @@
     <string name="radio_no_results">لم يتم العثور على محطات</string>
     <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
     <string name="radio_unavailable">المحطة غير متاحة</string>
+    <string name="share_to_car_target">CarWeb في السيارة</string>
+    <string name="share_to_car_label">المشاركة إلى السيارة</string>
+    <string name="share_to_car_desc">يضيف «CarWeb في السيارة» إلى قائمة المشاركة في الهاتف: يُفتح الرابط أو الفيديو المشارَك في التطبيق المفتوح في السيارة (CarWeb أو CarWebWide)، ويبدأ فيديو YouTube تلقائيًا.</string>
+    <string name="share_to_car_sent">أُرسل إلى CarWeb في السيارة</string>
+    <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح الرابط هناك</string>
+    <string name="share_to_car_no_link">لا يوجد رابط لفتحه</string>
+    <string name="share_to_car_opened">من الهاتف: %1$s</string>
 </resources>

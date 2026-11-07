@@ -401,4 +401,11 @@
     <string name="radio_no_results">No stations found</string>
     <string name="radio_error">Could not load radio stations</string>
     <string name="radio_unavailable">Station unavailable</string>
+    <string name="share_to_car_target">CarWeb in the car</string>
+    <string name="share_to_car_label">Share to the car</string>
+    <string name="share_to_car_desc">Adds “CarWeb in the car” to the phone\'s Share menu: a shared link or video opens in the app open in the car (CarWeb or CarWebWide), and a YouTube video starts by itself.</string>
+    <string name="share_to_car_sent">Sent to CarWeb in the car</string>
+    <string name="share_to_car_waiting">Open CarWeb in the car within a minute: the link will open there</string>
+    <string name="share_to_car_no_link">No link to open</string>
+    <string name="share_to_car_opened">From the phone: %1$s</string>
 </resources>

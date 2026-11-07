@@ -396,4 +396,11 @@
     <string name="radio_no_results">कोई स्टेशन नहीं मिला</string>
     <string name="radio_error">रेडियो स्टेशन लोड नहीं हो सके</string>
     <string name="radio_unavailable">स्टेशन उपलब्ध नहीं है</string>
+    <string name="share_to_car_target">कार में CarWeb</string>
+    <string name="share_to_car_label">कार में भेजें</string>
+    <string name="share_to_car_desc">फ़ोन के शेयर मेनू में «कार में CarWeb» जोड़ता है: शेयर किया गया लिंक या वीडियो कार में खुले ऐप (CarWeb या CarWebWide) में खुलता है, और YouTube वीडियो अपने आप चलने लगता है।</string>
+    <string name="share_to_car_sent">कार में CarWeb को भेजा गया</string>
+    <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: लिंक वहीं खुलेगा</string>
+    <string name="share_to_car_no_link">खोलने के लिए कोई लिंक नहीं</string>
+    <string name="share_to_car_opened">फ़ोन से: %1$s</string>
 </resources>

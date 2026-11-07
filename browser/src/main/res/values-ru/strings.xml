@@ -398,4 +398,11 @@
     <string name="radio_no_results">Станции не найдены</string>
     <string name="radio_error">Не удалось загрузить радиостанции</string>
     <string name="radio_unavailable">Станция недоступна</string>
+    <string name="share_to_car_target">CarWeb в машине</string>
+    <string name="share_to_car_label">Отправить в машину</string>
+    <string name="share_to_car_desc">Добавляет «CarWeb в машине» в меню «Поделиться» телефона: ссылка или видео открываются в приложении, открытом в машине (CarWeb или CarWebWide), а видео YouTube запускается само.</string>
+    <string name="share_to_car_sent">Отправлено в CarWeb в машине</string>
+    <string name="share_to_car_waiting">Откройте CarWeb в машине в течение минуты: ссылка откроется там</string>
+    <string name="share_to_car_no_link">Нет ссылки для открытия</string>
+    <string name="share_to_car_opened">С телефона: %1$s</string>
 </resources>
