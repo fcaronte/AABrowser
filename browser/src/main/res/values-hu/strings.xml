@@ -396,5 +396,4 @@
     <string name="radio_no_results">Nincs találat</string>
     <string name="radio_error">Nem sikerült betölteni a rádióállomásokat</string>
     <string name="radio_unavailable">Az állomás nem érhető el</string>
-    <string name="poi_needs_car_api">Ehhez a próbához újabb Android Auto kell (Car API 7 vagy újabb).</string>
 </resources>

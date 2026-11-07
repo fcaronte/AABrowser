@@ -395,5 +395,4 @@
     <string name="radio_no_results">未找到电台</string>
     <string name="radio_error">无法加载电台</string>
     <string name="radio_unavailable">电台不可用</string>
-    <string name="poi_needs_car_api">此测试需要较新版本的 Android Auto（Car API 7 或更高）。</string>
 </resources>

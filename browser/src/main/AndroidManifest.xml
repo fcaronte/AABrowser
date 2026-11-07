@@ -20,8 +20,6 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
-    <!-- Prova "CarWeb POI": template mappa con pannello per le app non di navigazione -->
-    <uses-permission android:name="androidx.car.app.MAP_TEMPLATES" />
     <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
     <uses-permission
         android:name="android.permission.READ_PHONE_STATE"
@@ -104,18 +102,6 @@
             <meta-data
                 android:name="androidx.car.app.minCarApiLevel"
                 android:value="5" />
-        </service>
-
-        <!-- Prova: la Wide come app POI (vedi CarServicePoi), non prende il posto del navigatore -->
-        <service
-            android:name=".car.CarServicePoi"
-            android:exported="true"
-            android:label="@string/poi_app_name"
-            tools:ignore="ExportedService">
-            <intent-filter>
-                <action android:name="androidx.car.app.CarAppService" />
-                <category android:name="androidx.car.app.category.POI" />
-            </intent-filter>
         </service>
 
         <service

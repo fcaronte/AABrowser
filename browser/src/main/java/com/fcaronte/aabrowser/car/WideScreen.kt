@@ -62,23 +62,14 @@ import androidx.car.app.CarToast
 import androidx.car.app.Screen
 import androidx.car.app.SurfaceCallback
 import androidx.car.app.SurfaceContainer
-import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.CarColor
 import androidx.car.app.model.CarIcon
-import androidx.car.app.model.Header
-import androidx.car.app.model.ItemList
-import androidx.car.app.model.ListTemplate
-import androidx.car.app.model.MessageTemplate
-import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.car.app.navigation.NavigationManager
 import androidx.car.app.navigation.NavigationManagerCallback
-import androidx.car.app.navigation.model.MapController
-import androidx.car.app.navigation.model.MapWithContentTemplate
 import androidx.car.app.navigation.model.NavigationTemplate
-import androidx.car.app.versioning.CarAppApiLevels
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
@@ -133,8 +124,7 @@ import kotlin.math.sin
  * (WebViewScriptRouter, AdBlock, GoogleLoginManager, BrowserJavascript).
  * Richiede WideHomeAndSearch.kt (HomePage, SiteSearch, WideSearchScreen) nello stesso package.
  */
-/** [poi]: la prova "CarWeb POI" (CarServicePoi), stessa pagina nel template mappa con pannello. */
-class WideScreen(carContext: CarContext, private val poi: Boolean = false) : Screen(carContext), SurfaceCallback {
+class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     companion object {
         const val TAG = "WideScreen"
@@ -349,17 +339,14 @@ class WideScreen(carContext: CarContext, private val poi: Boolean = false) : Scr
         try {
             carContext.getCarService(AppManager::class.java).setSurfaceCallback(this)
 
-            // L'app POI non è un navigatore: niente richiamata di navigazione
-            if (!poi) {
-                val navManager = carContext.getCarService(NavigationManager::class.java)
-                navManager.setNavigationManagerCallback(object : NavigationManagerCallback {
-                    override fun onStopNavigation() {
-                        closeApp()
-                    }
+            val navManager = carContext.getCarService(NavigationManager::class.java)
+            navManager.setNavigationManagerCallback(object : NavigationManagerCallback {
+                override fun onStopNavigation() {
+                    closeApp()
+                }
 
-                    override fun onAutoDriveEnabled() {}
-                })
-            }
+                override fun onAutoDriveEnabled() {}
+            })
             // Niente navigationStarted(): la Wide non guida, e Android Auto ammette un solo navigatore attivo, quindi
             // quella chiamata fermava la navigazione in corso di Maps. Serviva a poco: la superficie arriva lo
             // stesso. Così aprire la Wide (anche dal tocco sul player, che Android Auto fa comunque) non la ferma
@@ -485,44 +472,9 @@ class WideScreen(carContext: CarContext, private val poi: Boolean = false) : Scr
                 )
         }
 
-        if (poi) return poiTemplate(strip, mapStripBuilder.build())
-
         return NavigationTemplate.Builder()
             .setActionStrip(strip)
             .setMapActionStrip(mapStripBuilder.build())
-            .build()
-    }
-
-    /**
-     * Prova POI: stessi tasti e stessa pagina sulla superficie, nel template mappa con pannello delle app POI (Car API
-     * 7). Il pannello è obbligatorio: ci vanno i preferiti, un tocco apre il sito sulla mappa.
-     */
-    private fun poiTemplate(strip: ActionStrip, mapStrip: ActionStrip): Template {
-        if (carContext.carAppApiLevel < CarAppApiLevels.LEVEL_7) {
-            return MessageTemplate.Builder(strings.getString(R.string.poi_needs_car_api)).build()
-        }
-        val limit = try {
-            carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
-        } catch (_: Exception) {
-            6
-        }
-        val list = ItemList.Builder().setNoItemsMessage(strings.getString(R.string.wide_no_favorites))
-        favorites().take(limit).forEach { site ->
-            list.addItem(
-                Row.Builder()
-                    .setTitle(site.name.ifBlank { Uri.parse(site.url).host ?: site.url })
-                    .setOnClickListener { loadUrl(site.url) }
-                    .build()
-            )
-        }
-        val content = ListTemplate.Builder()
-            .setHeader(Header.Builder().setTitle(strings.getString(R.string.poi_app_name)).build())
-            .setSingleList(list.build())
-            .build()
-        return MapWithContentTemplate.Builder()
-            .setContentTemplate(content)
-            .setMapController(MapController.Builder().setMapActionStrip(mapStrip).build())
-            .setActionStrip(strip)
             .build()
     }
 
@@ -2419,9 +2371,8 @@ class WideScreen(carContext: CarContext, private val poi: Boolean = false) : Scr
 
     private fun bringToFront() {
         try {
-            val service = if (poi) CarServicePoi::class.java else CarServiceWide::class.java
             carContext.startCarApp(
-                Intent().setComponent(ComponentName(carContext, service))
+                Intent().setComponent(ComponentName(carContext, CarServiceWide::class.java))
                     .putExtra(MainHandOver.EXTRA_FROM_WIDE, true)
             )
         } catch (e: Exception) {

@@ -354,5 +354,4 @@
     <string name="radio_no_results">Nessuna stazione trovata</string>
     <string name="radio_error">Impossibile caricare le stazioni radio</string>
     <string name="radio_unavailable">Stazione non disponibile</string>
-    <string name="poi_needs_car_api">Questa prova richiede un Android Auto più recente (Car API 7 o successiva).</string>
 </resources>
