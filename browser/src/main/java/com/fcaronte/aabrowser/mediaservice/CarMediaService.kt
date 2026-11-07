@@ -1,7 +1,6 @@
 package com.fcaronte.aabrowser.mediaservice
 
 import android.app.Notification
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -204,7 +203,6 @@ class CarMediaService : MediaBrowserServiceCompat() {
         mMediacontrollercompat = mMediasessioncompat!!.controller
         sessionToken = mMediasessioncompat!!.sessionToken
         runningService = WeakReference(this)
-        applySessionActivity()
         applyPlayerCardTarget()
 
         settingsPreferences.registerOnSharedPreferenceChangeListener(settingsListener)
@@ -832,25 +830,11 @@ class CarMediaService : MediaBrowserServiceCompat() {
         return mMediacontrollercompat!!.playbackState.state != playbackStateCompat.state
     }
 
-    // Activity della sessione: con la Wide non in uso un'activity vuota, così il tocco sulla scheda del player
-    // di Android Auto non apre la Wide (che è un navigatore e chiuderebbe la navigazione in corso). Con la Wide
-    // in uso nessuna: Android Auto la riporta in primo piano come sempre
-    private val noOpSessionActivity: PendingIntent by lazy {
-        val intent = Intent(this, NoOpActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        PendingIntent.getActivity(this, REQUEST_NO_OP_ACTIVITY, intent, PendingIntent.FLAG_IMMUTABLE)
-    }
-
-    private fun applySessionActivity() {
-        mMediasessioncompat?.setSessionActivity(if (wideActive) null else noOpSessionActivity)
-        AppLog.d(TAG, "Session activity: ${if (wideActive) "none (Wide in use)" else "no-op"}")
-    }
-
     companion object {
         private const val TAG = "CarMediaService"
         private const val PLAYBACK_STATE_COMPAT = "PlaybackStateCompat"
         private const val MEDIA_METADATA_COMPAT = "MediaMetadataCompat"
         private const val PLAYBACK_ACTION = "PlaybackAction"
-        private const val REQUEST_NO_OP_ACTIVITY = 2001
         private const val PLAYER_CARD_OPENS_MAIN = "player_card_opens_main"
         private const val EXTRA_BROWSE_SERVICE = "android.media.session.BROWSE_SERVICE"
         // Stesso id di CarMediaNotificationManager
@@ -862,16 +846,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val DOUBLE_TAP_MS = 400L
         private const val WEATHER_ACTIONS = PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE
 
-        @Volatile
-        private var wideActive = false
         private var runningService: WeakReference<CarMediaService>? = null
-
-        /** La Wide è in primo piano (true) o non in uso (false): vedi [noOpSessionActivity]. Dal thread principale. */
-        fun setWideActive(active: Boolean) {
-            if (wideActive == active) return
-            wideActive = active
-            runningService?.get()?.applySessionActivity()
-        }
 
         /** Microfono dei comandi vocali (Main e Wide): in ascolto, con [text] capito finora, oppure finito. */
         fun showVoiceListening(listening: Boolean, text: String? = null) {
