@@ -84,9 +84,7 @@
     <string name="media_player_desc">Отображение медиаплеера и уведомлений в Android Auto</string>
     <string name="player_card_main_label">Нажатие на плеер открывает CarWeb</string>
     <string name="player_card_main_desc">Когда в меню Android Auto есть оба приложения, нажатие на плеер открывает CarWebWide, и он занимает место открытого навигатора. Включите, чтобы открывать CarWeb, кроме случаев, когда играет CarWebWide.</string>
-    <string name="media_app_menu_label">CarWeb среди медиаприложений Android Auto</string>
-    <string name="media_app_menu_desc">Для команд Gemini и Ассистента в машине («включи … в CarWeb»): значок CarWeb в меню Android Auto становится медиаприложением, которое открывает CarWeb, чтобы Android Auto передавал ему запросы. Действует со следующего подключения к Android Auto. Если CarWeb перестал открываться в машине, выключите.</string>
-    <string name="media_app_opening">Открываю CarWeb…</string>
+    <string name="opening_main">Открываю CarWeb…</string>
     <string name="media_player_disabled_hint">Для использования виджета погоды необходимо включить медиаплеер</string>
     <string name="weather_permission_toast">Включите разрешение на геолокацию на смартфоне для точной погоды</string>
     <string name="preload_favorites_label">Предзагрузка избранного при запуске</string>

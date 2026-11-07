@@ -132,12 +132,11 @@ comes first. If "play radio …" or "watch …" finds nothing, the phrase goes t
 
 Anything else is searched on the open site or with your search engine.
 
-**Google Assistant and Gemini:** the app also accepts the standard Android media voice search ("Ok Google,
-play *song* on CarWeb"). On the phone Gemini passes media requests only to Google's partner apps. In the car
-Android Auto passes them only to the media apps in its menu, and CarWeb is not one of them because of
-CarWebWide: the option "CarWeb among the Android Auto media apps" (Settings, from the phone) makes the CarWeb
-icon a media app that opens CarWeb, so "Ok Google, play *song* on CarWeb" reaches the app (from the next Android
-Auto connection; new, still to be confirmed in the car). Otherwise use the 🎤 button or the double tap on ⏮.
+**Google Assistant and Gemini:** the app accepts the standard Android media voice search ("Ok Google, play
+*song* on CarWeb"), the one the classic Google Assistant used. Gemini, which replaced it in the car too, does not
+send these requests to CarWeb (tested in the car: neither Android Auto nor the app receive them, also with CarWeb
+listed among the Android Auto media apps): use the 🎤 button or the double tap on ⏮. "Ok Google, open CarWeb"
+opens CarWebWide, or CarWeb when "Player tap opens CarWeb" is on.
 
 ## The "Gemini-Powered" Development
 
@@ -316,13 +315,11 @@ preferiti ha la precedenza. Se "metti radio …" o "guarda …" non trovano nien
 
 Tutto il resto viene cercato sul sito aperto o col motore di ricerca.
 
-**Assistente Google e Gemini:** l'app accetta anche la ricerca vocale standard dei player di Android ("Ok
-Google, metti *canzone* su CarWeb"). Sul telefono Gemini passa le richieste multimediali solo alle app partner
-di Google. In auto Android Auto le passa solo alle app media del suo menu, e CarWeb non ci compare per via di
-CarWebWide: l'opzione "CarWeb tra le app media di Android Auto" (Impostazioni, dal telefono) rende l'icona CarWeb
-un'app media che apre CarWeb, così "Ok Google, metti *canzone* su CarWeb" arriva all'app (dalla connessione
-successiva ad Android Auto; novità, ancora da confermare in auto). Altrimenti usa il pulsante 🎤 o il doppio
-tocco su ⏮.
+**Assistente Google e Gemini:** l'app accetta la ricerca vocale standard dei player di Android ("Ok Google,
+metti *canzone* su CarWeb"), quella che usava il vecchio Assistente Google. Gemini, che lo ha sostituito anche in
+auto, non manda queste richieste a CarWeb (provato in auto: non arrivano né ad Android Auto né all'app, nemmeno
+con CarWeb tra le app media di Android Auto): usa il pulsante 🎤 o il doppio tocco su ⏮. "Ok Google, apri CarWeb"
+apre CarWebWide, oppure CarWeb quando è attiva "Il tocco sul player apre CarWeb".
 
 ## Sviluppo "Gemini-Powered"
 

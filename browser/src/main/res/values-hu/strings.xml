@@ -84,9 +84,7 @@
     <string name="media_player_desc">Médialejátszó és értesítések megjelenítése az Android Auto-n</string>
     <string name="player_card_main_label">A lejátszó érintése a CarWebet nyitja meg</string>
     <string name="player_card_main_desc">Ha mindkét alkalmazás szerepel az Android Auto menüjében, a lejátszó érintése a CarWebWide-ot nyitja meg, amely a megnyitott navigáció helyére kerül. Kapcsold be, hogy a CarWeb nyíljon meg, kivéve ha a CarWebWide szól.</string>
-    <string name="media_app_menu_label">A CarWeb az Android Auto médiaalkalmazásai között</string>
-    <string name="media_app_menu_desc">A Gemini és a Segéd parancsaihoz az autóban („játszd le … a CarWebben”): az Android Auto menüjében a CarWeb ikonja médiaalkalmazás lesz, amely megnyitja a CarWebet, így az Android Auto neki adja át a kéréseket. A következő Android Auto-kapcsolattól érvényes. Ha a CarWeb nem nyílik meg az autóban, kapcsold ki.</string>
-    <string name="media_app_opening">CarWeb megnyitása…</string>
+    <string name="opening_main">CarWeb megnyitása…</string>
     <string name="media_player_disabled_hint">Az időjárás widget használatához engedélyezni kell a médiavajátszót</string>
     <string name="weather_permission_toast">Kérjük, engedélyezze a helymeghatározást okostelefonján a pontos időjáráshoz</string>
     <string name="preload_favorites_label">Kedvenc oldalak előtöltése indításkor</string>

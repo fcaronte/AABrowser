@@ -14,7 +14,7 @@ import com.google.android.apps.auto.sdk.CarActivityService
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-open class CarService : CarActivityService() {
+class CarService : CarActivityService() {
     private val mediaReady = CountDownLatch(1)
 
     @Volatile
@@ -76,10 +76,3 @@ open class CarService : CarActivityService() {
         private const val MEDIA_WAIT_MS = 5_000L
     }
 }
-
-/**
- * La stessa Main senza icona nel menu di Android Auto (solo CATEGORY_PROJECTION: l'icona viene da
- * CATEGORY_PROJECTION_OEM). Attiva con "CarWeb tra le app media di Android Auto", quando nel menu al suo posto c'è
- * l'app media che la apre (vedi CarMediaApp).
- */
-class CarServiceUnlisted : CarService()

@@ -20,7 +20,6 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.fcaronte.aabrowser.car.CarMediaApp
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.utils.AppLog
@@ -131,7 +130,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     // di riportarla davanti, come quando la si apre dal menu delle app
     private fun bringToFront() {
         try {
-            startCarActivity(Intent().setComponent(CarMediaApp.mainComponent(this)))
+            startCarActivity(Intent().setComponent(ComponentName(this, CarService::class.java)))
         } catch (e: Exception) {
             AppLog.w("MainCarActivity", "Main not brought to front: ${e.message}")
         }
@@ -280,7 +279,7 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     }
 
     companion object {
-        // La Main aperta in auto: dall'app media "CarWeb" si può riportare davanti con l'SDK di Android Auto
+        // La Main aperta in auto: dalla Wide (aperta da Gemini) si può riportare davanti con l'SDK di Android Auto
         private var running: WeakReference<MainCarActivity>? = null
         private var isResumedNow = false
         private var lastResumedAt = 0L

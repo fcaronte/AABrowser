@@ -16,6 +16,9 @@ object VoiceCommandRouter {
 
     private const val TAG = "VoiceCommandRouter"
 
+    /** Diagnosi dei comandi da Gemini e dall'Assistente, dalla sessione media all'esecuzione (solo build di debug). */
+    const val DEBUG_TAG = "CarWebVoiceDebug"
+
     // Un comando senza schermate aperte vale ancora per così (es. la Main che si sta aprendo)
     private const val PENDING_MS = 60_000L
 
@@ -57,7 +60,11 @@ object VoiceCommandRouter {
      * "Ok Google, metti … su AABrowser". false = nessuna schermata aperta: il comando resta in attesa
      * di quella che si apre e chi chiama può avvisare l'utente.
      */
-    fun fromAssistant(query: String?): Boolean = dispatch(VoiceCommands.forAssistant(query))
+    fun fromAssistant(query: String?): Boolean {
+        val command = VoiceCommands.forAssistant(query)
+        AppLog.d(DEBUG_TAG, "fromAssistant: command=$command")
+        return dispatch(command)
+    }
 
     /**
      * Doppio tocco su ⏮ al volante: il microfono dei comandi vocali sulla schermata più adatta (come per
@@ -75,8 +82,10 @@ object VoiceCommandRouter {
     fun dispatch(command: VoiceCommands.Command, target: Target? = null): Boolean {
         val chosen = target?.takeIf { registrations.containsKey(it) } ?: choose()
         val registration = chosen?.let { registrations[it] }
+        AppLog.d(DEBUG_TAG, "dispatch: asked=$target chosen=$chosen open=${registrations.keys}")
         if (registration == null) {
             AppLog.d(TAG, "No screen open: command kept for ${PENDING_MS / 1000} s")
+            AppLog.d(DEBUG_TAG, "dispatch: no screen open, command pending")
             pending = command
             pendingAt = SystemClock.uptimeMillis()
             return false

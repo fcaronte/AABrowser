@@ -9,18 +9,28 @@ import androidx.car.app.Session
 /**
  * Tocco sulla scheda del player di Android Auto: se la sessione non dichiara un'app (l'opzione "Il tocco sul player apre
  * CarWeb", vedi CarMediaService) arriva alla prima app del pacchetto nel menu, cioè qui, con l'azione
- * MEDIA_SHOW_PLAYBACK_VIEW. Non si può evitare da qui: se la Wide si chiude, Android Auto la riapre subito (log del 20/10
+ * MEDIA_SHOW_PLAYBACK_VIEW. "Ok Google, apri CarWeb" arriva sempre qui: con la stessa opzione passa alla Main
+ * (MainHandOver). Non si può evitare da qui: se la Wide si chiude, Android Auto la riapre subito (log del 20/10
  * e del 06/11/2026). Per questo la Wide non chiama navigationStarted() e la navigazione in corso di Maps non si ferma
  * (vedi WideScreen).
  */
 class WideSession : Session() {
     override fun onCreateScreen(intent: Intent): Screen {
         Log.d(TAG, "onCreateScreen: ${describe(intent)}")
+        if (MainHandOver.isAssistantOpen(intent) && MainHandOver.wantsMain()) {
+            if (!MainHandOver.justClosedForMain()) return HandOverScreen(carContext)
+            Log.d(TAG, "Android Auto reopened the Wide right after it closed for the Main: it stays")
+        }
         return WideScreen(carContext)
     }
 
     override fun onNewIntent(intent: Intent) {
         Log.d(TAG, "onNewIntent: ${describe(intent)}")
+        // Aperta da Gemini mentre era già avviata: davanti va la Main, e la Wide si chiude se non era in uso
+        if (MainHandOver.isAssistantOpen(intent) && MainHandOver.wantsMain()) {
+            MainHandOver.handOver(carContext, closeWide = !WideScreen.wasInUseBeforeLaunch())
+            return
+        }
         // "Portami a …" ridato alla Wide: è lei il navigatore attivo di Android Auto. La pagina di Maps è già aperta
         if (intent.action == CarContext.ACTION_NAVIGATE) {
             Log.d(TAG, "Navigation request came back to the Wide: the Maps page stays")

@@ -131,6 +131,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         const val HOME = "about:home"
         var isWideResumed = false
             internal set
+        private var resumedAt = 0L
+        private var pausedAt = 0L
+        private var pausedBeforeResume = 0L
+        private const val IN_USE_MS = 1_000L
+        private const val RECENTLY_VISIBLE_MS = 10_000L
+
+        /**
+         * La Wide era già in uso prima di un avvio appena arrivato: davanti da più di un secondo, o coperta solo da poco
+         * (la schermata di Gemini mentre si parla). No se è appena arrivata davanti da dietro.
+         */
+        fun wasInUseBeforeLaunch(): Boolean {
+            val now = SystemClock.elapsedRealtime()
+            return if (isWideResumed) {
+                now - resumedAt > IN_USE_MS || (pausedBeforeResume != 0L && resumedAt - pausedBeforeResume < RECENTLY_VISIBLE_MS)
+            } else {
+                pausedAt != 0L && now - pausedAt < RECENTLY_VISIBLE_MS
+            }
+        }
         private var activeInstanceRef: java.lang.ref.WeakReference<WideScreen>? = null
         var activeInstance: WideScreen?
             get() = activeInstanceRef?.get()
@@ -368,11 +386,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             override fun onResume(owner: LifecycleOwner) {
                 isWideResumed = true
+                pausedBeforeResume = pausedAt
+                resumedAt = SystemClock.elapsedRealtime()
                 mediaSessionManager.setWideActive(true)
             }
 
             override fun onPause(owner: LifecycleOwner) {
                 isWideResumed = false
+                pausedAt = SystemClock.elapsedRealtime()
                 mediaSessionManager.setWideActive(false)
             }
 
@@ -2301,6 +2322,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             siteSearchUrl = { query -> SiteSearch.resolve(strings, from, query) },
             playerOwned = MediaFocusManager.getActiveSource() != null
         )
+        AppLog.d(VoiceCommandRouter.DEBUG_TAG, "Wide executes $command -> ${plan::class.simpleName}")
         // Con la Wide dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) si riporta davanti: si vede quello
         // che è stato chiesto e la pagina può far partire il video (una pagina nascosta non avvia l'audio da sola).
         // I comandi del player vanno anche così
@@ -2365,7 +2387,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun bringToFront() {
         try {
-            carContext.startCarApp(Intent().setComponent(ComponentName(carContext, CarServiceWide::class.java)))
+            carContext.startCarApp(
+                Intent().setComponent(ComponentName(carContext, CarServiceWide::class.java))
+                    .putExtra(MainHandOver.EXTRA_FROM_WIDE, true)
+            )
         } catch (e: Exception) {
             AppLog.w(TAG, "Voice command: Wide not brought to front: ${e.message}")
         }

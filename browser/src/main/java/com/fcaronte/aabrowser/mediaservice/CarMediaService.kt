@@ -30,7 +30,7 @@ import androidx.core.content.IntentCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.media.MediaBrowserServiceCompat
-import com.fcaronte.aabrowser.car.CarMediaApp
+import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
@@ -395,6 +395,12 @@ class CarMediaService : MediaBrowserServiceCompat() {
         return BrowserRoot("root", null)
     }
 
+    // Ricerca dal browser media di Android Auto: non c'è un catalogo da cercare, solo la diagnosi
+    override fun onSearch(query: String, extras: Bundle?, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+        AppLog.d(VoiceCommandRouter.DEBUG_TAG, "onSearch from browser query=\"$query\"")
+        super.onSearch(query, extras, result)
+    }
+
     override fun onLoadChildren(
         parentMediaId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem?>?>
@@ -515,7 +521,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private var playerCardTarget: String? = null
 
     private fun applyPlayerCardTarget() {
-        val target = CarMediaApp.mainComponent(this).className.takeIf {
+        val target = CarService::class.java.name.takeIf {
             settingsPreferences.getBoolean(PLAYER_CARD_OPENS_MAIN, false) &&
                     MediaFocusManager.getActiveSource() != MediaFocusManager.Source.WIDE_APP
         }
@@ -741,8 +747,27 @@ class CarMediaService : MediaBrowserServiceCompat() {
         // su YouTube e fa partire il primo risultato. Richiesta vuota ("metti la musica su AABrowser") = riprendi
         override fun onPlayFromSearch(query: String?, extras: Bundle?) {
             AppLog.d(TAG, "onPlayFromSearch (empty=${query.isNullOrBlank()})")
+            AppLog.d(
+                VoiceCommandRouter.DEBUG_TAG,
+                "onPlayFromSearch from=${service.mMediasessioncompat?.currentControllerInfo?.packageName} " +
+                        "query=\"$query\" extras={${describeExtras(extras)}}"
+            )
             if (!VoiceCommandRouter.fromAssistant(query)) service.showVoiceCommandNeedsApp()
         }
+
+        // Solo per la diagnosi: le azioni PREPARE non sono dichiarate, quindi non dovrebbe arrivare niente
+        override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
+            AppLog.d(
+                VoiceCommandRouter.DEBUG_TAG,
+                "onPrepareFromSearch from=${service.mMediasessioncompat?.currentControllerInfo?.packageName} " +
+                        "query=\"$query\" extras={${describeExtras(extras)}}"
+            )
+        }
+
+        // "chiave: valore" e non "chiave=valore": AppLog nasconderebbe gli extra con title= e artist=
+        @Suppress("DEPRECATION")
+        private fun describeExtras(extras: Bundle?): String =
+            extras?.keySet()?.joinToString { key -> "$key: ${extras.get(key)}" }.orEmpty()
 
         // Tasto 🎤 del player col meteo: il microfono della schermata aperta, come il doppio tocco su ⏮ ma anche
         // quando in AABrowser non ha ancora suonato niente

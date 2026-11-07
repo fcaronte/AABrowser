@@ -330,6 +330,7 @@ fun MainScreen(
             webSearchUrl = { query -> UrlUtils.normalizeInput(query, searchBase) },
             playerOwned = MediaFocusManager.getActiveSource() != null
         )
+        AppLog.d(VoiceCommandRouter.DEBUG_TAG, "Main executes $command -> ${plan::class.simpleName}")
         // Con la Main dietro (tasto 🎤 del player, doppio tocco su ⏮, assistente) l'interfaccia è ferma e la pagina
         // non si carica finché non torna davanti: Android Auto la riporta in primo piano. I comandi del player vanno
         // anche così

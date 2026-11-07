@@ -84,9 +84,7 @@
     <string name="media_player_desc">عرض مشغل الوسائط والإشعارات على Android Auto</string>
     <string name="player_card_main_label">لمس المشغل يفتح CarWeb</string>
     <string name="player_card_main_desc">عند وجود التطبيقين في قائمة Android Auto، يفتح لمس المشغل CarWebWide الذي يحل محل تطبيق الملاحة المفتوح. فعّل هذا الخيار لفتح CarWeb، إلا إذا كان CarWebWide يشغّل الصوت.</string>
-    <string name="media_app_menu_label">CarWeb ضمن تطبيقات الوسائط في Android Auto</string>
-    <string name="media_app_menu_desc">لأوامر Gemini والمساعد في السيارة («شغّل … على CarWeb»): يصبح رمز CarWeb في قائمة Android Auto تطبيق وسائط يفتح CarWeb، كي يمرّر إليه Android Auto الطلبات. يسري من الاتصال التالي بـ Android Auto. إذا لم يعد CarWeb يفتح في السيارة، فأوقف هذا الخيار.</string>
-    <string name="media_app_opening">جارٍ فتح CarWeb…</string>
+    <string name="opening_main">جارٍ فتح CarWeb…</string>
     <string name="media_player_disabled_hint">يجب تمكين مشغل الوسائط لاستخدام أداة الطقس</string>
     <string name="weather_permission_toast">يرجى تمكين إذن الموقع على هاتفك الذكي لمعرفة الطقس بدقة</string>
     <string name="preload_favorites_label">تحميل المفضلة مسبقاً عند البدء</string>
