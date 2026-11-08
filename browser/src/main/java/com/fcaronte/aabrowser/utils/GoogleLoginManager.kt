@@ -87,14 +87,59 @@ object GoogleLoginManager {
             function tappedLink() {
                 return Date.now() - tap.at < 10000 ? tap.link : '';
             }
-            function allowed(url) {
+            function allowed(url, link) {
                 try {
                     if (!window.AndroidBridge || !window.AndroidBridge.allowsPopup) return true;
-                    return AndroidBridge.allowsPopup(String(url), tappedLink());
+                    return AndroidBridge.allowsPopup(String(url), link === undefined ? tappedLink() : link);
                 } catch (e) {
                     return true;
                 }
             }
+
+            // Link invisibile grande come il riquadro, messo sopra il lettore da alcuni circuiti pubblicitari: senza
+            // testo né immagini, trasparente, su almeno metà di quello che si vede
+            function isOverlayLink(a) {
+                if (a.textContent.trim() || a.querySelector('img,picture,svg,canvas,video')) return false;
+                var r = a.getBoundingClientRect();
+                if (r.width * r.height < innerWidth * innerHeight * 0.5) return false;
+                var c = getComputedStyle(a);
+                if (c.position !== 'fixed' && c.position !== 'absolute') return false;
+                var clear = c.backgroundImage === 'none' &&
+                    (c.backgroundColor === 'transparent' || /rgba\(.*,\s*0\)/.test(c.backgroundColor));
+                return clear || parseFloat(c.opacity) < 0.05;
+            }
+
+            // Si toglie il link e il tocco arriva a quello che c'è sotto (il lettore). Vale solo se l'app non lo
+            // lascerebbe aprire: con lo scudo spento o verso lo stesso sito non si tocca niente
+            function removeOverlay(a, e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                a.remove();
+                var below = document.elementFromPoint(e.clientX, e.clientY);
+                if (below) {
+                    origDispatch.call(below, new MouseEvent('click', {
+                        bubbles: true, cancelable: true, view: window, clientX: e.clientX, clientY: e.clientY
+                    }));
+                }
+            }
+
+            window.addEventListener('click', function(e) {
+                if (!e.isTrusted) return;
+                var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+                if (!a || !/^https?:/i.test(a.href)) return;
+                if (isOverlayLink(a) && !allowed(a.href, '')) {
+                    removeOverlay(a, e);
+                    return;
+                }
+                // Senza finestre multiple un link _blank dentro un riquadro sostituisce tutta la pagina (Blink lo apre
+                // nel frame principale): si apre come le altre finestre, e la pagina resta
+                if (window !== window.top && a.target.toLowerCase() === '_blank' && !a.hasAttribute('download') &&
+                        window.AndroidBridge && window.AndroidBridge.openInNewTab) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    AndroidBridge.openInNewTab(a.href, a.href);
+                }
+            }, true);
             function fakeWindow() {
                 var noop = function() {};
                 return {

@@ -3,10 +3,13 @@ package com.fcaronte.aabrowser.utils
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.core.content.edit
 import com.fcaronte.aabrowser.settings.AdBlockSettings
+import java.io.ByteArrayInputStream
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**
@@ -119,6 +122,22 @@ object AdBlockHost {
         if (isWhitelisted(pageHost) || isWhitelisted(host)) return false
         // L'host o un suo sottodominio è nella lista nera
         return isAdHost(host) || isRotatingAdScript(uri.path, host, pageHost)
+    }
+
+    /**
+     * Risposta a una richiesta bloccata. Una pagina (anche dentro un riquadro) riceve 204, cioè "niente da mostrare",
+     * e resta quello che c'era: con una risposta vuota normale diventava una pagina bianca.
+     */
+    fun blockedResponse(request: WebResourceRequest?): WebResourceResponse {
+        val data = ByteArrayInputStream(ByteArray(0))
+        val isPage = request?.requestHeaders?.any { (name, value) ->
+            name.equals("Accept", ignoreCase = true) && value.contains("text/html")
+        } == true
+        return if (isPage) {
+            WebResourceResponse("text/plain", "utf-8", 204, "No Content", emptyMap(), data)
+        } else {
+            WebResourceResponse("text/plain", "utf-8", data)
+        }
     }
 
     /**

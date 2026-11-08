@@ -1266,11 +1266,7 @@ fun BrowserScreen(
                                 val urlString = request?.url?.toString() ?: ""
                                 val requestUrl = request?.url
                                 if (AdBlockHost.shouldBlock(urlString, pageHost.get())) {
-                                    return WebResourceResponse(
-                                        "text/plain",
-                                        "utf-8",
-                                        ByteArrayInputStream("".toByteArray())
-                                    )
+                                    return AdBlockHost.blockedResponse(request)
                                 }
 
                                 // DAZN: risposta alle richieste CORS "OPTIONS" delle sue chiamate (come nella Wide). Solo DAZN, con il

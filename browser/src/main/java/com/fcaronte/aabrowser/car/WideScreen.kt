@@ -1891,11 +1891,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 }
 
                                 if (AdBlockHost.shouldBlock(urlString, pageHost)) {
-                                    return WebResourceResponse(
-                                        "text/plain",
-                                        "utf-8",
-                                        ByteArrayInputStream("".toByteArray())
-                                    )
+                                    return AdBlockHost.blockedResponse(request)
                                 }
                                 // DAZN: risposta alle richieste CORS "OPTIONS" (solo per i domini DAZN, col dominio esatto: con "contiene
                                 // dazn.com" valeva anche per siti come notdazn.com)
