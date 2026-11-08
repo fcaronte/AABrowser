@@ -38,39 +38,39 @@ from the misuse of this application. Use at your own risk.
   With several tabs the last started playback takes the player. Skip buttons on Spotify, YouTube Music,
   YouTube playlists and on every site that declares its tracks (Media Session).
 * **CarWeb Media:** player for the audio and video files of a folder on the phone, with separate
-  Audio and Video queues, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
+  Audio and Video queues, search, shuffle, repeat, resume, crossfade between songs, animated visual effects (bars,
   wave, circle), lyrics from LRCLIB for local audio, and colors that follow the app theme (light, dark with
   the phone colors, AMOLED).
-* **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
+* **Radio in CarWeb Media (new in 2.6):** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK). Search and favorites are available; when stream metadata reports a song title, lyrics are
   fetched automatically from LRCLIB and shown from the Lyrics button. The text sent by the station is cleaned first
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player.
-* **TV in CarWeb Media (new in 2.5):** an IPTV-org playlist is added automatically for the app language
+* **TV in CarWeb Media:** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username
   and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
   to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
-* **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (new in 2.4: in the
-  tab bar and the navigation menu of CarWeb, at the top right of the Widescreen). It also stops the ads that open
-  at every tap on streaming sites: a page opened by a script goes through only toward the same site, the link you
-  tapped or a sign-in. If a button of a site does nothing, turn the shield off for that site. The list of ad
-  sites is downloaded by the app and renewed every three days: [HaGeZi Multi PRO](https://github.com/hagezi/dns-blocklists)
+* **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (in the tab bar
+  and the navigation menu of CarWeb, at the top right of the Widescreen). New in 2.6: it also stops the ads that open
+  at every tap on streaming sites (a page opened by a script goes through only toward the same site, the link you
+  tapped or a sign-in) and removes the invisible links laid over video players, so the tap reaches the player. If a
+  button of a site does nothing, turn the shield off for that site. The list of ad sites is downloaded by the app and renewed every three days: [HaGeZi Multi PRO](https://github.com/hagezi/dns-blocklists)
   by default (about 225,000 domains), and in Settings you can choose PRO++, NORMAL, the
   [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) or the address of any list you like.
-* **YouTube:** ad skipping, video quality of your choice from 480p to 4K (new in 2.4), remembered playback
-  speed (ads and music excluded), tap on the progress bar to seek. **SponsorBlock:** sponsors and the other parts
+* **YouTube:** ad skipping, video quality of your choice from 480p to 4K, remembered playback
+  speed (ads and music excluded), tap on the progress bar to seek. **SponsorBlock (new in 2.6):** sponsors and the other parts
   marked by [SponsorBlock](https://sponsor.ajay.app) users are skipped by themselves, also on YouTube Music (choose
   how much in Settings; only the first characters of a fingerprint of the video are sent, never which video).
   SponsorBlock data is CC BY-NC-SA 4.0.
-* **Voice commands (new in 2.4):** a microphone button in both apps (and on the Android Auto player while it
-  shows the weather), or a double tap on ⏮ at the steering wheel, to play songs and videos, search, open
-  favorites and sites and control the player. See [Voice commands](#voice-commands).
-* **Share to the car:** while the phone is connected to the car its Share menu has "CarWeb in the car" (away from
+* **Voice commands:** a microphone button in both apps (and on the Android Auto player while it
+  shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
+  channels (new in 2.6), search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
+* **Share to the car (new in 2.6):** while the phone is connected to the car its Share menu has "CarWeb in the car" (away from
   the car the entry is not there): a link or a video shared from any app opens in the app open in the car (CarWeb or
   CarWebWide), and a YouTube video starts by itself. With no app open in the car, it waits a minute for the one you open.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
@@ -79,10 +79,10 @@ from the misuse of this application. Use at your own risk.
   certificate; local network permission on Android 17.
 * **Files for web pages:** file and folder picker without storage permissions.
 * **Location for websites (optional):** Google Maps and the other sites in the browser can see where you are.
-* **Site permissions (new in 2.5):** microphone, location and, in the car, the files picked on the phone go to a
+* **Site permissions:** microphone, location and, in the car, the files picked on the phone go to a
   site only after it asks: "Always allow", "Only this time" or "Don't allow". The choices are listed in
   Settings > Web Pages, where you can remove them one by one or all together (Clear data).
-* **Passenger mode (new in 2.5):** on the car screen the app works only when the car is parked (Android Auto
+* **Passenger mode:** on the car screen the app works only when the car is parked (Android Auto
   tells when it moves); audio, the Android Auto player and voice commands keep working. With *Passenger mode*
   in Settings it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
   🌐 AZERTY, QWERTZ, Russian or Arabic for those languages; numbers and symbols, accented letters), you can type
@@ -94,7 +94,7 @@ from the misuse of this application. Use at your own risk.
 
 ## Voice commands
 
-*New in 2.4.* Say what you want instead of typing it.
+Say what you want instead of typing it.
 
 **How to start listening**
 
@@ -194,7 +194,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 # CarWeb: Una rinascita moderna del "vecchio trucco"
 
-🇬🇧 [Go to the English version](#aa-browser-a-modern-revival-of-the-old-school-trick)
+🇬🇧 [Go to the English version](#carweb-a-modern-revival-of-the-old-school-trick)
 
 ## Panoramica
 
@@ -237,14 +237,14 @@ proprio rischio e pericolo.
   separate Audio e Video, ricerca, casuale, ripeti, ripresa, dissolvenza tra i brani, effetti animati (barre, onda,
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
   telefono, AMOLED).
-* **Radio in CarWeb Media:** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
+* **Radio in CarWeb Media (novità 2.6):** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
   del brano, il testo viene cercato su LRCLIB e si apre dal pulsante Testi. Il testo mandato dalla stazione viene
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
-* **TV in CarWeb Media (novità 2.5):** viene aggiunta automaticamente la playlist IPTV-org nella lingua
+* **TV in CarWeb Media:** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni; per Xtream
   basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
@@ -252,23 +252,24 @@ proprio rischio e pericolo.
   player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
   sono supportati.
-* **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (novità
-  2.4: nella barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Ferma
-  anche le pubblicità che si aprono a ogni tocco sui siti di streaming: una pagina aperta da uno script passa solo
-  verso lo stesso sito, il link toccato o un accesso. Se un pulsante di un sito non fa niente, spegni lo scudo per
-  quel sito. La lista dei siti pubblicitari è scaricata dall'app e rinnovata ogni tre giorni:
+* **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (nella
+  barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Novità 2.6: ferma anche
+  le pubblicità che si aprono a ogni tocco sui siti di streaming (una pagina aperta da uno script passa solo verso lo
+  stesso sito, il link toccato o un accesso) e toglie i link invisibili messi sopra i lettori video, così il tocco
+  arriva al lettore. Se un pulsante di un sito non fa niente, spegni lo scudo per quel sito. La lista dei siti
+  pubblicitari è scaricata dall'app e rinnovata ogni tre giorni:
   [HaGeZi Multi PRO](https://github.com/hagezi/dns-blocklists) di serie (circa 225.000 domini), e nelle Impostazioni
   puoi scegliere PRO++, NORMAL, l'[AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) o l'indirizzo
   di una lista a piacere.
-* **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K (novità 2.4), velocità di
+* **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K, velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
-  video. **SponsorBlock:** gli sponsor e le altre parti segnate dagli utenti di [SponsorBlock](https://sponsor.ajay.app)
+  video. **SponsorBlock (novità 2.6):** gli sponsor e le altre parti segnate dagli utenti di [SponsorBlock](https://sponsor.ajay.app)
   si saltano da soli, anche su YouTube Music (quanto saltare si sceglie nelle Impostazioni; parte solo l'inizio di
   un'impronta del video, mai quale video). I dati di SponsorBlock sono CC BY-NC-SA 4.0.
-* **Comandi vocali (novità 2.4):** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
-  il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni e video, cercare, aprire preferiti e siti
-  e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
-* **Condividi verso l'auto:** con il telefono collegato all'auto il menu Condividi ha «CarWeb in auto» (lontano
+* **Comandi vocali:** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
+  il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio e canali TV (novità 2.6),
+  cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
+* **Condividi verso l'auto (novità 2.6):** con il telefono collegato all'auto il menu Condividi ha «CarWeb in auto» (lontano
   dall'auto la voce non c'è): un link o un video condiviso da qualsiasi app si apre nell'app aperta in auto (CarWeb o
   CarWebWide), e un video di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
@@ -277,10 +278,10 @@ proprio rischio e pericolo.
   sito e quel certificato; permesso rete locale su Android 17.
 * **File per le pagine web:** scelta di file e cartelle senza permessi di archiviazione.
 * **Posizione per i siti web (facoltativa):** Google Maps e gli altri siti nel browser possono vedere dove sei.
-* **Permessi dei siti (novità 2.5):** microfono, posizione e, in auto, i file scelti sul telefono arrivano a un
+* **Permessi dei siti:** microfono, posizione e, in auto, i file scelti sul telefono arrivano a un
   sito solo dopo che lo ha chiesto: "Consenti sempre", "Solo questa volta" o "Non consentire". Le scelte sono in
   Impostazioni > Pagine Web, dove si tolgono una per una o tutte insieme (Cancella dati).
-* **Modalità passeggero (novità 2.5):** sullo schermo dell'auto l'app funziona solo da fermo (se l'auto si
+* **Modalità passeggero:** sullo schermo dell'auto l'app funziona solo da fermo (se l'auto si
   muove lo dice Android Auto); audio, player di Android Auto e comandi vocali continuano a funzionare. Con
   *Modalità passeggero* nelle Impostazioni funziona anche in movimento, e con *Tastiera passeggero*, una
   tastiera dell'app (QWERTY, e con 🌐 AZERTY, QWERTZ, russa o araba per quelle lingue; numeri e simboli, lettere
@@ -291,7 +292,7 @@ proprio rischio e pericolo.
 
 ## Comandi vocali
 
-*Novità 2.4.* Dì quello che vuoi invece di scriverlo.
+Dì quello che vuoi invece di scriverlo.
 
 **Come avviare l'ascolto**
 
