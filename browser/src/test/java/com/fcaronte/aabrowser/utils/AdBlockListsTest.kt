@@ -65,6 +65,13 @@ class AdBlockListsTest {
     }
 
     @Test
+    fun listsToChooseFrom() {
+        assertEquals(AdBlockLists.DEFAULT_KEY, AdBlockLists.SOURCES.first().key)
+        assertEquals(AdBlockLists.SOURCES.size, AdBlockLists.SOURCES.map { it.key }.toSet().size)
+        assertTrue(AdBlockLists.SOURCES.all { it.url.startsWith("https://") && it.key != AdBlockLists.CUSTOM_KEY })
+    }
+
+    @Test
     fun emptyList() {
         assertFalse(AdBlockLists.matches("wayanatomyunavailable.com", AdBlockLists.parse(emptySequence())))
     }

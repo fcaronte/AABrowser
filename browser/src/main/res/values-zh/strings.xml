@@ -415,4 +415,10 @@
     <string name="sponsorblock_level_default">赞助、自我推广和订阅提醒</string>
     <string name="sponsorblock_level_all">还有片头、片尾、预告和非音乐部分</string>
     <string name="sponsorblock_skipped">已通过 SponsorBlock 跳过</string>
+    <string name="adblock_lists_choice">使用的列表</string>
+    <string name="adblock_lists_custom">其他列表（地址）</string>
+    <string name="adblock_lists_custom_hint">列表地址</string>
+    <string name="adblock_lists_custom_desc">每行一个域名的文本文件，hosts 格式或 ||domain^ 规则。</string>
+    <string name="adblock_lists_custom_change">更改</string>
+    <string name="adblock_lists_custom_phone">请在手机上的设置中输入地址</string>
 </resources>

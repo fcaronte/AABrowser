@@ -416,4 +416,10 @@
     <string name="sponsorblock_level_default">Sponsoren, Eigenwerbung und Abo-Erinnerungen</string>
     <string name="sponsorblock_level_all">Auch Intros, Abspänne, Vorschauen und Teile ohne Musik</string>
     <string name="sponsorblock_skipped">Mit SponsorBlock übersprungen</string>
+    <string name="adblock_lists_choice">Zu verwendende Liste</string>
+    <string name="adblock_lists_custom">Andere Liste (Adresse)</string>
+    <string name="adblock_lists_custom_hint">Adresse der Liste</string>
+    <string name="adblock_lists_custom_desc">Eine Textdatei mit einer Domain pro Zeile, im hosts-Format oder als ||domain^-Regeln.</string>
+    <string name="adblock_lists_custom_change">Ändern</string>
+    <string name="adblock_lists_custom_phone">Die Adresse wird in den Einstellungen auf dem Telefon eingegeben</string>
 </resources>

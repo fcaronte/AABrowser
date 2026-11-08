@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import com.fcaronte.aabrowser.utils.AdBlockHost
+import com.fcaronte.aabrowser.utils.AdBlockLists
 import com.fcaronte.aabrowser.utils.AppLog
 
 object AdBlockSettings {
@@ -12,6 +13,8 @@ object AdBlockSettings {
     private const val KEY_ENABLED = "adblock_enabled"
     private const val KEY_YOUTUBE_ENABLED = "adblock_youtube_enabled"
     private const val KEY_YOUTUBE_PRUNE = "adblock_youtube_prune"
+    private const val KEY_LIST = "adblock_list"
+    private const val KEY_LIST_URL = "adblock_list_url"
 
     private val _isEnabled = mutableStateOf(true)
     val isEnabled: State<Boolean> = _isEnabled
@@ -25,11 +28,29 @@ object AdBlockSettings {
     private val _isYouTubePruneEnabled = mutableStateOf(false)
     val isYouTubePruneEnabled: State<Boolean> = _isYouTubePruneEnabled
 
+    // Lista dei siti pubblicitari: una di AdBlockLists.SOURCES o AdBlockLists.CUSTOM_KEY con il suo indirizzo
+    private val _listKey = mutableStateOf(AdBlockLists.DEFAULT_KEY)
+    val listKey: State<String> = _listKey
+    private val _customListUrl = mutableStateOf("")
+    val customListUrl: State<String> = _customListUrl
+
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _isEnabled.value = prefs.getBoolean(KEY_ENABLED, true)
         _isYouTubeEnabled.value = prefs.getBoolean(KEY_YOUTUBE_ENABLED, false)
         _isYouTubePruneEnabled.value = prefs.getBoolean(KEY_YOUTUBE_PRUNE, false)
+        _listKey.value = prefs.getString(KEY_LIST, null) ?: AdBlockLists.DEFAULT_KEY
+        _customListUrl.value = prefs.getString(KEY_LIST_URL, null).orEmpty()
+    }
+
+    fun setList(context: Context, key: String) {
+        _listKey.value = key
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { putString(KEY_LIST, key) }
+    }
+
+    fun setCustomListUrl(context: Context, url: String) {
+        _customListUrl.value = url
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { putString(KEY_LIST_URL, url) }
     }
 
     fun setEnabled(context: Context?, enabled: Boolean) {

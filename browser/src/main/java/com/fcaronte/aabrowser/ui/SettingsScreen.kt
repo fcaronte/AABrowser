@@ -52,6 +52,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -998,15 +999,56 @@ fun SettingsScreen(
                                             )
                                         }
                                     )
-                                    // Lista dei siti pubblicitari scaricata (AdBlockLists): quanti, quando, aggiorna
+                                    // Lista dei siti pubblicitari (AdBlockLists): quale usare, anche una a piacere; quanti siti,
+                                    // quando è stata scaricata, aggiorna
                                     if (isAdBlockEnabled) {
                                         val listInfo by AdBlockLists.info
+                                        val adListKey by AdBlockSettings.listKey
+                                        val customListUrl by AdBlockSettings.customListUrl
+                                        var expandedAdList by remember { mutableStateOf(false) }
+                                        var editingAdList by remember { mutableStateOf(false) }
+                                        val customListOnPhone = stringResource(R.string.adblock_lists_custom_phone)
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.adblock_lists_choice),
+                                            options = AdBlockLists.SOURCES.map { it.key to it.name } +
+                                                    (AdBlockLists.CUSTOM_KEY to stringResource(R.string.adblock_lists_custom)),
+                                            selectedKey = adListKey,
+                                            expanded = expandedAdList,
+                                            onExpandedChange = { expandedAdList = it },
+                                            onSelect = { key ->
+                                                when {
+                                                    key != AdBlockLists.CUSTOM_KEY || customListUrl.isNotBlank() ->
+                                                        AdBlockLists.choose(context, key)
+                                                    isCarMode -> onShowFeedback(customListOnPhone)
+                                                    else -> editingAdList = true
+                                                }
+                                            }
+                                        )
+                                        if (adListKey == AdBlockLists.CUSTOM_KEY && !isCarMode) {
+                                            SettingsButtonItem(
+                                                label = stringResource(R.string.adblock_lists_custom),
+                                                description = customListUrl,
+                                                buttonText = stringResource(R.string.adblock_lists_custom_change),
+                                                onClick = { editingAdList = true }
+                                            )
+                                        }
                                         SettingsButtonItem(
                                             label = stringResource(R.string.adblock_lists_label),
                                             description = adBlockListText(listInfo),
                                             buttonText = stringResource(R.string.adblock_lists_update),
                                             onClick = { AdBlockLists.refresh(context) }
                                         )
+                                        if (editingAdList) {
+                                            AdBlockListDialog(
+                                                initial = customListUrl,
+                                                onDismiss = { editingAdList = false },
+                                                onConfirm = { address ->
+                                                    editingAdList = false
+                                                    AdBlockSettings.setCustomListUrl(context, address)
+                                                    AdBlockLists.choose(context, AdBlockLists.CUSTOM_KEY)
+                                                }
+                                            )
+                                        }
                                     }
                                     SettingsSwitchItem(
                                         label = stringResource(R.string.adblock_youtube_label),
@@ -1621,6 +1663,39 @@ fun ColumnScope.SettingsChoiceList(
     }
 }
 
+/** L'indirizzo di una lista scelta dall'utente: un dominio per riga, formato hosts o regole ||dominio^. */
+@Composable
+private fun AdBlockListDialog(initial: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var address by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.adblock_lists_custom)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.adblock_lists_custom_desc), fontSize = 13.sp)
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text(stringResource(R.string.adblock_lists_custom_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(address.trim()) },
+                enabled = AdBlockLists.isValidAddress(address.trim()),
+            ) {
+                Text(stringResource(R.string.ok_button))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
+        },
+    )
+}
+
 /** Stato della lista dei siti pubblicitari: fonte, quanti siti, quando è stata scaricata. */
 @Composable
 private fun adBlockListText(info: AdBlockLists.Info): String {
@@ -1630,7 +1705,7 @@ private fun adBlockListText(info: AdBlockLists.Info): String {
         info.count == 0 -> stringResource(R.string.adblock_lists_none)
         else -> stringResource(
             R.string.adblock_lists_info,
-            AdBlockLists.SOURCE_NAME,
+            info.name,
             NumberFormat.getIntegerInstance(locale).format(info.count),
             DateFormat.getDateInstance(DateFormat.SHORT, locale).format(Date(info.updatedAt))
         )

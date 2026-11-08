@@ -417,4 +417,10 @@
     <string name="sponsorblock_level_default">Patrocínios, autopromoção e pedidos de subscrição</string>
     <string name="sponsorblock_level_all">Também introduções, finais, antevisões e partes sem música</string>
     <string name="sponsorblock_skipped">Saltado com o SponsorBlock</string>
+    <string name="adblock_lists_choice">Lista a utilizar</string>
+    <string name="adblock_lists_custom">Outra lista (endereço)</string>
+    <string name="adblock_lists_custom_hint">Endereço da lista</string>
+    <string name="adblock_lists_custom_desc">Um ficheiro de texto com um domínio por linha, em formato hosts ou com regras ||domínio^.</string>
+    <string name="adblock_lists_custom_change">Alterar</string>
+    <string name="adblock_lists_custom_phone">O endereço escreve-se nas Definições do telemóvel</string>
 </resources>

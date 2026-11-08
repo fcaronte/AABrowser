@@ -374,4 +374,10 @@
     <string name="sponsorblock_level_default">Sponsor, autopromozione e richieste di iscrizione</string>
     <string name="sponsorblock_level_all">Anche sigle, finali, anteprime e parti non musicali</string>
     <string name="sponsorblock_skipped">Saltato con SponsorBlock</string>
+    <string name="adblock_lists_choice">Lista da usare</string>
+    <string name="adblock_lists_custom">Altra lista (indirizzo)</string>
+    <string name="adblock_lists_custom_hint">Indirizzo della lista</string>
+    <string name="adblock_lists_custom_desc">Un file di testo con un dominio per riga, in formato hosts o con regole ||dominio^.</string>
+    <string name="adblock_lists_custom_change">Cambia</string>
+    <string name="adblock_lists_custom_phone">L\'indirizzo si scrive dalle Impostazioni sul telefono</string>
 </resources>

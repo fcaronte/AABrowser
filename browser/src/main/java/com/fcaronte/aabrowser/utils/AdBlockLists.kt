@@ -1,8 +1,10 @@
 package com.fcaronte.aabrowser.utils
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.fcaronte.aabrowser.settings.AdBlockSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,26 +13,45 @@ import kotlinx.coroutines.withContext
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
+import java.io.FilterInputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * La lista dei siti pubblicitari dell'AdBlock, oltre ai pochi domini scritti in AdBlockHost: l'AdGuard DNS filter
- * (circa 190.000 domini di pubblicità, tracciamento e pop-up, anche quelli che cambiano spesso nome), scaricata
- * dall'app e rinnovata ogni tre giorni. Si tengono solo le impronte dei domini (64 bit, ordinate): circa 1,5 MB in
- * memoria, ricerca per dominio e domini che lo contengono. Le eccezioni della lista ("@@") vincono.
+ * La lista dei siti pubblicitari dell'AdBlock, oltre ai pochi domini scritti in AdBlockHost: si sceglie nelle
+ * Impostazioni tra quelle di [SOURCES] (HaGeZi Multi PRO di serie: sul sito di prova ha gli script dei pop-up che la
+ * lista di AdGuard non aveva) o con l'indirizzo di una qualsiasi. Scaricata dall'app e rinnovata ogni tre giorni. Si
+ * tengono solo le impronte dei domini (64 bit, ordinate): 2 MB per 250.000 domini, ricerca per dominio e domini che lo
+ * contengono. Le eccezioni della lista ("@@") vincono.
  */
 object AdBlockLists {
 
-    const val SOURCE_NAME = "AdGuard DNS filter"
-    private const val SOURCE_URL = "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
+    class Source(val key: String, val name: String, val url: String)
+
+    private const val HAGEZI = "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/"
+    const val DEFAULT_KEY = "hagezi_pro"
+    const val CUSTOM_KEY = "custom"
+    val SOURCES = listOf(
+        Source(DEFAULT_KEY, "HaGeZi Multi PRO", "${HAGEZI}pro.txt"),
+        Source("hagezi_pro_plus", "HaGeZi Multi PRO++", "${HAGEZI}pro.plus.txt"),
+        Source("hagezi_normal", "HaGeZi Multi NORMAL", "${HAGEZI}multi.txt"),
+        Source("adguard", "AdGuard DNS filter", "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"),
+    )
+
     private const val REFRESH_MS = 3L * 24 * 60 * 60 * 1000
     private const val MAX_BYTES = 40L * 1024 * 1024
+    private const val MAX_DOMAINS = 3_000_000
+    private const val MAX_ADDRESS_LENGTH = 2000
     private const val TIMEOUT_MS = 30_000
     private const val FILE_NAME = "adblock_list.bin"
-    private const val MAGIC = 0x41414231 // "AAB1"
+    private const val MAGIC = 0x41414232 // "AAB2"
     private const val TAG = "AdBlockLists"
+
+    // Una lista scelta tra quelle note con meno domini di così è un errore del server, non una lista nuova
+    private const val MIN_DOMAINS = 1000
 
     // FNV-1a a 64 bit
     private const val FNV_OFFSET = -3750763034362895579L
@@ -38,8 +59,14 @@ object AdBlockLists {
 
     private val DOMAIN = Regex("[a-z0-9_-]+(\\.[a-z0-9_-]+)+")
 
-    /** Per le Impostazioni: domini nella lista, quando è stata scaricata, aggiornamento in corso o non riuscito. */
-    data class Info(val count: Int = 0, val updatedAt: Long = 0L, val updating: Boolean = false, val failed: Boolean = false)
+    /** Per le Impostazioni: nome della lista, domini, quando è stata scaricata, aggiornamento in corso o non riuscito. */
+    data class Info(
+        val name: String = "",
+        val count: Int = 0,
+        val updatedAt: Long = 0L,
+        val updating: Boolean = false,
+        val failed: Boolean = false
+    )
 
     private val _info = mutableStateOf(Info())
     val info: State<Info> = _info
@@ -53,12 +80,14 @@ object AdBlockLists {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val updating = AtomicBoolean(false)
 
-    /** All'avvio dell'app: la lista salvata, poi una nuova se è vecchia o manca. */
+    /** All'avvio dell'app: la lista salvata, poi una nuova se è vecchia, manca o non è quella scelta. */
     fun init(context: Context) {
         val app = context.applicationContext
         scope.launch {
-            val updatedAt = load(app)
-            if (System.currentTimeMillis() - updatedAt > REFRESH_MS) update(app)
+            val stored = load(app)
+            val isCurrent = stored != null && stored.url == selected()?.url &&
+                    System.currentTimeMillis() - stored.updatedAt <= REFRESH_MS
+            if (!isCurrent) update(app)
         }
     }
 
@@ -66,6 +95,22 @@ object AdBlockLists {
     fun refresh(context: Context) {
         val app = context.applicationContext
         scope.launch { update(app) }
+    }
+
+    /** Scelta nelle Impostazioni: quella di prima resta in uso finché la nuova non è arrivata. */
+    fun choose(context: Context, key: String) {
+        AdBlockSettings.setList(context, key)
+        refresh(context)
+    }
+
+    fun isValidAddress(address: String): Boolean = address.length <= MAX_ADDRESS_LENGTH && UrlUtils.isWebUrl(address)
+
+    private fun selected(): Source? {
+        val key = AdBlockSettings.listKey.value
+        if (key != CUSTOM_KEY) return SOURCES.firstOrNull { it.key == key } ?: SOURCES.first()
+        val address = AdBlockSettings.customListUrl.value.trim()
+        if (!isValidAddress(address)) return null
+        return Source(CUSTOM_KEY, Uri.parse(address).host.orEmpty(), address)
     }
 
     /** L'host o un dominio che lo contiene è nella lista (e non nelle sue eccezioni). */
@@ -134,64 +179,86 @@ object AdBlockLists {
         return name
     }
 
-    // Lista salvata: data di quando è stata scaricata, 0 se non c'è
-    private suspend fun load(context: Context): Long {
+    private class Stored(val url: String, val updatedAt: Long)
+
+    // Lista salvata, null se non c'è
+    private suspend fun load(context: Context): Stored? {
         val file = File(context.noBackupFilesDir, FILE_NAME)
-        if (!file.exists()) return 0L
+        if (!file.exists()) return null
         return try {
             DataInputStream(file.inputStream().buffered()).use { input ->
-                if (input.readInt() != MAGIC) return 0L
+                if (input.readInt() != MAGIC) return null
+                val url = input.readUTF()
+                val name = input.readUTF()
                 val updatedAt = input.readLong()
                 val blocked = LongArray(input.readInt()) { input.readLong() }
                 val allowed = LongArray(input.readInt()) { input.readLong() }
                 lists = Lists(blocked, allowed)
-                publish(Info(blocked.size, updatedAt))
-                AppLog.d(TAG, "List loaded: ${blocked.size} domains, ${allowed.size} exceptions")
-                updatedAt
+                publish(Info(name, blocked.size, updatedAt))
+                AppLog.d(TAG, "List loaded: $name, ${blocked.size} domains, ${allowed.size} exceptions")
+                Stored(url, updatedAt)
             }
         } catch (e: Exception) {
             AppLog.w(TAG, "List not loaded: ${e.javaClass.simpleName}")
-            0L
+            null
         }
     }
 
     private suspend fun update(context: Context) {
         if (!updating.compareAndSet(false, true)) return
-        publish(_info.value.copy(updating = true, failed = false))
         try {
-            val connection = (URL(SOURCE_URL).openConnection() as HttpURLConnection).apply {
-                connectTimeout = TIMEOUT_MS
-                readTimeout = TIMEOUT_MS
-                setRequestProperty("User-Agent", "CarWeb")
+            while (true) {
+                val source = selected() ?: return
+                download(context, source)
+                // Se nel frattempo è stata scelta un'altra lista si scarica quella
+                if (selected()?.url == source.url) return
             }
-            val fresh = try {
-                if (connection.responseCode != HttpURLConnection.HTTP_OK) throw IllegalStateException("HTTP ${connection.responseCode}")
-                val length = connection.contentLengthLong
-                if (length > MAX_BYTES) throw IllegalStateException("Too big")
-                connection.inputStream.bufferedReader().useLines { parse(it) }
-            } finally {
-                connection.disconnect()
-            }
-            // Una lista vuota o quasi è un errore del server, non una lista nuova
-            if (fresh.blocked.size < 1000) throw IllegalStateException("Only ${fresh.blocked.size} domains")
-            val updatedAt = System.currentTimeMillis()
-            save(context, fresh, updatedAt)
-            lists = fresh
-            publish(Info(fresh.blocked.size, updatedAt))
-            AppLog.d(TAG, "List updated: ${fresh.blocked.size} domains, ${fresh.allowed.size} exceptions")
-        } catch (e: Exception) {
-            AppLog.w(TAG, "List not updated: ${e.javaClass.simpleName} ${e.message}")
-            publish(_info.value.copy(updating = false, failed = true))
         } finally {
             updating.set(false)
         }
     }
 
-    private fun save(context: Context, fresh: Lists, updatedAt: Long) {
+    private suspend fun download(context: Context, source: Source) {
+        publish(_info.value.copy(updating = true, failed = false))
+        try {
+            val connection = (URL(source.url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                setRequestProperty("User-Agent", "CarWeb")
+            }
+            val fresh = try {
+                if (connection.responseCode != HttpURLConnection.HTTP_OK) throw IOException("HTTP ${connection.responseCode}")
+                LimitedStream(connection.inputStream).bufferedReader().useLines { parse(it) }
+            } finally {
+                connection.disconnect()
+            }
+            // Quella scritta dall'utente può essere piccola, basta che dentro ci sia qualcosa
+            val minimum = if (source.key == CUSTOM_KEY) 1 else MIN_DOMAINS
+            if (fresh.blocked.size < minimum) throw IOException("Only ${fresh.blocked.size} domains")
+            val updatedAt = System.currentTimeMillis()
+            save(context, source, fresh, updatedAt)
+            lists = fresh
+            publish(Info(source.name, fresh.blocked.size, updatedAt))
+            AppLog.d(TAG, "List updated: ${source.name}, ${fresh.blocked.size} domains, ${fresh.allowed.size} exceptions")
+        } catch (e: Exception) {
+            failed(e)
+        } catch (e: OutOfMemoryError) {
+            failed(e)
+        }
+    }
+
+    private suspend fun failed(e: Throwable) {
+        AppLog.w(TAG, "List not updated: ${e.javaClass.simpleName} ${e.message}")
+        publish(_info.value.copy(updating = false, failed = true))
+    }
+
+    private fun save(context: Context, source: Source, fresh: Lists, updatedAt: Long) {
         val file = File(context.noBackupFilesDir, FILE_NAME)
         val temp = File(context.noBackupFilesDir, "$FILE_NAME.tmp")
         DataOutputStream(temp.outputStream().buffered()).use { out ->
             out.writeInt(MAGIC)
+            out.writeUTF(source.url)
+            out.writeUTF(source.name)
             out.writeLong(updatedAt)
             out.writeInt(fresh.blocked.size)
             fresh.blocked.forEach { out.writeLong(it) }
@@ -203,12 +270,28 @@ object AdBlockLists {
 
     private suspend fun publish(value: Info) = withContext(Dispatchers.Main) { _info.value = value }
 
+    // Una lista scelta dall'utente può essere qualunque cosa: oltre questa dimensione si smette di leggere
+    private class LimitedStream(input: InputStream) : FilterInputStream(input) {
+        private var left = MAX_BYTES
+
+        override fun read(): Int = super.read().also { if (it >= 0) count(1) }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+            super.read(buffer, offset, length).also { if (it > 0) count(it) }
+
+        private fun count(bytes: Int) {
+            left -= bytes
+            if (left < 0) throw IOException("Too big")
+        }
+    }
+
     // LongArray che cresce, senza un Long per oggetto
     private class LongBuffer {
         private var data = LongArray(1024)
         private var size = 0
 
         fun add(value: Long) {
+            if (size >= MAX_DOMAINS) throw IOException("Too many domains")
             if (size == data.size) data = data.copyOf(size * 2)
             data[size++] = value
         }
