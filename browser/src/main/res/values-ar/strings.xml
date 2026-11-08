@@ -401,8 +401,6 @@
     <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
     <string name="radio_unavailable">المحطة غير متاحة</string>
     <string name="share_to_car_target">CarWeb في السيارة</string>
-    <string name="share_to_car_label">المشاركة إلى السيارة</string>
-    <string name="share_to_car_desc">يضيف «CarWeb في السيارة» إلى قائمة المشاركة في الهاتف: يُفتح الرابط أو الفيديو المشارَك في التطبيق المفتوح في السيارة (CarWeb أو CarWebWide)، ويبدأ فيديو YouTube تلقائيًا.</string>
     <string name="share_to_car_sent">أُرسل إلى CarWeb في السيارة</string>
     <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح الرابط هناك</string>
     <string name="share_to_car_no_link">لا يوجد رابط لفتحه</string>
@@ -426,4 +424,5 @@
     <string name="adblock_lists_custom_desc">ملف نصي يحتوي على نطاق واحد في كل سطر، بتنسيق hosts أو بقواعد ||domain^.</string>
     <string name="adblock_lists_custom_change">تغيير</string>
     <string name="adblock_lists_custom_phone">يُكتب العنوان من الإعدادات على الهاتف</string>
+    <string name="share_to_car_not_connected">صِل الهاتف بالسيارة لفتح الرابط في CarWeb</string>
 </resources>

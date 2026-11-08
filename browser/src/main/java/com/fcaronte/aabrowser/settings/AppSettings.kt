@@ -14,7 +14,6 @@ import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.ShareToCarActivity
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.SponsorBlock
@@ -165,10 +164,6 @@ object AppSettings {
     private val _multiWindow = mutableStateOf(false)
     val multiWindow: State<Boolean> = _multiWindow
 
-    // "CarWeb in auto" nel menu Condividi del telefono (ShareToCarActivity)
-    private val _shareToCar = mutableStateOf(false)
-    val shareToCar: State<Boolean> = _shareToCar
-
     private val _onboardingCompleted = mutableStateOf(false)
     val onboardingCompleted: State<Boolean> = _onboardingCompleted
 
@@ -234,8 +229,6 @@ object AppSettings {
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
         restoreMainAfterMediaAppTest(context)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
-        _shareToCar.value = prefs.getBoolean("share_to_car", false)
-        applyShareTarget(context, _shareToCar.value)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
         _autoSitePermissions.value = prefs.getBoolean("site_permissions_auto", false)
         _passengerMode.value = prefs.getBoolean("passenger_mode", false)
@@ -288,30 +281,6 @@ object AppSettings {
     fun setPlayerCardOpensMain(context: Context, enabled: Boolean) {
         _playerCardOpensMain.value = enabled
         saveBoolean(context, "player_card_opens_main", enabled)
-    }
-
-    fun setShareToCar(context: Context, enabled: Boolean) {
-        _shareToCar.value = enabled
-        saveBoolean(context, "share_to_car", enabled)
-        applyShareTarget(context, enabled)
-    }
-
-    // La voce del menu Condividi esiste solo con l'opzione accesa: a chi non interessa non compare. Riallineata anche
-    // all'avvio (un backup ripristinato riporta l'opzione ma non lo stato del componente)
-    private fun applyShareTarget(context: Context, enabled: Boolean) {
-        val component = ComponentName(context, ShareToCarActivity::class.java)
-        val state = if (enabled) {
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-        } else {
-            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-        }
-        try {
-            if (context.packageManager.getComponentEnabledSetting(component) != state) {
-                context.packageManager.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP)
-            }
-        } catch (e: Exception) {
-            AppLog.w("AppSettings", "Share target not updated: ${e.javaClass.simpleName}")
-        }
     }
 
     // L'opzione "CarWeb tra le app media di Android Auto" (solo build di prova del 07/11/2026, tolta perché Gemini non

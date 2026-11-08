@@ -65,7 +65,7 @@
             </intent-filter>
         </activity>
 
-        <!-- "CarWeb in auto" nel menu Condividi: spenta finché non si accende l'opzione (AppSettings.shareToCar) -->
+        <!-- "CarWeb in auto" nel menu Condividi: spenta, si accende solo con il telefono collegato all'auto (CarShareTarget) -->
         <activity
             android:name=".ShareToCarActivity"
             android:enabled="false"

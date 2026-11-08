@@ -397,8 +397,6 @@
     <string name="radio_error">रेडियो स्टेशन लोड नहीं हो सके</string>
     <string name="radio_unavailable">स्टेशन उपलब्ध नहीं है</string>
     <string name="share_to_car_target">कार में CarWeb</string>
-    <string name="share_to_car_label">कार में भेजें</string>
-    <string name="share_to_car_desc">फ़ोन के शेयर मेनू में «कार में CarWeb» जोड़ता है: शेयर किया गया लिंक या वीडियो कार में खुले ऐप (CarWeb या CarWebWide) में खुलता है, और YouTube वीडियो अपने आप चलने लगता है।</string>
     <string name="share_to_car_sent">कार में CarWeb को भेजा गया</string>
     <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: लिंक वहीं खुलेगा</string>
     <string name="share_to_car_no_link">खोलने के लिए कोई लिंक नहीं</string>
@@ -422,4 +420,5 @@
     <string name="adblock_lists_custom_desc">प्रति पंक्ति एक डोमेन वाली टेक्स्ट फ़ाइल, hosts प्रारूप में या ||domain^ नियमों के साथ।</string>
     <string name="adblock_lists_custom_change">बदलें</string>
     <string name="adblock_lists_custom_phone">पता फ़ोन पर सेटिंग्स से लिखा जाता है</string>
+    <string name="share_to_car_not_connected">लिंक को CarWeb में खोलने के लिए फ़ोन को कार से जोड़ें</string>
 </resources>

@@ -398,8 +398,6 @@
     <string name="radio_error">No se pudieron cargar las emisoras</string>
     <string name="radio_unavailable">Emisora no disponible</string>
     <string name="share_to_car_target">CarWeb en el coche</string>
-    <string name="share_to_car_label">Compartir con el coche</string>
-    <string name="share_to_car_desc">Añade «CarWeb en el coche» al menú Compartir del teléfono: un enlace o vídeo compartido se abre en la app abierta en el coche (CarWeb o CarWebWide), y un vídeo de YouTube empieza solo.</string>
     <string name="share_to_car_sent">Enviado a CarWeb en el coche</string>
     <string name="share_to_car_waiting">Abre CarWeb en el coche en menos de un minuto: el enlace se abrirá allí</string>
     <string name="share_to_car_no_link">No hay ningún enlace que abrir</string>
@@ -423,4 +421,5 @@
     <string name="adblock_lists_custom_desc">Un archivo de texto con un dominio por línea, en formato hosts o con reglas ||dominio^.</string>
     <string name="adblock_lists_custom_change">Cambiar</string>
     <string name="adblock_lists_custom_phone">La dirección se escribe desde Ajustes en el teléfono</string>
+    <string name="share_to_car_not_connected">Conecta el teléfono al coche para abrir el enlace en CarWeb</string>
 </resources>

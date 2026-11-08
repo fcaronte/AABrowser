@@ -397,8 +397,6 @@
     <string name="radio_error">Nem sikerült betölteni a rádióállomásokat</string>
     <string name="radio_unavailable">Az állomás nem érhető el</string>
     <string name="share_to_car_target">CarWeb az autóban</string>
-    <string name="share_to_car_label">Megosztás az autóba</string>
-    <string name="share_to_car_desc">Hozzáadja a „CarWeb az autóban” elemet a telefon Megosztás menüjéhez: a megosztott link vagy videó az autóban nyitott alkalmazásban nyílik meg (CarWeb vagy CarWebWide), a YouTube-videó pedig magától elindul.</string>
     <string name="share_to_car_sent">Elküldve a CarWebnek az autóban</string>
     <string name="share_to_car_waiting">Nyisd meg a CarWebet az autóban egy percen belül: a link ott nyílik meg</string>
     <string name="share_to_car_no_link">Nincs megnyitható link</string>
@@ -422,4 +420,5 @@
     <string name="adblock_lists_custom_desc">Szövegfájl soronként egy domainnel, hosts formátumban vagy ||domain^ szabályokkal.</string>
     <string name="adblock_lists_custom_change">Módosítás</string>
     <string name="adblock_lists_custom_phone">A címet a telefon Beállításaiban adhatod meg</string>
+    <string name="share_to_car_not_connected">Csatlakoztasd a telefont az autóhoz, hogy a CarWebben nyisd meg a linket</string>
 </resources>

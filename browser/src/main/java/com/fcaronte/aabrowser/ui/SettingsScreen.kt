@@ -161,7 +161,6 @@ fun SettingsScreen(
     val sponsorBlockOn by AppSettings.sponsorBlock
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val playerCardOpensMain by AppSettings.playerCardOpensMain
-    val shareToCar by AppSettings.shareToCar
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val autoSitePermissions by AppSettings.autoSitePermissions
@@ -404,16 +403,6 @@ fun SettingsScreen(
                                         onCheckedChange = { AppSettings.setPlayerCardOpensMain(context, it) }
                                     )
                                 }
-                            }
-
-                            // "CarWeb in auto" nel menu Condividi del telefono
-                            SettingsCard {
-                                SettingsSwitchItem(
-                                    label = stringResource(R.string.share_to_car_label),
-                                    description = stringResource(R.string.share_to_car_desc),
-                                    checked = shareToCar,
-                                    onCheckedChange = { AppSettings.setShareToCar(context, it) }
-                                )
                             }
 
                             // Widget Meteo nel Player
