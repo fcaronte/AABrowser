@@ -48,7 +48,7 @@ object VoiceCommands {
         data object Previous : Command
         /** Nessuno schema: la frase intera si cerca come con [Search]. */
         data class Unmatched(val text: String) : Command
-        /** Un link condiviso dal telefono con "CarWeb in auto" (non è una frase detta). */
+        /** Un link condiviso dal telefono con "Condividi su CarWeb" (non è una frase detta). */
         data class OpenLink(val url: String, val label: String? = null) : Command
     }
 

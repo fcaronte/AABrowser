@@ -7,16 +7,17 @@
     <link rel="icon" href="/icon.svg">
     <style>
         html, body { height: 100%; margin: 0; background: #000; color: #fff; }
-        #viewer { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        #viewer { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #viewer img, #viewer video { display: block; width: 100%; height: 100%; object-fit: contain; }
-        #viewer p { margin: 24px; font: 20px/1.4 sans-serif; text-align: center; }
+        #viewer audio { width: min(720px, 90%); }
+        #viewer p { margin: 24px; font: 20px/1.4 sans-serif; text-align: center; overflow-wrap: anywhere; }
     </style>
     <!-- Cosa mostrare, inserito dall'app quando serve la pagina (LocalPlayer) -->
     <script>/*AAB_CONFIG*/</script>
 </head>
 <body>
 <div id="viewer"></div>
-<!-- Foto o video condivisi dal telefono con "CarWeb in auto": i comandi del video sono quelli del browser -->
+<!-- Foto, video e file audio condivisi dal telefono con "Condividi su CarWeb": i comandi sono quelli del browser -->
 <script>
     (function () {
         'use strict';
@@ -35,14 +36,20 @@
             return;
         }
         if (config.name) document.title = config.name;
-        const element = document.createElement(config.kind === 'video' ? 'video' : 'img');
+        const playable = config.kind === 'video' || config.kind === 'audio';
+        const element = document.createElement(playable ? config.kind : 'img');
         element.addEventListener('error', showUnavailable);
-        if (config.kind === 'video') {
+        if (playable) {
             element.controls = true;
             element.autoplay = true;
             element.playsInline = true;
         }
         element.src = config.src;
+        if (config.kind === 'audio') {
+            const title = document.createElement('p');
+            title.textContent = config.name;
+            viewer.appendChild(title);
+        }
         viewer.appendChild(element);
     })();
 </script>

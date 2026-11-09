@@ -406,7 +406,11 @@
     <string name="radio_no_results">Станции не найдены</string>
     <string name="radio_error">Не удалось загрузить радиостанции</string>
     <string name="radio_unavailable">Станция недоступна</string>
-    <string name="share_to_car_target">CarWeb в машине</string>
+    <string name="share_carweb_label">Поделиться в CarWeb</string>
+    <string name="share_carweb_desc">Добавляет CarWeb в меню «Поделиться» на телефоне: ссылки, фото, видео и аудиофайлы открываются на вкладке. При подключении к машине они открываются там; с вариантом «Всегда» вне машины приложение открывается на телефоне.</string>
+    <string name="share_carweb_when">Когда показывать в меню «Поделиться»</string>
+    <string name="share_carweb_car_only">Только при подключении к машине</string>
+    <string name="share_carweb_always">Всегда</string>
     <string name="share_to_car_sent">Отправлено в CarWeb в машине</string>
     <string name="share_to_car_waiting">Откройте CarWeb в машине в течение минуты: содержимое откроется там</string>
     <string name="share_to_car_no_link">Нечего открывать</string>

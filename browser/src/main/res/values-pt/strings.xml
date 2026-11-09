@@ -405,7 +405,11 @@
     <string name="radio_no_results">Nenhuma estação encontrada</string>
     <string name="radio_error">Não foi possível carregar as estações de rádio</string>
     <string name="radio_unavailable">Estação indisponível</string>
-    <string name="share_to_car_target">CarWeb no automóvel</string>
+    <string name="share_carweb_label">Partilhar no CarWeb</string>
+    <string name="share_carweb_desc">Adiciona o CarWeb ao menu Partilhar do telemóvel: ligações, fotos, vídeos e ficheiros de áudio abrem num separador. Com o automóvel ligado abrem lá; com «Sempre», longe do automóvel, a aplicação abre no telemóvel.</string>
+    <string name="share_carweb_when">Quando mostrar no menu Partilhar</string>
+    <string name="share_carweb_car_only">Só com o automóvel ligado</string>
+    <string name="share_carweb_always">Sempre</string>
     <string name="share_to_car_sent">Enviado para o CarWeb no automóvel</string>
     <string name="share_to_car_waiting">Abra o CarWeb no automóvel dentro de um minuto: vai abrir lá</string>
     <string name="share_to_car_no_link">Nada para abrir</string>

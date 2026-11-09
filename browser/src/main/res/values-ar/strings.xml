@@ -408,7 +408,11 @@
     <string name="radio_no_results">لم يتم العثور على محطات</string>
     <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
     <string name="radio_unavailable">المحطة غير متاحة</string>
-    <string name="share_to_car_target">CarWeb في السيارة</string>
+    <string name="share_carweb_label">المشاركة إلى CarWeb</string>
+    <string name="share_carweb_desc">يضيف CarWeb إلى قائمة المشاركة في الهاتف: تُفتح الروابط والصور والفيديوهات والملفات الصوتية في علامة تبويب. عند الاتصال بالسيارة تُفتح هناك؛ ومع «دائمًا»، بعيدًا عن السيارة، يُفتح التطبيق على الهاتف.</string>
+    <string name="share_carweb_when">متى تظهر في قائمة المشاركة</string>
+    <string name="share_carweb_car_only">فقط عند الاتصال بالسيارة</string>
+    <string name="share_carweb_always">دائمًا</string>
     <string name="share_to_car_sent">أُرسل إلى CarWeb في السيارة</string>
     <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح هناك</string>
     <string name="share_to_car_no_link">لا يوجد شيء لفتحه</string>

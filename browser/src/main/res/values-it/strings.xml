@@ -362,7 +362,11 @@
     <string name="radio_no_results">Nessuna stazione trovata</string>
     <string name="radio_error">Impossibile caricare le stazioni radio</string>
     <string name="radio_unavailable">Stazione non disponibile</string>
-    <string name="share_to_car_target">CarWeb in auto</string>
+    <string name="share_carweb_label">Condividi su CarWeb</string>
+    <string name="share_carweb_desc">Aggiunge CarWeb al menu Condividi del telefono: link, foto, video e file audio si aprono in una scheda. Con il telefono collegato all\'auto si aprono lì; con «Sempre», lontano dall\'auto, si apre l\'app sul telefono.</string>
+    <string name="share_carweb_when">Quando mostrarla nel menu Condividi</string>
+    <string name="share_carweb_car_only">Solo con l\'auto collegata</string>
+    <string name="share_carweb_always">Sempre</string>
     <string name="share_to_car_sent">Inviato a CarWeb in auto</string>
     <string name="share_to_car_waiting">Apri CarWeb in auto entro un minuto: si aprirà lì</string>
     <string name="share_to_car_no_link">Niente da aprire</string>

@@ -404,7 +404,11 @@
     <string name="radio_no_results">Keine Sender gefunden</string>
     <string name="radio_error">Radiosender konnten nicht geladen werden</string>
     <string name="radio_unavailable">Sender nicht verfügbar</string>
-    <string name="share_to_car_target">CarWeb im Auto</string>
+    <string name="share_carweb_label">Mit CarWeb teilen</string>
+    <string name="share_carweb_desc">Fügt CarWeb dem Teilen-Menü des Telefons hinzu: Links, Fotos, Videos und Audiodateien werden in einem Tab geöffnet. Mit dem Auto verbunden öffnen sie sich dort; mit „Immer“ öffnet sich abseits des Autos die App auf dem Telefon.</string>
+    <string name="share_carweb_when">Wann im Teilen-Menü anzeigen</string>
+    <string name="share_carweb_car_only">Nur mit verbundenem Auto</string>
+    <string name="share_carweb_always">Immer</string>
     <string name="share_to_car_sent">An CarWeb im Auto gesendet</string>
     <string name="share_to_car_waiting">Öffne CarWeb im Auto innerhalb einer Minute: Es wird dort geöffnet</string>
     <string name="share_to_car_no_link">Nichts zum Öffnen</string>

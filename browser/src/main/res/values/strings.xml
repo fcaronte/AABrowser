@@ -409,7 +409,11 @@
     <string name="radio_no_results">No stations found</string>
     <string name="radio_error">Could not load radio stations</string>
     <string name="radio_unavailable">Station unavailable</string>
-    <string name="share_to_car_target">CarWeb in the car</string>
+    <string name="share_carweb_label">Share to CarWeb</string>
+    <string name="share_carweb_desc">Adds CarWeb to the phone\'s Share menu: links, photos, videos and audio files open in a tab. While connected to the car they open there; with “Always”, away from the car, the app opens on the phone.</string>
+    <string name="share_carweb_when">When to show it in the Share menu</string>
+    <string name="share_carweb_car_only">Only with the car connected</string>
+    <string name="share_carweb_always">Always</string>
     <string name="share_to_car_sent">Sent to CarWeb in the car</string>
     <string name="share_to_car_waiting">Open CarWeb in the car within a minute: it will open there</string>
     <string name="share_to_car_no_link">Nothing to open</string>

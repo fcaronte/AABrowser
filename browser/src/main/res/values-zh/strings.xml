@@ -403,7 +403,11 @@
     <string name="radio_no_results">未找到电台</string>
     <string name="radio_error">无法加载电台</string>
     <string name="radio_unavailable">电台不可用</string>
-    <string name="share_to_car_target">车内的 CarWeb</string>
+    <string name="share_carweb_label">分享到 CarWeb</string>
+    <string name="share_carweb_desc">将 CarWeb 添加到手机的分享菜单：链接、照片、视频和音频文件会在标签页中打开。连接车辆时在车上打开；选择“始终”时，未连接车辆则在手机上打开应用。</string>
+    <string name="share_carweb_when">何时显示在分享菜单中</string>
+    <string name="share_carweb_car_only">仅在连接车辆时</string>
+    <string name="share_carweb_always">始终</string>
     <string name="share_to_car_sent">已发送到车内的 CarWeb</string>
     <string name="share_to_car_waiting">请在一分钟内在车上打开 CarWeb：内容将在那里打开</string>
     <string name="share_to_car_no_link">没有可打开的内容</string>

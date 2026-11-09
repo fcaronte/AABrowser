@@ -15,6 +15,7 @@ import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.CarShareTarget
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.SponsorBlock
 
@@ -161,6 +162,12 @@ object AppSettings {
     private val _playerCardOpensMain = mutableStateOf(false)
     val playerCardOpensMain: State<Boolean> = _playerCardOpensMain
 
+    // "Condividi su CarWeb": la voce nel menu Condividi del telefono (CarShareTarget), di serie solo con l'auto collegata
+    private val _shareToCarWeb = mutableStateOf(true)
+    val shareToCarWeb: State<Boolean> = _shareToCarWeb
+    private val _shareAlways = mutableStateOf(false)
+    val shareAlways: State<Boolean> = _shareAlways
+
     private val _multiWindow = mutableStateOf(false)
     val multiWindow: State<Boolean> = _multiWindow
 
@@ -227,6 +234,8 @@ object AppSettings {
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
+        _shareToCarWeb.value = prefs.getBoolean("share_to_carweb", true)
+        _shareAlways.value = prefs.getBoolean("share_always", false)
         restoreMainAfterMediaAppTest(context)
         _multiWindow.value = prefs.getBoolean("multi_window", false)
         _onboardingCompleted.value = prefs.getBoolean("onboarding_completed", false)
@@ -281,6 +290,18 @@ object AppSettings {
     fun setPlayerCardOpensMain(context: Context, enabled: Boolean) {
         _playerCardOpensMain.value = enabled
         saveBoolean(context, "player_card_opens_main", enabled)
+    }
+
+    fun setShareToCarWeb(context: Context, enabled: Boolean) {
+        _shareToCarWeb.value = enabled
+        saveBoolean(context, "share_to_carweb", enabled)
+        CarShareTarget.update(context)
+    }
+
+    fun setShareAlways(context: Context, always: Boolean) {
+        _shareAlways.value = always
+        saveBoolean(context, "share_always", always)
+        CarShareTarget.update(context)
     }
 
     // L'opzione "CarWeb tra le app media di Android Auto" (solo build di prova del 07/11/2026, tolta perché Gemini non

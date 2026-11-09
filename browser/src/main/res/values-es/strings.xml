@@ -405,7 +405,11 @@
     <string name="radio_no_results">No se encontraron emisoras</string>
     <string name="radio_error">No se pudieron cargar las emisoras</string>
     <string name="radio_unavailable">Emisora no disponible</string>
-    <string name="share_to_car_target">CarWeb en el coche</string>
+    <string name="share_carweb_label">Compartir en CarWeb</string>
+    <string name="share_carweb_desc">Añade CarWeb al menú Compartir del teléfono: los enlaces, fotos, vídeos y archivos de audio se abren en una pestaña. Con el coche conectado se abren allí; con «Siempre», lejos del coche, se abre la aplicación en el teléfono.</string>
+    <string name="share_carweb_when">Cuándo mostrarla en el menú Compartir</string>
+    <string name="share_carweb_car_only">Solo con el coche conectado</string>
+    <string name="share_carweb_always">Siempre</string>
     <string name="share_to_car_sent">Enviado a CarWeb en el coche</string>
     <string name="share_to_car_waiting">Abre CarWeb en el coche en menos de un minuto: se abrirá allí</string>
     <string name="share_to_car_no_link">No hay nada que abrir</string>

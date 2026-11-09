@@ -72,9 +72,10 @@ from the misuse of this application. Use at your own risk.
 * **Voice commands:** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
   channels (new in 2.6), search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
-* **Share to the car (new in 2.6):** while the phone is connected to the car its Share menu has "CarWeb in the car" (away from
-  the car the entry is not there): a link shared from any app, or a photo or video from the gallery, opens in the app open
-  in the car (CarWeb or CarWebWide), and a YouTube video starts by itself. With no app open in the car, it waits a minute for the one you open.
+* **Share to CarWeb (new in 2.6):** the phone's Share menu has "CarWeb": a link shared from any app, or a photo, video or
+  audio file, opens in a tab of the app open in the car (CarWeb or CarWebWide), and a YouTube video starts by itself. With no
+  app open in the car, it waits a minute for the one you open. In Settings the entry can be off, shown only with the car
+  connected (the default) or always: away from the car it then opens CarWeb on the phone.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -273,9 +274,10 @@ proprio rischio e pericolo.
 * **Comandi vocali:** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio e canali TV (novità 2.6),
   cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
-* **Condividi verso l'auto (novità 2.6):** con il telefono collegato all'auto il menu Condividi ha «CarWeb in auto» (lontano
-  dall'auto la voce non c'è): un link condiviso da qualsiasi app, o una foto o un video dalla galleria, si apre nell'app
-  aperta in auto (CarWeb o CarWebWide), e un video di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri.
+* **Condividi su CarWeb (novità 2.6):** il menu Condividi del telefono ha «CarWeb»: un link condiviso da qualsiasi app, o una
+  foto, un video o un file audio, si apre in una scheda dell'app aperta in auto (CarWeb o CarWebWide), e un video di YouTube
+  parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri. Nelle Impostazioni la voce si può
+  spegnere, mostrare solo con l'auto collegata (di serie) o sempre: lontano dall'auto si apre allora CarWeb sul telefono.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel

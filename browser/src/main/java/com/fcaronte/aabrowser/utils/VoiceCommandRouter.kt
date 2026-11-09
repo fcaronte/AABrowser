@@ -7,7 +7,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 /**
  * Smista i comandi vocali che non arrivano dal tasto microfono di una schermata: "Ok Google, metti … su AABrowser"
  * (Assistente e Gemini, tramite CarMediaService o MEDIA_PLAY_FROM_SEARCH), i link condivisi dal telefono con
- * "CarWeb in auto" e la prova da adb delle build di debug. La Main e la Wide si registrano finché sono aperte; senza
+ * "Condividi su CarWeb" e la prova da adb delle build di debug. La Main e la Wide si registrano finché sono aperte; senza
  * nessuna delle due il comando aspetta per un po' quella che si apre. La Main può essere aperta due volte, sul
  * telefono e in auto: vale quella in auto. Tiene anche le ricerche di YouTube da far partire (primo risultato).
  *
@@ -81,11 +81,15 @@ object VoiceCommandRouter {
             ?: registrations.takeUnless { carOnly }?.lastOrNull { it.target == target }
 
     /**
-     * Link condiviso dal telefono ("CarWeb in auto"): si apre nell'app aperta in auto. false = nessuna aperta, il link
+     * Link condiviso dal telefono ("Condividi su CarWeb"): si apre nell'app aperta in auto. false = nessuna aperta, il link
      * aspetta quella che si apre.
      */
     fun openInCar(url: String, label: String? = null): Boolean =
         dispatch(VoiceCommands.Command.OpenLink(url, label), carOnly = true)
+
+    /** Link o file condiviso lontano dall'auto: nella Main del telefono, che aspetta se si sta ancora aprendo. */
+    fun openOnPhone(url: String, label: String? = null): Boolean =
+        dispatch(VoiceCommands.Command.OpenLink(url, label), Target.MAIN)
 
     /**
      * "Ok Google, metti … su AABrowser". false = nessuna schermata aperta: il comando resta in attesa

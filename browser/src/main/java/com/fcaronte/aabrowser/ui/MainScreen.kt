@@ -394,7 +394,9 @@ fun MainScreen(
                     VoiceCommands.LoadKind.SITE ->
                         localizedContext.getString(R.string.voice_command_site, plan.siteName.orEmpty(), plan.label)
                     VoiceCommands.LoadKind.PAGE -> localizedContext.getString(R.string.voice_command_open, plan.label)
-                    VoiceCommands.LoadKind.LINK -> localizedContext.getString(R.string.share_to_car_opened, plan.label)
+                    // Sul telefono si vede da sé cosa si è aperto
+                    VoiceCommands.LoadKind.LINK ->
+                        if (isAutomotive) localizedContext.getString(R.string.share_to_car_opened, plan.label) else null
                 }
             }
 

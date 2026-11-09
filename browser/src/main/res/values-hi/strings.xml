@@ -404,7 +404,11 @@
     <string name="radio_no_results">कोई स्टेशन नहीं मिला</string>
     <string name="radio_error">रेडियो स्टेशन लोड नहीं हो सके</string>
     <string name="radio_unavailable">स्टेशन उपलब्ध नहीं है</string>
-    <string name="share_to_car_target">कार में CarWeb</string>
+    <string name="share_carweb_label">CarWeb पर साझा करें</string>
+    <string name="share_carweb_desc">फ़ोन के शेयर मेन्यू में CarWeb जोड़ता है: लिंक, फ़ोटो, वीडियो और ऑडियो फ़ाइलें एक टैब में खुलती हैं। कार से जुड़े होने पर वे वहीं खुलती हैं; «हमेशा» चुनने पर कार से दूर ऐप फ़ोन पर खुलता है।</string>
+    <string name="share_carweb_when">शेयर मेन्यू में कब दिखाएँ</string>
+    <string name="share_carweb_car_only">केवल कार से जुड़े होने पर</string>
+    <string name="share_carweb_always">हमेशा</string>
     <string name="share_to_car_sent">कार में CarWeb को भेजा गया</string>
     <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: यह वहीं खुलेगा</string>
     <string name="share_to_car_no_link">खोलने के लिए कुछ नहीं</string>

@@ -164,6 +164,8 @@ fun SettingsScreen(
     val sponsorBlockOn by AppSettings.sponsorBlock
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
     val playerCardOpensMain by AppSettings.playerCardOpensMain
+    val shareToCarWeb by AppSettings.shareToCarWeb
+    val shareAlways by AppSettings.shareAlways
     val weatherWidgetEnabled by AppSettings.weatherWidgetEnabled
     val multiWindow by AppSettings.multiWindow
     val autoSitePermissions by AppSettings.autoSitePermissions
@@ -172,6 +174,7 @@ fun SettingsScreen(
 
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedMediaSection by remember { mutableStateOf(focusLists != null) }
+    var expandedShareWhen by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
     var cacheSize by remember { mutableStateOf("...") }
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
@@ -406,6 +409,35 @@ fun SettingsScreen(
                                         checked = playerCardOpensMain,
                                         onCheckedChange = { AppSettings.setPlayerCardOpensMain(context, it) }
                                     )
+                                }
+                            }
+
+                            // "Condividi su CarWeb" nel menu Condividi del telefono: mai, solo con l'auto collegata o sempre
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(bottom = if (shareToCarWeb) 12.dp else 0.dp)) {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.share_carweb_label),
+                                        description = stringResource(R.string.share_carweb_desc),
+                                        checked = shareToCarWeb,
+                                        onCheckedChange = { AppSettings.setShareToCarWeb(context, it) }
+                                    )
+
+                                    if (shareToCarWeb) {
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.share_carweb_when),
+                                            options = listOf(
+                                                "car" to stringResource(R.string.share_carweb_car_only),
+                                                "always" to stringResource(R.string.share_carweb_always)
+                                            ),
+                                            selectedKey = if (shareAlways) "always" else "car",
+                                            expanded = expandedShareWhen,
+                                            onExpandedChange = { expandedShareWhen = it },
+                                            onSelect = {
+                                                AppSettings.setShareAlways(context, it == "always")
+                                                expandedShareWhen = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
 

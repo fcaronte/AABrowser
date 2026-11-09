@@ -1206,7 +1206,7 @@ fun BrowserScreen(
                                 jsDialog = null
 
                                 if (!VoiceCommands.isYouTubeUrl(url)) voiceAutoplay = false
-                                // Video condiviso dal telefono con "CarWeb in auto": parte da solo, come con "metti …"
+                                // Video condiviso dal telefono con "Condividi su CarWeb": parte da solo, come con "metti …"
                                 if (currentIsTabActive &&
                                     VoiceCommandRouter.consumeAutoplay(VoiceCommandRouter.Target.MAIN, url)
                                 ) {
