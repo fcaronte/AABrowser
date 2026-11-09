@@ -78,6 +78,7 @@
 \- Feed letti in streaming da `PodcastFeed` (SAX: si ferma a 300 episodi e 40 MB, tiene solo gli `item` con `enclosure` audio o video; Expat su Android, Xerces nei test). Provato su 197 feed veri di 8 Paesi.
 \- Liste in `IptvSources.Section.PODCAST` (fuori dal backup): classifica del Paese della lingua dell'app (non rimovibile), altri Paesi, feed RSS (letti all'aggiunta: controllo e nome) e file OPML. Nel menu della pagina tutti i feed sono una voce sola, "I miei podcast".
 \- Copertine delle righe: il feed fino al primo episodio (`/api/podcast/cover`, tre richieste alla volta, solo righe in vista, ricordate in `localStorage`). Punto d'ascolto per episodio in `localStorage` (`podcast-progress.js`, test con `node --test`). Aprire gli episodi aggiunge una voce alla cronologia: Indietro torna ai podcast.
+\- A fine episodio parte il successivo nell'ordine d'ascolto (`itunes:type` "serial": il più nuovo; altrimenti il più vecchio, quello sotto nell'elenco), saltando quelli finiti; lo stesso per «avanti» e «precedente» detti a voce: `NEXT_SCRIPT`/`PREVIOUS_SCRIPT` chiamano `window.aabNextItem`/`aabPreviousItem` della pagina, che non tocca i tasti di Android Auto.
 \- `/podcast` non è una pagina a brani: Android Auto mostra −10/+10 s e i tasti al volante fanno lo stesso. Niente comandi vocali per ora (`VoiceCommands.isPodcastPage`, `mediaSectionOf` nullo; `TabManager` la tiene distinta dalle altre pagine di player.local). I feed http suonano direttamente come le radio http (`<audio>`, contenuti misti ammessi).
 
 \### Radio in CarWeb Media

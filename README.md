@@ -50,8 +50,8 @@ from the misuse of this application. Use at your own risk.
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player.
 * **Podcasts in CarWeb Media:** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
-  your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped. The
-  audio comes straight from each publisher: no catalog or content ships with the app.
+  your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped, and
+  at the end the next one starts. The audio comes straight from each publisher: no catalog or content ships with the app.
 * **TV in CarWeb Media:** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings > TV, Radio and Podcasts, which also opens from the
@@ -256,7 +256,8 @@ proprio rischio e pericolo.
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
 * **Podcast in CarWeb Media:** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
   e i tuoi feed con indirizzo RSS o file OPML nelle Impostazioni > TV, Radio e Podcast. Gli episodi riprendono da dove eri
-  rimasto. L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun catalogo né contenuto.
+  rimasto, e alla fine parte il successivo. L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun
+  catalogo né contenuto.
 * **TV in CarWeb Media:** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > TV, Radio e Podcast, che si

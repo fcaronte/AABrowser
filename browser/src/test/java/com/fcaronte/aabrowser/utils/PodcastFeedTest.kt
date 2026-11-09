@@ -53,6 +53,15 @@ class PodcastFeedTest {
     }
 
     @Test
+    fun serialShowsAreRecognized() {
+        assertEquals(false, parse(feed(item(1))).serial)
+        assertEquals(true, parse(feed(item(1), channel = "<itunes:type>serial</itunes:type>")).serial)
+        assertEquals(false, parse(feed(item(1), channel = "<itunes:type>episodic</itunes:type>")).serial)
+        // Il tipo della puntata non è quello del podcast
+        assertEquals(false, parse(feed(item(1, "<itunes:episodeType>full</itunes:episodeType>"))).serial)
+    }
+
+    @Test
     fun theChannelImageIsUsedWithoutItunesImage() {
         val xml = feed("").replace("""<itunes:image href="https://example.com/show.jpg"/>""", "")
         val channel = parse(xml)

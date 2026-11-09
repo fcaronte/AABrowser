@@ -27,6 +27,7 @@
     let showFollowed = false;
     let openShow = null;        // il podcast di cui si vedono gli episodi
     let episodes = [];
+    let playList = null;        // gli episodi del podcast in ascolto, per il successivo: { id, serial, episodes }
     let visible = [];
     let showsScroll = 0;
     let current = null;         // { show, episode }: in ascolto, o l'ultimo ascoltato
@@ -384,6 +385,7 @@
             openShow = Object.assign({}, show, data.show);
             if (data.show.image) show.image = data.show.image;
             episodes = data.episodes || [];
+            playList = { id: openShow.id, serial: !!openShow.serial, episodes };
             channelsBox.scrollTop = 0;
             render();
             message(episodes.length ? '' : (S.noResults || 'No podcasts found'));
@@ -508,6 +510,39 @@
         saveProgress();
     }
 
+    async function episodesOf(show) {
+        if (playList && playList.id === show.id) return playList;
+        const data = await api('/api/podcast/episodes', { show: show.id });
+        playList = { id: show.id, serial: !!(data.show && data.show.serial), episodes: data.episodes || [] };
+        return playList;
+    }
+
+    // L'episodio dopo nell'ordine d'ascolto: nei podcast a puntate ("serial") il più nuovo, negli altri il più vecchio,
+    // quello sotto nell'elenco. Andando avanti si saltano quelli già finiti
+    async function playNeighbour(forward) {
+        if (!current) return false;
+        let list;
+        try {
+            list = await episodesOf(current.show);
+        } catch (_) {
+            return false;
+        }
+        const items = list.episodes;
+        const index = items.findIndex((episode) => episode.id === current.episode.id);
+        if (index < 0) return false;
+        const step = forward !== list.serial ? 1 : -1;
+        for (let i = index + step; i >= 0 && i < items.length; i += step) {
+            if (forward && Progress.isDone(state.progress[items[i].id])) continue;
+            playEpisode(current.show, items[i]);
+            return true;
+        }
+        return false;
+    }
+
+    // "Avanti" e "precedente" a voce: chiamati dagli script del player dell'app, senza cambiare i tasti di Android Auto
+    window.aabNextItem = () => playNeighbour(true);
+    window.aabPreviousItem = () => playNeighbour(false);
+
     media.addEventListener('loadedmetadata', () => {
         if (pendingSeek > 0 && (!isFinite(media.duration) || pendingSeek < media.duration)) media.currentTime = pendingSeek;
         pendingSeek = 0;
@@ -528,6 +563,7 @@
     media.addEventListener('ended', () => {
         document.body.classList.remove('is-playing');
         saveProgress();
+        playNeighbour(true);
     });
     media.addEventListener('error', () => {
         if (audioReady) message(S.unavailable || 'Episode not available');

@@ -35,14 +35,21 @@ internal object PodcastFeed {
         val image: String?,
     )
 
-    data class Channel(val title: String, val author: String, val image: String?, val episodes: List<Episode>)
+    /** [serial]: puntate da ascoltare in ordine (itunes:type "serial"), dalla prima. */
+    data class Channel(
+        val title: String,
+        val author: String,
+        val image: String?,
+        val episodes: List<Episode>,
+        val serial: Boolean = false,
+    )
 
     /** [headOnly]: solo i dati del podcast, senza scaricare gli episodi. */
     fun parse(input: InputStream, maxEpisodes: Int = MAX_EPISODES, headOnly: Boolean = false): Channel {
         val handler = FeedHandler(maxEpisodes, headOnly)
         run(input, handler)
         require(handler.isFeed) { "Not an RSS feed" }
-        return Channel(handler.title.trim(), handler.author.trim(), handler.image, handler.episodes)
+        return Channel(handler.title.trim(), handler.author.trim(), handler.image, handler.episodes, handler.serial)
     }
 
     /** Nome e indirizzo dei feed di un file OPML (anche nelle cartelle), senza doppioni. */
@@ -127,6 +134,7 @@ internal object PodcastFeed {
         var title = ""
         var author = ""
         var image: String? = null
+        var serial = false
         val episodes = ArrayList<Episode>()
 
         private val dates = DATE_PATTERNS.map { SimpleDateFormat(it, Locale.ENGLISH) }
@@ -181,7 +189,7 @@ internal object PodcastFeed {
                 inItem && (uri.isEmpty() && localName in ITEM_TEXT || isItunes(uri) && localName == "duration") -> capture()
                 !inItem && uri.isEmpty() && localName == "image" -> inChannelImage = true
                 inChannelImage && uri.isEmpty() && localName == "url" -> capture()
-                !inItem && !inChannelImage && (uri.isEmpty() && localName == "title" || isItunes(uri) && localName == "author") -> capture()
+                !inItem && !inChannelImage && (uri.isEmpty() && localName == "title" || isItunes(uri) && localName in CHANNEL_ITUNES) -> capture()
             }
         }
 
@@ -210,6 +218,7 @@ internal object PodcastFeed {
                 inChannelImage -> Unit
                 uri.isEmpty() && localName == "title" && title.isEmpty() -> title = value
                 isItunes(uri) && localName == "author" && author.isEmpty() -> author = value
+                isItunes(uri) && localName == "type" -> serial = value.equals("serial", ignoreCase = true)
             }
         }
 
@@ -251,6 +260,7 @@ internal object PodcastFeed {
     }
 
     private val ITEM_TEXT = setOf("title", "guid", "pubDate")
+    private val CHANNEL_ITUNES = setOf("author", "type")
 
     private val DATE_PATTERNS = listOf(
         "EEE, d MMM yyyy HH:mm:ss Z",

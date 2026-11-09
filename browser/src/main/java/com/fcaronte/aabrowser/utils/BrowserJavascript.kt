@@ -627,6 +627,14 @@ object BrowserJavascript {
         } catch(e) {}
     }
 
+    // Una pagina che vuole il suo comando senza cambiare i tasti di Android Auto (Podcast: -10/+10 s anche al volante)
+    if (typeof window.aabNextItem === 'function') {
+        try {
+            window.aabNextItem();
+            return;
+        } catch(e) {}
+    }
+
     function smartClick(el) {
         if (!el) return false;
 
@@ -802,6 +810,14 @@ object BrowserJavascript {
         typeof window.aabMediaSessionHandlers['previoustrack'] === 'function') {
         try {
             window.aabMediaSessionHandlers['previoustrack']({ action: 'previoustrack' });
+            return;
+        } catch(e) {}
+    }
+
+    // Una pagina che vuole il suo comando senza cambiare i tasti di Android Auto (Podcast: -10/+10 s anche al volante)
+    if (typeof window.aabPreviousItem === 'function') {
+        try {
+            window.aabPreviousItem();
             return;
         } catch(e) {}
     }

@@ -257,6 +257,7 @@ internal object PodcastApi {
             .put("id", show.id)
             .put("title", channel.title.ifBlank { show.title })
             .put("author", channel.author.ifBlank { show.author })
+            .put("serial", channel.serial)
             .apply { channel.image?.let { put("image", it) } }
         return json(JSONObject().put("show", details).put("episodes", list))
     }
