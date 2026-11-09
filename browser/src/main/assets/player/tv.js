@@ -1,7 +1,7 @@
 /*
  * TV di CarWeb Media: liste M3U e account Xtream aggiunti nelle Impostazioni dell'app. L'app legge le liste e fa da
  * tramite per gli stream (IptvApi, IptvProxy): qui arrivano solo nomi, gruppi, loghi e indirizzi del tramite.
- * Gruppi, ricerca, preferiti e ultimo canale (salvati nella pagina); HLS con hls.js, MPEG-TS con mpegts.js, il resto
+ * Gruppi, ricerca, preferiti di tutte le liste insieme e ultimo canale (salvati nella pagina); HLS con hls.js, MPEG-TS con mpegts.js, il resto
  * direttamente nel video. Sul player di Android Auto ⏮ ⏭ cambiano canale (Media Session).
  */
 (function () {
@@ -20,11 +20,24 @@
     const space = byId('channelsSpace');
     const message = byId('message');
 
-    // { source, group (indice o 'fav'), last: canale con la sua lista (s), favorites: { lista: [canali] } }
+    // { source, group (indice o 'fav'), last: canale con la sua lista (s), favs: [canali, ognuno con la sua lista (s)] }
     const state = readState();
+    // Fino alla 2.6 i preferiti erano per lista ({ lista: [canali] }): ora sono insieme, ognuno con la sua lista
+    if (state.favorites && !state.favs) {
+        state.favs = [];
+        Object.keys(state.favorites).forEach((source) => {
+            (state.favorites[source] || []).forEach((channel) => {
+                if (!state.favs.some((favorite) => favorite.s === source && favorite.k === channel.k)) {
+                    state.favs.push(Object.assign({}, channel, { s: source }));
+                }
+            });
+        });
+        delete state.favorites;
+        saveState();
+    }
     let groups = [];
     let items = []; // canali mostrati: un gruppo, la ricerca o i preferiti
-    let current = null; // { k, n, l, g }
+    let current = null; // { s, k, n, l, g }
     let hls = null;
     let ts = null;
     let retried = false;
@@ -235,7 +248,7 @@
         row.className = 'channel';
         row.style.top = (index * ROW) + 'px';
         row.dataset.index = String(index);
-        if (current && current.k === channel.k) row.classList.add('current');
+        if (sameChannel(current, channel)) row.classList.add('current');
         if (channel.l) {
             const logo = document.createElement('img');
             logo.loading = 'lazy';
@@ -275,15 +288,25 @@
     });
 
     // ------------------------------------------------------------------
-    // Preferiti (per lista)
+    // Preferiti: di tutte le liste insieme, ognuno con la sua lista
     // ------------------------------------------------------------------
 
+    // Un canale è della lista da cui viene (s); quelli dell'elenco mostrato sono della lista scelta
+    function sourceOf(channel) {
+        return channel.s || state.source;
+    }
+
+    function sameChannel(a, b) {
+        return !!a && !!b && a.k === b.k && sourceOf(a) === sourceOf(b);
+    }
+
+    // Quelli di una lista tolta non si vedono ma restano: tornano se torna la lista (o la lingua dell'app)
     function favorites() {
-        return (state.favorites && state.favorites[state.source]) || [];
+        return (state.favs || []).filter((favorite) => picker.has(favorite.s));
     }
 
     function isFavorite(channel) {
-        return favorites().some((favorite) => favorite.k === channel.k);
+        return (state.favs || []).some((favorite) => sameChannel(favorite, channel));
     }
 
     function updateFavoriteButton() {
@@ -292,11 +315,10 @@
 
     byId('favorite').addEventListener('click', () => {
         if (!current) return;
-        state.favorites = state.favorites || {};
-        const list = favorites();
-        state.favorites[state.source] = isFavorite(current)
-            ? list.filter((favorite) => favorite.k !== current.k)
-            : list.concat([{ k: current.k, n: current.n, l: current.l, g: current.g }]);
+        const all = state.favs || [];
+        state.favs = isFavorite(current)
+            ? all.filter((favorite) => !sameChannel(favorite, current))
+            : all.concat([{ s: sourceOf(current), k: current.k, n: current.n, l: current.l, g: current.g }]);
         saveState();
         updateFavoriteButton();
         if (state.group === 'fav' && !searchInput.value.trim()) setItems(favorites());
@@ -362,16 +384,17 @@
         document.body.classList.remove('has-video');
     }
 
+    // Anche un preferito di un'altra lista: parte dalla sua, senza cambiare quella scelta
     function play(channel) {
-        current = channel;
+        current = Object.assign({}, channel, { s: sourceOf(channel) });
         retried = false;
-        state.last = Object.assign({ s: state.source }, channel);
+        state.last = current;
         saveState();
-        showChannel(channel);
+        showChannel(current);
         redrawRows();
         showMessage(S.loading);
         const token = ++playToken;
-        api('play', { ch: channel.k }).then((info) => {
+        api('play', { ch: current.k, source: current.s }).then((info) => {
             if (token !== playToken) return;
             stopPlayer();
             start(info);
@@ -425,7 +448,7 @@
 
     function step(offset) {
         if (!items.length) return;
-        const index = current ? items.findIndex((channel) => channel.k === current.k) : -1;
+        const index = current ? items.findIndex((channel) => sameChannel(channel, current)) : -1;
         const target = index < 0 ? 0 : (index + offset + items.length) % items.length;
         play(items[target]);
         // La riga del canale resta in vista
@@ -572,7 +595,8 @@
         ? state.source
         : config.sources[0].id;
     state.locale = config.locale;
-    if (state.last && state.last.s === source) {
+    // L'ultimo canale, anche di un'altra lista: ▶ lo fa ripartire dalla sua
+    if (state.last && state.last.s && picker.has(state.last.s)) {
         current = state.last;
         showChannel(current);
     }

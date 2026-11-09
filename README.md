@@ -56,7 +56,8 @@ from the misuse of this application. Use at your own risk.
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings > TV, Radio and Podcasts, which also opens from the
   "Add a list" entry of the menu at the top of the page; in the car a message says to do it on the phone; for Xtream the
-  full link with username and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
+  full link with username and password is enough). Groups, search and favorites, which gather channels from all your lists
+  without switching list; HLS (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
   to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
@@ -263,7 +264,8 @@ proprio rischio e pericolo.
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > TV, Radio e Podcast, che si
   aprono anche dalla voce "Aggiungi una lista" del menu in alto nella pagina; in auto un messaggio dice di farlo dal
-  telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
+  telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti, che raccolgono i canali di
+  tutte le liste senza cambiare lista; stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
   player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
