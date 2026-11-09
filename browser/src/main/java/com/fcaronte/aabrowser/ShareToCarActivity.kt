@@ -20,9 +20,9 @@ import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 
 /**
  * "Condividi su CarWeb", la voce nel menu Condividi del telefono (CarShareTarget). Il link, la foto, il video o il file
- * audio condivisi si aprono nell'app aperta in auto (CarWeb o CarWebWide, come un comando vocale); senza app aperte
- * aspettano un minuto quella che si apre. Lontano dall'auto, con l'opzione "Sempre", si apre CarWeb sul telefono.
- * Nessuna schermata: un messaggio e basta.
+ * audio condivisi si aprono in CarWeb in auto, o in CarWebWide se è lei davanti (VoiceCommandRouter.openInCar); senza
+ * app aperte aspettano un minuto quella che si apre. Lontano dall'auto, con l'opzione "Sempre", si apre CarWeb sul
+ * telefono. Nessuna schermata: un messaggio e basta.
  */
 class ShareToCarActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -37,6 +37,7 @@ object VoiceCommandRouter {
         val inCar: Boolean,
         val isInForeground: () -> Boolean,
         val executor: Executor,
+        val openMain: (() -> Unit)?,
         val listen: (() -> Unit)?
     )
 
@@ -44,6 +45,7 @@ object VoiceCommandRouter {
     private val registrations = ArrayList<Registration>()
     private var pending: VoiceCommands.Command? = null
     private var pendingCarOnly = false
+    private var pendingTarget: Target? = null
     private var pendingAt = 0L
     private val playFirstRequests = HashMap<Target, Long>()
     private val autoplayRequests = HashMap<Target, Long>()
@@ -51,19 +53,21 @@ object VoiceCommandRouter {
     /**
      * La Main o la Wide è aperta: riceve i comandi (e quello in attesa, se c'è). [inCar] = sullo schermo dell'auto (la
      * Main può essere anche sul telefono). [listen] fa partire il suo microfono dei comandi vocali (doppio tocco su ⏮
-     * al volante).
+     * al volante). [openMain] (la Wide) apre la Main in auto.
      */
     fun register(
         target: Target,
         inCar: Boolean,
         isInForeground: () -> Boolean,
         executor: Executor,
+        openMain: (() -> Unit)? = null,
         listen: (() -> Unit)? = null
     ) {
         registrations.removeAll { it.executor === executor }
-        registrations.add(Registration(target, inCar, isInForeground, executor, listen))
+        registrations.add(Registration(target, inCar, isInForeground, executor, openMain, listen))
         val waiting = pending ?: return
         if (pendingCarOnly && !inCar) return
+        if (pendingTarget != null && pendingTarget != target) return
         pending = null
         if (SystemClock.uptimeMillis() - pendingAt <= PENDING_MS) {
             AppLog.d(TAG, "Pending command delivered to $target")
@@ -81,11 +85,34 @@ object VoiceCommandRouter {
             ?: registrations.takeUnless { carOnly }?.lastOrNull { it.target == target }
 
     /**
-     * Link condiviso dal telefono ("Condividi su CarWeb"): si apre nell'app aperta in auto. false = nessuna aperta, il link
-     * aspetta quella che si apre.
+     * Link o file condiviso dal telefono collegato all'auto ("Condividi su CarWeb"): nella Wide solo se è lei davanti,
+     * altrimenti nella Main. Con la sola Wide aperta e dietro un'altra schermata, la Wide apre la Main e il link la
+     * aspetta. false = nessuna app aperta, il link aspetta quella che si apre.
      */
-    fun openInCar(url: String, label: String? = null): Boolean =
-        dispatch(VoiceCommands.Command.OpenLink(url, label), carOnly = true)
+    fun openInCar(url: String, label: String? = null): Boolean {
+        val command = VoiceCommands.Command.OpenLink(url, label)
+        val main = registered(Target.MAIN, carOnly = true)
+        val wide = registered(Target.WIDE, carOnly = true)
+        val target = shareTarget(
+            mainOpen = main != null,
+            mainInFront = main?.isInForeground?.invoke() == true,
+            wideInFront = wide?.isInForeground?.invoke() == true
+        )
+        if (target != null) return dispatch(command, target, carOnly = true)
+        val openMain = wide?.openMain ?: return dispatch(command, carOnly = true)
+        AppLog.d(TAG, "Shared link: the Wide opens the Main")
+        keepPending(command, carOnly = true, target = Target.MAIN)
+        openMain()
+        return true
+    }
+
+    /** L'app in auto che riceve subito un link condiviso; null = la Main non è aperta e la Wide non è davanti. */
+    internal fun shareTarget(mainOpen: Boolean, mainInFront: Boolean, wideInFront: Boolean): Target? = when {
+        mainInFront -> Target.MAIN
+        wideInFront -> Target.WIDE
+        mainOpen -> Target.MAIN
+        else -> null
+    }
 
     /** Link o file condiviso lontano dall'auto: nella Main del telefono, che aspetta se si sta ancora aprendo. */
     fun openOnPhone(url: String, label: String? = null): Boolean =
@@ -121,14 +148,20 @@ object VoiceCommandRouter {
         if (registration == null) {
             AppLog.d(TAG, "No screen open: command kept for ${PENDING_MS / 1000} s")
             AppLog.d(DEBUG_TAG, "dispatch: no screen open, command pending")
-            pending = command
-            pendingCarOnly = carOnly
-            pendingAt = SystemClock.uptimeMillis()
+            keepPending(command, carOnly)
             return false
         }
         AppLog.d(TAG, "Command ${command::class.simpleName} to $chosen")
         registration.executor.execute(command)
         return true
+    }
+
+    // [target]: solo quella schermata prende il comando in attesa
+    private fun keepPending(command: VoiceCommands.Command, carOnly: Boolean, target: Target? = null) {
+        pending = command
+        pendingCarOnly = carOnly
+        pendingTarget = target
+        pendingAt = SystemClock.uptimeMillis()
     }
 
     // Quella in primo piano; altrimenti quella che ha il player di Android Auto; altrimenti la Wide (in auto). Con

@@ -369,7 +369,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
                 // "Ok Google, metti … su CarWeb Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
-                VoiceCommandRouter.register(VoiceCommandRouter.Target.WIDE, inCar = true, { isWideResumed }, voiceExecutor) {
+                VoiceCommandRouter.register(
+                    VoiceCommandRouter.Target.WIDE,
+                    inCar = true,
+                    { isWideResumed },
+                    voiceExecutor,
+                    openMain = { MainHandOver.openMainSoon(carContext) }
+                ) {
                     if (!isVoiceListening) toggleVoiceCommand()
                 }
             }

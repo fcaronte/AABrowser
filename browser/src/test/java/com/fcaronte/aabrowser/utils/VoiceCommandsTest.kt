@@ -494,4 +494,21 @@ class VoiceCommandsTest {
         assertEquals(Plan.Load("https://player.local/shared/id1", "foto.jpg", LoadKind.LINK), photo)
         assertEquals(null, VoiceCommands.mediaSectionOf("https://player.local/shared/id1"))
     }
+
+    @Test
+    fun sharedLinksGoToTheMainUnlessTheWideIsInFront() {
+        val main = VoiceCommandRouter.Target.MAIN
+        val wide = VoiceCommandRouter.Target.WIDE
+        fun target(mainOpen: Boolean, mainInFront: Boolean, wideInFront: Boolean) =
+            VoiceCommandRouter.shareTarget(mainOpen, mainInFront, wideInFront)
+        // Tutte e due sullo schermo (la Wide nello spazio del navigatore): la Main
+        assertEquals(main, target(mainOpen = true, mainInFront = true, wideInFront = true))
+        assertEquals(main, target(mainOpen = true, mainInFront = true, wideInFront = false))
+        assertEquals(wide, target(mainOpen = true, mainInFront = false, wideInFront = true))
+        assertEquals(wide, target(mainOpen = false, mainInFront = false, wideInFront = true))
+        // Davanti c'è altro (es. il menu delle app): la Main torna davanti
+        assertEquals(main, target(mainOpen = true, mainInFront = false, wideInFront = false))
+        // La Main non è aperta e la Wide è dietro: deve aprirla la Wide
+        assertNull(target(mainOpen = false, mainInFront = false, wideInFront = false))
+    }
 }

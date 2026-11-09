@@ -166,6 +166,8 @@ fun MainScreen(
     var currentScreen by remember {
         mutableStateOf<Screen>(Screen.Dashboard)
     }
+    // Un link, un file condiviso o un comando arrivato mentre l'app si apre: la sua scheda resta davanti, niente pagina iniziale
+    var commandOpenedPage by remember { mutableStateOf(false) }
     // Le liste da mostrare aprendo le Impostazioni dalle pagine di TV e Radio; solo per quell'apertura
     var settingsLists by remember { mutableStateOf<IptvSources.Section?>(null) }
     LaunchedEffect(currentScreen) {
@@ -262,7 +264,7 @@ fun MainScreen(
         }
 
         // 2. Se è impostato un preferito come pagina iniziale, ci assicuriamo che sia aperto e attivo
-        if (autoOpenId != null && favoritesViewModel.favorites.isNotEmpty()) {
+        if (autoOpenId != null && !commandOpenedPage && favoritesViewModel.favorites.isNotEmpty()) {
             val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
             if (favorite != null) {
                 val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
@@ -356,6 +358,7 @@ fun MainScreen(
         }
         when (plan) {
             is VoiceCommands.Plan.Load -> {
+                commandOpenedPage = true
                 val favorite = plan.favorite
                 when {
                     favorite != null -> TabManager.openOrSwitchTo(
