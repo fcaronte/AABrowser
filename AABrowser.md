@@ -78,6 +78,10 @@
 \- Se la stazione non invia metadati, il titolo può essere cercato manualmente.
 \- Page `https://player.local/radio` (assets/player/radio.html, radio.js, radio.css), linked beside TV in the local player. Station data and stream selection use Radio-Browser.info; the native API keeps stream URLs out of the page until playback is requested, tracks station clicks, and rejects non-public stream hosts. The country follows the app's explicit locale region, or a language-based default (first list, not removable); other Radio Browser countries and the user's M3U lists (URL or file) are added in Settings (`IptvSources.Section.RADIO`) and chosen from the menu at the top. Stations of a user list get an id derived from their address, play like the TV lists (no public-host check) and favorites work across lists. Search, per-station favorites, HLS playback (using the bundled hls.js), and Android Auto Media Session controls are supported. Verify network/provider compatibility on a real device; some stations may be unavailable or use codecs unsupported by WebView.
 
+\### Phone Back
+
+- `PhoneBackHandler` (tasto o gesto; in auto non fa niente, `MainCarActivity` non ha il dispatcher): prima chiude quello che è aperto sopra (riquadri della pagina, ricerca, menu radiale, modifica dei preferiti), poi la pagina precedente della scheda, poi la home; sulla home il primo indietro mostra un messaggio e per 3 s il gestore si spegne: il secondo lo fa il sistema ed esce dall'app. Mai chiudere il processo: ci girano anche le app dell'auto. Un nuovo riquadro a tutto schermo deve avere il suo `PhoneBackHandler`.
+
 \### Voice Commands in CarWeb Media
 
 \- `VoiceCommands` capisce le frasi (11 lingue) e decide la pagina; `MediaVoice` tiene la richiesta e la pagina la viene a prendere (`/api/voice`, con il token) quando si apre o quando l'app la avvisa: niente parametri nell'indirizzo, così nessun sito può far partire qualcosa e ricaricare non ripete il comando. `MediaMatcher` (Kotlin, con test) trova i nomi per TV, Radio e file.

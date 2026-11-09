@@ -85,6 +85,7 @@ import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSitePermission
 import com.fcaronte.aabrowser.utils.SitePermission
+import com.fcaronte.aabrowser.utils.SitePermissionChoice
 import com.fcaronte.aabrowser.utils.PendingSslError
 import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
@@ -233,6 +234,8 @@ fun BrowserScreen(
     mobileZoomOverride: Float? = null,
     desktopZoomOverride: Float? = null,
     isTabActive: Boolean = true,
+    // false con sopra la home, le Impostazioni o l'elenco delle schede (le pagine restano aperte sotto)
+    isScreenVisible: Boolean = true,
     isGlobalSearchActive: Boolean = false,
     isAppDarkOverride: Boolean? = null, // <--- Riceve lo stato in tempo reale da MainScreen
     onPageFinished: (String) -> Unit,
@@ -1683,5 +1686,18 @@ fun BrowserScreen(
         jsDialog?.takeIf { isTabActive }?.let { request ->
             JsDialogPopup(request) { if (jsDialog === request) jsDialog = null }
         }
+
+        // Indietro del telefono: chiude quello che sta sopra la pagina, come il tocco fuori (prima il più in alto)
+        val closeOnBack: (() -> Unit)? = when {
+            jsDialog != null -> ({
+                jsDialog?.dismiss()
+                jsDialog = null
+            })
+            sslPrompt != null -> ({ sslPrompt?.let { sslPrompts.answer(it, proceed = false) } })
+            sitePrompt != null -> ({ sitePrompt?.let { sitePrompts.answer(it, SitePermissionChoice.DISMISS) } })
+            popupWebView != null -> ({ popupWebView = null })
+            else -> null
+        }
+        PhoneBackHandler(enabled = isTabActive && isScreenVisible && closeOnBack != null) { closeOnBack?.invoke() }
     }
 }

@@ -144,6 +144,7 @@
     <string name="reload_button">إعادة تحميل</string>
     <string name="home_button">الرئيسية</string>
     <string name="exit_button">خروج</string>
+    <string name="back_again_to_exit">اضغط على رجوع مرة أخرى للخروج</string>
     <string name="menu_button">القائمة</string>
     <string name="search_button">بحث سريع</string>
     <string name="share_button">مشاركة عبر رمز QR</string>

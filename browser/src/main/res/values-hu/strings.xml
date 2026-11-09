@@ -144,6 +144,7 @@
     <string name="reload_button">Frissítés</string>
     <string name="home_button">Kezdőlap</string>
     <string name="exit_button">Kilépés</string>
+    <string name="back_again_to_exit">A kilépéshez nyomja meg ismét a Vissza gombot</string>
     <string name="menu_button">Menü</string>
     <string name="search_button">Gyorskeresés</string>
     <string name="share_button">Megosztás QR-kóddal</string>

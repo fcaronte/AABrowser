@@ -65,6 +65,7 @@ fun EditFavoriteScreen(
     onBack: () -> Unit,
     onConfirm: (String, String, Long, String?, Boolean?, Float?, Float?) -> Unit,
 ) {
+    PhoneBackHandler(onBack = onBack)
     var nameValue by remember { mutableStateOf(TextFieldValue(site?.name ?: "")) }
     var urlValue by remember { mutableStateOf(TextFieldValue(site?.url ?: "")) }
     var faviconValue by remember { mutableStateOf(TextFieldValue(site?.faviconUrl ?: "")) }

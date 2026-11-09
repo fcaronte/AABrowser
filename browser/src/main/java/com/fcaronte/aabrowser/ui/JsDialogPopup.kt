@@ -47,7 +47,7 @@ fun JsDialogPopup(request: JsDialogRequest, onDone: () -> Unit) {
         onDone()
     }
     val cancel = {
-        if (request.kind == JsDialogRequest.Kind.ALERT) request.confirm() else request.cancel()
+        request.dismiss()
         onDone()
     }
 

@@ -228,6 +228,15 @@ fun MainScreen(
     var showBrowserSearch by remember { mutableStateOf(false) }
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
 
+    // Primo indietro sulla home: finché resta il messaggio il prossimo lo gestisce il sistema, che esce dall'app
+    var exitArmed by remember { mutableStateOf(false) }
+    LaunchedEffect(exitArmed) {
+        if (exitArmed) {
+            delay(3.seconds)
+            exitArmed = false
+        }
+    }
+
     LaunchedEffect(feedbackMessage) {
         val message = feedbackMessage ?: return@LaunchedEffect
         // I messaggi lunghi (es. cosa concedere dal telefono) restano il tempo di leggerli
@@ -479,6 +488,25 @@ fun MainScreen(
                     CarMediaService.showVoiceListening(false)
                 }
             }
+
+            // Indietro del telefono: la pagina precedente della scheda, poi la home e da lì l'uscita al secondo tocco.
+            // Prima di tutti gli altri: i riquadri aperti rispondono per primi
+            val backAgainToExit = stringResource(R.string.back_again_to_exit)
+            PhoneBackHandler(enabled = currentScreen != Screen.Splash && !(currentScreen == Screen.Dashboard && exitArmed)) {
+                when (currentScreen) {
+                    is Screen.Browser ->
+                        if (isFullScreen || activeWebView?.canGoBack() == true) backTrigger++
+                        else currentScreen = Screen.Dashboard
+                    is Screen.Settings -> currentScreen = previousScreen
+                    is Screen.TabManager ->
+                        currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen
+                    else -> {
+                        exitArmed = true
+                        feedbackMessage = backAgainToExit
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -604,6 +632,7 @@ fun MainScreen(
                                     mobileZoomOverride = tab.mobileZoomOverride,
                                     desktopZoomOverride = tab.desktopZoomOverride,
                                     isTabActive = isTabActive,
+                                    isScreenVisible = isBrowserVisible,
                                     isGlobalSearchActive = isGlobalSearchActive,
                                     isAppDarkOverride = isAppDark, // <--- Passato correttamente alla WebView
                                     onPageFinished = { newUrl ->

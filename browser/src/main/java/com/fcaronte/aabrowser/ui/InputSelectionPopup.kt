@@ -47,6 +47,7 @@ fun InputSelectionPopup(
         delay(3000.milliseconds)
         onDismiss()
     }
+    PhoneBackHandler(onBack = onDismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -96,6 +97,7 @@ fun VoiceListeningPopup(
     onDismiss: () -> Unit,
     text: String? = null,
 ) {
+    PhoneBackHandler(onBack = onDismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()

@@ -145,6 +145,8 @@ fun DashboardScreen(
         return
     }
 
+    PhoneBackHandler(enabled = isEditMode) { isEditMode = false }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

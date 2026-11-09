@@ -34,4 +34,9 @@ class JsDialogRequest(
         answered = true
         result.cancel()
     }
+
+    /** Chiusa senza scegliere (tocco fuori, tasto indietro): Annulla, che per un alert è OK. */
+    fun dismiss() {
+        if (kind == Kind.ALERT) confirm() else cancel()
+    }
 }

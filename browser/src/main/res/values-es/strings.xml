@@ -144,6 +144,7 @@
     <string name="reload_button">Recargar</string>
     <string name="home_button">Inicio</string>
     <string name="exit_button">Salir</string>
+    <string name="back_again_to_exit">Pulsa atrás otra vez para salir</string>
     <string name="menu_button">Menú</string>
     <string name="search_button">Búsqueda rápida</string>
     <string name="share_button">Compartir mediante código QR</string>

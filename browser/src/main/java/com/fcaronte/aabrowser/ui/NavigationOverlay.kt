@@ -92,6 +92,11 @@ fun NavigationOverlay(
     var showQRCode by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
 
+    PhoneBackHandler(enabled = showMenu) {
+        onInteraction()
+        onShowMenuChange(false)
+    }
+
     val fabLocation by AppSettings.fabLocation
     val tabBarMode by AppSettings.tabBarMode
 

@@ -62,6 +62,7 @@ fun SearchOverlay(
     carInputManager: CarInputManager? = null,
     inputView: View? = null,
 ) {
+    PhoneBackHandler(onBack = onDismiss)
     var queryValue by remember { mutableStateOf(value = TextFieldValue("")) }
     // In auto con la tastiera passeggero: i tasti dell'app sotto la ricerca, al posto della tastiera di Android Auto
     val passengerKeys = carInputManager != null && AppSettings.passengerKeyboard.value

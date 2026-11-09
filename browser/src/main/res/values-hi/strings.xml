@@ -144,6 +144,7 @@
     <string name="reload_button">पुनः लोड करें</string>
     <string name="home_button">होम</string>
     <string name="exit_button">बाहर निकलें</string>
+    <string name="back_again_to_exit">बाहर निकलने के लिए फिर से वापस दबाएँ</string>
     <string name="menu_button">मेनू</string>
     <string name="search_button">त्वरित खोज</string>
     <string name="share_button">QR कोड के माध्यम से साझा करें</string>

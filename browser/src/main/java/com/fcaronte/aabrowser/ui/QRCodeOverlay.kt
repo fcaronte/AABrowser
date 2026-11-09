@@ -36,6 +36,7 @@ fun QRCodeOverlay(
     currentUrl: String,
     onDismiss: () -> Unit
 ) {
+    PhoneBackHandler(onBack = onDismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()
