@@ -664,8 +664,9 @@ object BrowserJavascript {
         if (!video) return;
 
         let attempts = 0;
-        // Video singolo con la scelta "video precedente / successivo": il pulsante non c'è, inutile aspettarlo
-        const singleVideo = window.aabSingleVideoSkip && !location.search.includes('list=');
+        // Video singolo: il pulsante non c'è, inutile aspettarlo. Qui si arriva solo con una richiesta esplicita (a voce,
+        // o dai tasti con la scelta "video precedente / successivo"): con -10/+10 s i tasti saltano da soli (CarMediaService)
+        const singleVideo = location.pathname === '/watch' && !location.search.includes('list=');
         const maxAttempts = singleVideo ? 1 : 15;
 
         function findNextButton() {
@@ -842,8 +843,9 @@ object BrowserJavascript {
         if (!video) return;
 
         let attempts = 0;
-        // Video singolo con la scelta "video precedente / successivo": il pulsante non c'è, inutile aspettarlo
-        const singleVideo = window.aabSingleVideoSkip && !location.search.includes('list=');
+        // Video singolo: il pulsante non c'è, inutile aspettarlo. Qui si arriva solo con una richiesta esplicita (a voce,
+        // o dai tasti con la scelta "video precedente / successivo"): con -10/+10 s i tasti saltano da soli (CarMediaService)
+        const singleVideo = location.pathname === '/watch' && !location.search.includes('list=');
         const maxAttempts = singleVideo ? 1 : 15;
 
         function findPreviousButton() {
@@ -958,13 +960,6 @@ object BrowserJavascript {
     }
 })();
 """
-
-    /** Comandi del player: [singleVideoSkip] = su un video singolo di YouTube il video suggerito al posto di ±10 s. */
-    fun getNextScript(singleVideoSkip: Boolean): String =
-        "window.aabSingleVideoSkip = $singleVideoSkip;\n" + NEXT_SCRIPT.trimIndent()
-
-    fun getPreviousScript(singleVideoSkip: Boolean): String =
-        "window.aabSingleVideoSkip = $singleVideoSkip;\n" + PREVIOUS_SCRIPT.trimIndent()
 
     fun getSeekScript(pos: Long): String {
         return """

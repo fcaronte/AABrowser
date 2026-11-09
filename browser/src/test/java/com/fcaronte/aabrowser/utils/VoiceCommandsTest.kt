@@ -33,6 +33,8 @@ class VoiceCommandsTest {
         assertParsed(Command.Resume, "riprendi")
         assertParsed(Command.Next, "prossimo")
         assertParsed(Command.Previous, "precedente")
+        assertParsed(Command.Next, "manda avanti")
+        assertParsed(Command.Previous, "manda indietro")
         assertParsed(Command.Back, "torna indietro")
         assertParsed(Command.Reload, "ricarica la pagina")
         assertParsed(Command.Home, "pagina iniziale")

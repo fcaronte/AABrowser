@@ -172,6 +172,7 @@ object VoiceCommands {
         ),
         Kind.NEXT to listOf(
             "prossimo", "prossima", "successivo", "successiva", "avanti", "salta", "prossimo video",
+            "manda avanti", "vai avanti", "vai al prossimo", "vai al successivo", "passa al prossimo", "passa al successivo",
             "prossima canzone", "brano successivo", "canzone successiva", "video successivo",
             "prossimo canale", "canale successivo", "prossima stazione", "stazione successiva", "prossima radio",
             "next", "skip", "next video", "next song", "next track", "skip this", "skip this song",
@@ -195,6 +196,7 @@ object VoiceCommands {
         ),
         Kind.PREVIOUS to listOf(
             "precedente", "brano precedente", "canzone precedente", "video precedente",
+            "manda indietro", "vai al precedente", "torna al precedente", "passa al precedente",
             "canale precedente", "stazione precedente",
             "previous", "previous song", "previous track", "previous video",
             "previous channel", "channel down", "previous station",
