@@ -46,7 +46,7 @@
     <string name="settings_category_web">Páginas web</string>
 
     <!-- Settings -->
-    <string name="settings_title">Aajustes</string>
+    <string name="settings_title">Ajustes</string>
     <string name="back_button">Volver</string>
     <string name="theme_mode_label">Modo de tema de la aplicación</string>
     <string name="theme_mode_desc">Forzar estilo claro u oscuro en la pantalla del coche</string>
@@ -365,7 +365,7 @@
     <string name="passenger_disclaimer_message">Usar un navegador web o escribir mientras se conduce un vehículo es extremadamente peligroso e ilegal. El conductor nunca debe mirar ni interactuar con la pantalla mientras conduce. Este modo está estrictamente destinado a los pasajeros.\n\nEl desarrollador no asume ninguna responsabilidad por accidentes, multas, lesiones o daños derivados del uso indebido de esta función.</string>
     <string name="passenger_disclaimer_accept">Acepto</string>
     <string name="drive_lock_title">Disponible solo con el coche parado</string>
-    <string name="drive_lock_message">Para usar la app en marcha, un pasajero puede activar «Modo pasajero» en los ajustes de CarWeb, en el teléfono o en el coche parado. El audio y los comandos de voz siguen funcionando.</string>
+    <string name="drive_lock_message">Para usar la app en marcha, un pasajero puede activar «Modo pasajero» en CarWeb, desde Ajustes > Modo pasajero, en el teléfono o en el coche parado. El audio y los comandos de voz siguen funcionando.</string>
     <string name="iptv_title">IPTV (M3U y Xtream)</string>
     <string name="iptv_desc">Listas de canales para ver en IPTV. Las direcciones y contraseñas se quedan en el teléfono y no van a la copia de seguridad.</string>
     <string name="iptv_add_m3u">Añadir M3U</string>

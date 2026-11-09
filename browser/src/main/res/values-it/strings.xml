@@ -322,7 +322,7 @@
     <string name="passenger_disclaimer_message">L\'utilizzo dell\'applicazione o della tastiera durante la guida di un veicolo è estremamente pericoloso e vietato dalla legge. Chi guida non deve in alcun modo guardare o interagire con lo schermo durante la marcia. Questa modalità è destinata esclusivamente all\'uso da parte dei passeggeri.\n\nLo sviluppatore declina ogni responsabilità per incidenti, sanzioni, lesioni o danni di qualsiasi natura derivanti dall\'uso improprio di questa funzionalità.</string>
     <string name="passenger_disclaimer_accept">Accetto</string>
     <string name="drive_lock_title">Disponibile solo da fermo</string>
-    <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni di CarWeb, sul telefono o in auto a veicolo fermo. Audio e comandi vocali restano attivi.</string>
+    <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può accendere «Modalità passeggero» in CarWeb, da Impostazioni > Modalità passeggero, sul telefono o in auto a veicolo fermo. Audio e comandi vocali restano attivi.</string>
     <string name="iptv_title">IPTV (M3U e Xtream)</string>
     <string name="iptv_desc">Liste di canali da guardare in IPTV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
     <string name="iptv_add_m3u">Aggiungi M3U</string>

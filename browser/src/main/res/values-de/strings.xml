@@ -364,7 +364,7 @@
     <string name="passenger_disclaimer_message">Die Nutzung eines Webbrowsers oder das Tippen während der Fahrt ist extrem gefährlich und illegal. Der Fahrer darf während der Fahrt niemals auf den Bildschirm schauen oder ihn bedienen. Dieser Modus ist ausschließlich für Beifahrer bestimmt.\n\nDer Entwickler übernimmt keine Haftung für Unfälle, Bußgelder, Verletzungen oder Schäden, die aus der unsachgemäßen Nutzung dieser Funktion entstehen.</string>
     <string name="passenger_disclaimer_accept">Akzeptieren</string>
     <string name="drive_lock_title">Nur im Stand verfügbar</string>
-    <string name="drive_lock_message">Um die App während der Fahrt zu nutzen, kann ein Beifahrer in den Einstellungen von CarWeb „Beifahrermodus“ einschalten, auf dem Handy oder im stehenden Auto. Audio und Sprachbefehle funktionieren weiter.</string>
+    <string name="drive_lock_message">Um die App während der Fahrt zu nutzen, kann ein Beifahrer in CarWeb unter Einstellungen > Beifahrermodus „Beifahrermodus“ einschalten, auf dem Handy oder im stehenden Auto. Audio und Sprachbefehle funktionieren weiter.</string>
     <string name="iptv_title">IPTV (M3U und Xtream)</string>
     <string name="iptv_desc">Senderlisten zum Ansehen in IPTV. Adressen und Passwörter bleiben auf dem Handy und kommen nicht ins Backup.</string>
     <string name="iptv_add_m3u">M3U hinzufügen</string>

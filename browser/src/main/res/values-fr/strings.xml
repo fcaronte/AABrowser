@@ -365,7 +365,7 @@
     <string name="passenger_disclaimer_message">L\'utilisation d\'un navigateur web ou la saisie pendant la conduite est extrêmement dangereuse et illégale. Le conducteur ne doit jamais regarder ni interagir avec l\'écran en conduisant. Ce mode est strictly destiné aux passagers.\n\nLe développeur décline toute responsabilité en cas d\'accident, d\'amende, de blessure ou de dommage résultant de l\'utilisation incorrecte de cette fonctionnalité.</string>
     <string name="passenger_disclaimer_accept">J\'accepte</string>
     <string name="drive_lock_title">Disponible uniquement à l\'arrêt</string>
-    <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans les paramètres de CarWeb, sur le téléphone ou dans la voiture à l\'arrêt. Le son et les commandes vocales continuent de fonctionner.</string>
+    <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans CarWeb, depuis Paramètres > Mode passager, sur le téléphone ou dans la voiture à l\'arrêt. Le son et les commandes vocales continuent de fonctionner.</string>
     <string name="iptv_title">IPTV (M3U et Xtream)</string>
     <string name="iptv_desc">Listes de chaînes à regarder dans IPTV. Les adresses et mots de passe restent sur le téléphone et ne sont pas sauvegardés.</string>
     <string name="iptv_add_m3u">Ajouter M3U</string>

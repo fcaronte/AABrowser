@@ -365,7 +365,7 @@
     <string name="passenger_disclaimer_message">Utilizar um navegador web ou escrever enquanto conduz é extremamente perigoso e ilegal. O condutor nunca deve olhar ou interagir com o ecrã durante a condução. Este modo destina-se estritamente aos passageiros.\n\nO programador declina qualquer responsabilidade por acidentes, multas, lesões ou danos resultantes da utilização indevida desta funcionalidade.</string>
     <string name="passenger_disclaimer_accept">Aceito</string>
     <string name="drive_lock_title">Disponível só com o automóvel parado</string>
-    <string name="drive_lock_message">Para usar a aplicação em andamento, um passageiro pode ativar «Modo passageiro» nas definições do CarWeb, no telemóvel ou no carro parado. O áudio e os comandos de voz continuam a funcionar.</string>
+    <string name="drive_lock_message">Para usar a aplicação em andamento, um passageiro pode ativar «Modo passageiro» no CarWeb, em Definições > Modo passageiro, no telemóvel ou no carro parado. O áudio e os comandos de voz continuam a funcionar.</string>
     <string name="iptv_title">IPTV (M3U e Xtream)</string>
     <string name="iptv_desc">Listas de canais para ver no IPTV. Os endereços e palavras-passe ficam no telemóvel e não vão para a cópia de segurança.</string>
     <string name="iptv_add_m3u">Adicionar M3U</string>
