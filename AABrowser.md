@@ -65,7 +65,7 @@
 
 \- On the car screens (Main in the car and Wide) the app works only when the car is parked: the driving status comes from Android Auto (the same one that locks its keyboard), no checks of our own. While moving the page is covered by a message that explains how to unlock it; audio, the Android Auto player and voice commands keep working. If Android Auto does not send the status, nothing is locked.
 
-\- Settings "Passenger mode" (unlocks the app while moving) and "Passenger keyboard" (the app's QWERTY keyboard instead of the Android Auto one, also while moving): both off by default, meant for passengers only. Release notes must say the driver must not use them.
+\- Settings "Passenger mode" (unlocks the app while moving) and "Passenger keyboard" (the app's QWERTY keyboard instead of the Android Auto one, also while moving): both off by default, meant for passengers only. Release notes must say the driver must not use them. They have their own Settings section ("Modalità passeggero", `settings_category_passenger`), usable in the car too while parked (moving, the car screen is covered and Settings cannot be reached); the disclaimer to accept is a card in that section, not a dialog window, like the other prompts the app shows on the car screen.
 
 \### TV in CarWeb Media (2.5)
 

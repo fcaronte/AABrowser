@@ -173,6 +173,7 @@ fun SettingsScreen(
     val passengerKeyboard by AppSettings.passengerKeyboard
 
     var expandedAppSection by remember { mutableStateOf(false) }
+    var expandedPassengerSection by remember { mutableStateOf(false) }
     var expandedMediaSection by remember { mutableStateOf(focusLists != null) }
     var expandedShareWhen by remember { mutableStateOf(false) }
     val youtubeVideoSkip by AppSettings.youtubeVideoSkip
@@ -493,66 +494,6 @@ fun SettingsScreen(
                                                     }
                                                 }
                                             }
-                                        }
-                                    }
-                                )
-                            }
-
-                            // Modalità passeggero: in movimento l'app sullo schermo dell'auto va solo con questa accesa (lo
-                            // stato di guida lo dà Android Auto); tastiera dell'app al posto di quella di Android Auto,
-                            // che in movimento si blocca
-                            SettingsCard {
-                                Column {
-                                    SettingsSwitchItem(
-                                        label = stringResource(R.string.passenger_mode_label),
-                                        description = stringResource(R.string.passenger_mode_desc),
-                                        checked = passengerMode,
-                                        onCheckedChange = { checked ->
-                                            if (checked) {
-                                                pendingPassengerToggle = PendingPassengerToggle.MODE
-                                            } else {
-                                                AppSettings.setPassengerMode(context, false)
-                                            }
-                                        }
-                                    )
-                                    SettingsSwitchItem(
-                                        label = stringResource(R.string.passenger_keyboard_label),
-                                        description = stringResource(R.string.passenger_keyboard_desc),
-                                        checked = passengerKeyboard,
-                                        onCheckedChange = { checked ->
-                                            if (checked) {
-                                                pendingPassengerToggle = PendingPassengerToggle.KEYBOARD
-                                            } else {
-                                                AppSettings.setPassengerKeyboard(context, false)
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-
-                            pendingPassengerToggle?.let { toggle ->
-                                AlertDialog(
-                                    onDismissRequest = { pendingPassengerToggle = null },
-                                    title = { Text(stringResource(R.string.passenger_disclaimer_title)) },
-                                    text = { Text(stringResource(R.string.passenger_disclaimer_message)) },
-                                    confirmButton = {
-                                        Button(
-                                            onClick = {
-                                                when (toggle) {
-                                                    PendingPassengerToggle.MODE -> AppSettings.setPassengerMode(context, true)
-                                                    PendingPassengerToggle.KEYBOARD -> AppSettings.setPassengerKeyboard(context, true)
-                                                }
-                                                pendingPassengerToggle = null
-                                            }
-                                        ) {
-                                            Text(stringResource(R.string.passenger_disclaimer_accept))
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(
-                                            onClick = { pendingPassengerToggle = null }
-                                        ) {
-                                            Text(stringResource(R.string.ssl_warning_cancel))
                                         }
                                     }
                                 )
@@ -923,6 +864,87 @@ fun SettingsScreen(
                                         }
                                     }
                                 )
+                            }
+                        }
+                    }
+
+                    // SEZIONE: MODALITÀ PASSEGGERO. In movimento l'app sullo schermo dell'auto va solo con questa accesa (lo stato
+                    // di guida lo dà Android Auto); la tastiera dell'app sostituisce quella di Android Auto, che in movimento si
+                    // blocca. Si gestisce anche in auto: da fermo, perché in movimento la schermata è coperta (DriveLockCover)
+                    SettingsSectionHeader(
+                        title = stringResource(R.string.settings_category_passenger),
+                        isExpanded = expandedPassengerSection,
+                        onClick = { expandedPassengerSection = !expandedPassengerSection }
+                    )
+
+                    AnimatedVisibility(visible = expandedPassengerSection) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SettingsCard {
+                                Column {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.passenger_mode_label),
+                                        description = stringResource(R.string.passenger_mode_desc),
+                                        checked = passengerMode,
+                                        onCheckedChange = { checked ->
+                                            if (checked) {
+                                                pendingPassengerToggle = PendingPassengerToggle.MODE
+                                            } else {
+                                                AppSettings.setPassengerMode(context, false)
+                                            }
+                                        }
+                                    )
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.passenger_keyboard_label),
+                                        description = stringResource(R.string.passenger_keyboard_desc),
+                                        checked = passengerKeyboard,
+                                        onCheckedChange = { checked ->
+                                            if (checked) {
+                                                pendingPassengerToggle = PendingPassengerToggle.KEYBOARD
+                                            } else {
+                                                AppSettings.setPassengerKeyboard(context, false)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+
+                            // L'avviso da accettare per accenderle: una scheda qui sotto, non una finestra di dialogo, come gli
+                            // altri avvisi che l'app mostra sullo schermo dell'auto (riquadri della pagina, certificati, permessi)
+                            pendingPassengerToggle?.let { toggle ->
+                                SettingsCard {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.passenger_disclaimer_title),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.passenger_disclaimer_message),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 14.sp
+                                        )
+                                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            Button(
+                                                onClick = {
+                                                    when (toggle) {
+                                                        PendingPassengerToggle.MODE -> AppSettings.setPassengerMode(context, true)
+                                                        PendingPassengerToggle.KEYBOARD -> AppSettings.setPassengerKeyboard(context, true)
+                                                    }
+                                                    pendingPassengerToggle = null
+                                                }
+                                            ) {
+                                                Text(stringResource(R.string.passenger_disclaimer_accept))
+                                            }
+                                            TextButton(onClick = { pendingPassengerToggle = null }) {
+                                                Text(stringResource(R.string.ssl_warning_cancel))
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

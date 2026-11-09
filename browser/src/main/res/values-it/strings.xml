@@ -313,6 +313,7 @@
     <string name="share_logs_failed">Impossibile esportare i log: %1$s</string>
     <string name="share_logs_phone_only">Condividi i log dal telefono</string>
     <string name="passenger_mode_label">Modalità passeggero</string>
+    <string name="settings_category_passenger">Modalità passeggero</string>
     <string name="passenger_mode_desc">Sullo schermo dell\'auto l\'app funziona anche in movimento (spenta: solo da fermo). Per il passeggero: chi guida non deve usarla.</string>
     <string name="passenger_keyboard_label">Tastiera passeggero</string>
     <string name="passenger_keyboard_desc">Tastiera dell\'app (QWERTY, o la disposizione della tua lingua con 🌐) al posto di quella di Android Auto: con la Modalità passeggero funziona anche in movimento. Per il passeggero: chi guida non deve usarla.</string>
@@ -321,7 +322,7 @@
     <string name="passenger_disclaimer_message">L\'utilizzo dell\'applicazione o della tastiera durante la guida di un veicolo è estremamente pericoloso e vietato dalla legge. Chi guida non deve in alcun modo guardare o interagire con lo schermo durante la marcia. Questa modalità è destinata esclusivamente all\'uso da parte dei passeggeri.\n\nLo sviluppatore declina ogni responsabilità per incidenti, sanzioni, lesioni o danni di qualsiasi natura derivanti dall\'uso improprio di questa funzionalità.</string>
     <string name="passenger_disclaimer_accept">Accetto</string>
     <string name="drive_lock_title">Disponibile solo da fermo</string>
-    <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni dell\'app sul telefono. Audio e comandi vocali restano attivi.</string>
+    <string name="drive_lock_message">Per usare l\'app in movimento, il passeggero può attivare «Modalità passeggero» nelle impostazioni di CarWeb, sul telefono o in auto a veicolo fermo. Audio e comandi vocali restano attivi.</string>
     <string name="iptv_title">IPTV (M3U e Xtream)</string>
     <string name="iptv_desc">Liste di canali da guardare in IPTV. Indirizzi e password restano sul telefono e non vanno nel backup.</string>
     <string name="iptv_add_m3u">Aggiungi M3U</string>

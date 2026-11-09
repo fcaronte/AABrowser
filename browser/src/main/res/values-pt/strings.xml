@@ -356,6 +356,7 @@
     <string name="share_logs_failed">Não foi possível exportar os registos: %1$s</string>
     <string name="share_logs_phone_only">Partilhe os registos a partir do telemóvel</string>
     <string name="passenger_mode_label">Modo passageiro</string>
+    <string name="settings_category_passenger">Modo passageiro</string>
     <string name="passenger_mode_desc">No ecrã do automóvel, a aplicação também funciona em andamento (desligado: só com o automóvel parado). Para passageiros: quem conduz não a deve usar.</string>
     <string name="passenger_keyboard_label">Teclado do passageiro</string>
     <string name="passenger_keyboard_desc">Teclado QWERTY da aplicação em vez do do Android Auto: com o Modo passageiro também funciona em andamento. Para passageiros: quem conduz não o deve usar.</string>
@@ -364,7 +365,7 @@
     <string name="passenger_disclaimer_message">Utilizar um navegador web ou escrever enquanto conduz é extremamente perigoso e ilegal. O condutor nunca deve olhar ou interagir com o ecrã durante a condução. Este modo destina-se estritamente aos passageiros.\n\nO programador declina qualquer responsabilidade por acidentes, multas, lesões ou danos resultantes da utilização indevida desta funcionalidade.</string>
     <string name="passenger_disclaimer_accept">Aceito</string>
     <string name="drive_lock_title">Disponível só com o automóvel parado</string>
-    <string name="drive_lock_message">Para usar a aplicação em andamento, um passageiro pode ativar «Modo passageiro» nas definições da aplicação no telemóvel. O áudio e os comandos de voz continuam a funcionar.</string>
+    <string name="drive_lock_message">Para usar a aplicação em andamento, um passageiro pode ativar «Modo passageiro» nas definições do CarWeb, no telemóvel ou no carro parado. O áudio e os comandos de voz continuam a funcionar.</string>
     <string name="iptv_title">IPTV (M3U e Xtream)</string>
     <string name="iptv_desc">Listas de canais para ver no IPTV. Os endereços e palavras-passe ficam no telemóvel e não vão para a cópia de segurança.</string>
     <string name="iptv_add_m3u">Adicionar M3U</string>

@@ -356,6 +356,7 @@
     <string name="share_logs_failed">Impossible d\'exporter les journaux : %1$s</string>
     <string name="share_logs_phone_only">Partagez les journaux depuis le téléphone</string>
     <string name="passenger_mode_label">Mode passager</string>
+    <string name="settings_category_passenger">Mode passager</string>
     <string name="passenger_mode_desc">Sur l\'écran de la voiture, l\'app fonctionne aussi en roulant (désactivé : seulement à l\'arrêt). Pour les passagers : le conducteur ne doit pas l\'utiliser.</string>
     <string name="passenger_keyboard_label">Clavier passager</string>
     <string name="passenger_keyboard_desc">Clavier de l\'app (AZERTY, ou QWERTY avec 🌐) à la place de celui d\'Android Auto : avec le Mode passager, il fonctionne aussi en roulant. Pour les passagers : le conducteur ne doit pas l\'utiliser.</string>
@@ -364,7 +365,7 @@
     <string name="passenger_disclaimer_message">L\'utilisation d\'un navigateur web ou la saisie pendant la conduite est extrêmement dangereuse et illégale. Le conducteur ne doit jamais regarder ni interagir avec l\'écran en conduisant. Ce mode est strictly destiné aux passagers.\n\nLe développeur décline toute responsabilité en cas d\'accident, d\'amende, de blessure ou de dommage résultant de l\'utilisation incorrecte de cette fonctionnalité.</string>
     <string name="passenger_disclaimer_accept">J\'accepte</string>
     <string name="drive_lock_title">Disponible uniquement à l\'arrêt</string>
-    <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans les paramètres de l\'app sur le téléphone. Le son et les commandes vocales continuent de fonctionner.</string>
+    <string name="drive_lock_message">Pour utiliser l\'app en roulant, un passager peut activer « Mode passager » dans les paramètres de CarWeb, sur le téléphone ou dans la voiture à l\'arrêt. Le son et les commandes vocales continuent de fonctionner.</string>
     <string name="iptv_title">IPTV (M3U et Xtream)</string>
     <string name="iptv_desc">Listes de chaînes à regarder dans IPTV. Les adresses et mots de passe restent sur le téléphone et ne sont pas sauvegardés.</string>
     <string name="iptv_add_m3u">Ajouter M3U</string>

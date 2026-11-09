@@ -354,6 +354,7 @@
     <string name="share_logs_failed">无法导出日志：%1$s</string>
     <string name="share_logs_phone_only">请在手机上分享日志</string>
     <string name="passenger_mode_label">乘客模式</string>
+    <string name="settings_category_passenger">乘客模式</string>
     <string name="passenger_mode_desc">在车机屏幕上，行驶中也可使用本应用（关闭时：仅在停车时可用）。供乘客使用：驾驶员不得使用。</string>
     <string name="passenger_keyboard_label">乘客键盘</string>
     <string name="passenger_keyboard_desc">用本应用的 QWERTY 键盘代替 Android Auto 键盘：开启乘客模式后，行驶中也可使用。供乘客使用：驾驶员不得使用。</string>
@@ -362,7 +363,7 @@
     <string name="passenger_disclaimer_message">驾驶车辆时使用 Web 浏览器或打字是极其危险且违法的。驾驶员在驾驶过程中绝不能观看或操作屏幕。此模式仅供乘客使用。\n\n对于因误用此功能而导致的任何事故、罚款、人身伤害或损失，开发者概不承担任何法律责任。</string>
     <string name="passenger_disclaimer_accept">接受</string>
     <string name="drive_lock_title">仅在停车时可用</string>
-    <string name="drive_lock_message">如需在行驶中使用本应用，乘客可在手机上的应用设置中开启“乘客模式”。音频和语音命令仍可使用。</string>
+    <string name="drive_lock_message">如需在行驶中使用本应用，乘客可在 CarWeb 的设置中开启“乘客模式”：在手机上，或停车时在车上。音频和语音命令仍可使用。</string>
     <string name="iptv_title">IPTV（M3U 和 Xtream）</string>
     <string name="iptv_desc">在 IPTV 中观看的频道列表。地址和密码只保存在手机上，不会进入备份。</string>
     <string name="iptv_add_m3u">添加 M3U</string>

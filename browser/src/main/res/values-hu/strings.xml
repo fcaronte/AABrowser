@@ -355,6 +355,7 @@
     <string name="share_logs_failed">Nem sikerült exportálni a naplókat: %1$s</string>
     <string name="share_logs_phone_only">A naplókat a telefonról oszd meg</string>
     <string name="passenger_mode_label">Utas mód</string>
+    <string name="settings_category_passenger">Utas mód</string>
     <string name="passenger_mode_desc">Az autó képernyőjén az alkalmazás menet közben is működik (kikapcsolva: csak álló helyzetben). Utasoknak: a vezető nem használhatja.</string>
     <string name="passenger_keyboard_label">Utas billentyűzet</string>
     <string name="passenger_keyboard_desc">Az alkalmazás QWERTY-billentyűzete az Android Auto billentyűzete helyett: az Utas móddal menet közben is működik. Utasoknak: a vezető nem használhatja.</string>
@@ -363,7 +364,7 @@
     <string name="passenger_disclaimer_message">A webböngésző használata vagy a gépelés vezetés közben rendkívül veszélyes és illegális. A vezető vezetés közben soha nem nézheti a képernyőt, és nem léphet interakcióba vele. Ez a mód kizárólag az utasok számára készült.\n\nA fejlesztő nem vállal felelősséget a funkció helytelen használatából eredő balesetekért, bírságokért, sérülésekért vagy károkért.</string>
     <string name="passenger_disclaimer_accept">Elfogadom</string>
     <string name="drive_lock_title">Csak álló helyzetben érhető el</string>
-    <string name="drive_lock_message">Ha menet közben szeretné használni az alkalmazást, egy utas bekapcsolhatja az „Utas mód” beállítást az alkalmazás beállításaiban a telefonon. A hang és a hangutasítások továbbra is működnek.</string>
+    <string name="drive_lock_message">Ha menet közben szeretné használni az alkalmazást, egy utas bekapcsolhatja az „Utas mód” beállítást a CarWeb beállításaiban, a telefonon vagy az autóban, amikor áll. A hang és a hangutasítások továbbra is működnek.</string>
     <string name="iptv_title">IPTV (M3U és Xtream)</string>
     <string name="iptv_desc">Csatornalisták az IPTV megtekintéséhez. A címek és jelszavak a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
     <string name="iptv_add_m3u">M3U hozzáadása</string>

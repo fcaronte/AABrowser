@@ -360,6 +360,7 @@
     <string name="share_logs_failed">Could not export the logs: %1$s</string>
     <string name="share_logs_phone_only">Share the logs from the phone</string>
     <string name="passenger_mode_label">Passenger mode</string>
+    <string name="settings_category_passenger">Passenger mode</string>
     <string name="passenger_mode_desc">On the car screen the app also works while moving (off: only when parked). For passengers: the driver must not use it.</string>
     <string name="passenger_keyboard_label">Passenger keyboard</string>
     <string name="passenger_keyboard_desc">The app’s keyboard (QWERTY, or the layout of your language with 🌐) instead of the Android Auto one: with Passenger mode it also works while moving. For passengers: the driver must not use it.</string>
@@ -368,7 +369,7 @@
     <string name="passenger_disclaimer_message">Using a web browser or typing while driving a vehicle is extremely dangerous and illegal. The driver must never look at or interact with the screen while driving. This mode is strictly intended for use by passengers.\n\nThe developer assumes no liability for any accidents, fines, injuries, or damages resulting from the misuse of this feature.</string>
     <string name="passenger_disclaimer_accept">I Accept</string>
     <string name="drive_lock_title">Available only when parked</string>
-    <string name="drive_lock_message">To use the app while moving, a passenger can turn on “Passenger mode” in the app settings on the phone. Audio and voice commands keep working.</string>
+    <string name="drive_lock_message">To use the app while moving, a passenger can turn on “Passenger mode” in CarWeb\'s settings, on the phone or in the car while parked. Audio and voice commands keep working.</string>
     <string name="iptv_title">IPTV (M3U and Xtream)</string>
     <string name="iptv_desc">Channel lists to watch in IPTV. Addresses and passwords stay on the phone and are not backed up.</string>
     <string name="iptv_add_m3u">Add M3U</string>

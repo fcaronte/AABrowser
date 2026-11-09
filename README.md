@@ -94,7 +94,7 @@ from the misuse of this application. Use at your own risk.
   Settings > Web Pages, where you can remove them one by one or all together (Clear data).
 * **Passenger mode:** on the car screen the app works only when the car is parked (Android Auto
   tells when it moves); audio, the Android Auto player and voice commands keep working. With *Passenger mode*
-  in Settings it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
+  (its own section in Settings, on the phone or in the car while parked) it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
   🌐 AZERTY, QWERTZ, Russian or Arabic for those languages; numbers and symbols, accented letters), you can type
   while moving, in both apps. For passengers only: the
   driver must not use them.
@@ -305,7 +305,7 @@ proprio rischio e pericolo.
   Impostazioni > Pagine Web, dove si tolgono una per una o tutte insieme (Cancella dati).
 * **Modalità passeggero:** sullo schermo dell'auto l'app funziona solo da fermo (se l'auto si
   muove lo dice Android Auto); audio, player di Android Auto e comandi vocali continuano a funzionare. Con
-  *Modalità passeggero* nelle Impostazioni funziona anche in movimento, e con *Tastiera passeggero*, una
+  *Modalità passeggero* (una sezione delle Impostazioni, sul telefono o in auto da fermo) funziona anche in movimento, e con *Tastiera passeggero*, una
   tastiera dell'app (QWERTY, e con 🌐 AZERTY, QWERTZ, russa o araba per quelle lingue; numeri e simboli, lettere
   accentate), si scrive anche in movimento, nelle due app. Solo per i passeggeri: chi guida non deve usarle.
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa

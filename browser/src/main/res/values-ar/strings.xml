@@ -359,6 +359,7 @@
     <string name="share_logs_failed">تعذّر تصدير السجلات: %1$s</string>
     <string name="share_logs_phone_only">شارك السجلات من الهاتف</string>
     <string name="passenger_mode_label">وضع الراكب</string>
+    <string name="settings_category_passenger">وضع الراكب</string>
     <string name="passenger_mode_desc">يعمل التطبيق على شاشة السيارة أثناء الحركة أيضًا (عند إيقافه: فقط والسيارة متوقفة). للركاب: يجب ألا يستخدمه السائق.</string>
     <string name="passenger_keyboard_label">لوحة مفاتيح الراكب</string>
     <string name="passenger_keyboard_desc">لوحة مفاتيح التطبيق (العربية، أو QWERTY عبر 🌐) بدلًا من لوحة Android Auto: مع وضع الراكب تعمل أثناء الحركة أيضًا. للركاب: يجب ألا يستخدمها السائق.</string>
@@ -367,7 +368,7 @@
     <string name="passenger_disclaimer_message">إن استخدام متصفح الويب أو الكتابة أثناء قيادة المركبة أمر في غاية الخطورة ومخالف للقانون. يجب على السائق عدم النظر إلى الشاشة أو التفاعل معها أثناء القيادة. هذا الوضع مخصص حصرياً للركاب.\n\nلا يتحمل المطور أي مسؤولية عن أي حوادث أو مخالفات أو إصابات أو أضرار ناتجة عن الاستخدام الخاطئ لهذه الميزة.</string>
     <string name="passenger_disclaimer_accept">أوافق</string>
     <string name="drive_lock_title">متاح فقط والسيارة متوقفة</string>
-    <string name="drive_lock_message">لاستخدام التطبيق أثناء الحركة، يمكن للراكب تفعيل «وضع الراكب» في إعدادات التطبيق على الهاتف. يستمر عمل الصوت والأوامر الصوتية.</string>
+    <string name="drive_lock_message">لاستخدام التطبيق أثناء الحركة، يمكن للراكب تفعيل «وضع الراكب» في إعدادات CarWeb، على الهاتف أو في السيارة وهي متوقفة. يستمر عمل الصوت والأوامر الصوتية.</string>
     <string name="iptv_title">IPTV (M3U وXtream)</string>
     <string name="iptv_desc">قوائم قنوات للمشاهدة في IPTV. تبقى العناوين وكلمات المرور على الهاتف ولا تدخل في النسخة الاحتياطية.</string>
     <string name="iptv_add_m3u">إضافة M3U</string>
