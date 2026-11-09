@@ -434,4 +434,6 @@
     <string name="adblock_lists_custom_change">बदलें</string>
     <string name="adblock_lists_custom_phone">पता फ़ोन पर सेटिंग्स से लिखा जाता है</string>
     <string name="share_to_car_not_connected">इसे CarWeb में खोलने के लिए फ़ोन को कार से जोड़ें</string>
+    <string name="player_single_video_title">अलग-अलग YouTube वीडियो पर प्लेयर (स्टीयरिंग बटन भी)</string>
+    <string name="player_single_video_skip">पिछला / अगला वीडियो</string>
 </resources>

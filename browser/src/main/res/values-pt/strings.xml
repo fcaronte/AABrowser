@@ -435,4 +435,6 @@
     <string name="adblock_lists_custom_change">Alterar</string>
     <string name="adblock_lists_custom_phone">O endereço escreve-se nas Definições do telemóvel</string>
     <string name="share_to_car_not_connected">Ligue o telemóvel ao automóvel para o abrir no CarWeb</string>
+    <string name="player_single_video_title">Leitor em vídeos individuais do YouTube (também os botões do volante)</string>
+    <string name="player_single_video_skip">Vídeo anterior / seguinte</string>
 </resources>

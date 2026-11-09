@@ -392,4 +392,6 @@
     <string name="adblock_lists_custom_change">Cambia</string>
     <string name="adblock_lists_custom_phone">L\'indirizzo si scrive dalle Impostazioni sul telefono</string>
     <string name="share_to_car_not_connected">Collega il telefono all\'auto per aprirlo in CarWeb</string>
+    <string name="player_single_video_title">Player sui video singoli di YouTube (anche i tasti al volante)</string>
+    <string name="player_single_video_skip">Video precedente / successivo</string>
 </resources>

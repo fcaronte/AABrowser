@@ -74,6 +74,9 @@ class MediaSessionManager(
     // Titolo provvisorio (es. titolo della pagina) da mostrare finché la pagina non invia i metadati
     var fallbackTitle: () -> String? = { null }
 
+    // Un video singolo mostra lo skip invece di -10/+10 s (la scelta nelle Impostazioni, solo su YouTube)
+    var singleVideoAsTracks: () -> Boolean = { false }
+
     private var canSeek = true
     private var canSkipNext = false
     private var canSkipPrevious = false
@@ -448,9 +451,10 @@ class MediaSessionManager(
                     PlaybackStateCompat.ACTION_STOP or
                     PlaybackStateCompat.ACTION_PLAY_PAUSE
 
-        if (canSkipNext) actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-        if (canSkipPrevious) actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-        if (!isLiveStream && canSeek) actions = actions or PlaybackStateCompat.ACTION_SEEK_TO
+        val asTracks = canSeek && !isLiveStream && !canSkipNext && !canSkipPrevious && singleVideoAsTracks()
+        if (canSkipNext || asTracks) actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+        if (canSkipPrevious || asTracks) actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+        if (!isLiveStream && canSeek && !asTracks) actions = actions or PlaybackStateCompat.ACTION_SEEK_TO
 
         val playbackState = PlaybackStateCompat.Builder()
             .setState(state, position, speed)

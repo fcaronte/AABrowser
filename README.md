@@ -72,6 +72,8 @@ from the misuse of this application. Use at your own risk.
 * **Voice commands:** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
   channels (new in 2.6), search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
+* **Steering wheel keys on YouTube:** on a single video ⏮ ⏭ jump 10 seconds, like the buttons Android Auto shows. In
+  Settings you can choose previous/next video instead (⏭ opens the first suggested video), and the keys follow the choice.
 * **Share to CarWeb (new in 2.6):** the phone's Share menu has "CarWeb": a link shared from any app, or a photo, video or
   audio file, opens in a tab of CarWeb in the car (or in CarWebWide when that is the app in front), and a YouTube video starts
   by itself. With no app open in the car, it waits a minute for the one you open. In Settings the entry can be off, shown only with the car
@@ -274,6 +276,8 @@ proprio rischio e pericolo.
 * **Comandi vocali:** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio e canali TV (novità 2.6),
   cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
+* **Tasti al volante su YouTube:** su un video singolo ⏮ ⏭ saltano di 10 secondi, come i pulsanti che mostra Android Auto.
+  Nelle Impostazioni si può scegliere video precedente/successivo (⏭ apre il primo video suggerito), e i tasti seguono la scelta.
 * **Condividi su CarWeb (novità 2.6):** il menu Condividi del telefono ha «CarWeb»: un link condiviso da qualsiasi app, o una
   foto, un video o un file audio, si apre in una scheda di CarWeb in auto (o in CarWebWide se è lei in primo piano), e un video
   di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri. Nelle Impostazioni la voce si può

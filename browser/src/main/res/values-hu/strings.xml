@@ -434,4 +434,6 @@
     <string name="adblock_lists_custom_change">Módosítás</string>
     <string name="adblock_lists_custom_phone">A címet a telefon Beállításaiban adhatod meg</string>
     <string name="share_to_car_not_connected">Csatlakoztasd a telefont az autóhoz, hogy a CarWebben nyisd meg</string>
+    <string name="player_single_video_title">Lejátszó önálló YouTube-videóknál (a kormánygombok is)</string>
+    <string name="player_single_video_skip">Előző / következő videó</string>
 </resources>

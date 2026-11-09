@@ -780,9 +780,12 @@ fun BrowserScreen(
                             // Spotify e gli altri siti a brani sono gestiti dentro gli script (Media Session
                             // della pagina o pulsante del brano), così vale anche per la Wide e per le schede
                             // arrivate su Spotify navigando: qui `url` sarebbe quello con cui è nata la scheda
-                            onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
-                            onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
+                            onSkipToNext = { evaluateJavascript(BrowserJavascript.getNextScript(AppSettings.youtubeVideoSkip.value), null) }
+                            onSkipToPrevious = { evaluateJavascript(BrowserJavascript.getPreviousScript(AppSettings.youtubeVideoSkip.value), null) }
                             onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
+                            singleVideoAsTracks = {
+                                AppSettings.youtubeVideoSkip.value && VoiceCommands.isYouTubeUrl("https://${pageHost.get()}/")
+                            }
                             // Solo la scheda visibile può prendersi il player avviando un media
                             canTakeFocus = { currentIsTabActive }
                         }

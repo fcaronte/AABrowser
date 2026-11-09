@@ -664,7 +664,9 @@ object BrowserJavascript {
         if (!video) return;
 
         let attempts = 0;
-        const maxAttempts = 15;
+        // Video singolo con la scelta "video precedente / successivo": il pulsante non c'è, inutile aspettarlo
+        const singleVideo = window.aabSingleVideoSkip && !location.search.includes('list=');
+        const maxAttempts = singleVideo ? 1 : 15;
 
         function findNextButton() {
             const primary = document.querySelector(
@@ -690,6 +692,16 @@ object BrowserJavascript {
                 const id = (el.id || '').toLowerCase();
                 if (cls.includes('ytp-next') || cls.includes('ytm-next') || id.includes('next-button')) return el;
                 if (nextKeywords.some(k => label.includes(k))) return el;
+            }
+            return null;
+        }
+
+        function findSuggestedVideo() {
+            const current = new URLSearchParams(location.search).get('v');
+            const links = document.querySelectorAll('ytm-video-with-context-renderer a[href*="/watch?v="]');
+            for (const link of links) {
+                const box = link.getBoundingClientRect();
+                if (box.width > 0 && box.height > 0 && new URL(link.href).searchParams.get('v') !== current) return link;
             }
             return null;
         }
@@ -723,6 +735,13 @@ object BrowserJavascript {
              */
             if (attempts < maxAttempts) {
                 setTimeout(tryNext, 100);
+                return;
+            }
+
+            const suggested = singleVideo ? findSuggestedVideo() : null;
+            if (suggested) {
+                console.log("AABrowser: YouTube NEXT opens a suggested video");
+                smartClick(suggested);
                 return;
             }
 
@@ -823,7 +842,9 @@ object BrowserJavascript {
         if (!video) return;
 
         let attempts = 0;
-        const maxAttempts = 15;
+        // Video singolo con la scelta "video precedente / successivo": il pulsante non c'è, inutile aspettarlo
+        const singleVideo = window.aabSingleVideoSkip && !location.search.includes('list=');
+        const maxAttempts = singleVideo ? 1 : 15;
 
         function findPreviousButton() {
             const primary = document.querySelector(
@@ -883,6 +904,14 @@ object BrowserJavascript {
                 return;
             }
 
+            // Da capo; se è già all'inizio, la pagina di prima
+            if (singleVideo) {
+                console.log("AABrowser: YouTube PREVIOUS on a single video");
+                if (video.currentTime > 5) video.currentTime = 0;
+                else history.back();
+                return;
+            }
+
             /*
              * Fallback solamente se il pulsante
              * non è realmente disponibile.
@@ -929,6 +958,13 @@ object BrowserJavascript {
     }
 })();
 """
+
+    /** Comandi del player: [singleVideoSkip] = su un video singolo di YouTube il video suggerito al posto di ±10 s. */
+    fun getNextScript(singleVideoSkip: Boolean): String =
+        "window.aabSingleVideoSkip = $singleVideoSkip;\n" + NEXT_SCRIPT.trimIndent()
+
+    fun getPreviousScript(singleVideoSkip: Boolean): String =
+        "window.aabSingleVideoSkip = $singleVideoSkip;\n" + PREVIOUS_SCRIPT.trimIndent()
 
     fun getSeekScript(pos: Long): String {
         return """

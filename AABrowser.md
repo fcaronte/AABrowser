@@ -122,6 +122,8 @@
 
 \- \*\*Audio Focus\*\*: Automatically pauses/ducks playback during reverse gear / rear parking camera activation.
 
+\- \*\*Tasti al volante\*\*: Android Auto li inoltra alla sessione, ma il comportamento predefinito di Android scarta ⏭ e ⏮ se lo stato non li dichiara. Su un video senza brani (stato con `ACTION_SEEK_TO` e senza skip) li gestisce `CarMediaService.onMediaButtonEvent`: ±10 s subito, come i pulsanti di Android Auto, e i tocchi ravvicinati si sommano. Opzione nelle Impostazioni, solo YouTube (`AppSettings.youtubeVideoSkip`, spenta): lo stato dichiara lo skip (`MediaSessionManager.singleVideoAsTracks`), ⏭ apre il primo video suggerito (`ytm-video-with-context-renderer`) e ⏮ torna all'inizio, o alla pagina di prima se è già all'inizio.
+
 \- \*\*Media Player\*\*: Integrated player with options to disable completely or run in the background. Local audio tracks can look up plain or synchronized lyrics on LRCLIB using their tags; playback-time highlighting is available for synchronized lyrics.
 
 \### Internationalization (i18n)

@@ -433,4 +433,6 @@
     <string name="adblock_lists_custom_change">更改</string>
     <string name="adblock_lists_custom_phone">请在手机上的设置中输入地址</string>
     <string name="share_to_car_not_connected">请将手机连接到车辆，以在 CarWeb 中打开</string>
+    <string name="player_single_video_title">单个 YouTube 视频的播放器（也包括方向盘按键）</string>
+    <string name="player_single_video_skip">上一个 / 下一个视频</string>
 </resources>

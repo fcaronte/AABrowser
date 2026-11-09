@@ -1555,9 +1555,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             onPlay = { evaluateJavascript(BrowserJavascript.PLAY_SCRIPT.trimIndent(), null) }
                             onPause = { evaluateJavascript(BrowserJavascript.PAUSE_SCRIPT.trimIndent(), null) }
                             onStop = { evaluateJavascript(BrowserJavascript.STOP_SCRIPT.trimIndent(), null) }
-                            onSkipToNext = { evaluateJavascript(BrowserJavascript.NEXT_SCRIPT.trimIndent(), null) }
-                            onSkipToPrevious = { evaluateJavascript(BrowserJavascript.PREVIOUS_SCRIPT.trimIndent(), null) }
+                            onSkipToNext = { evaluateJavascript(BrowserJavascript.getNextScript(AppSettings.youtubeVideoSkip.value), null) }
+                            onSkipToPrevious = { evaluateJavascript(BrowserJavascript.getPreviousScript(AppSettings.youtubeVideoSkip.value), null) }
                             onSeekTo = { pos -> evaluateJavascript(BrowserJavascript.getSeekScript(pos), null) }
+                            singleVideoAsTracks = {
+                                AppSettings.youtubeVideoSkip.value && VoiceCommands.isYouTubeUrl("https://$pageHost/")
+                            }
                         }
                         // Titolo della pagina finché il sito non invia i metadati del media
                         mediaSessionManager.fallbackTitle = { title }

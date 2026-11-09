@@ -162,6 +162,10 @@ object AppSettings {
     private val _playerCardOpensMain = mutableStateOf(false)
     val playerCardOpensMain: State<Boolean> = _playerCardOpensMain
 
+    // Video singolo di YouTube sul player di Android Auto: false = -10/+10 s, true = video precedente/successivo
+    private val _youtubeVideoSkip = mutableStateOf(false)
+    val youtubeVideoSkip: State<Boolean> = _youtubeVideoSkip
+
     // "Condividi su CarWeb": la voce nel menu Condividi del telefono (CarShareTarget), di serie solo con l'auto collegata
     private val _shareToCarWeb = mutableStateOf(true)
     val shareToCarWeb: State<Boolean> = _shareToCarWeb
@@ -234,6 +238,7 @@ object AppSettings {
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
+        _youtubeVideoSkip.value = prefs.getBoolean("youtube_video_skip", false)
         _shareToCarWeb.value = prefs.getBoolean("share_to_carweb", true)
         _shareAlways.value = prefs.getBoolean("share_always", false)
         restoreMainAfterMediaAppTest(context)
@@ -290,6 +295,11 @@ object AppSettings {
     fun setPlayerCardOpensMain(context: Context, enabled: Boolean) {
         _playerCardOpensMain.value = enabled
         saveBoolean(context, "player_card_opens_main", enabled)
+    }
+
+    fun setYouTubeVideoSkip(context: Context, enabled: Boolean) {
+        _youtubeVideoSkip.value = enabled
+        saveBoolean(context, "youtube_video_skip", enabled)
     }
 
     fun setShareToCarWeb(context: Context, enabled: Boolean) {

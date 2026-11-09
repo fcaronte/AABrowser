@@ -438,4 +438,6 @@
     <string name="adblock_lists_custom_change">تغيير</string>
     <string name="adblock_lists_custom_phone">يُكتب العنوان من الإعدادات على الهاتف</string>
     <string name="share_to_car_not_connected">صِل الهاتف بالسيارة لفتحه في CarWeb</string>
+    <string name="player_single_video_title">المشغّل في مقاطع YouTube الفردية (وأزرار عجلة القيادة أيضًا)</string>
+    <string name="player_single_video_skip">الفيديو السابق / التالي</string>
 </resources>

@@ -439,4 +439,7 @@
     <string name="adblock_lists_custom_change">Change</string>
     <string name="adblock_lists_custom_phone">You can enter the address from Settings on the phone</string>
     <string name="share_to_car_not_connected">Connect the phone to the car to open it in CarWeb</string>
+    <string name="player_single_video_title">Player on single YouTube videos (steering wheel keys too)</string>
+    <string name="player_single_video_seek" translatable="false">−10 s / +10 s</string>
+    <string name="player_single_video_skip">Previous / next video</string>
 </resources>

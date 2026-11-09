@@ -175,6 +175,8 @@ fun SettingsScreen(
     var expandedAppSection by remember { mutableStateOf(false) }
     var expandedMediaSection by remember { mutableStateOf(focusLists != null) }
     var expandedShareWhen by remember { mutableStateOf(false) }
+    val youtubeVideoSkip by AppSettings.youtubeVideoSkip
+    var expandedSingleVideo by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
     var cacheSize by remember { mutableStateOf("...") }
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
@@ -409,6 +411,23 @@ fun SettingsScreen(
                                         checked = playerCardOpensMain,
                                         onCheckedChange = { AppSettings.setPlayerCardOpensMain(context, it) }
                                     )
+                                    // I tasti al volante seguono questa scelta (CarMediaService)
+                                    Column(modifier = Modifier.padding(bottom = 12.dp)) {
+                                        SettingsChoiceList(
+                                            title = stringResource(R.string.player_single_video_title),
+                                            options = listOf(
+                                                "seek" to stringResource(R.string.player_single_video_seek),
+                                                "skip" to stringResource(R.string.player_single_video_skip)
+                                            ),
+                                            selectedKey = if (youtubeVideoSkip) "skip" else "seek",
+                                            expanded = expandedSingleVideo,
+                                            onExpandedChange = { expandedSingleVideo = it },
+                                            onSelect = {
+                                                AppSettings.setYouTubeVideoSkip(context, it == "skip")
+                                                expandedSingleVideo = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
 

@@ -436,4 +436,6 @@
     <string name="adblock_lists_custom_change">Изменить</string>
     <string name="adblock_lists_custom_phone">Адрес вводится в настройках на телефоне</string>
     <string name="share_to_car_not_connected">Подключите телефон к машине, чтобы открыть это в CarWeb</string>
+    <string name="player_single_video_title">Плеер при отдельном видео YouTube (и кнопки на руле)</string>
+    <string name="player_single_video_skip">Предыдущее / следующее видео</string>
 </resources>
