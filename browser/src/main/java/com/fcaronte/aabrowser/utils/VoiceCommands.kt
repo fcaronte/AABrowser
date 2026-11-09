@@ -873,12 +873,18 @@ object VoiceCommands {
     }
 
     /** La pagina di CarWeb Media di un indirizzo; null se è un altro sito. */
+    /** La pagina dei Podcast: stesso host di Media, TV e Radio, ma senza comandi vocali per ora. */
+    fun isPodcastPage(url: String?): Boolean {
+        val uri = parseUri(url) ?: return false
+        return uri.host?.lowercase() == PLAYER_HOST && uri.path.orEmpty().trimEnd('/') == "/podcast"
+    }
+
     fun mediaSectionOf(url: String?): MediaSection? {
         val uri = parseUri(url) ?: return null
         if (uri.host?.lowercase() != PLAYER_HOST) return null
         val path = uri.path.orEmpty().trimEnd('/')
         // Una foto o un video condivisi sono una pagina a sé: i comandi vocali non passano da lì
-        if (path.startsWith("/shared")) return null
+        if (path.startsWith("/shared") || path == "/podcast") return null
         return when (path) {
             "/tv" -> MediaSection.TV
             "/radio" -> MediaSection.RADIO

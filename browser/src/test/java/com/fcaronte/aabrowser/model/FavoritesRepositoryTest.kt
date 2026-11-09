@@ -29,4 +29,23 @@ class FavoritesRepositoryTest {
             favorites.map { it.url },
         )
     }
+
+    @Test
+    fun podcastDefaultIsInsertedAfterRadio() {
+        val favorites = mutableListOf(
+            FavoriteSite("a", "Media", "https://player.local/"),
+            FavoriteSite("b", "Radio", "https://player.local/radio"),
+            FavoriteSite("c", "YouTube", "https://youtube.com"),
+        )
+
+        FavoritesRepository.insertDefaultFavorite(
+            favorites,
+            FavoriteSite("podcast", "Podcast", "https://player.local/podcast"),
+        )
+
+        assertEquals(
+            listOf("https://player.local/", "https://player.local/radio", "https://player.local/podcast", "https://youtube.com"),
+            favorites.map { it.url },
+        )
+    }
 }

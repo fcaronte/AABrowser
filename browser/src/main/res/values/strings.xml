@@ -386,7 +386,7 @@
     <string name="iptv_add">Add</string>
     <string name="iptv_remove">Remove</string>
     <string name="iptv_add_on_phone">Lists are added from Settings on the phone.</string>
-    <string name="settings_category_media">IPTV and Radio</string>
+    <string name="settings_category_media">TV, Radio and Podcasts</string>
     <string name="media_lists_add">＋ Add a list…</string>
     <string name="radio_lists_title">Radio (countries and M3U)</string>
     <string name="radio_lists_desc">Station lists for the Radio: the most listened stations of a country (Radio Browser) or your own M3U lists. Addresses stay on the phone and are not included in the backup.</string>
@@ -442,4 +442,25 @@
     <string name="player_single_video_title">Player on single YouTube videos (steering wheel keys too)</string>
     <string name="player_single_video_seek" translatable="false">−10 s / +10 s</string>
     <string name="player_single_video_skip">Previous / next video</string>
+    <string name="favorite_default_name_12" translatable="false">Podcast</string>
+    <string name="favorite_default_url_12" translatable="false">https://player.local/podcast</string>
+    <string name="podcast_title">Podcasts</string>
+    <string name="podcast_search">Search podcasts</string>
+    <string name="podcast_all">All</string>
+    <string name="podcast_following">Following</string>
+    <string name="podcast_follow">Follow</string>
+    <string name="podcast_no_results">No podcasts found</string>
+    <string name="podcast_error">Could not load the podcasts</string>
+    <string name="podcast_unavailable">Episode not available</string>
+    <string name="podcast_listened">Played</string>
+    <string name="podcast_left">%1$s left</string>
+    <string name="podcast_in_country">Popular podcasts in %1$s</string>
+    <string name="podcast_mine">My podcasts</string>
+    <string name="podcast_lists_title">Podcasts (countries, RSS and OPML)</string>
+    <string name="podcast_lists_desc">The most popular shows of a country (Apple Podcasts) or the feeds you add. The audio comes straight from each publisher. Addresses stay on the phone and are not included in the backup.</string>
+    <string name="podcast_add_rss">Add RSS</string>
+    <string name="podcast_add_opml">Import OPML</string>
+    <string name="podcast_rss_url">RSS feed address</string>
+    <string name="podcast_rss_error">Not a valid feed, or it cannot be reached</string>
+    <string name="podcast_opml_error">Could not read the file. Choose an accessible OPML file.</string>
 </resources>

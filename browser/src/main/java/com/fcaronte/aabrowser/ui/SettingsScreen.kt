@@ -927,7 +927,7 @@ fun SettingsScreen(
                         }
                     }
 
-                    // SEZIONE: LISTE DI TV E RADIO (si aggiungono dal telefono)
+                    // SEZIONE: LISTE DI TV, RADIO E PODCAST (si aggiungono dal telefono)
                     SettingsSectionHeader(
                         title = stringResource(R.string.settings_category_media),
                         isExpanded = expandedMediaSection,

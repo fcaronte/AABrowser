@@ -1,0 +1,47 @@
+.podcast-list .group[hidden] {
+    display: none;
+}
+
+.podcast-list #closeShow {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.podcast-list .channel img {
+    object-fit: cover;
+}
+
+.podcast-list .channel .letter {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--art-from), var(--art-to));
+    font-weight: 700;
+}
+
+.podcast-list .channel.done .details {
+    opacity: 0.6;
+}
+
+.podcast-list .channel .heard {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--accent);
+}
+
+.control.jump {
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.control.jump:disabled {
+    opacity: 0.4;
+}

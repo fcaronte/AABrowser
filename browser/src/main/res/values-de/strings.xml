@@ -381,7 +381,7 @@
     <string name="iptv_add">Hinzufügen</string>
     <string name="iptv_remove">Entfernen</string>
     <string name="iptv_add_on_phone">Listen werden in den Einstellungen auf dem Handy hinzugefügt.</string>
-    <string name="settings_category_media">IPTV und Radio</string>
+    <string name="settings_category_media">TV, Radio und Podcasts</string>
     <string name="media_lists_add">＋ Liste hinzufügen…</string>
     <string name="radio_lists_title">Radio (Länder und M3U)</string>
     <string name="radio_lists_desc">Senderlisten für das Radio: die meistgehörten Sender eines Landes (Radio Browser) oder eigene M3U-Listen. Adressen bleiben auf dem Handy und gelangen nicht ins Backup.</string>
@@ -436,4 +436,23 @@
     <string name="share_to_car_not_connected">Verbinde das Telefon mit dem Auto, um es in CarWeb zu öffnen</string>
     <string name="player_single_video_title">Player bei einzelnen YouTube-Videos (auch Lenkradtasten)</string>
     <string name="player_single_video_skip">Vorheriges / nächstes Video</string>
+    <string name="podcast_title">Podcasts</string>
+    <string name="podcast_search">Podcast suchen</string>
+    <string name="podcast_all">Alle</string>
+    <string name="podcast_following">Abonniert</string>
+    <string name="podcast_follow">Abonnieren</string>
+    <string name="podcast_no_results">Keine Podcasts gefunden</string>
+    <string name="podcast_error">Podcasts konnten nicht geladen werden</string>
+    <string name="podcast_unavailable">Folge nicht verfügbar</string>
+    <string name="podcast_listened">Gehört</string>
+    <string name="podcast_left">noch %1$s</string>
+    <string name="podcast_in_country">Beliebte Podcasts in %1$s</string>
+    <string name="podcast_mine">Meine Podcasts</string>
+    <string name="podcast_lists_title">Podcasts (Länder, RSS und OPML)</string>
+    <string name="podcast_lists_desc">Die beliebtesten Sendungen eines Landes (Apple Podcasts) oder die Feeds, die du hinzufügst. Der Ton kommt direkt vom jeweiligen Anbieter. Die Adressen bleiben auf dem Telefon und sind nicht im Backup enthalten.</string>
+    <string name="podcast_add_rss">RSS hinzufügen</string>
+    <string name="podcast_add_opml">OPML importieren</string>
+    <string name="podcast_rss_url">Adresse des RSS-Feeds</string>
+    <string name="podcast_rss_error">Ungültiger oder nicht erreichbarer Feed</string>
+    <string name="podcast_opml_error">Datei kann nicht gelesen werden. Wähle eine zugängliche OPML-Datei.</string>
 </resources>

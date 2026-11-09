@@ -382,7 +382,7 @@
     <string name="iptv_add">Ajouter</string>
     <string name="iptv_remove">Supprimer</string>
     <string name="iptv_add_on_phone">Les listes s\'ajoutent depuis les paramètres du téléphone.</string>
-    <string name="settings_category_media">IPTV et radio</string>
+    <string name="settings_category_media">TV, radio et podcasts</string>
     <string name="media_lists_add">＋ Ajouter une liste…</string>
     <string name="radio_lists_title">Radio (pays et M3U)</string>
     <string name="radio_lists_desc">Listes de stations pour la radio : les plus écoutées d\'un pays (Radio Browser) ou vos propres listes M3U. Les adresses restent sur le téléphone et ne sont pas sauvegardées.</string>
@@ -437,4 +437,23 @@
     <string name="share_to_car_not_connected">Connectez le téléphone à la voiture pour l\'ouvrir dans CarWeb</string>
     <string name="player_single_video_title">Lecteur sur les vidéos YouTube seules (touches au volant comprises)</string>
     <string name="player_single_video_skip">Vidéo précédente / suivante</string>
+    <string name="podcast_title">Podcasts</string>
+    <string name="podcast_search">Rechercher un podcast</string>
+    <string name="podcast_all">Tous</string>
+    <string name="podcast_following">Suivis</string>
+    <string name="podcast_follow">Suivre</string>
+    <string name="podcast_no_results">Aucun podcast trouvé</string>
+    <string name="podcast_error">Impossible de charger les podcasts</string>
+    <string name="podcast_unavailable">Épisode indisponible</string>
+    <string name="podcast_listened">Écouté</string>
+    <string name="podcast_left">%1$s restantes</string>
+    <string name="podcast_in_country">Podcasts populaires en %1$s</string>
+    <string name="podcast_mine">Mes podcasts</string>
+    <string name="podcast_lists_title">Podcasts (pays, RSS et OPML)</string>
+    <string name="podcast_lists_desc">Les émissions les plus suivies d\'un pays (Apple Podcasts) ou les flux que vous ajoutez. L\'audio vient directement de chaque éditeur. Les adresses restent sur le téléphone et ne sont pas incluses dans la sauvegarde.</string>
+    <string name="podcast_add_rss">Ajouter un flux RSS</string>
+    <string name="podcast_add_opml">Importer un OPML</string>
+    <string name="podcast_rss_url">Adresse du flux RSS</string>
+    <string name="podcast_rss_error">Flux non valide ou inaccessible</string>
+    <string name="podcast_opml_error">Impossible de lire le fichier. Choisissez un fichier OPML accessible.</string>
 </resources>

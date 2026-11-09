@@ -381,7 +381,7 @@
     <string name="iptv_add">Hozzáadás</string>
     <string name="iptv_remove">Eltávolítás</string>
     <string name="iptv_add_on_phone">A listákat a telefon beállításaiban lehet hozzáadni.</string>
-    <string name="settings_category_media">IPTV és rádió</string>
+    <string name="settings_category_media">TV, rádió és podcastok</string>
     <string name="media_lists_add">＋ Lista hozzáadása…</string>
     <string name="radio_lists_title">Rádió (országok és M3U)</string>
     <string name="radio_lists_desc">Állomáslisták a rádióhoz: egy ország legnépszerűbb állomásai (Radio Browser) vagy saját M3U-listák. A címek a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
@@ -436,4 +436,23 @@
     <string name="share_to_car_not_connected">Csatlakoztasd a telefont az autóhoz, hogy a CarWebben nyisd meg</string>
     <string name="player_single_video_title">Lejátszó önálló YouTube-videóknál (a kormánygombok is)</string>
     <string name="player_single_video_skip">Előző / következő videó</string>
+    <string name="podcast_title">Podcastok</string>
+    <string name="podcast_search">Podcast keresése</string>
+    <string name="podcast_all">Összes</string>
+    <string name="podcast_following">Követett</string>
+    <string name="podcast_follow">Követés</string>
+    <string name="podcast_no_results">Nincs találat</string>
+    <string name="podcast_error">Nem sikerült betölteni a podcastokat</string>
+    <string name="podcast_unavailable">Az epizód nem érhető el</string>
+    <string name="podcast_listened">Meghallgatva</string>
+    <string name="podcast_left">még %1$s</string>
+    <string name="podcast_in_country">Népszerű podcastok itt: %1$s</string>
+    <string name="podcast_mine">Saját podcastok</string>
+    <string name="podcast_lists_title">Podcastok (országok, RSS és OPML)</string>
+    <string name="podcast_lists_desc">Egy ország legnépszerűbb műsorai (Apple Podcasts) vagy az Ön által hozzáadott hírcsatornák. A hang közvetlenül a kiadótól érkezik. A címek a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
+    <string name="podcast_add_rss">RSS hozzáadása</string>
+    <string name="podcast_add_opml">OPML importálása</string>
+    <string name="podcast_rss_url">RSS-hírcsatorna címe</string>
+    <string name="podcast_rss_error">Érvénytelen vagy nem elérhető hírcsatorna</string>
+    <string name="podcast_opml_error">A fájl nem olvasható. Válasszon egy elérhető OPML-fájlt.</string>
 </resources>

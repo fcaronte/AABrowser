@@ -383,7 +383,7 @@
     <string name="iptv_add">Добавить</string>
     <string name="iptv_remove">Удалить</string>
     <string name="iptv_add_on_phone">Списки добавляются в настройках на телефоне.</string>
-    <string name="settings_category_media">IPTV и радио</string>
+    <string name="settings_category_media">ТВ, радио и подкасты</string>
     <string name="media_lists_add">＋ Добавить список…</string>
     <string name="radio_lists_title">Радио (страны и M3U)</string>
     <string name="radio_lists_desc">Списки станций для радио: самые популярные станции страны (Radio Browser) или ваши списки M3U. Адреса остаются на телефоне и не попадают в резервную копию.</string>
@@ -438,4 +438,23 @@
     <string name="share_to_car_not_connected">Подключите телефон к машине, чтобы открыть это в CarWeb</string>
     <string name="player_single_video_title">Плеер при отдельном видео YouTube (и кнопки на руле)</string>
     <string name="player_single_video_skip">Предыдущее / следующее видео</string>
+    <string name="podcast_title">Подкасты</string>
+    <string name="podcast_search">Поиск подкастов</string>
+    <string name="podcast_all">Все</string>
+    <string name="podcast_following">Подписки</string>
+    <string name="podcast_follow">Подписаться</string>
+    <string name="podcast_no_results">Подкасты не найдены</string>
+    <string name="podcast_error">Не удалось загрузить подкасты</string>
+    <string name="podcast_unavailable">Выпуск недоступен</string>
+    <string name="podcast_listened">Прослушано</string>
+    <string name="podcast_left">осталось %1$s</string>
+    <string name="podcast_in_country">Популярные подкасты в стране: %1$s</string>
+    <string name="podcast_mine">Мои подкасты</string>
+    <string name="podcast_lists_title">Подкасты (страны, RSS и OPML)</string>
+    <string name="podcast_lists_desc">Самые популярные шоу страны (Apple Podcasts) или добавленные вами ленты. Звук поступает напрямую от авторов подкаста. Адреса остаются на телефоне и не попадают в резервную копию.</string>
+    <string name="podcast_add_rss">Добавить RSS</string>
+    <string name="podcast_add_opml">Импорт OPML</string>
+    <string name="podcast_rss_url">Адрес RSS-ленты</string>
+    <string name="podcast_rss_error">Лента недействительна или недоступна</string>
+    <string name="podcast_opml_error">Не удалось прочитать файл. Выберите доступный файл OPML.</string>
 </resources>

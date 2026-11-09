@@ -14,19 +14,19 @@ import java.util.UUID
 
 /**
  * Liste di CarWeb Media. TV: playlist IPTV-org automatica, M3U via URL o file e account Xtream. Radio: stazioni del
- * Paese della lingua dell'app, altri Paesi di Radio Browser e M3U via URL o file. Quelle aggiunte dall'utente sono
- * salvate nell'app e fuori dal backup. La pagina ne vede solo id e nome: indirizzi, credenziali e URI dei file restano
+ * Paese della lingua dell'app, altri Paesi di Radio Browser e M3U via URL o file. Podcast: classifica del Paese, altri
+ * Paesi e feed RSS o OPML. Quelle aggiunte dall'utente sono salvate nell'app e fuori dal backup. La pagina ne vede solo id e nome: indirizzi, credenziali e URI dei file restano
  * qui (IptvLibrary, IptvProxy, RadioApi).
  */
 object IptvSources {
     private const val TAG = "IptvSources"
 
-    enum class Type { DEFAULT_M3U, M3U, LOCAL_M3U, XTREAM, DEFAULT_COUNTRY, COUNTRY }
+    enum class Type { DEFAULT_M3U, M3U, LOCAL_M3U, XTREAM, DEFAULT_COUNTRY, COUNTRY, RSS }
 
     /** Le pagine che hanno delle liste, salvate ognuna per conto suo. */
-    enum class Section(internal val key: String) { TV("sources"), RADIO("radio_sources") }
+    enum class Section(internal val key: String) { TV("sources"), RADIO("radio_sources"), PODCAST("podcast_sources") }
 
-    /** [url]: indirizzo M3U/server Xtream, URI del documento per [Type.LOCAL_M3U], codice del Paese per le radio. */
+    /** [url]: indirizzo M3U/server Xtream/feed RSS, URI del documento per [Type.LOCAL_M3U], codice del Paese. */
     data class Source(
         val id: String,
         val type: Type,
@@ -41,6 +41,7 @@ object IptvSources {
     private const val PREFS = "iptv_sources"
     private const val DEFAULT_ID_PREFIX = "iptv-org-language-"
     private const val DEFAULT_RADIO_ID_PREFIX = "radio-browser-"
+    private const val DEFAULT_PODCAST_ID_PREFIX = "podcast-chart-"
     private const val IPTV_ORG_BASE_URL = "https://iptv-org.github.io/iptv/"
 
     /** Cambia a ogni aggiunta o rimozione (elenco nelle Impostazioni, menu delle pagine aperte). */
@@ -49,8 +50,8 @@ object IptvSources {
     /** La lista automatica, sempre per prima, e quelle aggiunte. */
     fun list(context: Context, section: Section = Section.TV): List<Source> = when (section) {
         Section.TV -> listOf(defaultLanguageSource(context)) + savedSources(context, section)
-        Section.RADIO -> listOf(defaultCountrySource(context)) + savedSources(context, section).map { source ->
-            if (source.type == Type.COUNTRY) source.copy(name = countryListName(context, source.url)) else source
+        Section.RADIO, Section.PODCAST -> listOf(defaultCountrySource(context, section)) + savedSources(context, section).map { source ->
+            if (source.type == Type.COUNTRY) source.copy(name = countryListName(context, section, source.url)) else source
         }
     }
 
@@ -111,22 +112,24 @@ object IptvSources {
         )
     }
 
-    private fun defaultCountrySource(context: Context): Source {
+    private fun defaultCountrySource(context: Context, section: Section): Source {
         val code = RadioApi.countryCodeFor(AppLocale.wrap(context).resources.configuration.locales[0])
+        val prefix = if (section == Section.PODCAST) DEFAULT_PODCAST_ID_PREFIX else DEFAULT_RADIO_ID_PREFIX
         return Source(
-            id = "$DEFAULT_RADIO_ID_PREFIX$code",
+            id = "$prefix$code",
             type = Type.DEFAULT_COUNTRY,
-            name = countryListName(context, code),
+            name = countryListName(context, section, code),
             url = code,
         )
     }
 
     // Il nome si calcola ogni volta: se cambia la lingua dell'app cambia anche lui
-    private fun countryListName(context: Context, code: String): String {
+    private fun countryListName(context: Context, section: Section, code: String): String {
         val localizedContext = AppLocale.wrap(context)
         val locale = localizedContext.resources.configuration.locales[0]
         val country = Locale.Builder().setRegion(code).build().getDisplayCountry(locale)
-        return localizedContext.getString(com.fcaronte.aabrowser.R.string.radio_in_country, country)
+        val text = if (section == Section.PODCAST) com.fcaronte.aabrowser.R.string.podcast_in_country else com.fcaronte.aabrowser.R.string.radio_in_country
+        return localizedContext.getString(text, country)
     }
 
     /** Nuova lista; senza schema l'indirizzo diventa http:// (i server IPTV di solito non sono in https). */
@@ -151,11 +154,21 @@ object IptvSources {
         save(context, section, savedSources(context, section) + source)
     }
 
-    /** Stazioni di un altro Paese di Radio Browser; un Paese che c'è già non si aggiunge una seconda volta. */
-    fun addCountry(context: Context, code: String) {
-        if (list(context, Section.RADIO).any { !it.isPlaylist && it.url == code }) return
+    /** Un altro Paese (stazioni di Radio Browser, classifica dei podcast); uno che c'è già non si aggiunge una seconda volta. */
+    fun addCountry(context: Context, section: Section, code: String) {
+        if (list(context, section).any { !it.isPlaylist && it.url == code }) return
         val source = Source(id = UUID.randomUUID().toString(), type = Type.COUNTRY, name = "", url = code)
-        save(context, Section.RADIO, savedSources(context, Section.RADIO) + source)
+        save(context, section, savedSources(context, section) + source)
+    }
+
+    /** Podcast aggiunti per indirizzo o da un file OPML (nome e indirizzo del feed); quelli che ci sono già si saltano. */
+    fun addFeeds(context: Context, feeds: List<Pair<String, String>>) {
+        val sources = savedSources(context, Section.PODCAST)
+        val known = sources.mapTo(HashSet()) { it.url }
+        val added = feeds.filter { (_, url) -> known.add(url) }.map { (name, url) ->
+            Source(UUID.randomUUID().toString(), Type.RSS, name.ifBlank { Uri.parse(url).host ?: url }, url)
+        }
+        if (added.isNotEmpty()) save(context, Section.PODCAST, sources + added)
     }
 
     /** Aggiunge un file M3U/M3U8 selezionato dall'utente, conservandone l'accesso dopo il riavvio. */

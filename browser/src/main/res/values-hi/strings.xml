@@ -381,7 +381,7 @@
     <string name="iptv_add">जोड़ें</string>
     <string name="iptv_remove">हटाएँ</string>
     <string name="iptv_add_on_phone">सूचियाँ फ़ोन की सेटिंग में जोड़ी जाती हैं।</string>
-    <string name="settings_category_media">IPTV और रेडियो</string>
+    <string name="settings_category_media">टीवी, रेडियो और पॉडकास्ट</string>
     <string name="media_lists_add">＋ सूची जोड़ें…</string>
     <string name="radio_lists_title">रेडियो (देश और M3U)</string>
     <string name="radio_lists_desc">रेडियो के लिए स्टेशन सूचियाँ: किसी देश के सबसे ज़्यादा सुने जाने वाले स्टेशन (Radio Browser) या आपकी अपनी M3U सूचियाँ। पते फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
@@ -436,4 +436,23 @@
     <string name="share_to_car_not_connected">इसे CarWeb में खोलने के लिए फ़ोन को कार से जोड़ें</string>
     <string name="player_single_video_title">अलग-अलग YouTube वीडियो पर प्लेयर (स्टीयरिंग बटन भी)</string>
     <string name="player_single_video_skip">पिछला / अगला वीडियो</string>
+    <string name="podcast_title">पॉडकास्ट</string>
+    <string name="podcast_search">पॉडकास्ट खोजें</string>
+    <string name="podcast_all">सभी</string>
+    <string name="podcast_following">फ़ॉलो किए गए</string>
+    <string name="podcast_follow">फ़ॉलो करें</string>
+    <string name="podcast_no_results">कोई पॉडकास्ट नहीं मिला</string>
+    <string name="podcast_error">पॉडकास्ट लोड नहीं हो सके</string>
+    <string name="podcast_unavailable">एपिसोड उपलब्ध नहीं है</string>
+    <string name="podcast_listened">सुना गया</string>
+    <string name="podcast_left">%1$s बाकी</string>
+    <string name="podcast_in_country">%1$s में लोकप्रिय पॉडकास्ट</string>
+    <string name="podcast_mine">मेरे पॉडकास्ट</string>
+    <string name="podcast_lists_title">पॉडकास्ट (देश, RSS और OPML)</string>
+    <string name="podcast_lists_desc">किसी देश के सबसे लोकप्रिय शो (Apple Podcasts) या आपकी जोड़ी गई फ़ीड। ऑडियो सीधे पॉडकास्ट प्रकाशक से आता है। पते फ़ोन पर ही रहते हैं और बैकअप में शामिल नहीं होते।</string>
+    <string name="podcast_add_rss">RSS जोड़ें</string>
+    <string name="podcast_add_opml">OPML आयात करें</string>
+    <string name="podcast_rss_url">RSS फ़ीड का पता</string>
+    <string name="podcast_rss_error">फ़ीड अमान्य है या उपलब्ध नहीं है</string>
+    <string name="podcast_opml_error">फ़ाइल पढ़ी नहीं जा सकी। पहुँच योग्य OPML फ़ाइल चुनें।</string>
 </resources>

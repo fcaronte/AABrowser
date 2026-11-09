@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,8 +44,12 @@ import androidx.compose.ui.unit.sp
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.IptvSources
+import com.fcaronte.aabrowser.utils.PodcastApi
 import com.fcaronte.aabrowser.utils.XtreamLink
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.util.Locale
 import kotlin.math.abs
@@ -53,8 +58,8 @@ import kotlin.math.abs
 private const val BRING_INTO_VIEW_DELAY_MS = 150L
 
 /**
- * Liste di CarWeb Media nelle Impostazioni, una scheda per TV e una per Radio: elenco, aggiunta (M3U da URL o file, poi
- * account Xtream per la TV e Paesi di Radio Browser per la Radio) e rimozione.
+ * Liste di CarWeb Media nelle Impostazioni, una scheda per TV, Radio e Podcast: elenco, aggiunta (M3U da URL o file, poi
+ * account Xtream per la TV e Paesi di Radio Browser per la Radio; Paesi, feed RSS e file OPML per i Podcast) e rimozione.
  * In auto si possono solo vedere e togliere: le liste si aggiungono sul telefono.
  */
 @Composable
@@ -65,7 +70,7 @@ fun IptvSourcesCard(section: IptvSources.Section, isCarMode: Boolean, inFocus: B
     val colors = MaterialTheme.colorScheme
     val version by IptvSources.version
     val sources = remember(version, localeTag, section) { IptvSources.list(appContext, section) }
-    val isRadio = section == IptvSources.Section.RADIO
+    val isPodcast = section == IptvSources.Section.PODCAST
     var adding by remember { mutableStateOf<IptvSources.Type?>(null) }
     var fileError by remember { mutableStateOf(false) }
 
@@ -81,13 +86,25 @@ fun IptvSourcesCard(section: IptvSources.Section, isCarMode: Boolean, inFocus: B
         SettingsCard {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = stringResource(if (isRadio) R.string.radio_lists_title else R.string.iptv_title),
+                    text = stringResource(
+                        when (section) {
+                            IptvSources.Section.TV -> R.string.iptv_title
+                            IptvSources.Section.RADIO -> R.string.radio_lists_title
+                            IptvSources.Section.PODCAST -> R.string.podcast_lists_title
+                        }
+                    ),
                     color = colors.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = stringResource(if (isRadio) R.string.radio_lists_desc else R.string.iptv_desc),
+                    text = stringResource(
+                        when (section) {
+                            IptvSources.Section.TV -> R.string.iptv_desc
+                            IptvSources.Section.RADIO -> R.string.radio_lists_desc
+                            IptvSources.Section.PODCAST -> R.string.podcast_lists_desc
+                        }
+                    ),
                     color = colors.onSurface.copy(alpha = 0.6f),
                     fontSize = 12.sp,
                 )
@@ -99,7 +116,8 @@ fun IptvSourcesCard(section: IptvSources.Section, isCarMode: Boolean, inFocus: B
                                 text = when (source.type) {
                                     IptvSources.Type.DEFAULT_M3U -> stringResource(R.string.iptv_source_default)
                                     IptvSources.Type.DEFAULT_COUNTRY -> stringResource(R.string.radio_source_default)
-                                    IptvSources.Type.COUNTRY -> "Radio Browser"
+                                    IptvSources.Type.COUNTRY -> if (isPodcast) "Apple Podcasts" else "Radio Browser"
+                                    IptvSources.Type.RSS -> "RSS"
                                     IptvSources.Type.M3U -> "M3U"
                                     IptvSources.Type.LOCAL_M3U -> stringResource(R.string.iptv_source_local_m3u)
                                     IptvSources.Type.XTREAM -> "Xtream"
@@ -124,19 +142,26 @@ fun IptvSourcesCard(section: IptvSources.Section, isCarMode: Boolean, inFocus: B
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { adding = IptvSources.Type.M3U }) {
-                                Text(stringResource(R.string.iptv_add_m3u))
+                            if (isPodcast) {
+                                OutlinedButton(onClick = { adding = IptvSources.Type.RSS }) {
+                                    Text(stringResource(R.string.podcast_add_rss))
+                                }
+                                PodcastOpmlButton(onError = { fileError = it })
+                            } else {
+                                OutlinedButton(onClick = { adding = IptvSources.Type.M3U }) {
+                                    Text(stringResource(R.string.iptv_add_m3u))
+                                }
+                                IptvLocalM3uButton(section, onError = { fileError = it })
                             }
-                            IptvLocalM3uButton(section, onError = { fileError = it })
                         }
-                        val extraType = if (isRadio) IptvSources.Type.COUNTRY else IptvSources.Type.XTREAM
+                        val extraType = if (section == IptvSources.Section.TV) IptvSources.Type.XTREAM else IptvSources.Type.COUNTRY
                         OutlinedButton(onClick = { adding = extraType }) {
-                            Text(stringResource(if (isRadio) R.string.radio_add_country else R.string.iptv_add_xtream))
+                            Text(stringResource(if (extraType == IptvSources.Type.XTREAM) R.string.iptv_add_xtream else R.string.radio_add_country))
                         }
                     }
                     if (fileError) {
                         Text(
-                            text = stringResource(R.string.iptv_file_error),
+                            text = stringResource(if (isPodcast) R.string.podcast_opml_error else R.string.iptv_file_error),
                             color = MaterialTheme.colorScheme.error,
                             fontSize = 12.sp,
                         )
@@ -147,17 +172,103 @@ fun IptvSourcesCard(section: IptvSources.Section, isCarMode: Boolean, inFocus: B
     }
 
     adding?.let { type ->
-        if (type == IptvSources.Type.COUNTRY) {
-            RadioCountryDialog(onDismiss = { adding = null }) { code ->
-                IptvSources.addCountry(context, code)
+        when (type) {
+            IptvSources.Type.COUNTRY -> RadioCountryDialog(onDismiss = { adding = null }) { code ->
+                IptvSources.addCountry(context, section, code)
                 adding = null
             }
-        } else {
-            IptvSourceDialog(type, onDismiss = { adding = null }) { name, url, username, password ->
+
+            IptvSources.Type.RSS -> PodcastFeedDialog(onDismiss = { adding = null })
+
+            else -> IptvSourceDialog(type, onDismiss = { adding = null }) { name, url, username, password ->
                 IptvSources.add(context, section, type, name, url, username, password)
                 adding = null
             }
         }
+    }
+}
+
+// Il feed si legge subito: un indirizzo sbagliato si scopre qui e il nome del podcast arriva dal feed
+@Composable
+private fun PodcastFeedDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var url by remember { mutableStateOf("") }
+    var checking by remember { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.podcast_add_rss)) },
+        text = {
+            OutlinedTextField(
+                value = url,
+                onValueChange = {
+                    url = it
+                    failed = false
+                },
+                label = { Text(stringResource(R.string.podcast_rss_url)) },
+                isError = failed,
+                supportingText = if (failed) {
+                    { Text(stringResource(R.string.podcast_rss_error)) }
+                } else {
+                    null
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                enabled = url.isNotBlank() && !checking,
+                onClick = {
+                    checking = true
+                    scope.launch {
+                        val feed = withContext(Dispatchers.IO) { PodcastApi.checkFeed(url) }
+                        checking = false
+                        if (feed == null) {
+                            failed = true
+                        } else {
+                            IptvSources.addFeeds(context, listOf(feed))
+                            onDismiss()
+                        }
+                    }
+                },
+            ) {
+                Text(stringResource(R.string.iptv_add))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) }
+        },
+    )
+}
+
+@Composable
+private fun PodcastOpmlButton(onError: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val feeds = withContext(Dispatchers.IO) {
+                    runCatching { PodcastApi.readOpml(context, uri) }.getOrDefault(emptyList())
+                }
+                if (feeds.isNotEmpty()) IptvSources.addFeeds(context, feeds)
+                onError(feeds.isEmpty())
+            }
+        }
+    }
+
+    // I file OPML non hanno un tipo su cui contare: dipende da chi li ha salvati
+    OutlinedButton(
+        onClick = {
+            onError(false)
+            filePicker.launch(arrayOf("*/*"))
+        }
+    ) {
+        Text(stringResource(R.string.podcast_add_opml))
     }
 }
 

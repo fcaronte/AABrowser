@@ -380,7 +380,7 @@
     <string name="iptv_add">添加</string>
     <string name="iptv_remove">删除</string>
     <string name="iptv_add_on_phone">请在手机上的设置中添加列表。</string>
-    <string name="settings_category_media">IPTV 和电台</string>
+    <string name="settings_category_media">电视、广播和播客</string>
     <string name="media_lists_add">＋ 添加列表…</string>
     <string name="radio_lists_title">电台（国家和 M3U）</string>
     <string name="radio_lists_desc">电台的站点列表：某个国家收听最多的电台（Radio Browser）或您自己的 M3U 列表。地址保存在手机上，不会进入备份。</string>
@@ -435,4 +435,23 @@
     <string name="share_to_car_not_connected">请将手机连接到车辆，以在 CarWeb 中打开</string>
     <string name="player_single_video_title">单个 YouTube 视频的播放器（也包括方向盘按键）</string>
     <string name="player_single_video_skip">上一个 / 下一个视频</string>
+    <string name="podcast_title">播客</string>
+    <string name="podcast_search">搜索播客</string>
+    <string name="podcast_all">全部</string>
+    <string name="podcast_following">已关注</string>
+    <string name="podcast_follow">关注</string>
+    <string name="podcast_no_results">未找到播客</string>
+    <string name="podcast_error">无法加载播客</string>
+    <string name="podcast_unavailable">此集不可用</string>
+    <string name="podcast_listened">已听完</string>
+    <string name="podcast_left">剩余 %1$s</string>
+    <string name="podcast_in_country">%1$s 的热门播客</string>
+    <string name="podcast_mine">我的播客</string>
+    <string name="podcast_lists_title">播客（国家/地区、RSS 和 OPML）</string>
+    <string name="podcast_lists_desc">某个国家/地区最热门的节目（Apple Podcasts）或你添加的订阅源。音频直接来自播客发布者。地址保留在手机上，不包含在备份中。</string>
+    <string name="podcast_add_rss">添加 RSS</string>
+    <string name="podcast_add_opml">导入 OPML</string>
+    <string name="podcast_rss_url">RSS 订阅地址</string>
+    <string name="podcast_rss_error">订阅源无效或无法访问</string>
+    <string name="podcast_opml_error">无法读取文件。请选择可访问的 OPML 文件。</string>
 </resources>

@@ -271,9 +271,7 @@ object AdBlockLists {
     private suspend fun publish(value: Info) = withContext(Dispatchers.Main) { _info.value = value }
 
     // Una lista scelta dall'utente può essere qualunque cosa: oltre questa dimensione si smette di leggere
-    private class LimitedStream(input: InputStream) : FilterInputStream(input) {
-        private var left = MAX_BYTES
-
+    internal class LimitedStream(input: InputStream, private var left: Long = MAX_BYTES) : FilterInputStream(input) {
         override fun read(): Int = super.read().also { if (it >= 0) count(1) }
 
         override fun read(buffer: ByteArray, offset: Int, length: Int): Int =

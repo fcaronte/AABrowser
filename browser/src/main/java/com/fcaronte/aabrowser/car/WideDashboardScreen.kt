@@ -62,6 +62,7 @@ object HomePage {
         // CarWeb Media: la sua icona la serve l'app (player.local esiste solo nelle WebView)
         if (LocalPlayer.isTvUrl(item.url)) return listOf(LocalPlayer.TV_ICON_URL)
         if (LocalPlayer.isRadioUrl(item.url)) return listOf(LocalPlayer.RADIO_ICON_URL)
+        if (LocalPlayer.isPodcastUrl(item.url)) return listOf(LocalPlayer.PODCAST_ICON_URL)
         if (LocalPlayer.isPlayerUrl(item.url)) return listOf(LocalPlayer.ICON_URL)
         val list = mutableListOf<String>()
         item.iconUrl?.takeIf { it.isNotBlank() }?.let { list.add(it) }

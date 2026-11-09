@@ -1550,8 +1550,10 @@ object BrowserJavascript {
         window.aabMediaSessionHandlers = window.aabMediaSessionHandlers || {};
         const handlers = window.aabMediaSessionHandlers;
 
-        // Hanno sempre una coda di brani, anche prima di registrare i comandi (player.local = CarWeb Media)
-        const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com') || host === 'player.local';
+        // Hanno sempre una coda di brani, anche prima di registrare i comandi (player.local = CarWeb Media, non i Podcast:
+        // lì Android Auto mostra i suoi -10/+10 s)
+        const isTrackSite = host.includes('spotify.com') || host.includes('music.youtube.com') ||
+            (host === 'player.local' && !location.pathname.startsWith('/podcast'));
         let lastReport = null;
 
         function report() {

@@ -109,8 +109,9 @@ object TabManager {
 
     fun findTabIndexByUrlOrHost(targetUrl: String): Int {
         if (targetUrl.isBlank()) return -1
-        // Media, TV e Radio hanno lo stesso host ma sono tre pagine: il preferito della Radio non deve finire sulla
-        // scheda di Media
+        // Media, TV, Radio e Podcast hanno lo stesso host ma sono pagine diverse: il preferito della Radio non deve finire
+        // sulla scheda di Media
+        if (VoiceCommands.isPodcastPage(targetUrl)) return tabs.indexOfFirst { VoiceCommands.isPodcastPage(it.url) }
         VoiceCommands.mediaSectionOf(targetUrl)?.let { section ->
             return tabs.indexOfFirst { VoiceCommands.mediaSectionOf(it.url) == section }
         }

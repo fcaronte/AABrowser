@@ -382,7 +382,7 @@
     <string name="iptv_add">Adicionar</string>
     <string name="iptv_remove">Remover</string>
     <string name="iptv_add_on_phone">As listas adicionam-se nas definições do telemóvel.</string>
-    <string name="settings_category_media">IPTV e rádio</string>
+    <string name="settings_category_media">TV, rádio e podcasts</string>
     <string name="media_lists_add">＋ Adicionar uma lista…</string>
     <string name="radio_lists_title">Rádio (países e M3U)</string>
     <string name="radio_lists_desc">Listas de estações para a rádio: as mais ouvidas de um país (Radio Browser) ou as suas listas M3U. Os endereços ficam no telemóvel e não vão para a cópia de segurança.</string>
@@ -437,4 +437,23 @@
     <string name="share_to_car_not_connected">Ligue o telemóvel ao automóvel para o abrir no CarWeb</string>
     <string name="player_single_video_title">Leitor em vídeos individuais do YouTube (também os botões do volante)</string>
     <string name="player_single_video_skip">Vídeo anterior / seguinte</string>
+    <string name="podcast_title">Podcasts</string>
+    <string name="podcast_search">Pesquisar podcasts</string>
+    <string name="podcast_all">Todos</string>
+    <string name="podcast_following">A seguir</string>
+    <string name="podcast_follow">Seguir</string>
+    <string name="podcast_no_results">Nenhum podcast encontrado</string>
+    <string name="podcast_error">Não foi possível carregar os podcasts</string>
+    <string name="podcast_unavailable">Episódio indisponível</string>
+    <string name="podcast_listened">Ouvido</string>
+    <string name="podcast_left">faltam %1$s</string>
+    <string name="podcast_in_country">Podcasts populares em %1$s</string>
+    <string name="podcast_mine">Os meus podcasts</string>
+    <string name="podcast_lists_title">Podcasts (países, RSS e OPML)</string>
+    <string name="podcast_lists_desc">Os programas mais seguidos de um país (Apple Podcasts) ou os feeds que adicionar. O áudio vem diretamente de quem publica o podcast. Os endereços ficam no telefone e não são incluídos na cópia de segurança.</string>
+    <string name="podcast_add_rss">Adicionar RSS</string>
+    <string name="podcast_add_opml">Importar OPML</string>
+    <string name="podcast_rss_url">Endereço do feed RSS</string>
+    <string name="podcast_rss_error">Feed inválido ou inacessível</string>
+    <string name="podcast_opml_error">Não foi possível ler o ficheiro. Escolha um ficheiro OPML acessível.</string>
 </resources>

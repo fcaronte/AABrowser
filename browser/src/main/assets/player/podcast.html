@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Podcast</title>
+    <link rel="icon" href="/podcast.svg">
+    <link rel="stylesheet" href="/player.css">
+    <link rel="stylesheet" href="/tv.css">
+    <link rel="stylesheet" href="/radio.css">
+    <link rel="stylesheet" href="/podcast.css">
+    <style>/*AAB_THEME*/</style>
+    <script>/*AAB_CONFIG*/</script>
+</head>
+<body>
+<header class="bar">
+    <a class="icon-button" href="/" aria-label="CarWeb Media">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+    </a>
+    <a class="icon-button" href="/tv" aria-label="TV">
+        <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+    </a>
+    <a class="icon-button" href="/radio" aria-label="Radio">
+        <svg viewBox="0 0 24 24"><path d="M10 4 22 1l.5 2L11 6zm-5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2zm1 3v9h7v-9zm11 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm0 5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+    </a>
+    <select class="source" id="source"></select>
+    <button class="icon-button" id="refresh" aria-label="Refresh">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+</header>
+
+<main class="layout">
+    <section class="now">
+        <div class="stage radio-stage">
+            <audio id="media" preload="none"></audio>
+            <div class="art" id="art">
+                <img id="artImage" alt="">
+                <img class="radio-mark" src="/podcast.svg" alt="">
+            </div>
+        </div>
+        <div class="info">
+            <div class="title" id="title">Podcast</div>
+            <div class="subtitle" id="subtitle"></div>
+        </div>
+        <div class="seek">
+            <span id="currentTime">0:00</span>
+            <input id="seek" type="range" min="0" max="1000" step="1" value="0">
+            <span id="totalTime">0:00</span>
+        </div>
+        <!-- Niente etichette "Play"/"Pausa" sui pulsanti: gli script generici di Android Auto li cliccherebbero -->
+        <div class="controls">
+            <button class="control jump" id="back">−15</button>
+            <button class="control main" id="playToggle">
+                <svg class="icon-start" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-stop" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="control jump" id="forward">+30</button>
+        </div>
+        <div class="message" id="message" hidden></div>
+        <a class="radio-credit" href="https://podcasts.apple.com/" target="_blank" rel="noopener">Apple Podcasts</a>
+    </section>
+
+    <section class="list tv-list radio-list podcast-list">
+        <div class="tv-tools">
+            <input class="search" id="search" type="search" autocomplete="off">
+            <div class="groups">
+                <button class="group active" id="allShows"></button>
+                <button class="group" id="followedShows"></button>
+                <button class="group" id="closeShow" hidden></button>
+                <button class="group" id="followShow" hidden></button>
+            </div>
+        </div>
+        <div class="channels" id="channels">
+            <div class="channels-space" id="channelsSpace"></div>
+        </div>
+    </section>
+</main>
+
+<script src="/lists.js"></script>
+<script src="/podcast-progress.js"></script>
+<script src="/podcast.js"></script>
+</body>
+</html>

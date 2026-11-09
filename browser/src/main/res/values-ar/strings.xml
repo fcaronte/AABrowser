@@ -385,7 +385,7 @@
     <string name="iptv_add">إضافة</string>
     <string name="iptv_remove">إزالة</string>
     <string name="iptv_add_on_phone">تُضاف القوائم من الإعدادات على الهاتف.</string>
-    <string name="settings_category_media">IPTV والراديو</string>
+    <string name="settings_category_media">التلفزيون والراديو والبودكاست</string>
     <string name="media_lists_add">＋ إضافة قائمة…</string>
     <string name="radio_lists_title">الراديو (الدول وM3U)</string>
     <string name="radio_lists_desc">قوائم المحطات للراديو: الأكثر استماعًا في بلد ما (Radio Browser) أو قوائم M3U الخاصة بك. تبقى العناوين على الهاتف ولا تدخل في النسخة الاحتياطية.</string>
@@ -440,4 +440,23 @@
     <string name="share_to_car_not_connected">صِل الهاتف بالسيارة لفتحه في CarWeb</string>
     <string name="player_single_video_title">المشغّل في مقاطع YouTube الفردية (وأزرار عجلة القيادة أيضًا)</string>
     <string name="player_single_video_skip">الفيديو السابق / التالي</string>
+    <string name="podcast_title">بودكاست</string>
+    <string name="podcast_search">البحث عن بودكاست</string>
+    <string name="podcast_all">الكل</string>
+    <string name="podcast_following">المتابَعة</string>
+    <string name="podcast_follow">متابعة</string>
+    <string name="podcast_no_results">لم يتم العثور على أي بودكاست</string>
+    <string name="podcast_error">تعذّر تحميل البودكاست</string>
+    <string name="podcast_unavailable">الحلقة غير متاحة</string>
+    <string name="podcast_listened">تم الاستماع</string>
+    <string name="podcast_left">متبقٍ %1$s</string>
+    <string name="podcast_in_country">بودكاست شائعة في %1$s</string>
+    <string name="podcast_mine">البودكاست الخاص بي</string>
+    <string name="podcast_lists_title">البودكاست (البلدان وRSS وOPML)</string>
+    <string name="podcast_lists_desc">البرامج الأكثر متابعة في بلد ما (Apple Podcasts) أو الموجزات التي تضيفها. يصل الصوت مباشرة من ناشر البودكاست. تبقى العناوين على الهاتف ولا تُدرج في النسخة الاحتياطية.</string>
+    <string name="podcast_add_rss">إضافة RSS</string>
+    <string name="podcast_add_opml">استيراد OPML</string>
+    <string name="podcast_rss_url">عنوان موجز RSS</string>
+    <string name="podcast_rss_error">الموجز غير صالح أو يتعذّر الوصول إليه</string>
+    <string name="podcast_opml_error">تعذرت قراءة الملف. اختر ملف OPML يمكن الوصول إليه.</string>
 </resources>

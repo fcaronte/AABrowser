@@ -102,6 +102,7 @@ class FavoritesRepository(private val context: Context) {
             FavoriteSite("0", context.getString(R.string.favorite_default_name_0), context.getString(R.string.favorite_default_url_0), 0xFF00BCD4),
             FavoriteSite("1", context.getString(R.string.favorite_default_name_1), context.getString(R.string.favorite_default_url_1), 0xFFE91E63),
             FavoriteSite("2", context.getString(R.string.favorite_default_name_2), context.getString(R.string.favorite_default_url_2), 0xFF00838F),
+            FavoriteSite("12", context.getString(R.string.favorite_default_name_12), context.getString(R.string.favorite_default_url_12), 0xFF7B1FA2),
             FavoriteSite("3", context.getString(R.string.favorite_default_name_3), context.getString(R.string.favorite_default_url_3), 0xFF4285F4),
             FavoriteSite("4", context.getString(R.string.favorite_default_name_4), context.getString(R.string.favorite_default_url_4), 0xFFFF0000),
             FavoriteSite("5", context.getString(R.string.favorite_default_name_5), context.getString(R.string.favorite_default_url_5), 0xFFFF0000),
@@ -151,11 +152,12 @@ class FavoritesRepository(private val context: Context) {
         // Il preferito DAZN è stato rimosso; chi lo aveva già mantiene la propria voce salvata.
         private const val KEY_DEFAULTS_VERSION = "DefaultsVersion"
         private const val FIRST_DEFAULTS_VERSION = 1 // predefiniti fino alla 2.2 (e liste salvate senza versione)
-        private const val DEFAULTS_VERSION = 6
+        private const val DEFAULTS_VERSION = 7
         private val DEFAULTS_ADDED_IN = mapOf(
             "0" to 5, // Media (2.5)
             "1" to 5, // IPTV (2.5)
-            "2" to 6 // Radio
+            "2" to 6, // Radio
+            "12" to 7 // Podcast
         )
 
         private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")
@@ -166,14 +168,15 @@ class FavoritesRepository(private val context: Context) {
         fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)
 
         fun insertDefaultFavorite(favorites: MutableList<FavoriteSite>, site: FavoriteSite) {
-            val isRadio = normalizeUrl(site.url) == normalizeUrl("${LocalPlayer.BASE_URL}radio")
-            if (!isRadio) {
+            val radioUrl = normalizeUrl("${LocalPlayer.BASE_URL}radio")
+            if (normalizeUrl(site.url) !in setOf(radioUrl, normalizeUrl("${LocalPlayer.BASE_URL}podcast"))) {
                 favorites.add(site)
                 return
             }
             val mediaUrls = setOf(
                 normalizeUrl(LocalPlayer.BASE_URL),
-                normalizeUrl("${LocalPlayer.BASE_URL}tv")
+                normalizeUrl("${LocalPlayer.BASE_URL}tv"),
+                radioUrl
             )
             val insertionIndex = favorites.indices
                 .filter { normalizeUrl(favorites[it].url) in mediaUrls }

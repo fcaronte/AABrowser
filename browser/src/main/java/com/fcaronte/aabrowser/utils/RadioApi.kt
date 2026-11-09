@@ -487,13 +487,13 @@ internal object RadioApi {
         return (resolved.ifEmpty { listOf("de1$API_SUFFIX") }).also { discoveredServers = it }.shuffled()
     }
 
-    private fun isHttpUrl(value: String): Boolean {
+    internal fun isHttpUrl(value: String): Boolean {
         val uri = Uri.parse(value)
         return uri.scheme in setOf("http", "https") && !uri.host.isNullOrBlank() &&
             uri.userInfo == null && uri.port in -1..65535
     }
 
-    private fun isPublicHttpUrl(value: String): Boolean {
+    internal fun isPublicHttpUrl(value: String): Boolean {
         if (!isHttpUrl(value)) return false
         val host = Uri.parse(value).host?.lowercase(Locale.ROOT) ?: return false
         if (host == "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||

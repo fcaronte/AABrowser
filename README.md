@@ -43,15 +43,18 @@ from the misuse of this application. Use at your own risk.
   the phone colors, AMOLED).
 * **Radio in CarWeb Media (new in 2.6):** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
-  the UK); other countries and your own M3U lists (URL or file) can be added in Settings > IPTV and Radio and picked
+  the UK); other countries and your own M3U lists (URL or file) can be added in Settings > TV, Radio and Podcasts and picked
   from the menu at the top of the page. Search and favorites are available; when stream metadata reports a song title, lyrics are
   fetched automatically from LRCLIB and shown from the Lyrics button. The text sent by the station is cleaned first
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player.
+* **Podcasts in CarWeb Media:** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
+  your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped. The
+  audio comes straight from each publisher: no catalog or content ships with the app.
 * **TV in CarWeb Media:** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
-  file selected on the phone) and Xtream accounts (added in Settings > IPTV and Radio, which also opens from the
+  file selected on the phone) and Xtream accounts (added in Settings > TV, Radio and Podcasts, which also opens from the
   "Add a list" entry of the menu at the top of the page; in the car a message says to do it on the phone; for Xtream the
   full link with username and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
@@ -245,14 +248,17 @@ proprio rischio e pericolo.
 * **Radio in CarWeb Media (novità 2.6):** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito); altri Paesi e le tue liste M3U (da URL o da file) si aggiungono nelle
-  Impostazioni > IPTV e Radio e si scelgono dal menu in alto nella pagina. Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
+  Impostazioni > TV, Radio e Podcast e si scelgono dal menu in alto nella pagina. Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
   del brano, il testo viene cercato su LRCLIB e si apre dal pulsante Testi. Il testo mandato dalla stazione viene
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
+* **Podcast in CarWeb Media:** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
+  e i tuoi feed con indirizzo RSS o file OPML nelle Impostazioni > TV, Radio e Podcast. Gli episodi riprendono da dove eri
+  rimasto. L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun catalogo né contenuto.
 * **TV in CarWeb Media:** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
-  o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > IPTV e Radio, che si
+  o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > TV, Radio e Podcast, che si
   aprono anche dalla voce "Aggiungi una lista" del menu in alto nella pagina; in auto un messaggio dice di farlo dal
   telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul

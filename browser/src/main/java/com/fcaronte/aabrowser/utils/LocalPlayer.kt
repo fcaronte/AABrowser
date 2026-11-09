@@ -48,6 +48,7 @@ object LocalPlayer {
     const val ICON_URL = "${BASE_URL}icon.svg"
     const val TV_ICON_URL = "${BASE_URL}tv.svg"
     const val RADIO_ICON_URL = "${BASE_URL}radio.svg"
+    const val PODCAST_ICON_URL = "${BASE_URL}podcast.svg"
     private const val DEFAULT_COVER_PATH = "/cover.png"
 
     // Stesso limite dell'elenco cartella di LastFileSelection
@@ -96,6 +97,7 @@ object LocalPlayer {
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
+                path == "/podcast.svg" -> asset(context, "player/podcast.svg", "image/svg+xml")
                 // TV (liste M3U e Xtream): pagina, script e librerie per HLS e MPEG-TS
                 path == "/tv" || path == "/tv/" -> IptvApi.page(AppLocale.wrap(context), token, themeCss(context))
                 path == "/tv.js" -> asset(context, "player/tv.js", "application/javascript")
@@ -104,6 +106,11 @@ object LocalPlayer {
                 path == "/radio" || path == "/radio/" -> RadioApi.page(context, token, themeCss(context))
                 path == "/radio.js" -> asset(context, "player/radio.js", "application/javascript")
                 path == "/radio.css" -> asset(context, "player/radio.css", "text/css")
+                // Podcast: classifica del Paese, ricerca e feed dell'utente
+                path == "/podcast" || path == "/podcast/" -> PodcastApi.page(context, token, themeCss(context))
+                path == "/podcast.js" -> asset(context, "player/podcast.js", "application/javascript")
+                path == "/podcast-progress.js" -> asset(context, "player/podcast-progress.js", "application/javascript")
+                path == "/podcast.css" -> asset(context, "player/podcast.css", "text/css")
                 // Foto, video e file audio condivisi dal telefono ("Condividi su CarWeb")
                 path.startsWith(SharedMedia.PAGE_PATH) -> sharedPage(context, path.removePrefix(SharedMedia.PAGE_PATH))
                 path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
@@ -112,6 +119,7 @@ object LocalPlayer {
                 url.getQueryParameter("t") != token -> status(403, "Forbidden")
                 path.startsWith("/api/tv/") -> IptvApi.handle(context, path, url) ?: status(404, "Not Found")
                 path.startsWith("/api/radio/") -> RadioApi.handle(context, path, url) ?: status(404, "Not Found")
+                path.startsWith("/api/podcast/") -> PodcastApi.handle(context, path, url) ?: status(404, "Not Found")
                 // Comandi vocali: quello in attesa per la pagina che chiede, e cosa fare se non ha trovato niente
                 path == "/api/voice" -> json(MediaVoice.take(url.getQueryParameter("section")))
                 path == "/api/voice/fallback" -> {
@@ -181,6 +189,11 @@ object LocalPlayer {
     fun isRadioUrl(url: String?): Boolean {
         val uri = url?.let(Uri::parse) ?: return false
         return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/radio", "/radio/")
+    }
+
+    fun isPodcastUrl(url: String?): Boolean {
+        val uri = url?.let(Uri::parse) ?: return false
+        return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/podcast", "/podcast/")
     }
 
     fun isTvUrl(url: String?): Boolean {
