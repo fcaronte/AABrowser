@@ -347,6 +347,7 @@
     <string name="voice_command_radio">Radio: %1$s</string>
     <string name="voice_command_tv">TV: %1$s</string>
     <string name="voice_command_media">Media: %1$s</string>
+    <string name="voice_command_podcast">Pódcast: %1$s</string>
     <string name="voice_command_not_heard">No he oído nada, inténtalo de nuevo</string>
     <string name="voice_command_unavailable">El reconocimiento de voz no está disponible</string>
     <string name="voice_command_mic_permission">AABrowser necesita el permiso del micrófono: concédelo en el teléfono</string>

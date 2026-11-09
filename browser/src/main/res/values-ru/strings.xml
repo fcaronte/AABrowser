@@ -348,6 +348,7 @@
     <string name="voice_command_radio">Радио: %1$s</string>
     <string name="voice_command_tv">ТВ: %1$s</string>
     <string name="voice_command_media">Медиа: %1$s</string>
+    <string name="voice_command_podcast">Подкаст: %1$s</string>
     <string name="voice_command_not_heard">Ничего не слышно, попробуйте ещё раз</string>
     <string name="voice_command_unavailable">Распознавание речи недоступно</string>
     <string name="voice_command_mic_permission">AABrowser нужен доступ к микрофону: разрешите его на телефоне</string>

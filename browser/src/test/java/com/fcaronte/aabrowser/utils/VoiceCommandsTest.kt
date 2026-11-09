@@ -282,6 +282,34 @@ class VoiceCommandsTest {
     }
 
     @Test
+    fun podcastPhrases() {
+        val podcast = { q: String -> Command.MediaRequest(MediaSection.PODCAST, q, play = true) }
+        assertParsed(podcast("muschio selvaggio"), "metti il podcast muschio selvaggio")
+        assertParsed(podcast("muschio selvaggio"), "metti l'ultimo episodio di muschio selvaggio")
+        assertParsed(podcast("the daily"), "play the podcast the daily")
+        assertParsed(podcast("the daily"), "play the latest episode of the daily")
+        assertParsed(podcast("la pizarra"), "pon el podcast la pizarra")
+        assertParsed(podcast("affaires sensibles"), "mets le podcast affaires sensibles")
+        assertParsed(podcast("lage der nation"), "spiele den podcast lage der nation")
+        assertParsed(podcast("mamilos"), "toca o podcast mamilos")
+        assertParsed(podcast("арзамас"), "включи подкаст арзамас")
+        assertParsed(podcast("partizán"), "játszd le a partizán podcastot")
+        assertParsed(podcast("فنجان"), "شغل بودكاست فنجان")
+        assertParsed(podcast("द रणवीर शो"), "द रणवीर शो पॉडकास्ट चलाओ")
+        assertParsed(podcast("故事fm"), "播放播客故事fm")
+
+        val find = { q: String -> Command.MediaRequest(MediaSection.PODCAST, q, play = false) }
+        assertParsed(find("storia"), "cerca il podcast storia")
+        assertParsed(find("history"), "search for the podcast history")
+
+        assertParsed(Command.Next, "prossimo episodio")
+        assertParsed(Command.Next, "next episode")
+        assertParsed(Command.Next, "nächste folge")
+        assertParsed(Command.Previous, "episodio precedente")
+        assertParsed(Command.Previous, "épisode précédent")
+    }
+
+    @Test
     fun nextChannelAndStation() {
         assertParsed(Command.Next, "prossimo canale")
         assertParsed(Command.Next, "stazione successiva")
@@ -305,6 +333,8 @@ class VoiceCommandsTest {
         assertEquals(MediaSection.RADIO, VoiceCommands.mediaSectionOf("https://player.local/radio/"))
         assertEquals(MediaSection.TV, VoiceCommands.mediaSectionOf("https://player.local/tv"))
         assertEquals(MediaSection.MEDIA, VoiceCommands.mediaSectionOf("https://player.local/"))
+        assertEquals(MediaSection.PODCAST, VoiceCommands.mediaSectionOf("https://player.local/podcast"))
+        assertNull(VoiceCommands.mediaSectionOf("https://player.local/shared/id1"))
         assertNull(VoiceCommands.mediaSectionOf("https://www.youtube.com/tv"))
         assertNull(VoiceCommands.mediaSectionOf(null))
         MediaSection.entries.forEach {
@@ -329,6 +359,24 @@ class VoiceCommandsTest {
         assertEquals(Plan.Media(MediaSection.RADIO, play = true), plan("metti la radio"))
         assertEquals(Plan.Media(MediaSection.TV, play = true), plan("guarda la tv"))
         assertEquals(Plan.Media(MediaSection.MEDIA, play = true), plan("play my music"))
+        assertEquals(Plan.Media(MediaSection.PODCAST), plan("apri i podcast"))
+        assertEquals(Plan.Media(MediaSection.PODCAST, play = true), plan("metti i podcast"))
+    }
+
+    @Test
+    fun podcastPage() {
+        val podcastPage = "https://player.local/podcast"
+        assertEquals(Plan.Media(MediaSection.PODCAST, "muschio selvaggio", play = true), plan("muschio selvaggio", podcastPage))
+        assertEquals(Plan.Media(MediaSection.PODCAST, "muschio selvaggio", play = true), plan("metti muschio selvaggio", podcastPage))
+        assertEquals(
+            Plan.Media(MediaSection.PODCAST, action = VoiceCommands.PlayerAction.NEXT),
+            plan("prossimo episodio", podcastPage, playerOwned = false)
+        )
+        // Detto con la parola, da un'altra parte: prima i podcast, poi YouTube
+        assertEquals(
+            Plan.Media(MediaSection.PODCAST, "muschio selvaggio podcast", play = true, fallback = Command.YouTubePlay("muschio selvaggio podcast")),
+            plan("metti muschio selvaggio podcast")
+        )
     }
 
     @Test

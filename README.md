@@ -145,8 +145,9 @@ app is set to)
 | "play *station* on the radio", "tune to *station*", "play radio *name*" | plays the station in CarWeb Media Radio, also outside your country's list; "play the radio" resumes the last one |
 | "watch *channel* on TV", "put on channel *name*", "watch *channel*" | plays the channel in CarWeb Media TV, looking in all your lists; "watch the TV" resumes the last one |
 | "play *song* from my music", "play *song* on Media" | your files, by title, artist or folder: an artist or a folder plays all its tracks in order |
-| "search *something* on the radio", "… on TV", "… on Media" | shows the results on that page without starting anything |
-| "open the radio", "open the TV", "open my music" | opens the page |
+| "play the podcast *name*", "play the latest episode of *name*" | plays the newest unfinished episode in CarWeb Media Podcasts (the first unfinished one for serial shows); "next episode" moves on |
+| "search *something* on the radio", "… on TV", "… on Media", "search for the podcast *name*" | shows the results on that page without starting anything |
+| "open the radio", "open the TV", "open my music", "open the podcasts" | opens the page |
 
 With Radio, TV or Media open, "play …" and "search …" act on that page, and saying just a name plays it. Names are
 understood as they are spoken: "rai uno" finds "Rai 1 HD", "la sette" finds "La7". A favorite channel or station
@@ -353,8 +354,9 @@ impostata)
 | "metti *stazione* alla radio", "sintonizza *stazione*", "metti radio *nome*" | fa partire la stazione nella Radio di CarWeb Media, anche fuori dall'elenco del tuo Paese; "metti la radio" riprende l'ultima |
 | "guarda *canale* in tv", "metti il canale *nome*", "guarda *canale*" | fa partire il canale nella TV di CarWeb Media, cercando in tutte le tue liste; "guarda la tv" riprende l'ultimo |
 | "metti *canzone* dalla mia musica", "metti *canzone* su Media" | i tuoi file, per titolo, artista o cartella: un artista o una cartella fanno partire tutti i loro brani in ordine |
-| "cerca *qualcosa* alla radio", "… in tv", "… su Media" | mostra i risultati in quella pagina senza far partire niente |
-| "apri la radio", "apri la tv", "apri la mia musica" | apre la pagina |
+| "metti il podcast *nome*", "metti l'ultimo episodio di *nome*" | fa partire l'episodio più nuovo non finito nei Podcast di CarWeb Media (nei podcast a puntate il primo non finito); "prossimo episodio" passa al successivo |
+| "cerca *qualcosa* alla radio", "… in tv", "… su Media", "cerca il podcast *nome*" | mostra i risultati in quella pagina senza far partire niente |
+| "apri la radio", "apri la tv", "apri la mia musica", "apri i podcast" | apre la pagina |
 
 Con Radio, TV o Media aperte, "metti …" e "cerca …" valgono per quella pagina, e basta dire un nome per farlo partire.
 I nomi si capiscono come si dicono: "rai uno" trova "Rai 1 HD", "la sette" trova "La7". Un canale o una stazione tra i

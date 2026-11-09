@@ -79,7 +79,7 @@
 \- Liste in `IptvSources.Section.PODCAST` (fuori dal backup): classifica del Paese della lingua dell'app (non rimovibile), altri Paesi, feed RSS (letti all'aggiunta: controllo e nome) e file OPML. Nel menu della pagina tutti i feed sono una voce sola, "I miei podcast".
 \- Copertine delle righe: il feed fino al primo episodio (`/api/podcast/cover`, tre richieste alla volta, solo righe in vista, ricordate in `localStorage`). Punto d'ascolto per episodio in `localStorage` (`podcast-progress.js`, test con `node --test`). Aprire gli episodi aggiunge una voce alla cronologia: Indietro torna ai podcast.
 \- A fine episodio parte il successivo nell'ordine d'ascolto (`itunes:type` "serial": il più nuovo; altrimenti il più vecchio, quello sotto nell'elenco), saltando quelli finiti; lo stesso per «avanti» e «precedente» detti a voce: `NEXT_SCRIPT`/`PREVIOUS_SCRIPT` chiamano `window.aabNextItem`/`aabPreviousItem` della pagina, che non tocca i tasti di Android Auto.
-\- `/podcast` non è una pagina a brani: Android Auto mostra −10/+10 s e i tasti al volante fanno lo stesso. Niente comandi vocali per ora (`VoiceCommands.isPodcastPage`, `mediaSectionOf` nullo; `TabManager` la tiene distinta dalle altre pagine di player.local). I feed http suonano direttamente come le radio http (`<audio>`, contenuti misti ammessi).
+\- `/podcast` non è una pagina a brani: Android Auto mostra −10/+10 s e i tasti al volante fanno lo stesso. Comandi vocali come per Radio e TV (`MediaSection.PODCAST`): «metti il podcast …», «metti l'ultimo episodio di …», «cerca il podcast …», «apri i podcast», «prossimo episodio»; la pagina chiede `/api/podcast/find` (seguiti, mandati dalla pagina, feed aggiunti, classifica, poi Apple; «podcast» nella frase si prova anche senza) e fa partire l'episodio più nuovo non finito (nei podcast a puntate il primo non finito). I feed http suonano direttamente come le radio http (`<audio>`, contenuti misti ammessi).
 
 \### Radio in CarWeb Media
 
@@ -94,7 +94,7 @@
 
 \### Voice Commands in CarWeb Media
 
-\- `VoiceCommands` capisce le frasi (11 lingue) e decide la pagina; `MediaVoice` tiene la richiesta e la pagina la viene a prendere (`/api/voice`, con il token) quando si apre o quando l'app la avvisa: niente parametri nell'indirizzo, così nessun sito può far partire qualcosa e ricaricare non ripete il comando. `MediaMatcher` (Kotlin, con test) trova i nomi per TV, Radio e file.
+\- `VoiceCommands` capisce le frasi (11 lingue) e decide la pagina; `MediaVoice` tiene la richiesta e la pagina la viene a prendere (`/api/voice`, con il token) quando si apre o quando l'app la avvisa: niente parametri nell'indirizzo, così nessun sito può far partire qualcosa e ricaricare non ripete il comando. `MediaMatcher` (Kotlin, con test) trova i nomi per TV, Radio, Podcast e file.
 
 \### Player Card Tap
 

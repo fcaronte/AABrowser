@@ -346,6 +346,7 @@
     <string name="voice_command_radio">रेडियो: %1$s</string>
     <string name="voice_command_tv">टीवी: %1$s</string>
     <string name="voice_command_media">मीडिया: %1$s</string>
+    <string name="voice_command_podcast">पॉडकास्ट: %1$s</string>
     <string name="voice_command_not_heard">कुछ सुनाई नहीं दिया, फिर से कोशिश करें</string>
     <string name="voice_command_unavailable">आवाज़ पहचान उपलब्ध नहीं है</string>
     <string name="voice_command_mic_permission">AABrowser को माइक्रोफ़ोन की अनुमति चाहिए: फ़ोन पर दें</string>

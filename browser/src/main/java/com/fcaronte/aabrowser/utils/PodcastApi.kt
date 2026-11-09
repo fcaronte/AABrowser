@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Pagina https://player.local/podcast. La classifica del Paese e la ricerca vengono da Apple, che dà solo nomi e indirizzi
  * dei feed: copertine e audio arrivano dal feed e dal server di chi pubblica il podcast, e nell'app non c'è nessun
  * catalogo. I feed dell'utente (RSS, OPML) sono in IptvSources. La pagina vede solo gli id finché non si sceglie un episodio.
+ * I comandi vocali cercano i nomi con [MediaMatcher], come per Radio e TV.
  */
 internal object PodcastApi {
     private const val TAG = "PodcastApi"
@@ -35,9 +36,15 @@ internal object PodcastApi {
     private const val FEED_CACHE_MS = 30 * 60 * 1000L
     private const val MAX_KEPT_FEEDS = 30
     private const val MAX_KEPT_SHOWS = 2000
+    private const val MAX_FOLLOWED = 500
 
     private val SHOW_ID = Regex("""a\d{1,15}|u[0-9a-fA-F-]{36}""")
     private val COLLECTION_ID = Regex("""\d{1,15}""")
+    // Detto nella frase ("metti muschio selvaggio podcast") di solito non fa parte del nome
+    private val PODCAST_WORDS = Regex(
+        """(?<![\p{L}\p{N}])(?:podcasts?|pódcast|podcastot|подкасты?|بودكاست|البودكاست|पॉडकास्ट)(?![\p{L}\p{N}])|播客""",
+        RegexOption.IGNORE_CASE
+    )
 
     private data class Show(val id: String, val title: String, val author: String, val feedUrl: String, val fromUser: Boolean)
     private data class CachedChart(val loadedAt: Long, val shows: List<Show>)
@@ -81,6 +88,12 @@ internal object PodcastApi {
         "/api/podcast/sources" -> json(JSONObject().put("sources", sourcesJson(AppLocale.wrap(context))))
         "/api/podcast/shows" -> shows(context, url.getQueryParameter("source"), url.getQueryParameter("refresh") == "1")
         "/api/podcast/search" -> search(context, url.getQueryParameter("q").orEmpty(), url.getQueryParameter("source"))
+        "/api/podcast/find" -> find(
+            context,
+            url.getQueryParameter("q").orEmpty(),
+            url.getQueryParameter("source"),
+            url.getQueryParameter("f")
+        )
         "/api/podcast/episodes" -> episodes(context, url.getQueryParameter("show"), url.getQueryParameter("refresh") == "1")
         "/api/podcast/cover" -> cover(context, url.getQueryParameter("show"))
         "/api/podcast/play" -> play(context, url.getQueryParameter("show"), url.getQueryParameter("episode"))
@@ -135,35 +148,97 @@ internal object PodcastApi {
     }
 
     private fun search(context: Context, text: String, sourceId: String?): WebResourceResponse {
-        val term = text.trim().take(MAX_QUERY)
-        if (term.isEmpty()) return json(JSONObject().put("shows", JSONArray()))
-        val country = chartSource(context, sourceId).url.lowercase(Locale.ROOT)
         val found = try {
-            val results = getJson(
-                "https://itunes.apple.com/search?media=podcast&entity=podcast&limit=$MAX_RESULTS&country=$country&term=" +
-                    URLEncoder.encode(term, "UTF-8")
-            ).optJSONArray("results") ?: JSONArray()
-            (0 until results.length()).mapNotNull { index ->
-                val item = results.optJSONObject(index) ?: return@mapNotNull null
-                val feed = item.optString("feedUrl").takeIf(RadioApi::isHttpUrl) ?: return@mapNotNull null
-                Show("a${item.optLong("collectionId")}", item.optString("collectionName"), item.optString("artistName"), feed, fromUser = false)
-            }
+            searchApple(context, text, sourceId)
         } catch (e: Exception) {
             AppLog.w(TAG, "Search unavailable: ${e.javaClass.simpleName}")
             return error(502, "search")
         }
-        keep(found)
         return json(JSONObject().put("shows", showsJson(found)))
     }
 
-    private fun showsJson(list: List<Show>): JSONArray {
-        val result = JSONArray()
-        list.forEach { show ->
-            result.put(
-                JSONObject().put("id", show.id).put("title", show.title).put("author", show.author)
-                    .apply { covers[show.id]?.takeIf(String::isNotEmpty)?.let { put("image", it) } }
+    private fun searchApple(context: Context, text: String, sourceId: String?): List<Show> {
+        val term = text.trim().take(MAX_QUERY)
+        if (term.isEmpty()) return emptyList()
+        val country = chartSource(context, sourceId).url.lowercase(Locale.ROOT)
+        val results = getJson(
+            "https://itunes.apple.com/search?media=podcast&entity=podcast&limit=$MAX_RESULTS&country=$country&term=" +
+                URLEncoder.encode(term, "UTF-8")
+        ).optJSONArray("results") ?: JSONArray()
+        val found = (0 until results.length()).mapNotNull { index ->
+            val item = results.optJSONObject(index) ?: return@mapNotNull null
+            val feed = item.optString("feedUrl").takeIf(RadioApi::isHttpUrl) ?: return@mapNotNull null
+            Show("a${item.optLong("collectionId")}", item.optString("collectionName"), item.optString("artistName"), feed, fromUser = false)
+        }
+        keep(found)
+        return found
+    }
+
+    /**
+     * Ricerca per nome dei comandi vocali: i podcast seguiti (li conosce la pagina, [followed]), i feed aggiunti, la
+     * classifica e infine Apple. Dal più simile, con "m" e "confident" come per la radio; i risultati di Apple che non
+     * somigliano al nome restano in fondo, nel loro ordine ("cerca il podcast …" li mostra).
+     */
+    private fun find(context: Context, text: String, sourceId: String?, followed: String?): WebResourceResponse {
+        val variants = listOf(text, text.replace(PODCAST_WORDS, " ")).map(String::trim).filter(String::isNotEmpty).distinct()
+        val keys = variants.map(MediaMatcher::key)
+        val scores = HashMap<String, Pair<Show, Int>>()
+        fun add(shows: List<Show>) = keys.forEach { key ->
+            MediaMatcher.rank(key, shows) { MediaMatcher.key(it.title) }.forEach { (show, score) ->
+                if ((scores[show.id]?.second ?: -1) < score) scores[show.id] = show to score
+            }
+        }
+        fun confident() = scores.values.any { it.second >= MediaMatcher.CONFIDENT }
+
+        add(followedShows(followed) + IptvSources.list(context, IptvSources.Section.PODCAST).filter { it.isPlaylist }.map(::userShow))
+        if (!confident()) {
+            add(
+                try {
+                    chart(chartSource(context, sourceId).url, refresh = false)
+                } catch (e: Exception) {
+                    AppLog.w(TAG, "Show list unavailable: ${e.javaClass.simpleName}")
+                    emptyList()
+                }
             )
         }
+        val others = ArrayList<Show>()
+        for (variant in variants) {
+            if (confident()) break
+            val found = try {
+                searchApple(context, variant, sourceId)
+            } catch (e: Exception) {
+                AppLog.w(TAG, "Search unavailable: ${e.javaClass.simpleName}")
+                emptyList()
+            }
+            add(found)
+            others += found
+        }
+        val ranked = scores.values.sortedByDescending { it.second } +
+            others.filter { it.id !in scores }.distinctBy { it.id }.map { it to 0 }
+        val shows = JSONArray()
+        ranked.take(MAX_RESULTS).forEach { (show, score) -> shows.put(showJson(show).put("m", score)) }
+        return json(JSONObject().put("shows", shows).put("confident", MediaMatcher.CONFIDENT))
+    }
+
+    // I podcast seguiti li tiene la pagina: qui servono id e nome, l'indirizzo del feed si ritrova dall'id quando serve
+    private fun followedShows(json: String?): List<Show> = try {
+        val array = JSONArray(json ?: "[]")
+        (0 until minOf(array.length(), MAX_FOLLOWED)).mapNotNull { index ->
+            val item = array.optJSONObject(index) ?: return@mapNotNull null
+            val id = item.optString("id").takeIf { it.matches(SHOW_ID) } ?: return@mapNotNull null
+            Show(id, item.optString("title"), "", "", fromUser = id.startsWith("u"))
+        }
+    } catch (_: Exception) {
+        emptyList()
+    }
+
+    private fun showJson(show: Show): JSONObject =
+        JSONObject().put("id", show.id).put("title", show.title).put("author", show.author)
+            .apply { covers[show.id]?.takeIf(String::isNotEmpty)?.let { put("image", it) } }
+
+    private fun showsJson(list: List<Show>): JSONArray {
+        val result = JSONArray()
+        list.forEach { result.put(showJson(it)) }
         return result
     }
 

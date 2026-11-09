@@ -304,6 +304,7 @@
     <string name="voice_command_radio">Radio: %1$s</string>
     <string name="voice_command_tv">TV: %1$s</string>
     <string name="voice_command_media">Media: %1$s</string>
+    <string name="voice_command_podcast">Podcast: %1$s</string>
     <string name="voice_command_not_heard">Non ho sentito nulla, riprova</string>
     <string name="voice_command_unavailable">Riconoscimento vocale non disponibile</string>
     <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad CarWeb sul telefono</string>

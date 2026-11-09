@@ -350,6 +350,7 @@
     <string name="voice_command_radio">راديو: %1$s</string>
     <string name="voice_command_tv">التلفزيون: %1$s</string>
     <string name="voice_command_media">الوسائط: %1$s</string>
+    <string name="voice_command_podcast">بودكاست: %1$s</string>
     <string name="voice_command_not_heard">لم أسمع شيئاً، حاول مرة أخرى</string>
     <string name="voice_command_unavailable">التعرّف على الكلام غير متاح</string>
     <string name="voice_command_mic_permission">يحتاج AABrowser إلى إذن الميكروفون: امنحه من الهاتف</string>

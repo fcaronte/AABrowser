@@ -378,10 +378,10 @@
         try {
             const data = await api('/api/podcast/episodes', Object.assign({ show: show.id }, refresh ? { refresh: '1' } : {}));
             if (token !== listToken) return;
-            if (!openShow) {
-                showsScroll = channelsBox.scrollTop;
-                history.pushState({ podcast: show.id }, '');
-            }
+            if (!openShow) showsScroll = channelsBox.scrollTop;
+            // Una sola voce di cronologia per gli episodi, anche passando da un podcast all'altro (comandi vocali)
+            if (history.state && history.state.podcast) history.replaceState({ podcast: show.id }, '');
+            else history.pushState({ podcast: show.id }, '');
             openShow = Object.assign({}, show, data.show);
             if (data.show.image) show.image = data.show.image;
             episodes = data.episodes || [];
@@ -666,8 +666,90 @@
         updateMediaSession();
     }
 
+    // ------------------------------------------------------------------
+    // Comandi vocali: la richiesta la tiene l'app (MediaVoice)
+    // ------------------------------------------------------------------
+
+    function followedJson() {
+        return JSON.stringify(state.following.map((id) => state.known[id]).filter(Boolean)
+            .map((show) => ({ id: show.id, title: show.title })));
+    }
+
+    // "Metti il podcast …": l'episodio più nuovo non ancora finito; nei podcast a puntate il primo non finito
+    async function playShow(show) {
+        await openEpisodes(show, false);
+        if (!openShow || openShow.id !== show.id || !episodes.length) return;
+        const unfinished = episodes.filter((episode) => !Progress.isDone(state.progress[episode.id]));
+        const pick = (openShow.serial ? unfinished[unfinished.length - 1] : unfinished[0]) || episodes[0];
+        playEpisode(openShow, pick);
+    }
+
+    async function runVoiceSearch(request) {
+        message(S.loading || 'Loading…');
+        let data;
+        try {
+            data = await api('/api/podcast/find', { q: request.query, source: state.source, f: followedJson() });
+        } catch (_) {
+            message(S.error || 'Could not load the podcasts');
+            return;
+        }
+        const results = (data.shows || []).map((show) => Object.assign({}, show, state.known[show.id]));
+        const confident = results.filter((show) => show.m >= data.confident);
+        if (!confident.length && request.fallback) {
+            message('');
+            api('/api/voice/fallback').catch(() => {});
+            return;
+        }
+        found = results;
+        byId('search').value = request.query;
+        setFollowedView(false);
+        showsScroll = 0;
+        if (request.play && confident.length) {
+            message('');
+            await playShow(confident.find(isFollowed) || confident[0]);
+            return;
+        }
+        message(results.length ? '' : (S.noResults || 'No podcasts found'));
+        if (openShow) {
+            history.back();
+        } else {
+            channelsBox.scrollTop = 0;
+            render();
+        }
+    }
+
+    async function runVoice(request) {
+        if (request.action === 'pause') {
+            media.pause();
+        } else if (request.action === 'next') {
+            await playNeighbour(true);
+        } else if (request.action === 'previous') {
+            await playNeighbour(false);
+        } else if (request.query) {
+            await runVoiceSearch(request);
+        } else if (request.play || request.action === 'play') {
+            // "Metti i podcast": quello che si stava ascoltando, sennò il primo seguito
+            const first = state.known[state.following[0]];
+            if (current) resume();
+            else if (first) await playShow(first);
+        }
+    }
+
+    window.aabVoice = async function () {
+        await showsReady;
+        try {
+            const request = await api('/api/voice', { section: 'podcast' });
+            if (request.query || request.play || request.action) await runVoice(request);
+        } catch (_) {
+            // Il comando resta senza effetto: la pagina continua come prima
+        }
+    };
+
     // La lista automatica cambia con la lingua dell'app: una lista che non c'è più torna alla prima
     state.source = picker.has(state.source) ? state.source : ((picker.list()[0] || {}).id || '');
     picker.select(state.source);
-    loadShows(false);
+    // Una voce di cronologia rimasta da prima di ricaricare la pagina: si riparte dai podcast
+    if (history.state && history.state.podcast) history.replaceState(null, '');
+    const showsReady = loadShows(false);
+    window.aabVoice();
 })();

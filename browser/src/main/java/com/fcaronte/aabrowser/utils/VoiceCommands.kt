@@ -16,8 +16,8 @@ import java.util.Locale
  */
 object VoiceCommands {
 
-    /** Le tre pagine di CarWeb Media. */
-    enum class MediaSection { MEDIA, TV, RADIO }
+    /** Le pagine di CarWeb Media. */
+    enum class MediaSection { MEDIA, TV, RADIO, PODCAST }
 
     sealed interface Command {
         /** "cerca …": sul sito aperto se si può (YouTube, ...), altrimenti col motore di ricerca. */
@@ -96,7 +96,7 @@ object VoiceCommands {
     private enum class Kind {
         BACK, RELOAD, HOME, PAUSE, RESUME, NEXT, PREVIOUS,
         MUSIC_PLAY, MUSIC_SEARCH, YOUTUBE_PLAY, YOUTUBE_SEARCH,
-        RADIO_PLAY, RADIO_SEARCH, TV_PLAY, TV_SEARCH, MEDIA_PLAY, MEDIA_SEARCH,
+        RADIO_PLAY, RADIO_SEARCH, TV_PLAY, TV_SEARCH, MEDIA_PLAY, MEDIA_SEARCH, PODCAST_PLAY, PODCAST_SEARCH,
         NAVIGATE, SITE_SEARCH, WEB_SEARCH, OPEN, SEARCH, WATCH, PLAY
     }
 
@@ -173,46 +173,50 @@ object VoiceCommands {
         Kind.NEXT to listOf(
             "prossimo", "prossima", "successivo", "successiva", "avanti", "salta", "prossimo video",
             "manda avanti", "vai avanti", "vai al prossimo", "vai al successivo", "passa al prossimo", "passa al successivo",
+            "prossimo episodio", "episodio successivo", "prossima puntata", "puntata successiva",
             "prossima canzone", "brano successivo", "canzone successiva", "video successivo",
             "prossimo canale", "canale successivo", "prossima stazione", "stazione successiva", "prossima radio",
             "next", "skip", "next video", "next song", "next track", "skip this", "skip this song",
-            "next channel", "channel up", "next station",
+            "next channel", "channel up", "next station", "next episode",
             "siguiente", "salta", "saltar", "la siguiente", "siguiente canción", "siguiente vídeo", "siguiente video",
-            "siguiente canal", "canal siguiente", "siguiente emisora", "siguiente estación",
+            "siguiente canal", "canal siguiente", "siguiente emisora", "siguiente estación", "siguiente episodio",
+            "próximo episodio",
             "suivant", "suivante", "passe", "chanson suivante", "vidéo suivante", "morceau suivant",
-            "chaîne suivante", "station suivante",
+            "chaîne suivante", "station suivante", "épisode suivant",
             "nächster", "nächstes", "nächste", "überspringen", "nächstes lied", "nächstes video", "nächster titel",
-            "nächster kanal", "nächster sender",
+            "nächster kanal", "nächster sender", "nächste folge", "nächste episode",
             "próximo", "próxima", "proximo", "proxima", "pular", "pula", "seguinte", "próxima música", "próximo vídeo",
-            "próximo canal", "próxima estação", "próxima rádio",
+            "próximo canal", "próxima estação", "próxima rádio", "próximo episódio", "episódio seguinte",
             "следующий", "следующая", "следующее", "дальше", "пропусти", "следующий трек", "следующая песня",
-            "следующее видео", "следующий канал", "следующая станция",
+            "следующее видео", "следующий канал", "следующая станция", "следующий выпуск", "следующий эпизод",
             "következő", "ugrás", "ugord át", "következő szám", "következő videó", "következő dal",
-            "következő csatorna", "következő adó",
+            "következő csatorna", "következő adó", "következő epizód", "következő rész",
             "التالي", "التالية", "تخطي", "تخطى", "المقطع التالي", "الاغنية التالية", "الفيديو التالي",
-            "القناة التالية", "المحطة التالية",
-            "अगला", "अगली", "अगला गाना", "अगला वीडियो", "स्किप", "स्किप करो", "अगला चैनल", "अगला स्टेशन",
+            "القناة التالية", "المحطة التالية", "الحلقة التالية",
+            "अगला", "अगली", "अगला गाना", "अगला वीडियो", "स्किप", "स्किप करो", "अगला चैनल", "अगला स्टेशन", "अगला एपिसोड",
             "下一个", "下一首", "下一集", "下一个视频", "跳过", "下一个频道", "下一个电台"
         ),
         Kind.PREVIOUS to listOf(
             "precedente", "brano precedente", "canzone precedente", "video precedente",
             "manda indietro", "vai al precedente", "torna al precedente", "passa al precedente",
+            "episodio precedente", "puntata precedente",
             "canale precedente", "stazione precedente",
             "previous", "previous song", "previous track", "previous video",
-            "previous channel", "channel down", "previous station",
+            "previous channel", "channel down", "previous station", "previous episode",
             "anterior", "la anterior", "canción anterior", "vídeo anterior", "video anterior",
-            "canal anterior", "emisora anterior", "estación anterior",
+            "canal anterior", "emisora anterior", "estación anterior", "episodio anterior",
             "précédent", "précédente", "chanson précédente", "vidéo précédente", "morceau précédent",
-            "chaîne précédente", "station précédente",
+            "chaîne précédente", "station précédente", "épisode précédent",
             "vorheriger", "vorheriges", "vorherige", "vorheriges lied", "vorheriges video", "vorheriger titel",
-            "vorheriger kanal", "vorheriger sender",
-            "música anterior", "estação anterior", "rádio anterior",
+            "vorheriger kanal", "vorheriger sender", "vorherige folge", "vorherige episode",
+            "música anterior", "estação anterior", "rádio anterior", "episódio anterior",
             "предыдущий", "предыдущая", "предыдущее", "предыдущий трек", "предыдущая песня", "предыдущее видео",
-            "предыдущий канал", "предыдущая станция",
-            "előző", "előző szám", "előző videó", "előző dal", "előző csatorna", "előző adó",
+            "предыдущий канал", "предыдущая станция", "предыдущий выпуск", "предыдущий эпизод",
+            "előző", "előző szám", "előző videó", "előző dal", "előző csatorna", "előző adó", "előző epizód",
+            "előző rész",
             "السابق", "السابقة", "الاغنية السابقة", "الفيديو السابق", "المقطع السابق",
-            "القناة السابقة", "المحطة السابقة",
-            "पिछला", "पिछली", "पिछला गाना", "पिछला वीडियो", "पिछला चैनल", "पिछला स्टेशन",
+            "القناة السابقة", "المحطة السابقة", "الحلقة السابقة",
+            "पिछला", "पिछली", "पिछला गाना", "पिछला वीडियो", "पिछला चैनल", "पिछला स्टेशन", "पिछला एपिसोड",
             "上一个", "上一首", "上一集", "上一个视频", "上一个频道", "上一个电台"
         ),
         Kind.MUSIC_PLAY to listOf(
@@ -425,6 +429,43 @@ object VoiceCommands {
             "ابحث عن {q} في موسيقاي", "ابحث عن {q} في ملفاتي", "ابحث عن {q} في الوسائط",
             "मीडिया पर {q} खोजो", "{q} मीडिया पर खोजो", "मेरे गानों में {q} खोजो", "{q} मेरे गानों में खोजो",
             "在~我的音乐~里搜索~{q}", "在~我的音乐~中搜索~{q}", "在~媒体~上搜索~{q}", "在~播放器~里搜索~{q}"
+        ),
+        Kind.PODCAST_PLAY to listOf(
+            "metti il podcast {q}", "metti podcast {q}", "ascolta il podcast {q}", "riproduci il podcast {q}",
+            "fai partire il podcast {q}", "metti {q} nei podcast", "ascolta {q} nei podcast",
+            "metti l'ultimo episodio di {q}", "metti l'ultima puntata di {q}", "ascolta l'ultimo episodio di {q}",
+            "ascolta l'ultima puntata di {q}",
+            "play the podcast {q}", "play podcast {q}", "listen to the podcast {q}", "listen to podcast {q}",
+            "put on the podcast {q}", "play {q} on podcasts", "play the latest episode of {q}",
+            "play the last episode of {q}", "play the new episode of {q}",
+            "pon el podcast {q}", "pon el pódcast {q}", "ponme el podcast {q}", "reproduce el podcast {q}",
+            "escucha el podcast {q}", "pon el último episodio de {q}",
+            "mets le podcast {q}", "joue le podcast {q}", "écoute le podcast {q}", "lance le podcast {q}",
+            "mets le dernier épisode de {q}",
+            "spiele den podcast {q}", "spiel den podcast {q}", "höre den podcast {q}", "hör den podcast {q}",
+            "spiele die neueste folge von {q}", "spiel die neueste folge von {q}",
+            "toca o podcast {q}", "toque o podcast {q}", "coloca o podcast {q}", "põe o podcast {q}",
+            "ouve o podcast {q}", "ouça o podcast {q}", "toca o último episódio de {q}",
+            "включи подкаст {q}", "поставь подкаст {q}", "включи последний выпуск {q}", "поставь последний выпуск {q}",
+            "játszd le a {q} podcastot", "indítsd el a {q} podcastot",
+            "شغل بودكاست {q}", "شغل البودكاست {q}", "شغل الحلقة الاخيرة من {q}",
+            "{q} पॉडकास्ट चलाओ", "पॉडकास्ट {q} चलाओ", "{q} पॉडकास्ट लगाओ", "पॉडकास्ट {q} लगाओ",
+            "播放~播客~{q}", "收听~播客~{q}", "打开~播客~{q}"
+        ),
+        Kind.PODCAST_SEARCH to listOf(
+            "cerca il podcast {q}", "cerca podcast {q}", "cerca {q} nei podcast", "cerca {q} tra i podcast",
+            "trova il podcast {q}",
+            "search for the podcast {q}", "search the podcast {q}", "search podcast {q}", "search for podcast {q}",
+            "find the podcast {q}", "find podcast {q}", "search {q} in podcasts", "search for {q} in podcasts",
+            "busca el podcast {q}", "busca el pódcast {q}", "busca {q} en los podcasts",
+            "cherche le podcast {q}", "recherche le podcast {q}",
+            "suche den podcast {q}", "such den podcast {q}", "suche podcast {q}",
+            "procura o podcast {q}", "procure o podcast {q}", "pesquisa o podcast {q}",
+            "найди подкаст {q}", "поищи подкаст {q}",
+            "keresd meg a {q} podcastot",
+            "ابحث عن بودكاست {q}",
+            "{q} पॉडकास्ट खोजो", "पॉडकास्ट {q} खोजो",
+            "搜索~播客~{q}"
         ),
         Kind.NAVIGATE to listOf(
             "portami a {q}", "portami in {q}", "portami da {q}", "portami al {q}", "portami alla {q}",
@@ -668,6 +709,8 @@ object VoiceCommands {
         Kind.TV_SEARCH -> Command.MediaRequest(MediaSection.TV, q, play = false)
         Kind.MEDIA_PLAY -> Command.MediaRequest(MediaSection.MEDIA, q, play = true)
         Kind.MEDIA_SEARCH -> Command.MediaRequest(MediaSection.MEDIA, q, play = false)
+        Kind.PODCAST_PLAY -> Command.MediaRequest(MediaSection.PODCAST, q, play = true)
+        Kind.PODCAST_SEARCH -> Command.MediaRequest(MediaSection.PODCAST, q, play = false)
         Kind.NAVIGATE -> Command.Navigate(q)
         Kind.WEB_SEARCH -> Command.WebSearch(q)
         Kind.SITE_SEARCH -> Command.Search(q)
@@ -851,23 +894,41 @@ object VoiceCommands {
                 "मीडिया", "प्लेयर", "मेरा संगीत", "मेरे गाने", "मेरी फाइलें",
                 "媒体", "播放器", "我的音乐", "我的文件"
             )
+            add(
+                MediaSection.PODCAST,
+                "podcast", "il podcast", "i podcast", "i miei podcast",
+                "podcasts", "the podcasts", "my podcasts",
+                "pódcast", "los podcasts", "los pódcast", "mis podcasts", "mis pódcast",
+                "le podcast", "les podcasts", "mes podcasts",
+                "die podcasts", "meine podcasts",
+                "os podcasts", "os meus podcasts", "meus podcasts",
+                "подкаст", "подкасты", "мои подкасты",
+                "podcastok", "a podcastok", "a podcastjaim",
+                "بودكاست", "البودكاست", "पॉडकास्ट", "播客", "我的播客"
+            )
         }
     }
 
     private val RADIO_WORDS by lazy { setOf("radio", "rádio", "rádió", "радио", "راديو", "रेडियो", "电台").map(::foldChars).toSet() }
+    private val PODCAST_WORDS by lazy {
+        setOf("podcast", "podcasts", "pódcast", "podcastot", "подкаст", "подкасты", "بودكاست", "البودكاست", "पॉडकास्ट", "播客")
+            .map(::foldChars).toSet()
+    }
     private val CHANNEL_WORDS by lazy {
         setOf("canale", "channel", "canal", "chaîne", "kanal", "канал", "csatorna", "قناة", "चैनल", "频道").map(::foldChars).toSet()
     }
 
     private fun sectionNamed(text: String): MediaSection? = SECTION_NAMES[foldChars(text.trim())]
 
-    // Una frase che si capisce da sola: "radio deejay", "virgin radio", "rai radio 1", "canale 5". Con la parola più
+    // Una frase che si capisce da sola: "radio deejay", "virgin radio", "rai radio 1", "canale 5", "muschio selvaggio
+    // podcast". Con la parola della radio più
     // avanti è probabile una canzone ("video killed the radio star"): lì si cerca dove si cercherebbe comunque
     private fun impliedSection(text: String): MediaSection? {
         val words = foldChars(text).split(SPACES).filter { it.isNotEmpty() }
         if (words.size < 2) return null
         val radio = words.indexOfFirst { it in RADIO_WORDS }
         return when {
+            words.first() in PODCAST_WORDS || words.last() in PODCAST_WORDS -> MediaSection.PODCAST
             radio == 0 || radio == 1 || radio == words.lastIndex -> MediaSection.RADIO
             words.first() in CHANNEL_WORDS -> MediaSection.TV
             else -> null
@@ -875,21 +936,16 @@ object VoiceCommands {
     }
 
     /** La pagina di CarWeb Media di un indirizzo; null se è un altro sito. */
-    /** La pagina dei Podcast: stesso host di Media, TV e Radio, ma senza comandi vocali per ora. */
-    fun isPodcastPage(url: String?): Boolean {
-        val uri = parseUri(url) ?: return false
-        return uri.host?.lowercase() == PLAYER_HOST && uri.path.orEmpty().trimEnd('/') == "/podcast"
-    }
-
     fun mediaSectionOf(url: String?): MediaSection? {
         val uri = parseUri(url) ?: return null
         if (uri.host?.lowercase() != PLAYER_HOST) return null
         val path = uri.path.orEmpty().trimEnd('/')
         // Una foto o un video condivisi sono una pagina a sé: i comandi vocali non passano da lì
-        if (path.startsWith("/shared") || path == "/podcast") return null
+        if (path.startsWith("/shared")) return null
         return when (path) {
             "/tv" -> MediaSection.TV
             "/radio" -> MediaSection.RADIO
+            "/podcast" -> MediaSection.PODCAST
             else -> MediaSection.MEDIA
         }
     }
@@ -898,6 +954,7 @@ object VoiceCommands {
         MediaSection.MEDIA -> "https://$PLAYER_HOST/"
         MediaSection.TV -> "https://$PLAYER_HOST/tv"
         MediaSection.RADIO -> "https://$PLAYER_HOST/radio"
+        MediaSection.PODCAST -> "https://$PLAYER_HOST/podcast"
     }
 
     // ------------------------------------------------------------------

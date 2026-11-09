@@ -10,7 +10,7 @@ import org.json.JSONObject
 import java.util.Locale
 
 /**
- * Porta i comandi vocali alle pagine di CarWeb Media (Media, TV, Radio). La richiesta resta qui, una alla volta: la
+ * Porta i comandi vocali alle pagine di CarWeb Media (Media, TV, Radio, Podcast). La richiesta resta qui, una alla volta: la
  * pagina la chiede all'app quando si apre (/api/voice, con il suo token) o quando l'app la avvisa ([CHECK_SCRIPT]) se è
  * già aperta. Così una pagina qualsiasi non può far partire niente con un indirizzo, e ricaricare non ripete il comando.
  */
@@ -66,6 +66,7 @@ object MediaVoice {
             VoiceCommands.MediaSection.MEDIA -> R.string.favorite_default_name_0
             VoiceCommands.MediaSection.TV -> R.string.favorite_default_name_1
             VoiceCommands.MediaSection.RADIO -> R.string.favorite_default_name_2
+            VoiceCommands.MediaSection.PODCAST -> R.string.favorite_default_name_12
         }
     )
 
@@ -78,6 +79,7 @@ object MediaVoice {
                 VoiceCommands.MediaSection.MEDIA -> R.string.voice_command_media
                 VoiceCommands.MediaSection.TV -> R.string.voice_command_tv
                 VoiceCommands.MediaSection.RADIO -> R.string.voice_command_radio
+                VoiceCommands.MediaSection.PODCAST -> R.string.voice_command_podcast
             },
             query
         )
