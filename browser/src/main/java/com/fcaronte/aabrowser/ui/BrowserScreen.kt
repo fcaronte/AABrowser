@@ -413,6 +413,9 @@ fun BrowserScreen(
     LaunchedEffect(phonePermissionAnswers) { sitePrompts.onPhonePermissionsAnswered() }
 
     var lastInjectedUrl by remember { mutableStateOf("") }
+    // Ultimo indirizzo che la WebView ha detto di aver aperto: la scheda lo annota soltanto. Riaprirlo mentre la
+    // WebView è già altrove annullerebbe il tasto indietro e cancellerebbe le pagine "avanti" della cronologia
+    var lastReportedUrl by remember { mutableStateOf<String?>(null) }
     var lastProcessedBackTrigger by remember { mutableIntStateOf(backTrigger) }
     var lastProcessedForwardTrigger by remember { mutableIntStateOf(forwardTrigger) }
     var lastProcessedReloadTrigger by remember { mutableIntStateOf(reloadTrigger) }
@@ -524,6 +527,7 @@ fun BrowserScreen(
     }
 
     LaunchedEffect(url, isYouTubeAdBlockEnabled) {
+        if (url == lastReportedUrl) return@LaunchedEffect
         webViewReference?.let {
             val currentUrl = it.url
             val currentClean = currentUrl?.trimEnd('/') ?: ""
@@ -1145,6 +1149,11 @@ fun BrowserScreen(
                             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean =
                                 result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.PROMPT, url, message, defaultValue, result))
 
+                            // "Vuoi lasciare la pagina?": senza risposta la WebView cerca un'Activity per chiederlo, qui
+                            // non la trova (contesto localizzato) e annulla: indietro, avanti e i link non facevano niente
+                            override fun onJsBeforeUnload(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                                result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.CONFIRM, url, message, null, result))
+
                             // Solo la scheda visibile mostra la finestra; dalle altre la pagina riceve Annulla
                             private fun showJsDialog(request: JsDialogRequest): Boolean {
                                 if (!currentIsTabActive || jsDialog != null) request.cancel() else jsDialog = request
@@ -1364,9 +1373,15 @@ fun BrowserScreen(
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url != null) {
-                                    // Niente updateMediaCapabilities qui: i tasti predefiniti li mette onPageStarted
-                                    // e a pagina caricata li aggiorna la pagina stessa (Media Session, playlist YouTube)
-                                    onPageFinished(url)
+                                    // La WebView chiama questo metodo anche per una navigazione annullata, con il suo
+                                    // indirizzo (indietro toccato prima che la pagina rispondesse, link bloccato): la
+                                    // scheda annota solo la pagina che la WebView sta davvero mostrando
+                                    if (view?.url == url) {
+                                        lastReportedUrl = url
+                                        // Niente updateMediaCapabilities qui: i tasti predefiniti li mette onPageStarted
+                                        // e a pagina caricata li aggiorna la pagina stessa (Media Session, playlist YouTube)
+                                        onPageFinished(url)
+                                    }
                                     AppLog.d("##BrowserScreen", "onPageFinished: ${safeUrlForLog(url)}")
 
                                     view?.let { webView ->

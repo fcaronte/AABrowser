@@ -1860,6 +1860,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
                                 result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.CONFIRM, url, message, null, result))
 
+                            // "Vuoi lasciare la pagina?": senza risposta la WebView, qui senza Activity, annulla e il
+                            // tasto indietro non fa niente
+                            override fun onJsBeforeUnload(view: WebView?, url: String?, message: String?, result: android.webkit.JsResult?): Boolean =
+                                result != null && showJsDialog(JsDialogRequest(JsDialogRequest.Kind.CONFIRM, url, message, null, result))
+
                             // I messaggi di Android Auto non hanno un campo di testo: la pagina riceve Annulla
                             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: android.webkit.JsPromptResult?): Boolean {
                                 result?.cancel()
@@ -2089,8 +2094,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 if (url.startsWith(HomePage.BASE_URL)) {
                                     lastUrl = HOME
                                 } else {
-                                    lastUrl = url
-                                    saveUrl(url)
+                                    // Arriva anche per una navigazione annullata, con il suo indirizzo: quella non è la
+                                    // pagina aperta
+                                    if (view?.url == url) {
+                                        lastUrl = url
+                                        saveUrl(url)
+                                    }
 
                                     // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)
                                     view?.let {
