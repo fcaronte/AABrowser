@@ -380,7 +380,14 @@
     <string name="iptv_add">Hinzufügen</string>
     <string name="iptv_remove">Entfernen</string>
     <string name="iptv_add_on_phone">Listen werden in den Einstellungen auf dem Handy hinzugefügt.</string>
-    <string name="tv_no_sources">Keine TV-Listen: Füge auf dem Handy eine unter Einstellungen › App-Darstellung › IPTV hinzu.</string>
+    <string name="settings_category_media">IPTV und Radio</string>
+    <string name="media_lists_add">＋ Liste hinzufügen…</string>
+    <string name="radio_lists_title">Radio (Länder und M3U)</string>
+    <string name="radio_lists_desc">Senderlisten für das Radio: die meistgehörten Sender eines Landes (Radio Browser) oder eigene M3U-Listen. Adressen bleiben auf dem Handy und gelangen nicht ins Backup.</string>
+    <string name="radio_add_country">Land hinzufügen</string>
+    <string name="radio_country_search">Land suchen</string>
+    <string name="radio_source_default">Automatische Liste nach Sprache</string>
+    <string name="tv_no_sources">Keine TV-Listen: Füge auf dem Handy eine unter Einstellungen › IPTV und Radio hinzu.</string>
     <string name="tv_search">Sender suchen</string>
     <string name="tv_favorites">Favoriten</string>
     <string name="tv_other_channels">Weitere Sender</string>

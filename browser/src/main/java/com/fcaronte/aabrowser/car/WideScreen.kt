@@ -70,6 +70,7 @@ import androidx.car.app.model.Template
 import androidx.car.app.navigation.NavigationManager
 import androidx.car.app.navigation.NavigationManagerCallback
 import androidx.car.app.navigation.model.NavigationTemplate
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
@@ -99,6 +100,7 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
+import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PopupGuard
@@ -113,6 +115,7 @@ import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import com.fcaronte.aabrowser.utils.YouTubeManager
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -361,6 +364,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
                 checkForUpdate()
+                watchMediaLists()
                 // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
@@ -534,6 +538,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             UpdateManager.showUpdateNotification(carContext, info)
             homeHtml = null
             if (isHome()) showHome()
+        }
+    }
+
+    // Liste di TV e Radio aggiunte dal telefono mentre la pagina è aperta qui: aggiorna il suo menu
+    private fun watchMediaLists() {
+        lifecycleScope.launch {
+            snapshotFlow { IptvSources.version.intValue }.drop(1).collect {
+                webView?.takeIf { LocalPlayer.isPlayerUrl(it.url) }
+                    ?.evaluateJavascript(LocalPlayer.SOURCES_CHANGED_SCRIPT, null)
+            }
         }
     }
 

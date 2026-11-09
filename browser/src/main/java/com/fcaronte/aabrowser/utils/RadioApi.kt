@@ -18,15 +18,20 @@ import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-/** Radio Browser data for https://player.local/radio. Stream addresses stay native until a station is selected. */
+/**
+ * Stazioni di https://player.local/radio: Radio Browser (il Paese della lingua dell'app, altri Paesi) e le liste M3U
+ * dell'utente (IptvSources). Gli indirizzi restano nell'app finché non si sceglie una stazione.
+ */
 internal object RadioApi {
     private const val TAG = "RadioApi"
     private const val DISCOVERY_HOST = "all.api.radio-browser.info"
     private const val API_SUFFIX = ".api.radio-browser.info"
     private val USER_AGENT = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
     private const val MAX_STATIONS = 200
+    private const val MAX_PLAYLIST_STATIONS = 5000
     private const val MAX_FOUND_STATIONS = 30
     private const val MAX_KEPT_STATIONS = 500
     private const val MAX_ICY_INTERVAL = 1024 * 1024
@@ -39,7 +44,10 @@ internal object RadioApi {
         val favicon: String?,
         val country: String,
         val codec: String,
-        val isHls: Boolean
+        val isHls: Boolean,
+        // Da una lista M3U dell'utente: la lista a cui appartiene e gli header che chiede
+        val playlistId: String? = null,
+        val headers: Map<String, String> = emptyMap()
     )
 
     private data class CachedStations(val loadedAt: Long, val stations: List<Station>)
@@ -58,12 +66,8 @@ internal object RadioApi {
 
     fun page(context: Context, token: String, theme: String): WebResourceResponse {
         val appContext = AppLocale.wrap(context)
-        val locale = appContext.resources.configuration.locales[0]
-        val countryCode = countryCodeFor(locale)
-        val countryName = Locale.Builder().setRegion(countryCode).build().getDisplayCountry(locale)
         val strings = JSONObject()
             .put("title", appContext.getString(com.fcaronte.aabrowser.R.string.radio_title))
-            .put("inCountry", appContext.getString(com.fcaronte.aabrowser.R.string.radio_in_country, countryName))
             .put("search", appContext.getString(com.fcaronte.aabrowser.R.string.radio_search))
             .put("allStations", appContext.getString(com.fcaronte.aabrowser.R.string.radio_all_stations))
             .put("favorites", appContext.getString(com.fcaronte.aabrowser.R.string.radio_favorites))
@@ -80,8 +84,10 @@ internal object RadioApi {
             .put("lyricsClose", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_close))
             .put("lyricsSearchHint", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_search_hint))
             .put("lyricsSearch", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_search))
+            .put("addList", appContext.getString(com.fcaronte.aabrowser.R.string.media_lists_add))
+            .put("addOnPhone", appContext.getString(com.fcaronte.aabrowser.R.string.iptv_add_on_phone))
         val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
-        val config = JSONObject().put("token", token).put("country", countryCode).put("strings", strings).put("client", client)
+        val config = JSONObject().put("token", token).put("sources", sourcesJson(appContext)).put("strings", strings).put("client", client)
         val html = appContext.assets.open("player/radio.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_RADIO = $config;")
             .replace("/*AAB_THEME*/", theme)
@@ -89,11 +95,44 @@ internal object RadioApi {
     }
 
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? = when (path) {
-        "/api/radio/stations" -> stations(context, url.getQueryParameter("refresh") == "1")
-        "/api/radio/play" -> play(context, url.getQueryParameter("uuid"))
-        "/api/radio/find" -> find(context, url.getQueryParameter("q").orEmpty())
-        "/api/radio/metadata" -> metadata(context, url.getQueryParameter("uuid"))
+        "/api/radio/sources" -> json(JSONObject().put("sources", sourcesJson(context)))
+        "/api/radio/stations" -> stations(context, url.getQueryParameter("source"), url.getQueryParameter("refresh") == "1")
+        "/api/radio/play" -> play(context, url.getQueryParameter("uuid"), url.getQueryParameter("source"))
+        "/api/radio/find" -> find(context, url.getQueryParameter("q").orEmpty(), url.getQueryParameter("source"))
+        "/api/radio/metadata" -> metadata(context, url.getQueryParameter("uuid"), url.getQueryParameter("source"))
         else -> null
+    }
+
+    private fun sourcesJson(context: Context): JSONArray {
+        val sources = JSONArray()
+        IptvSources.list(context, IptvSources.Section.RADIO)
+            .forEach { sources.put(JSONObject().put("id", it.id).put("name", it.name)) }
+        return sources
+    }
+
+    // Senza una lista valida (per esempio tolta nel frattempo) vale quella automatica
+    private fun sourceOf(context: Context, id: String?): IptvSources.Source =
+        IptvSources.find(context, id, IptvSources.Section.RADIO) ?: IptvSources.list(context, IptvSources.Section.RADIO).first()
+
+    private fun stationsOf(context: Context, source: IptvSources.Source, refresh: Boolean): List<Station> =
+        if (source.isPlaylist) playlistStations(context, source, refresh) else stationList(source.url, refresh)
+
+    // L'id, fatto dall'indirizzo, resta lo stesso anche se la lista cambia (preferiti, ultima ascoltata)
+    private fun playlistStations(context: Context, source: IptvSources.Source, refresh: Boolean): List<Station> {
+        val lineup = IptvLibrary.lineup(context, source, refresh)
+        return lineup.channels.asSequence().take(MAX_PLAYLIST_STATIONS).map { channel ->
+            Station(
+                uuid = UUID.nameUUIDFromBytes(channel.url.toByteArray(Charsets.UTF_8)).toString(),
+                name = channel.name,
+                streamUrl = channel.url,
+                favicon = channel.logo,
+                country = lineup.groups[channel.group],
+                codec = "",
+                isHls = isHlsAddress(channel.url),
+                playlistId = source.id,
+                headers = channel.headers
+            )
+        }.distinctBy { it.uuid }.toList()
     }
 
     internal fun countryCodeFor(locale: Locale): String {
@@ -132,42 +171,51 @@ internal object RadioApi {
         .put("favicon", station.favicon ?: JSONObject.NULL)
         .put("country", station.country)
         .put("codec", station.codec)
+        .apply { station.playlistId?.let { put("s", it) } }
 
-    private fun stations(context: Context, refresh: Boolean): WebResourceResponse {
-        val countryCode = countryCode(context)
+    private fun stations(context: Context, sourceId: String?, refresh: Boolean): WebResourceResponse {
         val entries = try {
-            stationList(countryCode, refresh)
+            stationsOf(context, sourceOf(context, sourceId), refresh)
         } catch (e: Exception) {
             AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
             return error(502, "stations")
         }
         val jsonStations = JSONArray()
         entries.forEach { jsonStations.put(stationJson(it)) }
-        return json(JSONObject().put("country", countryCode).put("stations", jsonStations))
+        return json(JSONObject().put("stations", jsonStations))
     }
 
     /**
-     * Ricerca per nome dei comandi vocali: prima tra le più ascoltate del Paese, poi su Radio Browser, nel Paese e nel
-     * mondo. Dal più simile, con "m" e "confident" per dire alla pagina se il primo può partire da solo.
+     * Ricerca per nome dei comandi vocali: prima nella lista scelta, poi nelle altre (come i canali della TV), poi su
+     * Radio Browser, nel Paese e nel mondo. Dal più simile, con "m" e "confident" per dire alla pagina se il primo può
+     * partire da solo.
      */
-    private fun find(context: Context, text: String): WebResourceResponse {
-        val countryCode = countryCode(context)
+    private fun find(context: Context, text: String, sourceId: String?): WebResourceResponse {
         val query = MediaMatcher.key(text)
         fun rank(stations: List<Station>) = MediaMatcher.rank(query, stations) { MediaMatcher.key(it.name) }
-        var ranked = try {
-            rank(stationList(countryCode, refresh = false))
-        } catch (e: Exception) {
-            AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
-            emptyList()
+        fun merge(first: List<Pair<Station, Int>>, second: List<Pair<Station, Int>>) =
+            (first + second).sortedByDescending { it.second }.distinctBy { it.first.uuid }
+
+        val selected = sourceOf(context, sourceId)
+        var ranked = emptyList<Pair<Station, Int>>()
+        for (list in listOf(selected) + (IptvSources.list(context, IptvSources.Section.RADIO) - selected)) {
+            val found = try {
+                rank(stationsOf(context, list, refresh = false))
+            } catch (e: Exception) {
+                AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
+                emptyList()
+            }
+            ranked = merge(ranked, found)
+            if (ranked.any { it.second >= MediaMatcher.CONFIDENT }) break
         }
         if (ranked.none { it.second >= MediaMatcher.CONFIDENT }) {
             val found = try {
-                searchStations(text, countryCode, ::rank)
+                searchStations(text, countryCode(context), ::rank)
             } catch (e: Exception) {
                 AppLog.w(TAG, "Station search unavailable: ${e.javaClass.simpleName}")
                 emptyList()
             }
-            ranked = (ranked + found).sortedByDescending { it.second }.distinctBy { it.first.uuid }
+            ranked = merge(ranked, found)
         }
         val stations = JSONArray()
         ranked.take(MAX_STATIONS).forEach { (station, score) -> stations.put(stationJson(station).put("m", score)) }
@@ -203,9 +251,19 @@ internal object RadioApi {
         stations.forEach { foundStations[it.uuid.lowercase(Locale.ROOT)] = it }
     }
 
-    // Anche una stazione trovata a voce in un'altra sessione (l'ultima ascoltata, un preferito)
-    private fun stationById(context: Context, uuid: String): Station? {
-        cache[countryCode(context)]?.stations?.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }?.let { return it }
+    // Anche una stazione trovata a voce in un'altra sessione o di un'altra lista (l'ultima ascoltata, un preferito)
+    private fun stationById(context: Context, uuid: String, sourceId: String?): Station? {
+        IptvSources.find(context, sourceId, IptvSources.Section.RADIO)?.takeIf { it.isPlaylist }?.let { list ->
+            return try {
+                playlistStations(context, list, refresh = false).firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }
+            } catch (e: Exception) {
+                AppLog.w(TAG, "Station list unavailable: ${e.javaClass.simpleName}")
+                null
+            }
+        }
+        cache.values.firstNotNullOfOrNull { list ->
+            list.stations.firstOrNull { it.uuid.equals(uuid, ignoreCase = true) }
+        }?.let { return it }
         foundStations[uuid.lowercase(Locale.ROOT)]?.let { return it }
         return try {
             parseStations(getArray("/json/stations/byuuid/$uuid"), 1).firstOrNull()?.also { keepFound(listOf(it)) }
@@ -215,9 +273,10 @@ internal object RadioApi {
         }
     }
 
-    private fun play(context: Context, uuid: String?): WebResourceResponse {
+    private fun play(context: Context, uuid: String?, sourceId: String?): WebResourceResponse {
         if (uuid == null || !uuid.matches(STATION_ID)) return error(400, "station")
-        val station = stationById(context, uuid) ?: return error(404, "station")
+        val station = stationById(context, uuid, sourceId) ?: return error(404, "station")
+        if (station.playlistId != null) return playPlaylistStation(station)
 
         val resolvedUrl = try {
             val click = getJson("/json/url/${station.uuid}")
@@ -235,11 +294,19 @@ internal object RadioApi {
         return json(JSONObject().put("url", url).put("kind", if (isHls) "hls" else "file"))
     }
 
+    // Una lista dell'utente, come quelle della TV: niente conteggio su Radio Browser e anche gli indirizzi di casa
+    private fun playPlaylistStation(station: Station): WebResourceResponse {
+        val direct = !station.isHls && station.headers.isEmpty() ||
+            station.isHls && station.headers.isEmpty() && station.streamUrl.startsWith("https:", ignoreCase = true)
+        val url = if (direct) station.streamUrl else IptvProxy.proxyPath(station.streamUrl, station.headers)
+        return json(JSONObject().put("url", url).put("kind", if (station.isHls) "hls" else "file"))
+    }
+
     private fun isHlsAddress(url: String): Boolean = Uri.parse(url).path.orEmpty().endsWith(".m3u8", ignoreCase = true)
 
-    private fun metadata(context: Context, uuid: String?): WebResourceResponse {
+    private fun metadata(context: Context, uuid: String?, sourceId: String?): WebResourceResponse {
         if (uuid == null || !uuid.matches(STATION_ID)) return error(400, "station")
-        val station = stationById(context, uuid) ?: return error(404, "station")
+        val station = stationById(context, uuid, sourceId) ?: return error(404, "station")
 
         return try {
             val result = readIcyMetadata(station.streamUrl)

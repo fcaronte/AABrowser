@@ -382,7 +382,14 @@
     <string name="iptv_add">Добавить</string>
     <string name="iptv_remove">Удалить</string>
     <string name="iptv_add_on_phone">Списки добавляются в настройках на телефоне.</string>
-    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › Внешний вид приложения › IPTV на телефоне.</string>
+    <string name="settings_category_media">IPTV и радио</string>
+    <string name="media_lists_add">＋ Добавить список…</string>
+    <string name="radio_lists_title">Радио (страны и M3U)</string>
+    <string name="radio_lists_desc">Списки станций для радио: самые популярные станции страны (Radio Browser) или ваши списки M3U. Адреса остаются на телефоне и не попадают в резервную копию.</string>
+    <string name="radio_add_country">Добавить страну</string>
+    <string name="radio_country_search">Поиск страны</string>
+    <string name="radio_source_default">Автоматический список по языку</string>
+    <string name="tv_no_sources">Нет списков ТВ: добавьте список в Настройки › IPTV и радио на телефоне.</string>
     <string name="tv_search">Поиск канала</string>
     <string name="tv_favorites">Избранное</string>
     <string name="tv_other_channels">Другие каналы</string>

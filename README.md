@@ -43,15 +43,17 @@ from the misuse of this application. Use at your own risk.
   the phone colors, AMOLED).
 * **Radio in CarWeb Media (new in 2.6):** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
-  the UK). Search and favorites are available; when stream metadata reports a song title, lyrics are
+  the UK); other countries and your own M3U lists (URL or file) can be added in Settings > IPTV and Radio and picked
+  from the menu at the top of the page. Search and favorites are available; when stream metadata reports a song title, lyrics are
   fetched automatically from LRCLIB and shown from the Lyrics button. The text sent by the station is cleaned first
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player.
 * **TV in CarWeb Media:** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
-  file selected on the phone) and Xtream accounts (added in Settings; for Xtream the full link with username
-  and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
+  file selected on the phone) and Xtream accounts (added in Settings > IPTV and Radio, which also opens from the
+  "Add a list" entry of the menu at the top of the page; in the car a message says to do it on the phone; for Xtream the
+  full link with username and password is enough). Groups, search and favorites; HLS (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
   to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
@@ -239,15 +241,17 @@ proprio rischio e pericolo.
   telefono, AMOLED).
 * **Radio in CarWeb Media (novità 2.6):** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
-  (Regno Unito) seleziona il Regno Unito). Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
+  (Regno Unito) seleziona il Regno Unito); altri Paesi e le tue liste M3U (da URL o da file) si aggiungono nelle
+  Impostazioni > IPTV e Radio e si scelgono dal menu in alto nella pagina. Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
   del brano, il testo viene cercato su LRCLIB e si apre dal pulsante Testi. Il testo mandato dalla stazione viene
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
 * **TV in CarWeb Media:** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
-  o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni; per Xtream
-  basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
+  o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > IPTV e Radio, che si
+  aprono anche dalla voce "Aggiungi una lista" del menu in alto nella pagina; in auto un messaggio dice di farlo dal
+  telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti; stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
   player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non

@@ -88,6 +88,7 @@ object LocalPlayer {
                 path == "/player.css" -> asset(context, "player/player.css", "text/css")
                 path == "/lyrics.js" -> asset(context, "player/lyrics.js", "application/javascript")
                 path == "/track-parser.js" -> asset(context, "player/track-parser.js", "application/javascript")
+                path == "/lists.js" -> asset(context, "player/lists.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
@@ -164,6 +165,11 @@ object LocalPlayer {
     }
 
     fun isPlayerUrl(url: String?): Boolean = url?.startsWith(BASE_URL) == true
+
+    fun isPlayerHost(host: String?): Boolean = host == HOST
+
+    /** Avvisa la pagina aperta che le liste di TV o Radio sono cambiate: aggiorna il menu senza fermare quello che suona. */
+    const val SOURCES_CHANGED_SCRIPT = "window.aabSourcesChanged && window.aabSourcesChanged();"
 
     fun isRadioUrl(url: String?): Boolean {
         val uri = url?.let(Uri::parse) ?: return false

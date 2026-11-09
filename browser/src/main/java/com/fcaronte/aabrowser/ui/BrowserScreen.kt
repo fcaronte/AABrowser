@@ -80,6 +80,7 @@ import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
+import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PendingSitePermission
@@ -240,6 +241,8 @@ fun BrowserScreen(
     onInteraction: () -> Unit = {},
     // Messaggio nel riquadro della Main: in auto un Toast compare sul telefono, non sullo schermo dell'auto
     onShowFeedback: (String) -> Unit = {},
+    // Aggiungere una lista dalle pagine di TV e Radio (solo sul telefono): le Impostazioni, al punto giusto
+    onOpenMediaLists: (IptvSources.Section) -> Unit = {},
 ) {
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
@@ -523,6 +526,14 @@ fun BrowserScreen(
     LaunchedEffect(isTabActive, mediaVoiceVersion) {
         if (isTabActive && MediaVoice.hasPending() && LocalPlayer.isPlayerUrl(webViewReference?.url)) {
             webViewReference?.evaluateJavascript(MediaVoice.CHECK_SCRIPT, null)
+        }
+    }
+
+    // Liste di TV e Radio cambiate nelle Impostazioni: la pagina aperta aggiorna il suo menu
+    val mediaListsVersion by IptvSources.version
+    LaunchedEffect(mediaListsVersion) {
+        if (mediaListsVersion > 0 && LocalPlayer.isPlayerUrl(webViewReference?.url)) {
+            webViewReference?.evaluateJavascript(LocalPlayer.SOURCES_CHANGED_SCRIPT, null)
         }
     }
 
@@ -885,6 +896,18 @@ fun BrowserScreen(
                                             TabManager.updateTabFavicon(tabId, faviconUrl)
                                         }
                                     }
+                                }
+
+                                // "Aggiungi una lista" nelle pagine di TV e Radio; false in auto, dove le liste non si
+                                // aggiungono: la pagina avvisa di farlo dal telefono
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun openMediaLists(section: String): Boolean {
+                                    if (activity == null || !LocalPlayer.isPlayerHost(pageHost.get())) return false
+                                    val target = IptvSources.Section.entries
+                                        .firstOrNull { it.name.equals(section, ignoreCase = true) } ?: return false
+                                    post { onOpenMediaLists(target) }
+                                    return true
                                 }
 
                                 @JavascriptInterface

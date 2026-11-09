@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const config = window.AAB_RADIO || { token: '', country: 'US', strings: {} };
+    const config = window.AAB_RADIO || { token: '', sources: [], strings: {} };
     const S = config.strings || {};
     const STORE_KEY = 'aabRadioState';
     const ROW = 56;
@@ -27,14 +27,15 @@
     let showFavorites = false;
     let drawPending = false;
     let requestToken = 0;
-    // Risultato di una ricerca a voce: può contenere stazioni fuori dall'elenco del Paese e nomi scritti diversamente
+    let listToken = 0;          // l'elenco arrivato dopo aver scelto un'altra lista si scarta
+    // Risultato di una ricerca a voce: può contenere stazioni fuori dalla lista e nomi scritti diversamente
     let foundStations = null;
     let foundQuery = '';
     let state = readState();
 
-    // [extra]: le stazioni fuori dall'elenco del Paese che servono ancora (l'ultima ascoltata, i preferiti)
+    // [extra]: i dati delle stazioni che servono anche fuori dalla loro lista (l'ultima ascoltata, i preferiti)
     function readState() {
-        const empty = { favorites: [], lastUuid: '', extra: {} };
+        const empty = { source: '', favorites: [], lastUuid: '', extra: {} };
         try {
             return Object.assign(empty, JSON.parse(localStorage.getItem(STORE_KEY)));
         } catch (_) {
@@ -94,16 +95,19 @@
         }
     }
 
+    function stationByUuid(uuid) {
+        return stations.find((station) => station.uuid === uuid) || state.extra[uuid];
+    }
+
     function filteredStations() {
         const query = byId('search').value.trim().toLocaleLowerCase();
         if (foundStations && byId('search').value === foundQuery) {
             return foundStations.filter((station) => !showFavorites || favorite(station));
         }
-        return stations.filter((station) => {
-            if (showFavorites && !favorite(station)) return false;
-            return !query || station.name.toLocaleLowerCase().includes(query) ||
-                station.country.toLocaleLowerCase().includes(query);
-        });
+        // I preferiti valgono per tutte le liste
+        const pool = showFavorites ? state.favorites.map(stationByUuid).filter(Boolean) : stations;
+        return pool.filter((station) => !query || station.name.toLocaleLowerCase().includes(query) ||
+            station.country.toLocaleLowerCase().includes(query));
     }
 
     function render() {
@@ -295,7 +299,7 @@
         if (metadataRequestPending === playToken) return;
         metadataRequestPending = playToken;
         try {
-            const result = await api('/api/radio/metadata', { uuid: stationUuid });
+            const result = await api('/api/radio/metadata', { uuid: stationUuid, source: current.s || '' });
             if (!current || current.uuid !== stationUuid || requestToken !== playToken) return;
             if (result.supported === false) {
                 icyMetadataSupported = false;
@@ -348,7 +352,7 @@
         const token = ++requestToken;
         stopStream();
         try {
-            const info = await api('/api/radio/play', { uuid: station.uuid });
+            const info = await api('/api/radio/play', { uuid: station.uuid, source: station.s || '' });
             if (token !== requestToken) return;
             currentUrl = info.url;
             currentIsHls = info.kind === 'hls';
@@ -390,27 +394,62 @@
         }
     }
 
-    // Le stazioni trovate a voce fuori dall'elenco del Paese restano se sono l'ultima ascoltata o tra i preferiti
+    // L'ultima ascoltata e i preferiti restano disponibili anche scegliendo un'altra lista
     function keepExtraStations() {
         const kept = {};
         const known = new Map(Object.values(state.extra).concat(stations).map((station) => [station.uuid, station]));
         state.favorites.concat(state.lastUuid).forEach((uuid) => {
             const station = known.get(uuid);
-            if (station && station.extra) kept[uuid] = station;
+            if (station) kept[uuid] = station;
         });
         state.extra = kept;
     }
 
+    function setFavoritesView(on) {
+        showFavorites = on;
+        byId('favoriteStations').classList.toggle('active', on);
+        byId('allStations').classList.toggle('active', !on);
+    }
+
+    const picker = window.createSourcePicker(byId('source'), {
+        section: 'radio',
+        sources: config.sources,
+        addLabel: S.addList,
+        phoneOnlyText: S.addOnPhone,
+        messageBox: byId('message'),
+        onChange: selectSource
+    });
+
+    // Avvisata dall'app quando le liste cambiano nelle Impostazioni: la stazione in onda continua
+    window.aabSourcesChanged = function () {
+        api('/api/radio/sources').then((data) => picker.update(data.sources)).catch(() => {});
+    };
+
+    function selectSource(id) {
+        state.source = id;
+        saveState();
+        picker.select(id);
+        foundStations = null;
+        byId('search').value = '';
+        setFavoritesView(false);
+        channelsBox.scrollTop = 0;
+        stations = [];
+        render();
+        return loadStations(false);
+    }
+
     async function loadStations(refresh) {
+        const token = ++listToken;
         message(S.loading || 'Loading…');
         try {
-            const data = await api('/api/radio/stations', refresh ? { refresh: '1' } : {});
-            const listed = new Set((data.stations || []).map((station) => station.uuid));
-            stations = (data.stations || []).concat(Object.values(state.extra).filter((station) => !listed.has(station.uuid)));
-            byId('country').textContent = S.inCountry || S.title || 'Radio';
+            const data = await api('/api/radio/stations', Object.assign({ source: state.source }, refresh ? { refresh: '1' } : {}));
+            if (token !== listToken) return;
+            stations = data.stations || [];
+            keepExtraStations();
+            saveState();
             byId('allStations').textContent = S.allStations || 'Stations';
             byId('favoriteStations').textContent = S.favorites || 'Favorites';
-            const previous = stations.find((station) => station.uuid === state.lastUuid);
+            const previous = stationByUuid(state.lastUuid);
             // Aggiornando l'elenco mentre suona non si perde quello che si sta ascoltando
             if (currentUrl && current) {
                 current = previous || current;
@@ -428,7 +467,7 @@
             render();
             message(stations.length ? '' : (S.noResults || 'No stations found'));
         } catch (_) {
-            message(S.error || 'Could not load radio stations');
+            if (token === listToken) message(S.error || 'Could not load radio stations');
         }
     }
 
@@ -450,7 +489,7 @@
         message(S.loading || 'Loading…');
         let data;
         try {
-            data = await api('/api/radio/find', { q: request.query });
+            data = await api('/api/radio/find', { q: request.query, source: state.source });
         } catch (_) {
             message(S.error || 'Could not load radio stations');
             return;
@@ -466,17 +505,14 @@
         const known = new Map(stations.map((station) => [station.uuid, station]));
         const found = results.map((station) => {
             if (known.has(station.uuid)) return known.get(station.uuid);
-            const added = Object.assign({ extra: true }, station);
-            stations.push(added);
-            known.set(station.uuid, added);
-            return added;
+            stations.push(station);
+            known.set(station.uuid, station);
+            return station;
         });
         foundStations = found;
         foundQuery = request.query;
         byId('search').value = foundQuery;
-        showFavorites = false;
-        byId('allStations').classList.add('active');
-        byId('favoriteStations').classList.remove('active');
+        setFavoritesView(false);
         channelsBox.scrollTop = 0;
         render();
         if (!found.length) {
@@ -531,15 +567,11 @@
         render();
     });
     byId('allStations').addEventListener('click', () => {
-        showFavorites = false;
-        byId('allStations').classList.add('active');
-        byId('favoriteStations').classList.remove('active');
+        setFavoritesView(false);
         render();
     });
     byId('favoriteStations').addEventListener('click', () => {
-        showFavorites = true;
-        byId('favoriteStations').classList.add('active');
-        byId('allStations').classList.remove('active');
+        setFavoritesView(true);
         render();
     });
     byId('refresh').addEventListener('click', () => loadStations(true));
@@ -587,6 +619,9 @@
         });
     }
 
+    // La lista automatica cambia con la lingua dell'app: una lista che non c'è più torna alla prima
+    state.source = picker.has(state.source) ? state.source : ((picker.list()[0] || {}).id || '');
+    picker.select(state.source);
     const stationsReady = loadStations(false);
     window.aabVoice();
 })();

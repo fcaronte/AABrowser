@@ -14,7 +14,6 @@
 
     const byId = (id) => document.getElementById(id);
     const media = byId('media');
-    const sourceSelect = byId('source');
     const searchInput = byId('search');
     const groupsBox = byId('groups');
     const channelsBox = byId('channels');
@@ -73,21 +72,27 @@
     // Liste e gruppi
     // ------------------------------------------------------------------
 
-    function renderSources() {
-        sourceSelect.textContent = '';
-        config.sources.forEach((source) => {
-            const option = document.createElement('option');
-            option.value = source.id;
-            option.textContent = source.name;
-            sourceSelect.appendChild(option);
-        });
-        sourceSelect.disabled = config.sources.length < 2;
-    }
+    const picker = window.createSourcePicker(byId('source'), {
+        section: 'tv',
+        sources: config.sources,
+        addLabel: S.addList,
+        phoneOnlyText: S.addOnPhone,
+        messageBox: message,
+        onChange: (id) => {
+            state.group = undefined;
+            selectSource(id, false);
+        }
+    });
+
+    // Avvisata dall'app quando le liste cambiano nelle Impostazioni: il canale in onda continua
+    window.aabSourcesChanged = function () {
+        request('/api/tv/sources').then((data) => picker.update(data.sources)).catch(() => {});
+    };
 
     function selectSource(id, refresh) {
         state.source = id;
         saveState();
-        sourceSelect.value = id;
+        picker.select(id);
         groupsBox.textContent = '';
         setItems([]);
         showMessage(S.loading);
@@ -487,7 +492,7 @@
     // Prima nella lista scelta, poi nelle altre: i risultati sicuri vincono, altrimenti i primi trovati
     async function findChannels(query) {
         let first = null;
-        const others = config.sources.map((source) => source.id).filter((id) => id !== state.source);
+        const others = picker.list().map((source) => source.id).filter((id) => id !== state.source);
         for (const id of [state.source].concat(others)) {
             let data;
             try {
@@ -552,23 +557,18 @@
     // ------------------------------------------------------------------
 
     searchInput.placeholder = S.search || '';
-    renderSources();
-    sourceSelect.addEventListener('change', () => {
-        state.group = undefined;
-        selectSource(sourceSelect.value, false);
-    });
     byId('refresh').addEventListener('click', () => {
         if (state.source) selectSource(state.source, true);
     });
 
     if (!config.sources.length) {
-        sourceSelect.hidden = true;
+        byId('source').hidden = true;
         byId('refresh').hidden = true;
         showMessage(S.noSources);
         return;
     }
     const sameLocale = state.locale === config.locale;
-    const source = sameLocale && config.sources.some((item) => item.id === state.source)
+    const source = sameLocale && picker.has(state.source)
         ? state.source
         : config.sources[0].id;
     state.locale = config.locale;

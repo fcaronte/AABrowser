@@ -380,7 +380,14 @@
     <string name="iptv_add">Hozzáadás</string>
     <string name="iptv_remove">Eltávolítás</string>
     <string name="iptv_add_on_phone">A listákat a telefon beállításaiban lehet hozzáadni.</string>
-    <string name="tv_no_sources">Nincs TV-lista: adjon hozzá egyet a telefonon a Beállítások › Alkalmazás megjelenése › IPTV menüben.</string>
+    <string name="settings_category_media">IPTV és rádió</string>
+    <string name="media_lists_add">＋ Lista hozzáadása…</string>
+    <string name="radio_lists_title">Rádió (országok és M3U)</string>
+    <string name="radio_lists_desc">Állomáslisták a rádióhoz: egy ország legnépszerűbb állomásai (Radio Browser) vagy saját M3U-listák. A címek a telefonon maradnak, és nem kerülnek a biztonsági mentésbe.</string>
+    <string name="radio_add_country">Ország hozzáadása</string>
+    <string name="radio_country_search">Ország keresése</string>
+    <string name="radio_source_default">Automatikus lista a nyelv szerint</string>
+    <string name="tv_no_sources">Nincs TV-lista: adjon hozzá egyet a telefonon a Beállítások › IPTV és rádió menüben.</string>
     <string name="tv_search">Csatorna keresése</string>
     <string name="tv_favorites">Kedvencek</string>
     <string name="tv_other_channels">Egyéb csatornák</string>

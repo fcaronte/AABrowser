@@ -74,6 +74,7 @@ import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.DrivingState
+import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.MediaVoice
 import com.fcaronte.aabrowser.utils.UrlUtils
@@ -164,6 +165,11 @@ fun MainScreen(
     var previousScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
     var currentScreen by remember {
         mutableStateOf<Screen>(Screen.Dashboard)
+    }
+    // Le liste da mostrare aprendo le Impostazioni dalle pagine di TV e Radio; solo per quell'apertura
+    var settingsLists by remember { mutableStateOf<IptvSources.Section?>(null) }
+    LaunchedEffect(currentScreen) {
+        if (currentScreen != Screen.Settings) settingsLists = null
     }
 
     var reloadTrigger by remember { mutableIntStateOf(0) }
@@ -606,7 +612,12 @@ fun MainScreen(
                                     },
                                     onWebViewCreated = { if (isTabActive) activeWebView = it },
                                     onFullScreenChange = { if (isTabActive) isFullScreen = it },
-                                    onShowFeedback = { if (isTabActive) feedbackMessage = it }
+                                    onShowFeedback = { if (isTabActive) feedbackMessage = it },
+                                    onOpenMediaLists = { section ->
+                                        settingsLists = section
+                                        previousScreen = Screen.Browser
+                                        currentScreen = Screen.Settings
+                                    }
                                 )
                                 if (!isTabActive || !isBrowserVisible) {
                                     Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Transparent).pointerInput(Unit) {})
@@ -798,7 +809,8 @@ fun MainScreen(
                             favoritesViewModel = favoritesViewModel,
                             onBack = { currentScreen = previousScreen },
                             onShowFeedback = { feedbackMessage = it },
-                            isCarModeOverride = isAutomotive
+                            isCarModeOverride = isAutomotive,
+                            focusLists = settingsLists
                         )
                     }
 

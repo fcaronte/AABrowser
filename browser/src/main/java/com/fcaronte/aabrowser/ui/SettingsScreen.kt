@@ -88,6 +88,7 @@ import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockLists
 import com.fcaronte.aabrowser.utils.BackupRestoreUtils
+import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslExceptions
@@ -109,7 +110,9 @@ fun SettingsScreen(
     favoritesViewModel: FavoritesViewModel,
     onBack: () -> Unit,
     onShowFeedback: (String) -> Unit,
-    isCarModeOverride: Boolean = false
+    isCarModeOverride: Boolean = false,
+    // Aperte dalle pagine di TV o Radio: la sezione delle liste è aperta e quella lista in vista
+    focusLists: IptvSources.Section? = null
 ) {
     val context = LocalContext.current
     // Il contesto di MainScreen è localizzato e non è l'Activity
@@ -168,6 +171,7 @@ fun SettingsScreen(
     val passengerKeyboard by AppSettings.passengerKeyboard
 
     var expandedAppSection by remember { mutableStateOf(false) }
+    var expandedMediaSection by remember { mutableStateOf(focusLists != null) }
     var expandedWebSection by remember { mutableStateOf(false) }
     var cacheSize by remember { mutableStateOf("...") }
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
@@ -502,9 +506,6 @@ fun SettingsScreen(
                                     }
                                 )
                             }
-
-                            // TV di CarWeb Media: liste M3U e account Xtream (si aggiungono dal telefono)
-                            IptvSourcesCard(isCarMode = isCarMode)
 
                             // Precarica schede preferiti all'avvio
                             SettingsCard {
@@ -871,6 +872,21 @@ fun SettingsScreen(
                                         }
                                     }
                                 )
+                            }
+                        }
+                    }
+
+                    // SEZIONE: LISTE DI TV E RADIO (si aggiungono dal telefono)
+                    SettingsSectionHeader(
+                        title = stringResource(R.string.settings_category_media),
+                        isExpanded = expandedMediaSection,
+                        onClick = { expandedMediaSection = !expandedMediaSection }
+                    )
+
+                    AnimatedVisibility(visible = expandedMediaSection) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            IptvSources.Section.entries.forEach { section ->
+                                IptvSourcesCard(section, isCarMode = isCarMode, inFocus = focusLists == section)
                             }
                         }
                     }

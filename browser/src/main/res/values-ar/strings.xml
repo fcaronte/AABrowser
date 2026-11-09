@@ -384,7 +384,14 @@
     <string name="iptv_add">إضافة</string>
     <string name="iptv_remove">إزالة</string>
     <string name="iptv_add_on_phone">تُضاف القوائم من الإعدادات على الهاتف.</string>
-    <string name="tv_no_sources">لا توجد قوائم تلفزيون: أضف قائمة من الإعدادات › مظهر التطبيق › IPTV على الهاتف.</string>
+    <string name="settings_category_media">IPTV والراديو</string>
+    <string name="media_lists_add">＋ إضافة قائمة…</string>
+    <string name="radio_lists_title">الراديو (الدول وM3U)</string>
+    <string name="radio_lists_desc">قوائم المحطات للراديو: الأكثر استماعًا في بلد ما (Radio Browser) أو قوائم M3U الخاصة بك. تبقى العناوين على الهاتف ولا تدخل في النسخة الاحتياطية.</string>
+    <string name="radio_add_country">إضافة بلد</string>
+    <string name="radio_country_search">ابحث عن بلد</string>
+    <string name="radio_source_default">قائمة تلقائية حسب اللغة</string>
+    <string name="tv_no_sources">لا توجد قوائم تلفزيون: أضف قائمة من الإعدادات › IPTV والراديو على الهاتف.</string>
     <string name="tv_search">البحث عن قناة</string>
     <string name="tv_favorites">المفضلة</string>
     <string name="tv_other_channels">قنوات أخرى</string>

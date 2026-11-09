@@ -380,7 +380,14 @@
     <string name="iptv_add">जोड़ें</string>
     <string name="iptv_remove">हटाएँ</string>
     <string name="iptv_add_on_phone">सूचियाँ फ़ोन की सेटिंग में जोड़ी जाती हैं।</string>
-    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › ऐप दिखावट › IPTV में एक सूची जोड़ें।</string>
+    <string name="settings_category_media">IPTV और रेडियो</string>
+    <string name="media_lists_add">＋ सूची जोड़ें…</string>
+    <string name="radio_lists_title">रेडियो (देश और M3U)</string>
+    <string name="radio_lists_desc">रेडियो के लिए स्टेशन सूचियाँ: किसी देश के सबसे ज़्यादा सुने जाने वाले स्टेशन (Radio Browser) या आपकी अपनी M3U सूचियाँ। पते फ़ोन पर ही रहते हैं और बैकअप में नहीं जाते।</string>
+    <string name="radio_add_country">देश जोड़ें</string>
+    <string name="radio_country_search">देश खोजें</string>
+    <string name="radio_source_default">भाषा के अनुसार स्वचालित सूची</string>
+    <string name="tv_no_sources">कोई TV सूची नहीं: फ़ोन पर सेटिंग › IPTV और रेडियो में एक सूची जोड़ें।</string>
     <string name="tv_search">चैनल खोजें</string>
     <string name="tv_favorites">पसंदीदा</string>
     <string name="tv_other_channels">अन्य चैनल</string>

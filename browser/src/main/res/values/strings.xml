@@ -385,7 +385,14 @@
     <string name="iptv_add">Add</string>
     <string name="iptv_remove">Remove</string>
     <string name="iptv_add_on_phone">Lists are added from Settings on the phone.</string>
-    <string name="tv_no_sources">No TV lists: add one in Settings › App Appearance › IPTV, on the phone.</string>
+    <string name="settings_category_media">IPTV and Radio</string>
+    <string name="media_lists_add">＋ Add a list…</string>
+    <string name="radio_lists_title">Radio (countries and M3U)</string>
+    <string name="radio_lists_desc">Station lists for the Radio: the most listened stations of a country (Radio Browser) or your own M3U lists. Addresses stay on the phone and are not included in the backup.</string>
+    <string name="radio_add_country">Add a country</string>
+    <string name="radio_country_search">Search for a country</string>
+    <string name="radio_source_default">Automatic list for the language</string>
+    <string name="tv_no_sources">No TV lists: add one in Settings › IPTV and Radio, on the phone.</string>
     <string name="tv_search">Search a channel</string>
     <string name="tv_favorites">Favorites</string>
     <string name="tv_other_channels">Other channels</string>

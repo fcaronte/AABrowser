@@ -63,6 +63,7 @@ object IptvLibrary {
                     stream.use(::parseM3u)
                 }
                 IptvSources.Type.XTREAM -> loadXtream(source)
+                IptvSources.Type.DEFAULT_COUNTRY, IptvSources.Type.COUNTRY -> throw IOException("Not a playlist")
             }
             cache[source.id] = loaded
             AppLog.d(TAG, "Loaded ${loaded.channels.size} channels in ${loaded.groups.size} groups")

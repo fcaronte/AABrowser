@@ -28,13 +28,13 @@ internal object IptvApi {
             .put("unavailable", context.getString(R.string.tv_unavailable))
             .put("sourceError", context.getString(R.string.tv_source_error))
             .put("noResults", context.getString(R.string.tv_no_results))
-        val sources = JSONArray()
-        IptvSources.list(context).forEach { sources.put(JSONObject().put("id", it.id).put("name", it.name)) }
+            .put("addList", context.getString(R.string.media_lists_add))
+            .put("addOnPhone", context.getString(R.string.iptv_add_on_phone))
         val config = JSONObject()
             .put("token", token)
             .put("locale", context.resources.configuration.locales[0].toLanguageTag())
             .put("strings", strings)
-            .put("sources", sources)
+            .put("sources", sourcesJson(context))
         val html = context.assets.open("player/tv.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_TV = $config;")
             .replace("/*AAB_THEME*/", theme)
@@ -48,6 +48,7 @@ internal object IptvApi {
 
     /** Richieste /api/tv/…; null se il percorso non è della TV. */
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? {
+        if (path == "/api/tv/sources") return json(JSONObject().put("sources", sourcesJson(context)))
         val source = IptvSources.find(context, url.getQueryParameter("source"))
         return when (path) {
             "/api/tv/groups" -> withLineup(context, source, url.getQueryParameter("refresh") == "1", ::groups)
@@ -55,6 +56,12 @@ internal object IptvApi {
             "/api/tv/play" -> withLineup(context, source, false) { play(it, url) }
             else -> null
         }
+    }
+
+    private fun sourcesJson(context: Context): JSONArray {
+        val sources = JSONArray()
+        IptvSources.list(context).forEach { sources.put(JSONObject().put("id", it.id).put("name", it.name)) }
+        return sources
     }
 
     private fun withLineup(

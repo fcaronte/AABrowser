@@ -379,7 +379,14 @@
     <string name="iptv_add">添加</string>
     <string name="iptv_remove">删除</string>
     <string name="iptv_add_on_phone">请在手机上的设置中添加列表。</string>
-    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › 应用外观 › IPTV 中添加。</string>
+    <string name="settings_category_media">IPTV 和电台</string>
+    <string name="media_lists_add">＋ 添加列表…</string>
+    <string name="radio_lists_title">电台（国家和 M3U）</string>
+    <string name="radio_lists_desc">电台的站点列表：某个国家收听最多的电台（Radio Browser）或您自己的 M3U 列表。地址保存在手机上，不会进入备份。</string>
+    <string name="radio_add_country">添加国家</string>
+    <string name="radio_country_search">搜索国家</string>
+    <string name="radio_source_default">按语言自动生成的列表</string>
+    <string name="tv_no_sources">没有电视列表：请在手机上的 设置 › IPTV 和电台 中添加。</string>
     <string name="tv_search">搜索频道</string>
     <string name="tv_favorites">收藏</string>
     <string name="tv_other_channels">其他频道</string>

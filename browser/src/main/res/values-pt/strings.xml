@@ -381,7 +381,14 @@
     <string name="iptv_add">Adicionar</string>
     <string name="iptv_remove">Remover</string>
     <string name="iptv_add_on_phone">As listas adicionam-se nas definições do telemóvel.</string>
-    <string name="tv_no_sources">Nenhuma lista de TV: adicione uma em Definições › Aparência da aplicação › IPTV, no telemóvel.</string>
+    <string name="settings_category_media">IPTV e rádio</string>
+    <string name="media_lists_add">＋ Adicionar uma lista…</string>
+    <string name="radio_lists_title">Rádio (países e M3U)</string>
+    <string name="radio_lists_desc">Listas de estações para a rádio: as mais ouvidas de um país (Radio Browser) ou as suas listas M3U. Os endereços ficam no telemóvel e não vão para a cópia de segurança.</string>
+    <string name="radio_add_country">Adicionar país</string>
+    <string name="radio_country_search">Procurar um país</string>
+    <string name="radio_source_default">Lista automática por idioma</string>
+    <string name="tv_no_sources">Nenhuma lista de TV: adicione uma em Definições › IPTV e rádio, no telemóvel.</string>
     <string name="tv_search">Procurar um canal</string>
     <string name="tv_favorites">Favoritos</string>
     <string name="tv_other_channels">Outros canais</string>
