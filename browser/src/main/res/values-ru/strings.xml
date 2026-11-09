@@ -408,9 +408,10 @@
     <string name="radio_unavailable">Станция недоступна</string>
     <string name="share_to_car_target">CarWeb в машине</string>
     <string name="share_to_car_sent">Отправлено в CarWeb в машине</string>
-    <string name="share_to_car_waiting">Откройте CarWeb в машине в течение минуты: ссылка откроется там</string>
-    <string name="share_to_car_no_link">Нет ссылки для открытия</string>
+    <string name="share_to_car_waiting">Откройте CarWeb в машине в течение минуты: содержимое откроется там</string>
+    <string name="share_to_car_no_link">Нечего открывать</string>
     <string name="share_to_car_opened">С телефона: %1$s</string>
+    <string name="share_to_car_unavailable">Этот файл нельзя открыть здесь. Попробуйте поделиться им ещё раз.</string>
     <string name="adblock_lists_label">Список рекламных сайтов</string>
     <string name="adblock_lists_info">%1$s: %2$s сайтов, обновлено %3$s</string>
     <string name="adblock_lists_none">Ещё не загружен: загрузится сам при подключении к интернету</string>
@@ -430,5 +431,5 @@
     <string name="adblock_lists_custom_desc">Текстовый файл с одним доменом в строке, в формате hosts или с правилами ||домен^.</string>
     <string name="adblock_lists_custom_change">Изменить</string>
     <string name="adblock_lists_custom_phone">Адрес вводится в настройках на телефоне</string>
-    <string name="share_to_car_not_connected">Подключите телефон к машине, чтобы открыть ссылку в CarWeb</string>
+    <string name="share_to_car_not_connected">Подключите телефон к машине, чтобы открыть это в CarWeb</string>
 </resources>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CarWeb</title>
+    <link rel="icon" href="/icon.svg">
+    <style>
+        html, body { height: 100%; margin: 0; background: #000; color: #fff; }
+        #viewer { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        #viewer img, #viewer video { display: block; width: 100%; height: 100%; object-fit: contain; }
+        #viewer p { margin: 24px; font: 20px/1.4 sans-serif; text-align: center; }
+    </style>
+    <!-- Cosa mostrare, inserito dall'app quando serve la pagina (LocalPlayer) -->
+    <script>/*AAB_CONFIG*/</script>
+</head>
+<body>
+<div id="viewer"></div>
+<!-- Foto o video condivisi dal telefono con "CarWeb in auto": i comandi del video sono quelli del browser -->
+<script>
+    (function () {
+        'use strict';
+
+        const config = window.AAB_SHARED;
+        const viewer = document.getElementById('viewer');
+
+        function showUnavailable() {
+            const text = document.createElement('p');
+            text.textContent = config.unavailable;
+            viewer.replaceChildren(text);
+        }
+
+        if (!config.src) {
+            showUnavailable();
+            return;
+        }
+        if (config.name) document.title = config.name;
+        const element = document.createElement(config.kind === 'video' ? 'video' : 'img');
+        element.addEventListener('error', showUnavailable);
+        if (config.kind === 'video') {
+            element.controls = true;
+            element.autoplay = true;
+            element.playsInline = true;
+        }
+        element.src = config.src;
+        viewer.appendChild(element);
+    })();
+</script>
+</body>
+</html>

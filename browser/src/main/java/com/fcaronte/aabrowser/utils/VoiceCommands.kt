@@ -49,7 +49,7 @@ object VoiceCommands {
         /** Nessuno schema: la frase intera si cerca come con [Search]. */
         data class Unmatched(val text: String) : Command
         /** Un link condiviso dal telefono con "CarWeb in auto" (non è una frase detta). */
-        data class OpenLink(val url: String) : Command
+        data class OpenLink(val url: String, val label: String? = null) : Command
     }
 
     /** Cosa fare, uguale per la Main e la Wide: ognuna poi lo esegue a modo suo. */
@@ -727,7 +727,7 @@ object VoiceCommands {
         Command.Previous -> playerPlan(PlayerAction.PREVIOUS, currentUrl, playerOwned)
         is Command.OpenLink -> Plan.Load(
             command.url,
-            parseUri(command.url)?.host?.removePrefix("www.")?.removePrefix("m.") ?: command.url,
+            command.label ?: parseUri(command.url)?.host?.removePrefix("www.")?.removePrefix("m.") ?: command.url,
             LoadKind.LINK,
             autoplay = isYouTubeVideoUrl(command.url)
         )
@@ -876,7 +876,10 @@ object VoiceCommands {
     fun mediaSectionOf(url: String?): MediaSection? {
         val uri = parseUri(url) ?: return null
         if (uri.host?.lowercase() != PLAYER_HOST) return null
-        return when (uri.path.orEmpty().trimEnd('/')) {
+        val path = uri.path.orEmpty().trimEnd('/')
+        // Una foto o un video condivisi sono una pagina a sé: i comandi vocali non passano da lì
+        if (path.startsWith("/shared")) return null
+        return when (path) {
             "/tv" -> MediaSection.TV
             "/radio" -> MediaSection.RADIO
             else -> MediaSection.MEDIA

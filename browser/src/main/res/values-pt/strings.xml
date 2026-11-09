@@ -407,9 +407,10 @@
     <string name="radio_unavailable">Estação indisponível</string>
     <string name="share_to_car_target">CarWeb no automóvel</string>
     <string name="share_to_car_sent">Enviado para o CarWeb no automóvel</string>
-    <string name="share_to_car_waiting">Abra o CarWeb no automóvel dentro de um minuto: o link vai abrir lá</string>
-    <string name="share_to_car_no_link">Nenhum link para abrir</string>
+    <string name="share_to_car_waiting">Abra o CarWeb no automóvel dentro de um minuto: vai abrir lá</string>
+    <string name="share_to_car_no_link">Nada para abrir</string>
     <string name="share_to_car_opened">Do telemóvel: %1$s</string>
+    <string name="share_to_car_unavailable">Este ficheiro não pode ser aberto aqui. Tente partilhá-lo novamente.</string>
     <string name="adblock_lists_label">Lista de sites de publicidade</string>
     <string name="adblock_lists_info">%1$s: %2$s sites, atualizada em %3$s</string>
     <string name="adblock_lists_none">Ainda não transferida: transfere-se sozinha com ligação à internet</string>
@@ -429,5 +430,5 @@
     <string name="adblock_lists_custom_desc">Um ficheiro de texto com um domínio por linha, em formato hosts ou com regras ||domínio^.</string>
     <string name="adblock_lists_custom_change">Alterar</string>
     <string name="adblock_lists_custom_phone">O endereço escreve-se nas Definições do telemóvel</string>
-    <string name="share_to_car_not_connected">Ligue o telemóvel ao automóvel para abrir o link no CarWeb</string>
+    <string name="share_to_car_not_connected">Ligue o telemóvel ao automóvel para o abrir no CarWeb</string>
 </resources>

@@ -364,9 +364,10 @@
     <string name="radio_unavailable">Stazione non disponibile</string>
     <string name="share_to_car_target">CarWeb in auto</string>
     <string name="share_to_car_sent">Inviato a CarWeb in auto</string>
-    <string name="share_to_car_waiting">Apri CarWeb in auto entro un minuto: il link si aprirà lì</string>
-    <string name="share_to_car_no_link">Nessun link da aprire</string>
+    <string name="share_to_car_waiting">Apri CarWeb in auto entro un minuto: si aprirà lì</string>
+    <string name="share_to_car_no_link">Niente da aprire</string>
     <string name="share_to_car_opened">Dal telefono: %1$s</string>
+    <string name="share_to_car_unavailable">Questo file non si può aprire qui. Prova a condividerlo di nuovo.</string>
     <string name="adblock_lists_label">Lista dei siti pubblicitari</string>
     <string name="adblock_lists_info">%1$s: %2$s siti, aggiornata il %3$s</string>
     <string name="adblock_lists_none">Non ancora scaricata: si scarica da sola con la connessione a internet</string>
@@ -386,5 +387,5 @@
     <string name="adblock_lists_custom_desc">Un file di testo con un dominio per riga, in formato hosts o con regole ||dominio^.</string>
     <string name="adblock_lists_custom_change">Cambia</string>
     <string name="adblock_lists_custom_phone">L\'indirizzo si scrive dalle Impostazioni sul telefono</string>
-    <string name="share_to_car_not_connected">Collega il telefono all\'auto per aprire il link in CarWeb</string>
+    <string name="share_to_car_not_connected">Collega il telefono all\'auto per aprirlo in CarWeb</string>
 </resources>

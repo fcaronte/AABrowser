@@ -406,9 +406,10 @@
     <string name="radio_unavailable">Az állomás nem érhető el</string>
     <string name="share_to_car_target">CarWeb az autóban</string>
     <string name="share_to_car_sent">Elküldve a CarWebnek az autóban</string>
-    <string name="share_to_car_waiting">Nyisd meg a CarWebet az autóban egy percen belül: a link ott nyílik meg</string>
-    <string name="share_to_car_no_link">Nincs megnyitható link</string>
+    <string name="share_to_car_waiting">Nyisd meg a CarWebet az autóban egy percen belül: ott fog megnyílni</string>
+    <string name="share_to_car_no_link">Nincs mit megnyitni</string>
     <string name="share_to_car_opened">A telefonról: %1$s</string>
+    <string name="share_to_car_unavailable">Ez a fájl itt nem nyitható meg. Próbáld meg újra megosztani.</string>
     <string name="adblock_lists_label">Hirdetési oldalak listája</string>
     <string name="adblock_lists_info">%1$s: %2$s oldal, frissítve: %3$s</string>
     <string name="adblock_lists_none">Még nincs letöltve: internetkapcsolattal magától letöltődik</string>
@@ -428,5 +429,5 @@
     <string name="adblock_lists_custom_desc">Szövegfájl soronként egy domainnel, hosts formátumban vagy ||domain^ szabályokkal.</string>
     <string name="adblock_lists_custom_change">Módosítás</string>
     <string name="adblock_lists_custom_phone">A címet a telefon Beállításaiban adhatod meg</string>
-    <string name="share_to_car_not_connected">Csatlakoztasd a telefont az autóhoz, hogy a CarWebben nyisd meg a linket</string>
+    <string name="share_to_car_not_connected">Csatlakoztasd a telefont az autóhoz, hogy a CarWebben nyisd meg</string>
 </resources>

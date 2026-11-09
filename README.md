@@ -73,8 +73,8 @@ from the misuse of this application. Use at your own risk.
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
   channels (new in 2.6), search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
 * **Share to the car (new in 2.6):** while the phone is connected to the car its Share menu has "CarWeb in the car" (away from
-  the car the entry is not there): a link or a video shared from any app opens in the app open in the car (CarWeb or
-  CarWebWide), and a YouTube video starts by itself. With no app open in the car, it waits a minute for the one you open.
+  the car the entry is not there): a link shared from any app, or a photo or video from the gallery, opens in the app open
+  in the car (CarWeb or CarWebWide), and a YouTube video starts by itself. With no app open in the car, it waits a minute for the one you open.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -274,8 +274,8 @@ proprio rischio e pericolo.
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio e canali TV (novità 2.6),
   cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
 * **Condividi verso l'auto (novità 2.6):** con il telefono collegato all'auto il menu Condividi ha «CarWeb in auto» (lontano
-  dall'auto la voce non c'è): un link o un video condiviso da qualsiasi app si apre nell'app aperta in auto (CarWeb o
-  CarWebWide), e un video di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri.
+  dall'auto la voce non c'è): un link condiviso da qualsiasi app, o una foto o un video dalla galleria, si apre nell'app
+  aperta in auto (CarWeb o CarWebWide), e un video di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel

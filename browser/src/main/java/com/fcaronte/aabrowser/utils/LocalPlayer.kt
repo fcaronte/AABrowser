@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ImageDecoder
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -59,6 +60,9 @@ object LocalPlayer {
     // Lato massimo delle copertine per il player di Android Auto
     private const val COVER_SIZE = 512
 
+    // Lato massimo delle foto condivise che l'app deve convertire
+    private const val SHARED_PHOTO_SIZE = 2048
+
     @Volatile
     private var defaultCover: Bitmap? = null
 
@@ -100,6 +104,8 @@ object LocalPlayer {
                 path == "/radio" || path == "/radio/" -> RadioApi.page(context, token, themeCss(context))
                 path == "/radio.js" -> asset(context, "player/radio.js", "application/javascript")
                 path == "/radio.css" -> asset(context, "player/radio.css", "text/css")
+                // Foto o video condivisi dal telefono ("CarWeb in auto")
+                path.startsWith(SharedMedia.PAGE_PATH) -> sharedPage(context, path.removePrefix(SharedMedia.PAGE_PATH))
                 path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
                 // Stream della TV: l'id a caso fa da chiave (lo danno solo /api/tv/play e le liste HLS riscritte)
                 path.startsWith(IptvProxy.STREAM_PATH) -> IptvProxy.serve(path.removePrefix(IptvProxy.STREAM_PATH))
@@ -112,6 +118,7 @@ object LocalPlayer {
                     MediaVoice.runFallback()
                     json(JSONObject())
                 }
+                path == "/api/shared" -> sharedFile(context, url.getQueryParameter("id"), request)
                 path == "/api/library" -> library(context)
                 path == "/api/library/find" -> findInLibrary(context, url.getQueryParameter("q").orEmpty())
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
@@ -360,6 +367,50 @@ object LocalPlayer {
 
     private fun media(context: Context, id: String, request: WebResourceRequest): WebResourceResponse {
         val documentUri = documentUri(context, id) ?: return status(404, "Not Found")
+        return serveFile(context, documentUri, request)
+    }
+
+    private fun sharedPage(appContext: Context, id: String): WebResourceResponse {
+        val context = AppLocale.wrap(appContext)
+        val item = SharedMedia.find(id)
+        val config = JSONObject()
+            .put("kind", if (item?.isVideo == true) "video" else "image")
+            .put("name", item?.name.orEmpty())
+            .put("src", if (item == null) JSONObject.NULL else "/api/shared?id=${item.id}&t=$token")
+            .put("unavailable", context.getString(R.string.share_to_car_unavailable))
+        val html = context.assets.open("player/shared.html").bufferedReader().use { it.readText() }
+            .replace("/*AAB_CONFIG*/", "window.AAB_SHARED = $config;")
+        return response(
+            html.toByteArray(Charsets.UTF_8),
+            "text/html",
+            mapOf("Cache-Control" to "no-store", "X-Frame-Options" to "DENY")
+        )
+    }
+
+    private fun sharedFile(context: Context, id: String?, request: WebResourceRequest): WebResourceResponse {
+        val item = SharedMedia.find(id) ?: return status(404, "Not Found")
+        return if (item.mime == "image/heic" || item.mime == "image/heif") {
+            convertedPhoto(context, item.uri)
+        } else {
+            serveFile(context, item.uri, request)
+        }
+    }
+
+    // La WebView non legge HEIC e HEIF, il formato di alcune fotocamere: la foto arriva come JPEG
+    private fun convertedPhoto(context: Context, uri: Uri): WebResourceResponse {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            val longest = maxOf(info.size.width, info.size.height)
+            if (longest > SHARED_PHOTO_SIZE) decoder.setTargetSampleSize(longest / SHARED_PHOTO_SIZE)
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+        }
+        val jpeg = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, jpeg)
+        bitmap.recycle()
+        return response(jpeg.toByteArray(), "image/jpeg", mapOf("Cache-Control" to "no-store"))
+    }
+
+    private fun serveFile(context: Context, documentUri: Uri, request: WebResourceRequest): WebResourceResponse {
         val resolver = context.contentResolver
         val mime = resolver.getType(documentUri)?.takeIf { it != "application/octet-stream" } ?: "application/octet-stream"
         val descriptor = resolver.openAssetFileDescriptor(documentUri, "r") ?: return status(404, "Not Found")

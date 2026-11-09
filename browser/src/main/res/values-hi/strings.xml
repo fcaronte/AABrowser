@@ -406,9 +406,10 @@
     <string name="radio_unavailable">स्टेशन उपलब्ध नहीं है</string>
     <string name="share_to_car_target">कार में CarWeb</string>
     <string name="share_to_car_sent">कार में CarWeb को भेजा गया</string>
-    <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: लिंक वहीं खुलेगा</string>
-    <string name="share_to_car_no_link">खोलने के लिए कोई लिंक नहीं</string>
+    <string name="share_to_car_waiting">एक मिनट के अंदर कार में CarWeb खोलें: यह वहीं खुलेगा</string>
+    <string name="share_to_car_no_link">खोलने के लिए कुछ नहीं</string>
     <string name="share_to_car_opened">फ़ोन से: %1$s</string>
+    <string name="share_to_car_unavailable">यह फ़ाइल यहाँ नहीं खुल सकती। इसे फिर से साझा करके देखें।</string>
     <string name="adblock_lists_label">विज्ञापन साइटों की सूची</string>
     <string name="adblock_lists_info">%1$s: %2$s साइटें, %3$s को अपडेट की गई</string>
     <string name="adblock_lists_none">अभी डाउनलोड नहीं हुई: इंटरनेट कनेक्शन होने पर अपने आप डाउनलोड होगी</string>
@@ -428,5 +429,5 @@
     <string name="adblock_lists_custom_desc">प्रति पंक्ति एक डोमेन वाली टेक्स्ट फ़ाइल, hosts प्रारूप में या ||domain^ नियमों के साथ।</string>
     <string name="adblock_lists_custom_change">बदलें</string>
     <string name="adblock_lists_custom_phone">पता फ़ोन पर सेटिंग्स से लिखा जाता है</string>
-    <string name="share_to_car_not_connected">लिंक को CarWeb में खोलने के लिए फ़ोन को कार से जोड़ें</string>
+    <string name="share_to_car_not_connected">इसे CarWeb में खोलने के लिए फ़ोन को कार से जोड़ें</string>
 </resources>

@@ -410,9 +410,10 @@
     <string name="radio_unavailable">المحطة غير متاحة</string>
     <string name="share_to_car_target">CarWeb في السيارة</string>
     <string name="share_to_car_sent">أُرسل إلى CarWeb في السيارة</string>
-    <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح الرابط هناك</string>
-    <string name="share_to_car_no_link">لا يوجد رابط لفتحه</string>
+    <string name="share_to_car_waiting">افتح CarWeb في السيارة خلال دقيقة: سيُفتح هناك</string>
+    <string name="share_to_car_no_link">لا يوجد شيء لفتحه</string>
     <string name="share_to_car_opened">من الهاتف: %1$s</string>
+    <string name="share_to_car_unavailable">لا يمكن فتح هذا الملف هنا. حاول مشاركته مرة أخرى.</string>
     <string name="adblock_lists_label">قائمة مواقع الإعلانات</string>
     <string name="adblock_lists_info">%1$s: %2$s موقع، حُدّثت في %3$s</string>
     <string name="adblock_lists_none">لم تُنزَّل بعد: تُنزَّل تلقائيًا عند الاتصال بالإنترنت</string>
@@ -432,5 +433,5 @@
     <string name="adblock_lists_custom_desc">ملف نصي يحتوي على نطاق واحد في كل سطر، بتنسيق hosts أو بقواعد ||domain^.</string>
     <string name="adblock_lists_custom_change">تغيير</string>
     <string name="adblock_lists_custom_phone">يُكتب العنوان من الإعدادات على الهاتف</string>
-    <string name="share_to_car_not_connected">صِل الهاتف بالسيارة لفتح الرابط في CarWeb</string>
+    <string name="share_to_car_not_connected">صِل الهاتف بالسيارة لفتحه في CarWeb</string>
 </resources>

@@ -1475,7 +1475,7 @@ fun BrowserScreen(
                         // nuova quella che stava suonando si ricaricava (video fermo, player di nuovo sul meteo)
                         val needsDesktop = needsDesktopForUrl(it.url)
                         it.settings.mediaPlaybackRequiresUserGesture =
-                            !autoplayMedia && !isDaznUrl(it.url)
+                            !autoplayMedia && !isDaznUrl(it.url) && !LocalPlayer.isPlayerUrl(it.url)
                         if (needsDesktop) {
                             setDesktopUserAgent(it, context)
                         } else {

@@ -405,9 +405,10 @@
     <string name="radio_unavailable">电台不可用</string>
     <string name="share_to_car_target">车内的 CarWeb</string>
     <string name="share_to_car_sent">已发送到车内的 CarWeb</string>
-    <string name="share_to_car_waiting">请在一分钟内在车上打开 CarWeb：链接将在那里打开</string>
-    <string name="share_to_car_no_link">没有可打开的链接</string>
+    <string name="share_to_car_waiting">请在一分钟内在车上打开 CarWeb：内容将在那里打开</string>
+    <string name="share_to_car_no_link">没有可打开的内容</string>
     <string name="share_to_car_opened">来自手机：%1$s</string>
+    <string name="share_to_car_unavailable">此文件无法在这里打开。请尝试重新分享。</string>
     <string name="adblock_lists_label">广告网站列表</string>
     <string name="adblock_lists_info">%1$s：%2$s 个网站，更新于 %3$s</string>
     <string name="adblock_lists_none">尚未下载：联网后会自动下载</string>
@@ -427,5 +428,5 @@
     <string name="adblock_lists_custom_desc">每行一个域名的文本文件，hosts 格式或 ||domain^ 规则。</string>
     <string name="adblock_lists_custom_change">更改</string>
     <string name="adblock_lists_custom_phone">请在手机上的设置中输入地址</string>
-    <string name="share_to_car_not_connected">请将手机连接到车辆，以在 CarWeb 中打开链接</string>
+    <string name="share_to_car_not_connected">请将手机连接到车辆，以在 CarWeb 中打开</string>
 </resources>

@@ -489,5 +489,9 @@ class VoiceCommandsTest {
         assertFalse((channel as Plan.Load).autoplay)
         val page = VoiceCommands.plan(Command.OpenLink("https://www.repubblica.it/a.html"), null, favorites, webSearch)
         assertEquals(Plan.Load("https://www.repubblica.it/a.html", "repubblica.it", LoadKind.LINK), page)
+        // Foto o video dalla galleria: si vede il nome del file e la pagina non è quella di Media
+        val photo = VoiceCommands.plan(Command.OpenLink("https://player.local/shared/id1", "foto.jpg"), null, favorites, webSearch)
+        assertEquals(Plan.Load("https://player.local/shared/id1", "foto.jpg", LoadKind.LINK), photo)
+        assertEquals(null, VoiceCommands.mediaSectionOf("https://player.local/shared/id1"))
     }
 }

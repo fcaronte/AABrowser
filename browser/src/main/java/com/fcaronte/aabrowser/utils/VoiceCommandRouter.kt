@@ -84,7 +84,8 @@ object VoiceCommandRouter {
      * Link condiviso dal telefono ("CarWeb in auto"): si apre nell'app aperta in auto. false = nessuna aperta, il link
      * aspetta quella che si apre.
      */
-    fun openInCar(url: String): Boolean = dispatch(VoiceCommands.Command.OpenLink(url), carOnly = true)
+    fun openInCar(url: String, label: String? = null): Boolean =
+        dispatch(VoiceCommands.Command.OpenLink(url, label), carOnly = true)
 
     /**
      * "Ok Google, metti … su AABrowser". false = nessuna schermata aperta: il comando resta in attesa
