@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -699,7 +700,34 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private var previousPending = false
         private val delayedPrevious = Runnable {
             previousPending = false
-            onSkipToPrevious()
+            if (seeksInsteadOfSkipping(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)) seekByKey(-KEY_SEEK_MS) else onSkipToPrevious()
+        }
+
+        // Un video senza brani (es. un video singolo di YouTube) dichiara solo il salto nel tempo: Android scarta ⏭ se
+        // lo stato non lo prevede, e con ⏮ la pagina cercherebbe per 1,5 s un pulsante che non c'è. I tasti fanno ±10 s
+        // subito, come quelli che Android Auto mostra sullo schermo per questi video
+        private fun seeksInsteadOfSkipping(skip: Long): Boolean {
+            val actions = service.mMediacontrollercompat?.playbackState?.actions ?: return false
+            return (actions and skip) == 0L && (actions and PlaybackStateCompat.ACTION_SEEK_TO) != 0L
+        }
+
+        // La posizione arriva dalla pagina con circa un secondo di ritardo: i tocchi ravvicinati si sommano all'ultimo salto
+        private var keySeekTarget = 0L
+        private var keySeekAt = 0L
+
+        private fun seekByKey(deltaMs: Long) {
+            val state = service.mMediacontrollercompat?.playbackState ?: return
+            if (state.position < 0) return
+            val now = SystemClock.elapsedRealtime()
+            val from = when {
+                now - keySeekAt < KEY_SEEK_SUM_MS -> keySeekTarget
+                state.state == PlaybackStateCompat.STATE_PLAYING ->
+                    state.position + ((now - state.lastPositionUpdateTime) * state.playbackSpeed).toLong()
+                else -> state.position
+            }
+            keySeekTarget = (from + deltaMs).coerceAtLeast(0)
+            keySeekAt = now
+            onSeekTo(keySeekTarget)
         }
 
         // Tasti multimediali (anche quelli al volante), col log di cosa manda l'auto
@@ -713,6 +741,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 )
                 if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS) {
                     if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) onPreviousKey()
+                    return true
+                }
+                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_NEXT && seeksInsteadOfSkipping(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)) {
+                    if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) seekByKey(KEY_SEEK_MS)
                     return true
                 }
             }
@@ -844,6 +876,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
         private const val VOICE_CUSTOM_ACTION = "com.fcaronte.aabrowser.VOICE_COMMAND"
         // Due tocchi su ⏮ entro questo tempo = comando vocale (il primo da solo va al precedente dopo l'attesa)
         private const val DOUBLE_TAP_MS = 400L
+        private const val KEY_SEEK_MS = 10_000L
+        private const val KEY_SEEK_SUM_MS = 2_000L
         private const val WEATHER_ACTIONS = PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE
 
         private var runningService: WeakReference<CarMediaService>? = null
