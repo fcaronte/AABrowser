@@ -42,13 +42,13 @@ from the misuse of this application. Use at your own risk.
   wave, circle), lyrics from LRCLIB for local audio, and colors that follow the app theme (light, dark with
   the phone colors, AMOLED). Videos, here and in the TV: a tap on the video shows a bar with zoom − 1× + up to 6× (the
   enlarged picture moves by dragging, or with the Android Auto scroll in the Widescreen), the picture mode Fit, Fill
-  (cropped) or Stretch, and fullscreen.
-* **Videos of the sites in fullscreen (YouTube and the others):** a tap shows at the top the picture mode Fit, Fill
+  (cropped) or Stretch, and fullscreen (new in 2.7).
+* **Videos of the sites in fullscreen (YouTube and the others, new in 2.7):** a tap shows at the top the picture mode Fit, Fill
   (cropped) or Stretch, remembered for each site. Not shown when a site puts only the bare video in fullscreen (the
   browser's standard controls). In the Widescreen every fullscreen video goes under Android Auto's buttons, centred
   (Back leaves fullscreen even when a site's button sits under them), and with the fixed menu you choose "Menu always"
   (the video stops at its edge) or "Menu on tap" (the menu shows with the controls), once for all the sites.
-* **Radio in CarWeb Media (new in 2.6):** browse and play stations from Radio-Browser.info at `/radio`. The country
+* **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK); other countries and your own M3U lists (URL or file) can be added in Settings > TV, Radio and Podcasts and picked
   from the menu at the top of the page. Search and favorites are available; when stream metadata reports a song title, lyrics are
@@ -56,40 +56,47 @@ from the misuse of this application. Use at your own risk.
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player.
-* **Podcasts in CarWeb Media:** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
+* **Podcasts in CarWeb Media (new in 2.7):** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
   your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped, and
-  at the end the next one starts. The audio comes straight from each publisher: no catalog or content ships with the app.
+  at the end the next one starts; voice commands can find shows and play their latest unfinished episodes. The audio
+  comes straight from each publisher: no catalog or content ships with the app.
 * **TV in CarWeb Media:** an IPTV-org playlist is added automatically for the app language
   (the general playlist is used for unsupported languages), alongside your own M3U lists (URL or M3U/M3U8
   file selected on the phone) and Xtream accounts (added in Settings > TV, Radio and Podcasts, which also opens from the
   "Add a list" entry of the menu at the top of the page; in the car a message says to do it on the phone; for Xtream the
-  full link with username and password is enough). Groups, search and favorites, which gather channels from all your lists
-  without switching list; HLS (also with separate audio tracks), MPEG-TS and FLV
+  full link with username and password is enough; the page can open the relevant Settings card on the phone). Groups,
+  search and favorites, which gather channels from all your lists without switching list (new in 2.7); HLS
+  (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
   to change channel. Addresses and passwords stay on the phone: out of Google's backup, only in the backup file you export from Settings. Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (in the tab bar
-  and the navigation menu of CarWeb, at the top right of the Widescreen). New in 2.6: it also stops the ads that open
+  and the navigation menu of CarWeb, at the top right of the Widescreen). It also stops the ads that open
   at every tap on streaming sites (a page opened by a script goes through only toward the same site, the link you
   tapped or a sign-in) and removes the invisible links laid over video players, so the tap reaches the player. If a
   button of a site does nothing, turn the shield off for that site. The list of ad sites is downloaded by the app and renewed every three days: [HaGeZi Multi PRO](https://github.com/hagezi/dns-blocklists)
   by default (about 225,000 domains), and in Settings you can choose PRO++, NORMAL, the
   [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) or the address of any list you like.
 * **YouTube:** ad skipping, video quality of your choice from 480p to 4K, remembered playback
-  speed (ads and music excluded), tap on the progress bar to seek. **SponsorBlock (new in 2.6):** sponsors and the other parts
+  speed (ads and music excluded), tap on the progress bar to seek. **SponsorBlock:** sponsors and the other parts
   marked by [SponsorBlock](https://sponsor.ajay.app) users are skipped by themselves, also on YouTube Music (choose
   how much in Settings; only the first characters of a fingerprint of the video are sent, never which video).
   SponsorBlock data is CC BY-NC-SA 4.0.
 * **Voice commands:** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
-  channels (new in 2.6), search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
-* **Steering wheel keys on YouTube:** on a single video ⏮ ⏭ jump 10 seconds, like the buttons Android Auto shows. In
+  channels, podcasts, search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
+* **Steering wheel keys on YouTube (new in 2.7):** on a single video ⏮ ⏭ jump 10 seconds, like the buttons Android Auto shows. In
   Settings you can choose previous/next video instead (⏭ opens the first suggested video), and the keys follow the choice.
   Saying "next" opens the suggested video in both cases.
-* **Share to CarWeb (new in 2.6):** the phone's Share menu has "CarWeb": a link shared from any app, or a photo, video or
-  audio file, opens in a tab of CarWeb in the car (or in CarWebWide when that is the app in front), and a YouTube video starts
-  by itself. With no app open in the car, it waits a minute for the one you open. In Settings the entry can be off, shown only with the car
+* **Share to CarWeb (new in 2.7):** the phone's Share menu has "CarWeb": links, photos, videos and audio files shared from
+  other apps open in a tab of CarWeb in the car (or in CarWebWide when that is the app in front); YouTube videos start
+  by themselves. With no app open in the car, it waits a minute for the one you open. In Settings the entry can be off, shown only with the car
   connected (the default) or always: away from the car it then opens CarWeb on the phone.
+* **Backup and restore (new in 2.7):** export and import bookmarks, settings, site permissions, ad-block settings and lists,
+  and the saved state of TV, Radio and Podcasts, using a file you can keep or move to another phone. Certificates and
+  device-specific file access are not included.
+* **Phone Back (new in 2.7):** Back closes open overlays and moves through the current tab's history, then returns home;
+  a second Back on the home screen exits to Android without stopping playback in the car.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -104,7 +111,8 @@ from the misuse of this application. Use at your own risk.
   (its own section in Settings, on the phone or in the car while parked) it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
   🌐 AZERTY, QWERTZ, Russian or Arabic for those languages; numbers and symbols, accented letters), you can type
   while moving, in both apps. For passengers only: the
-  driver must not use them.
+  driver must not use them. New in 2.7: the disclaimer is shown as an in-settings overlay, and the driving lock explains
+  where to enable the passenger options.
 * **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
   through KingInstaller.
@@ -256,14 +264,14 @@ proprio rischio e pericolo.
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
   telefono, AMOLED). Video, qui e nella TV: toccando il video compare una barra con lo zoom − 1× + fino a 6× (l'immagine
   ingrandita si sposta trascinando, o con lo scorrimento di Android Auto nella Widescreen), il modo dell'immagine
-  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero.
-* **Video dei siti a schermo intero (YouTube e gli altri):** un tocco mostra in alto il modo dell'immagine Adatta,
+  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero (novità 2.7).
+* **Video dei siti a schermo intero (YouTube e gli altri, novità 2.7):** un tocco mostra in alto il modo dell'immagine Adatta,
   Riempi (tagliata) o Allunga, ricordato per ogni sito. Non compare quando un sito mette a schermo intero il solo video
   (i comandi standard del browser). Nella Widescreen ogni video a schermo intero va sotto i tasti di Android Auto,
   centrato (Indietro esce dallo schermo intero anche se un tasto del sito finisce sotto), e con il menu fisso si sceglie
   «Menu sempre» (il video si ferma al suo bordo) o «Menu al tocco» (il menu compare con i comandi), una volta per tutti
   i siti.
-* **Radio in CarWeb Media (novità 2.6):** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
+* **Radio in CarWeb Media:** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito); altri Paesi e le tue liste M3U (da URL o da file) si aggiungono nelle
   Impostazioni > TV, Radio e Podcast e si scelgono dal menu in alto nella pagina. Sono disponibili ricerca e preferiti; quando lo stream indica il titolo
@@ -271,22 +279,23 @@ proprio rischio e pericolo.
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
-* **Podcast in CarWeb Media:** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
+* **Podcast in CarWeb Media (novità 2.7):** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
   e i tuoi feed con indirizzo RSS o file OPML nelle Impostazioni > TV, Radio e Podcast. Gli episodi riprendono da dove eri
-  rimasto, e alla fine parte il successivo. L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun
-  catalogo né contenuto.
+  rimasto, e alla fine parte il successivo; i comandi vocali trovano i programmi e avviano l'ultimo episodio non ascoltato.
+  L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun catalogo né contenuto.
 * **TV in CarWeb Media:** viene aggiunta automaticamente la playlist IPTV-org nella lingua
   dell'app (per le lingue non supportate viene usata la playlist generale), insieme alle tue liste M3U (da URL
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > TV, Radio e Podcast, che si
   aprono anche dalla voce "Aggiungi una lista" del menu in alto nella pagina; in auto un messaggio dice di farlo dal
-  telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti, che raccolgono i canali di
-  tutte le liste senza cambiare lista; stream HLS (anche con l'audio in una
+  telefono; per Xtream basta il link completo con utente e password; la pagina può aprire la scheda delle Impostazioni
+  sul telefono). Gruppi, ricerca e preferiti, che raccolgono i canali di tutte le liste senza cambiare lista (novità 2.7);
+  stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
   player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono: fuori dal backup di Google, solo nel file di backup che esporti dalle Impostazioni. I
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
   sono supportati.
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (nella
-  barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Novità 2.6: ferma anche
+  barra delle schede e nel menu di navigazione di CarWeb, in alto a destra nella Widescreen). Ferma anche
   le pubblicità che si aprono a ogni tocco sui siti di streaming (una pagina aperta da uno script passa solo verso lo
   stesso sito, il link toccato o un accesso) e toglie i link invisibili messi sopra i lettori video, così il tocco
   arriva al lettore. Se un pulsante di un sito non fa niente, spegni lo scudo per quel sito. La lista dei siti
@@ -296,19 +305,25 @@ proprio rischio e pericolo.
   di una lista a piacere.
 * **YouTube:** salto delle pubblicità, qualità video a scelta da 480p a 4K, velocità di
   riproduzione ricordata (pubblicità e musica escluse), tocco sulla barra di avanzamento per spostarsi nel
-  video. **SponsorBlock (novità 2.6):** gli sponsor e le altre parti segnate dagli utenti di [SponsorBlock](https://sponsor.ajay.app)
+  video. **SponsorBlock:** gli sponsor e le altre parti segnate dagli utenti di [SponsorBlock](https://sponsor.ajay.app)
   si saltano da soli, anche su YouTube Music (quanto saltare si sceglie nelle Impostazioni; parte solo l'inizio di
   un'impronta del video, mai quale video). I dati di SponsorBlock sono CC BY-NC-SA 4.0.
 * **Comandi vocali:** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
-  il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio e canali TV (novità 2.6),
+  il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio, canali TV e podcast,
   cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
-* **Tasti al volante su YouTube:** su un video singolo ⏮ ⏭ saltano di 10 secondi, come i pulsanti che mostra Android Auto.
+* **Tasti al volante su YouTube (novità 2.7):** su un video singolo ⏮ ⏭ saltano di 10 secondi, come i pulsanti che mostra Android Auto.
   Nelle Impostazioni si può scegliere video precedente/successivo (⏭ apre il primo video suggerito), e i tasti seguono la scelta.
   A voce «avanti» o «manda avanti» apre il video suggerito in tutti e due i casi.
-* **Condividi su CarWeb (novità 2.6):** il menu Condividi del telefono ha «CarWeb»: un link condiviso da qualsiasi app, o una
-  foto, un video o un file audio, si apre in una scheda di CarWeb in auto (o in CarWebWide se è lei in primo piano), e un video
-  di YouTube parte da solo. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri. Nelle Impostazioni la voce si può
-  spegnere, mostrare solo con l'auto collegata (di serie) o sempre: lontano dall'auto si apre allora CarWeb sul telefono.
+* **Condividi su CarWeb (novità 2.7):** il menu Condividi del telefono ha «CarWeb»: link, foto, video e file audio
+  condivisi da altre app si aprono in una scheda di CarWeb in auto (o in CarWebWide se è lei in primo piano); i video
+  YouTube partono da soli. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri. Nelle Impostazioni la voce
+  si può spegnere, mostrare solo con l'auto collegata (di serie) o sempre: lontano
+  dall'auto si apre allora CarWeb sul telefono.
+* **Backup e ripristino (novità 2.7):** esporta e importa preferiti, impostazioni, permessi dei siti, impostazioni e liste
+  AdBlock e lo stato salvato di TV, Radio e Podcast, in un file da conservare o trasferire su un altro telefono.
+  Certificati e accesso ai file legato al dispositivo non sono inclusi.
+* **Tasto Indietro del telefono (novità 2.7):** chiude prima le sovrapposizioni aperte e scorre la cronologia della scheda,
+  poi torna alla home; un secondo Indietro dalla home esce verso Android senza fermare la riproduzione in auto.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
@@ -323,6 +338,8 @@ proprio rischio e pericolo.
   *Modalità passeggero* (una sezione delle Impostazioni, sul telefono o in auto da fermo) funziona anche in movimento, e con *Tastiera passeggero*, una
   tastiera dell'app (QWERTY, e con 🌐 AZERTY, QWERTZ, russa o araba per quelle lingue; numeri e simboli, lettere
   accentate), si scrive anche in movimento, nelle due app. Solo per i passeggeri: chi guida non deve usarle.
+  Novità 2.7: l'avvertenza appare come sovrapposizione nelle Impostazioni e la schermata bloccata spiega dove attivare
+  le opzioni passeggero.
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),
   aggiornamenti tramite KingInstaller.
