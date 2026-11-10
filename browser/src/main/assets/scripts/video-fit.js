@@ -6,7 +6,8 @@
  * Regole e scritta in fogli di stile costruiti (niente innerHTML né <style>: Trusted Types e CSP dei siti), la scritta
  * in uno shadow DOM dentro l'elemento a schermo intero: il resto della pagina Chromium lo rende intoccabile. Quando è a
  * schermo intero il solo <video> (comandi standard del browser) la scritta non c'è: i suoi figli non si vedono.
- * I testi li mette l'app (VideoFit).
+ * Nella Wide con il menu fisso accanto c'è la scelta "Menu sempre" / "Menu al tocco" (la salva l'app, vale per tutti
+ * i siti e per CarWeb Media): al tocco il menu compare e sparisce con la scritta. I testi li mette l'app (VideoFit).
  */
 (function (labels) {
     'use strict';
@@ -21,8 +22,27 @@
     let target = null;          // il video a schermo intero
     let host = null;            // la scritta
     let button = null;
+    let menuButton = null;
     let hideTimer = 0;
     let resizeObserver = null;
+    let fixedMenu = false;      // Wide con il menu fisso
+    let menuOnTap = false;
+
+    // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
+    function wideBridge() {
+        const bridge = window.AndroidBridge;
+        return bridge && typeof bridge.hasFixedSidebar === 'function' && typeof bridge.videoMenuOnTap === 'function' &&
+            typeof bridge.setVideoMenu === 'function' ? bridge : null;
+    }
+
+    // Il menu fisso: sempre in vista (il video si ferma al suo bordo) o solo insieme alla scritta
+    function syncMenu(labelShown) {
+        const bridge = wideBridge();
+        if (!fixedMenu || !bridge) return;
+        try {
+            bridge.setVideoMenu(menuOnTap, !menuOnTap || labelShown);
+        } catch (_) {}
+    }
 
     function readMode() {
         try {
@@ -72,7 +92,8 @@
         const fullscreen = document.fullscreenElement;
         if (!fullscreen || !target) return;
         clear(target);
-        if (mode === 'fit') return;
+        // Con il solo video a schermo intero la scritta non c'è: quello che non si può cambiare resta com'è
+        if (mode === 'fit' || fullscreen.tagName === 'VIDEO') return;
         useRules();
         let css = 'video[data-aab-fit="fill"]{object-fit:cover!important}' +
             'video[data-aab-fit="stretch"]{object-fit:fill!important}';
@@ -102,25 +123,38 @@
             'border:none;background:transparent;z-index:2147483647;pointer-events:auto';
         const shadow = host.attachShadow({ mode: 'closed' });
         const look = new CSSStyleSheet();
-        look.replaceSync('button{font:600 16px/1 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.62);border:none;' +
+        look.replaceSync('div{display:flex;gap:6px}' +
+            'button{font:600 16px/1 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.62);border:none;' +
             'border-radius:22px;min-width:44px;height:44px;padding:0 18px;cursor:pointer}' +
-            'button:active{background:rgba(70,70,70,.85)}');
+            'button:active{background:rgba(70,70,70,.85)}button[hidden]{display:none}');
         shadow.adoptedStyleSheets = [look];
-        button = document.createElement('button');
-        button.type = 'button';
-        // Il tocco sulla scritta non arriva al lettore del sito (che altrimenti mostrerebbe o toglierebbe i suoi comandi)
-        ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'dblclick'].forEach((type) => {
-            button.addEventListener(type, (event) => event.stopPropagation());
-        });
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
+        const row = document.createElement('div');
+        button = makeButton(() => {
             mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
             saveMode();
             apply();
+        });
+        menuButton = makeButton(() => {
+            menuOnTap = !menuOnTap;
+        });
+        row.append(button, menuButton);
+        shadow.appendChild(row);
+    }
+
+    function makeButton(onTap) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        // Il tocco sulla scritta non arriva al lettore del sito (che altrimenti mostrerebbe o toglierebbe i suoi comandi)
+        ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'dblclick'].forEach((type) => {
+            item.addEventListener(type, (event) => event.stopPropagation());
+        });
+        item.addEventListener('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            onTap();
             show();
         });
-        shadow.appendChild(button);
+        return item;
     }
 
     function show() {
@@ -130,12 +164,16 @@
         // Di nuovo dentro, se il lettore del sito ha rifatto i suoi elementi
         if (host.parentNode !== fullscreen) fullscreen.appendChild(host);
         button.textContent = labels[mode] || mode;
+        menuButton.hidden = !fixedMenu;
+        menuButton.textContent = (menuOnTap ? labels.menuTouch : labels.menuAlways) || 'Menu';
+        syncMenu(true);
         clearTimeout(hideTimer);
         hideTimer = setTimeout(hide, HIDE_MS);
     }
 
     function hide() {
         clearTimeout(hideTimer);
+        if (host && host.isConnected) syncMenu(false);
         if (host) host.remove();
     }
 
@@ -149,8 +187,17 @@
         // dentro il riquadro
         target = fullscreen ? largestVideo(fullscreen) : null;
         if (!target) {
+            // All'uscita il menu lo rimette la Wide: niente richieste che arriverebbero dopo
+            fixedMenu = false;
             hide();
             return;
+        }
+        const bridge = wideBridge();
+        try {
+            fixedMenu = !!(bridge && bridge.hasFixedSidebar());
+            menuOnTap = fixedMenu && bridge.videoMenuOnTap();
+        } catch (_) {
+            fixedMenu = false;
         }
         apply();
         if (window.ResizeObserver) {
