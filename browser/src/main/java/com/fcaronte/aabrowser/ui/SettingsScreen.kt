@@ -825,45 +825,6 @@ fun SettingsScreen(
                                     )
                                 }
                             }
-
-                            // L'avviso da accettare per accenderle: una scheda qui sotto, non una finestra di dialogo, come gli
-                            // altri avvisi che l'app mostra sullo schermo dell'auto (riquadri della pagina, certificati, permessi)
-                            pendingPassengerToggle?.let { toggle ->
-                                SettingsCard {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.passenger_disclaimer_title),
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.passenger_disclaimer_message),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 14.sp
-                                        )
-                                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            Button(
-                                                onClick = {
-                                                    when (toggle) {
-                                                        PendingPassengerToggle.MODE -> AppSettings.setPassengerMode(context, true)
-                                                        PendingPassengerToggle.KEYBOARD -> AppSettings.setPassengerKeyboard(context, true)
-                                                    }
-                                                    pendingPassengerToggle = null
-                                                }
-                                            ) {
-                                                Text(stringResource(R.string.passenger_disclaimer_accept))
-                                            }
-                                            TextButton(onClick = { pendingPassengerToggle = null }) {
-                                                Text(stringResource(R.string.ssl_warning_cancel))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
 
@@ -1446,6 +1407,20 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
+
+        // Avviso della Modalità e della Tastiera passeggero: al centro, sopra tutto, anche in auto
+        pendingPassengerToggle?.let { toggle ->
+            PassengerDisclaimerOverlay(
+                onAccept = {
+                    when (toggle) {
+                        PendingPassengerToggle.MODE -> AppSettings.setPassengerMode(context, true)
+                        PendingPassengerToggle.KEYBOARD -> AppSettings.setPassengerKeyboard(context, true)
+                    }
+                    pendingPassengerToggle = null
+                },
+                onCancel = { pendingPassengerToggle = null }
+            )
         }
 
         // Overlay QR Code se necessario
