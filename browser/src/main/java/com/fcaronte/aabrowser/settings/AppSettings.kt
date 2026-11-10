@@ -98,6 +98,11 @@ object AppSettings {
     private val _wideSidebarFixed = mutableStateOf(true)
     val wideSidebarFixed: State<Boolean> = _wideSidebarFixed
 
+    // Wide, video a schermo intero con il menu fisso: true = il menu sta sotto il video e compare con i comandi
+    // ("Menu al tocco" nella barra del video), false = il video si ferma al bordo del menu
+    private val _wideVideoMenuOnTap = mutableStateOf(false)
+    val wideVideoMenuOnTap: State<Boolean> = _wideVideoMenuOnTap
+
     // Dimensione del menu fisso della Wide, in percentuale: con schermi piccoli occupa troppo spazio
     val wideSidebarSizes = listOf(60, 70, 80, 90, 100, 115, 130)
     private val _wideSidebarSize = mutableStateOf(100)
@@ -212,6 +217,7 @@ object AppSettings {
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
         _wideSidebarFixed.value = prefs.getBoolean("wide_sidebar_fixed", true)
+        _wideVideoMenuOnTap.value = prefs.getBoolean("wide_video_menu_on_tap", false)
         _wideSidebarSize.value = prefs.getInt("wide_sidebar_size", 100).takeIf { it in wideSidebarSizes } ?: 100
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
@@ -389,6 +395,11 @@ object AppSettings {
     fun setWideSidebarFixed(context: Context, enabled: Boolean) {
         _wideSidebarFixed.value = enabled
         saveBoolean(context, "wide_sidebar_fixed", enabled)
+    }
+
+    fun setWideVideoMenuOnTap(context: Context, onTap: Boolean) {
+        _wideVideoMenuOnTap.value = onTap
+        saveBoolean(context, "wide_video_menu_on_tap", onTap)
     }
 
     /** Un passo più grande (+1) o più piccolo (-1) tra [wideSidebarSizes]. */

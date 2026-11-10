@@ -13,7 +13,6 @@
     const MODES = ['fit', 'fill', 'stretch'];
     const OBJECT_FIT = { fit: 'contain', fill: 'cover', stretch: 'fill' };
     const MODE_KEY = 'aabVideoMode';
-    const MENU_KEY = 'aabVideoMenu';    // 'always': il menu fisso resta sopra il video; 'touch': solo con la barra
     const HIDE_MS = 4000;
 
     /** Dimensioni del video nel riquadro, prima dello zoom: intero, a riempire (tagliato) o deformato. */
@@ -32,16 +31,8 @@
     // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
     function wideBridge() {
         const bridge = root.AndroidBridge;
-        return bridge && typeof bridge.hasFixedSidebar === 'function' &&
+        return bridge && typeof bridge.hasFixedSidebar === 'function' && typeof bridge.videoMenuOnTap === 'function' &&
             typeof bridge.setVideoMenu === 'function' ? bridge : null;
-    }
-
-    function readMenuMode() {
-        try {
-            return root.localStorage.getItem(MENU_KEY) === 'touch' ? 'touch' : 'always';
-        } catch (_) {
-            return 'always';
-        }
     }
 
     function readMode() {
@@ -88,7 +79,7 @@
 
         let zoom = 1;
         let mode = readMode();
-        let menuMode = readMenuMode();
+        let menuMode = 'always'; // 'touch': il menu fisso sta sotto il video e compare con la barra (scelta salvata dall'app)
         let fixedMenu = false;  // Wide con il menu fisso, a schermo intero
         let size = null;        // dimensioni del video all'ultimo calcolo, per tenere fermo il centro
         let hideTimer = 0;
@@ -200,10 +191,8 @@
                     layout();
                     break;
                 case 'menu':
+                    // La salva l'app (setVideoMenu): vale anche per i video degli altri siti
                     menuMode = menuMode === 'always' ? 'touch' : 'always';
-                    try {
-                        root.localStorage.setItem(MENU_KEY, menuMode);
-                    } catch (_) {}
                     break;
                 case 'full':
                     if (doc.fullscreenElement) {
@@ -229,6 +218,7 @@
             const bridge = wideBridge();
             try {
                 fixedMenu = !!(bridge && inFullscreen() && bridge.hasFixedSidebar());
+                if (fixedMenu) menuMode = bridge.videoMenuOnTap() ? 'touch' : 'always';
             } catch (_) {
                 fixedMenu = false;
             }

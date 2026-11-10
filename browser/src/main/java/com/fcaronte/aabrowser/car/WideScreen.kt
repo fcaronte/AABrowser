@@ -285,10 +285,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
-    // Video di CarWeb Media a schermo intero e menu fisso (barra del video, video-zoom.js). "Menu sempre": il video sta
-    // accanto al menu, che fa da bordo dello schermo. "Menu al tocco" ([videoMenuOnTap]): il video va sotto il menu, che
-    // torna con i comandi e all'uscita dallo schermo intero
-    private var videoMenuOnTap = false
+    // Video a schermo intero e menu fisso (barra di CarWeb Media, video-zoom.js; scritta dei siti, video-fit.js). "Menu
+    // sempre": il video sta accanto al menu, che fa da bordo dello schermo. "Menu al tocco" (AppSettings.wideVideoMenuOnTap,
+    // una scelta per tutti i siti): il video va sotto il menu, che torna con i comandi e all'uscita dallo schermo intero
+    private val videoMenuOnTap: Boolean get() = AppSettings.wideVideoMenuOnTap.value
     private var sidebarHiddenForVideo = false
 
     // Margine in alto e in basso che Android Auto tiene di solito in ogni disposizione (superficie e bordi laterali della
@@ -830,35 +830,28 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val area = visibleArea?.takeUnless { it.isEmpty }
         val lp = (view.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        if (area != null && LocalPlayer.isPlayerUrl(webView?.url)) {
-            val margins = playerFullscreenMargins(area)
-            // Menu fisso sempre in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto)
-            if (sidebarFixedEnabled() && !videoMenuOnTap) {
-                if (isRtl) margins[2] = maxOf(margins[2], pageLp?.rightMargin ?: 0)
-                else margins[0] = maxOf(margins[0], pageLp?.leftMargin ?: 0)
-            }
-            lp.leftMargin = margins[0]
-            lp.topMargin = margins[1]
-            lp.rightMargin = margins[2]
-            lp.bottomMargin = margins[3]
-        } else {
-            // Gli altri siti hanno i loro comandi negli angoli del video: restano fuori dai tasti di Android Auto
-            lp.leftMargin = pageLp?.leftMargin ?: 0
-            lp.rightMargin = pageLp?.rightMargin ?: 0
-            lp.topMargin = (area?.top ?: 0).coerceIn(0, surfaceHeight / 2)
-            lp.bottomMargin = (area?.let { surfaceHeight - it.bottom } ?: 0).coerceIn(0, surfaceHeight / 2)
+        val margins = area?.let { fullscreenMargins(it) } ?: IntArray(4)
+        // Menu fisso sempre in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto)
+        if (sidebarFixedEnabled() && !videoMenuOnTap) {
+            if (isRtl) margins[2] = maxOf(margins[2], pageLp?.rightMargin ?: 0)
+            else margins[0] = maxOf(margins[0], pageLp?.leftMargin ?: 0)
         }
+        lp.leftMargin = margins[0]
+        lp.topMargin = margins[1]
+        lp.rightMargin = margins[2]
+        lp.bottomMargin = margins[3]
         view.layoutParams = lp
         Log.d(TAG, "Fullscreen video margins l=${lp.leftMargin} t=${lp.topMargin} r=${lp.rightMargin} b=${lp.bottomMargin}")
     }
 
     /**
-     * CarWeb Media a schermo intero: il video va sotto le fasce dei tasti di Android Auto ed è centrato sullo schermo
-     * (utente, 10/11/2026: la fascia del tasto in alto a destra lo spingeva in basso); la barra dello zoom sta in basso
-     * al centro, fuori dai tasti. Il menu fisso lo decide layoutCustomView. Restano fuori i pannelli (split) e quello che
-     * Android Auto toglie in più del solito in questa disposizione, come la chiamata in corso. [sinistra, alto, destra, basso]
+     * Video a schermo intero (CarWeb Media e tutti i siti): va sotto le fasce dei tasti di Android Auto ed è centrato
+     * sullo schermo (utente, 10/11/2026: la fascia del tasto in alto a destra lo spingeva in basso). I comandi dei siti
+     * negli angoli possono finire sotto quei tasti: dallo schermo intero si esce anche con Indietro (goBack). Il menu
+     * fisso lo decide layoutCustomView. Restano fuori i pannelli (split) e quello che Android Auto toglie in più del
+     * solito in questa disposizione, come la chiamata in corso. [sinistra, alto, destra, basso]
      */
-    private fun playerFullscreenMargins(area: Rect): IntArray {
+    private fun fullscreenMargins(area: Rect): IntArray {
         val key = usualAreaKey(area)
         val sideBand = surfaceWidth * BUTTON_BAND_MAX_WIDTH
         val edgeBand = surfaceHeight * BUTTON_BAND_MAX_HEIGHT
@@ -876,10 +869,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         )
     }
 
+    // La pagina può arrivare un attimo prima della vista a schermo intero: lo stato resta e vale quando arriva. La scelta
+    // si cambia solo a schermo intero, e nascondere il menu si può solo con "Menu al tocco"
     private fun setVideoMenu(onTap: Boolean, visible: Boolean) {
-        val changed = onTap != videoMenuOnTap
-        videoMenuOnTap = onTap
-        sidebarHiddenForVideo = onTap && !visible
+        val changed = customView != null && onTap != videoMenuOnTap
+        if (changed) AppSettings.setWideVideoMenuOnTap(carContext, onTap)
+        sidebarHiddenForVideo = videoMenuOnTap && !visible
         applySidebarOverVideo()
         if (changed) customView?.let { layoutCustomView(it, webView?.layoutParams as? FrameLayout.LayoutParams) }
     }
@@ -1899,16 +1894,21 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun sponsorBlockMessage(): String = strings.getString(R.string.sponsorblock_skipped)
 
-                                // Barra dei video di CarWeb Media a schermo intero: con il menu fisso sceglie se resta
-                                // sopra il video o compare solo con i comandi (video-zoom.js)
+                                // Video a schermo intero (barra di CarWeb Media, scritta dei siti): con il menu fisso
+                                // sceglie se resta accanto al video o compare solo con i comandi. Vale solo a schermo
+                                // intero (setVideoMenu), la scelta è una per tutti i siti
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun hasFixedSidebar(): Boolean = sidebarFixedEnabled()
 
                                 @JavascriptInterface
                                 @Suppress("unused")
+                                fun videoMenuOnTap(): Boolean = AppSettings.wideVideoMenuOnTap.value
+
+                                @JavascriptInterface
+                                @Suppress("unused")
                                 fun setVideoMenu(onTap: Boolean, visible: Boolean) {
-                                    if (LocalPlayer.isPlayerUrl("https://$pageHost/")) post { this@WideScreen.setVideoMenu(onTap, visible) }
+                                    post { this@WideScreen.setVideoMenu(onTap, visible) }
                                 }
                             },
                             "AndroidBridge"
