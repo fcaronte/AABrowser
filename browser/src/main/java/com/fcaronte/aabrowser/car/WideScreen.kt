@@ -179,6 +179,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
 
+        // Fascia dei tasti di Android Auto, al massimo: oltre è un pannello (split con il player o con il menu delle app)
+        // o altro che l'host mette sopra. Misure del 10/11/2026: 96 px in alto e 104 px a destra su 1447x694
+        const val BUTTON_BAND_MAX_WIDTH = 0.15f
+        const val BUTTON_BAND_MAX_HEIGHT = 0.2f
+
         // Sidebar fissa alla dimensione 100% (AppSettings.wideSidebarSize)
         const val SIDEBAR_WIDTH_DP = 52
         const val SIDEBAR_ICON_DP = 42
@@ -279,6 +284,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
+    // Margine in alto e in basso che Android Auto tiene di solito in ogni disposizione (superficie e bordi laterali della
+    // visible area): la fascia dei suoi tasti. Quello che toglie in più, come la chiamata in corso, si riconosce da qui
+    private val usualAreaTop = HashMap<String, Int>()
+    private val usualAreaBottom = HashMap<String, Int>()
+
     // Fascia riservata ai tasti dell'host su ciascun lato, imparata per ogni disposizione (stable area)
     private data class ButtonsReserve(val left: Int, val right: Int)
     private val learnedReserves = HashMap<Rect, ButtonsReserve>()
@@ -325,7 +335,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     // Applicazione della visible area: debounce + passaggio finale a animazione conclusa
     private val applyAreaRunnable = Runnable { applyVisibleArea() }
-    private val applyAreaSettledRunnable = Runnable { applyVisibleArea() }
+    private val applyAreaSettledRunnable = Runnable {
+        noteUsualArea()
+        applyVisibleArea()
+    }
 
     // Ricalcoli ritardati all'avvio, per correggere i valori transitori della UI dell'host
     private val startupReapplyRunnable = Runnable { applyVisibleArea() }
@@ -810,12 +823,55 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val area = visibleArea?.takeUnless { it.isEmpty }
         val lp = (view.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        lp.leftMargin = pageLp?.leftMargin ?: 0
-        lp.rightMargin = pageLp?.rightMargin ?: 0
-        lp.topMargin = (area?.top ?: 0).coerceIn(0, surfaceHeight / 2)
-        lp.bottomMargin = (area?.let { surfaceHeight - it.bottom } ?: 0).coerceIn(0, surfaceHeight / 2)
+        if (area != null && LocalPlayer.isPlayerUrl(webView?.url)) {
+            val margins = playerFullscreenMargins(area)
+            lp.leftMargin = margins[0]
+            lp.topMargin = margins[1]
+            lp.rightMargin = margins[2]
+            lp.bottomMargin = margins[3]
+        } else {
+            // Gli altri siti hanno i loro comandi negli angoli del video: restano fuori dai tasti di Android Auto
+            lp.leftMargin = pageLp?.leftMargin ?: 0
+            lp.rightMargin = pageLp?.rightMargin ?: 0
+            lp.topMargin = (area?.top ?: 0).coerceIn(0, surfaceHeight / 2)
+            lp.bottomMargin = (area?.let { surfaceHeight - it.bottom } ?: 0).coerceIn(0, surfaceHeight / 2)
+        }
         view.layoutParams = lp
         Log.d(TAG, "Fullscreen video margins l=${lp.leftMargin} t=${lp.topMargin} r=${lp.rightMargin} b=${lp.bottomMargin}")
+    }
+
+    /**
+     * CarWeb Media a schermo intero: il video va sotto le fasce dei tasti di Android Auto ed è centrato sullo schermo
+     * (utente, 10/11/2026: la fascia del tasto in alto a destra lo spingeva in basso); la barra dello zoom sta in basso
+     * al centro, fuori dai tasti, e la sidebar fissa resta sopra il video. Restano fuori i pannelli (split) e quello che
+     * Android Auto toglie in più del solito in questa disposizione, come la chiamata in corso. [sinistra, alto, destra, basso]
+     */
+    private fun playerFullscreenMargins(area: Rect): IntArray {
+        val key = usualAreaKey(area)
+        val sideBand = surfaceWidth * BUTTON_BAND_MAX_WIDTH
+        val edgeBand = surfaceHeight * BUTTON_BAND_MAX_HEIGHT
+        val left = area.left.coerceAtLeast(0)
+        val right = (surfaceWidth - area.right).coerceAtLeast(0)
+        val top = area.top.coerceAtLeast(0)
+        val bottom = (surfaceHeight - area.bottom).coerceAtLeast(0)
+        val usualTop = usualAreaTop[key] ?: area.top
+        val usualBottom = usualAreaBottom[key] ?: area.bottom
+        return intArrayOf(
+            if (left <= sideBand) 0 else left,
+            if (top <= edgeBand && area.top <= usualTop) 0 else top,
+            if (right <= sideBand) 0 else right,
+            if (bottom <= edgeBand && area.bottom >= usualBottom) 0 else bottom,
+        )
+    }
+
+    private fun usualAreaKey(area: Rect): String = "${surfaceWidth}x$surfaceHeight ${area.left}-${area.right}"
+
+    // Solo aree assestate (dopo l'animazione dei tasti), così un passaggio intermedio non conta come il solito
+    private fun noteUsualArea() {
+        val area = visibleArea?.takeUnless { it.isEmpty } ?: return
+        val key = usualAreaKey(area)
+        usualAreaTop[key] = minOf(usualAreaTop[key] ?: area.top, area.top)
+        usualAreaBottom[key] = maxOf(usualAreaBottom[key] ?: area.bottom, area.bottom)
     }
 
     private fun showCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
@@ -834,7 +890,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
         )
         layoutCustomView(view, webView?.layoutParams as? FrameLayout.LayoutParams)
-        // Popup, tastiera passeggero, copertura in movimento e ascolto restano sopra il video
+        // Sidebar fissa (il video di CarWeb Media ci va sotto), popup, tastiera passeggero, copertura in movimento e
+        // ascolto restano sopra il video
+        sidebarContainerReference?.takeIf { it.isVisible }?.bringToFront()
         popupOverlayReference?.bringToFront()
         passengerKeyboard?.view?.bringToFront()
         driveLockReference?.bringToFront()

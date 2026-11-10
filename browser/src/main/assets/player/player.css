@@ -157,10 +157,13 @@ svg {
     top: 0;
 }
 
+/* In basso al centro: negli angoli a schermo intero nella Wide ci sono i tasti di Android Auto, nella Main il menu */
 .zoom-bar {
     position: absolute;
-    right: 8px;
+    left: 50%;
     bottom: 8px;
+    width: max-content;
+    transform: translateX(-50%);
     z-index: 2;
     display: flex;
     gap: 2px;
