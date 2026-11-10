@@ -278,6 +278,10 @@
     <string name="player_effect_circle">Cerchio</string>
     <string name="player_search">Cerca nei file</string>
     <string name="player_no_results">Nessun file trovato</string>
+    <string name="video_fit">Adatta</string>
+    <string name="video_fill">Riempi</string>
+    <string name="video_stretch">Allunga</string>
+    <string name="video_fullscreen">Schermo intero</string>
     <string name="lyrics_button">Testi</string>
     <string name="lyrics_loading">Caricamento testi…</string>
     <string name="lyrics_not_found">Testo non trovato.</string>

@@ -95,6 +95,7 @@ object LocalPlayer {
                 path == "/track-parser.js" -> asset(context, "player/track-parser.js", "application/javascript")
                 path == "/lists.js" -> asset(context, "player/lists.js", "application/javascript")
                 path == "/store.js" -> asset(context, "player/store.js", "application/javascript")
+                path == "/video-zoom.js" -> asset(context, "player/video-zoom.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
@@ -207,6 +208,13 @@ object LocalPlayer {
     // Pagina
     // ------------------------------------------------------------------
 
+    /** Testi della barra dello zoom dei video (assets/player/video-zoom.js), per Media e TV. */
+    internal fun videoZoomStrings(context: Context): JSONObject = JSONObject()
+        .put("fit", context.getString(R.string.video_fit))
+        .put("fill", context.getString(R.string.video_fill))
+        .put("stretch", context.getString(R.string.video_stretch))
+        .put("fullscreen", context.getString(R.string.video_fullscreen))
+
     private fun page(appContext: Context): WebResourceResponse {
         // Nella Wide il context ha la lingua del telefono: i testi vanno nella lingua dell'app
         val context = AppLocale.wrap(appContext)
@@ -238,6 +246,7 @@ object LocalPlayer {
             .put("noResults", context.getString(R.string.player_no_results))
         val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
         val config = JSONObject().put("token", token).put("strings", strings).put("client", client)
+            .put("zoom", videoZoomStrings(context))
         val html = context.assets.open("player/index.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_PLAYER = $config;")
             .replace("/*AAB_THEME*/", themeCss(context))

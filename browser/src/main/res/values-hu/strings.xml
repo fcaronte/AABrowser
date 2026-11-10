@@ -320,6 +320,10 @@
     <string name="player_effect_circle">Kör</string>
     <string name="player_search">Fájlok keresése</string>
     <string name="player_no_results">Nincs találat</string>
+    <string name="video_fit">Igazítás</string>
+    <string name="video_fill">Kitöltés</string>
+    <string name="video_stretch">Nyújtás</string>
+    <string name="video_fullscreen">Teljes képernyő</string>
     <string name="lyrics_button">Dalszöveg</string>
     <string name="lyrics_loading">Dalszöveg betöltése…</string>
     <string name="lyrics_not_found">Nem található dalszöveg.</string>

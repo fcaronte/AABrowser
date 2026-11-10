@@ -321,6 +321,10 @@
     <string name="player_effect_circle">Círculo</string>
     <string name="player_search">Pesquisar arquivos</string>
     <string name="player_no_results">Nenhum arquivo encontrado</string>
+    <string name="video_fit">Ajustar</string>
+    <string name="video_fill">Preencher</string>
+    <string name="video_stretch">Esticar</string>
+    <string name="video_fullscreen">Ecrã inteiro</string>
     <string name="lyrics_button">Letras</string>
     <string name="lyrics_loading">Carregando letras…</string>
     <string name="lyrics_not_found">Letras não encontradas.</string>

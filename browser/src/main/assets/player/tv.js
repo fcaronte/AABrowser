@@ -465,13 +465,12 @@
         if (current && media.getAttribute('src')) showMessage(S.unavailable);
     });
 
-    // Tocco sul video: schermo intero (anche in auto, dove il video riempie lo spazio dell'app)
-    media.addEventListener('click', () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-        } else if (media.requestFullscreen && document.body.classList.contains('has-video')) {
-            media.requestFullscreen().catch(() => {});
-        }
+    // Tocco sul video: la barra con zoom, modo dell'immagine e schermo intero (video-zoom.js)
+    window.AABVideoZoom.attach({
+        stage: byId('stage'),
+        video: media,
+        strings: config.zoom,
+        isVideo: () => document.body.classList.contains('has-video'),
     });
 
     byId('playToggle').addEventListener('click', () => {

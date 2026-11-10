@@ -2046,6 +2046,12 @@ object BrowserJavascript {
             const host = location.host;
             const pinPage = (host === 'youtube.com' || host.endsWith('.youtube.com')) && location.pathname === '/watch';
             const by = (target, x, y) => smooth ? target.scrollBy({ left: x, top: y, behavior: 'smooth' }) : target.scrollBy(x, y);
+            // Una pagina può chiedere che si sposti solo un suo elemento (video ingrandito di CarWeb Media)
+            const only = window.__aabScrollOnly;
+            if (only && only.isConnected) {
+                by(only, dx, dy);
+                return;
+            }
             if (!pinPage) by(window, dx, dy);
             const now = Date.now();
             if (!window.__aabScrollables || now - (window.__aabScrollablesAt || 0) > 1500) {

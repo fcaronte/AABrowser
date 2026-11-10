@@ -322,6 +322,10 @@
     <string name="player_effect_circle">Круг</string>
     <string name="player_search">Поиск файлов</string>
     <string name="player_no_results">Файлы не найдены</string>
+    <string name="video_fit">Вписать</string>
+    <string name="video_fill">Заполнить</string>
+    <string name="video_stretch">Растянуть</string>
+    <string name="video_fullscreen">Во весь экран</string>
     <string name="lyrics_button">Текст песни</string>
     <string name="lyrics_loading">Загрузка текста песни…</string>
     <string name="lyrics_not_found">Текст песни не найден.</string>

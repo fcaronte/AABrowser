@@ -319,6 +319,10 @@
     <string name="player_effect_circle">圆环</string>
     <string name="player_search">搜索文件</string>
     <string name="player_no_results">未找到文件</string>
+    <string name="video_fit">适应</string>
+    <string name="video_fill">填充</string>
+    <string name="video_stretch">拉伸</string>
+    <string name="video_fullscreen">全屏</string>
     <string name="lyrics_button">歌词</string>
     <string name="lyrics_loading">正在加载歌词…</string>
     <string name="lyrics_not_found">未找到歌词。</string>

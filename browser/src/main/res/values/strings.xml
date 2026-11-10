@@ -325,6 +325,10 @@
     <string name="player_effect_circle">Circle</string>
     <string name="player_search">Search files</string>
     <string name="player_no_results">No files found</string>
+    <string name="video_fit">Fit</string>
+    <string name="video_fill">Fill</string>
+    <string name="video_stretch">Stretch</string>
+    <string name="video_fullscreen">Fullscreen</string>
     <string name="lyrics_button">Lyrics</string>
     <string name="lyrics_loading">Loading lyrics…</string>
     <string name="lyrics_not_found">Lyrics not found.</string>

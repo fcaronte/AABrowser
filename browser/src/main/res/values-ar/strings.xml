@@ -324,6 +324,10 @@
     <string name="player_effect_circle">دائرة</string>
     <string name="player_search">البحث في الملفات</string>
     <string name="player_no_results">لم يتم العثور على ملفات</string>
+    <string name="video_fit">ملاءمة</string>
+    <string name="video_fill">ملء</string>
+    <string name="video_stretch">تمديد</string>
+    <string name="video_fullscreen">ملء الشاشة</string>
     <string name="lyrics_button">كلمات الأغنية</string>
     <string name="lyrics_loading">جارٍ تحميل الكلمات…</string>
     <string name="lyrics_not_found">لم يتم العثور على الكلمات.</string>

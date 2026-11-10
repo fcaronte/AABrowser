@@ -320,6 +320,10 @@
     <string name="player_effect_circle">Kreis</string>
     <string name="player_search">Dateien suchen</string>
     <string name="player_no_results">Keine Dateien gefunden</string>
+    <string name="video_fit">Anpassen</string>
+    <string name="video_fill">Füllen</string>
+    <string name="video_stretch">Strecken</string>
+    <string name="video_fullscreen">Vollbild</string>
     <string name="lyrics_button">Liedtext</string>
     <string name="lyrics_loading">Liedtext wird geladen…</string>
     <string name="lyrics_not_found">Kein Liedtext gefunden.</string>

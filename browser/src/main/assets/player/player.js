@@ -765,11 +765,12 @@
         }
     });
 
-    // Tocco sul video: schermo intero
-    media.addEventListener('click', () => {
-        if (kindOf(current) === 'video' && media.requestFullscreen) {
-            media.requestFullscreen().catch(() => {});
-        }
+    // Tocco sul video: la barra con zoom, modo dell'immagine e schermo intero (video-zoom.js)
+    window.AABVideoZoom.attach({
+        stage: byId('stage'),
+        video: media,
+        strings: config.zoom,
+        isVideo: () => kindOf(current) === 'video',
     });
 
     // --- Comandi ---

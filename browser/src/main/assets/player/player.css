@@ -134,6 +134,96 @@ svg {
     background: #000;
 }
 
+/* Zoom del video (video-zoom.js): il video ingrandito scorre nel suo contenitore */
+.zoom-box {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+}
+
+.zoom-box.movable {
+    overflow: auto;
+}
+
+.zoom-box::-webkit-scrollbar {
+    display: none;
+}
+
+.zoom-box video {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.zoom-bar {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 2;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.62);
+}
+
+.zoom-bar[hidden] {
+    display: none;
+}
+
+.zoom-button {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 20px;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-button:active {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.zoom-button:disabled {
+    opacity: 0.35;
+}
+
+.zoom-button.zoom-mode {
+    font-size: 14px;
+}
+
+.zoom-button svg {
+    width: 26px;
+    height: 26px;
+}
+
+.zoom-bar .icon-exit,
+.zoom-bar.in-fullscreen .icon-enter {
+    display: none;
+}
+
+.zoom-bar.in-fullscreen .icon-exit {
+    display: block;
+}
+
+/* Schermo intero del riquadro, con la barra dello zoom (le altre regole del riquadro non valgono) */
+.stage:fullscreen {
+    width: 100%;
+    height: 100%;
+    max-height: none !important;
+    aspect-ratio: auto;
+    border-radius: 0;
+}
+
 .art {
     position: absolute;
     inset: 0;
