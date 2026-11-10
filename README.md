@@ -43,6 +43,9 @@ from the misuse of this application. Use at your own risk.
   the phone colors, AMOLED). Videos, here and in the TV: a tap on the video shows a bar with zoom − 1× + up to 6× (the
   enlarged picture moves by dragging, or with the Android Auto scroll in the Widescreen), the picture mode Fit, Fill
   (cropped) or Stretch, and fullscreen.
+* **Videos of the sites in fullscreen (YouTube and the others):** a tap shows at the top the picture mode Fit, Fill
+  (cropped) or Stretch, remembered for each site. Not shown when a site puts only the bare video in fullscreen (the
+  browser's standard controls).
 * **Radio in CarWeb Media (new in 2.6):** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK); other countries and your own M3U lists (URL or file) can be added in Settings > TV, Radio and Podcasts and picked
@@ -252,6 +255,9 @@ proprio rischio e pericolo.
   telefono, AMOLED). Video, qui e nella TV: toccando il video compare una barra con lo zoom − 1× + fino a 6× (l'immagine
   ingrandita si sposta trascinando, o con lo scorrimento di Android Auto nella Widescreen), il modo dell'immagine
   Adatta, Riempi (tagliata) o Allunga, e lo schermo intero.
+* **Video dei siti a schermo intero (YouTube e gli altri):** un tocco mostra in alto il modo dell'immagine Adatta,
+  Riempi (tagliata) o Allunga, ricordato per ogni sito. Non compare quando un sito mette a schermo intero il solo video
+  (i comandi standard del browser).
 * **Radio in CarWeb Media (novità 2.6):** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito); altri Paesi e le tue liste M3U (da URL o da file) si aggiungono nelle

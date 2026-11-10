@@ -111,6 +111,7 @@ import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.MediaVoice
+import com.fcaronte.aabrowser.utils.VideoFit
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
@@ -1680,6 +1681,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))
                             // Blocca il doppio tap to zoom in tutte le pagine
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getDisableDoubleTapScript(), setOf("*"))
+                            // Video dei siti a schermo intero: Adatta, Riempi o Allunga (VideoFit)
+                            WebViewCompat.addDocumentStartJavaScript(this, VideoFit.script(carContext), setOf("*"))
                             // Identità desktop completa (platform, userAgentData, ...) prima degli script del sito,
                             // solo sulle pagine chieste con lo user agent desktop: la Wide cambia sito nella stessa
                             // WebView e da onPageStarted lo script arriva tardi (WhatsApp Web lo controlla subito)

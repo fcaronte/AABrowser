@@ -97,6 +97,7 @@ import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.MediaVoice
+import com.fcaronte.aabrowser.utils.VideoFit
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebLocation
@@ -739,6 +740,12 @@ fun BrowserScreen(
                             WebViewCompat.addDocumentStartJavaScript(
                                 this,
                                 BrowserJavascript.getFullscreenMemoryScript(),
+                                setOf("*")
+                            )
+                            // Video dei siti a schermo intero: Adatta, Riempi o Allunga (VideoFit)
+                            WebViewCompat.addDocumentStartJavaScript(
+                                this,
+                                VideoFit.script(context),
                                 setOf("*")
                             )
                             WebViewCompat.addDocumentStartJavaScript(
