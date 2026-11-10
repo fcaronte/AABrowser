@@ -33,7 +33,7 @@
     function wideBridge() {
         const bridge = root.AndroidBridge;
         return bridge && typeof bridge.hasFixedSidebar === 'function' &&
-            typeof bridge.showSidebarOverVideo === 'function' ? bridge : null;
+            typeof bridge.setVideoMenu === 'function' ? bridge : null;
     }
 
     function readMenuMode() {
@@ -95,12 +95,13 @@
 
         const inFullscreen = () => doc.fullscreenElement === stage;
 
-        // Il menu fisso a schermo intero: sempre sopra il video, o solo insieme alla barra
+        // Il menu fisso a schermo intero: sempre in vista, con il video accanto, o sotto il video e in vista solo insieme
+        // alla barra. La Wide sa la scelta, non solo se il menu si vede: il video non cambia a ogni tocco
         function syncMenu() {
             const bridge = wideBridge();
             if (!bridge || !fixedMenu) return;
             try {
-                bridge.showSidebarOverVideo(!inFullscreen() || menuMode === 'always' || !bar.hidden);
+                bridge.setVideoMenu(menuMode === 'touch', !inFullscreen() || menuMode === 'always' || !bar.hidden);
             } catch (_) {}
         }
 
