@@ -463,9 +463,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
 
                     if (!title.isNullOrBlank()) {
                         showingWeather = false
-                        val currentMeta = mMediasessioncompat!!.controller.metadata
-                        val currentTitle = currentMeta?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                        
+                        // Il titolo del brano, non "In ascolto…": confrontato con quello sostituiva i metadati
+                        // tenuti da parte con questi senza copertina, e finito l'ascolto la copertina spariva
+                        val currentTitle = playerMetadata()?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+
                         AppLog.d(TAG, "Syncing metadata from playback state bundle: $title, current: $currentTitle")
                         
                         if (currentTitle != title) {
@@ -546,6 +547,10 @@ class CarMediaService : MediaBrowserServiceCompat() {
     private var voiceListening = false
     private var metadataUnderVoice: MediaMetadataCompat? = null
 
+    /** I metadati di quello che suona: mentre si ascolta un comando vocale quelli tenuti da parte. */
+    private fun playerMetadata(): MediaMetadataCompat? =
+        if (voiceListening) metadataUnderVoice else mMediacontrollercompat?.metadata
+
     /** Metadati del player, tranne mentre si ascolta un comando vocale: allora restano da parte fino alla fine. */
     private fun setSessionMetadata(metadata: MediaMetadataCompat) {
         applyPlayerCardTarget()
@@ -568,7 +573,8 @@ class CarMediaService : MediaBrowserServiceCompat() {
         }
         // Solo in auto: sul telefono l'ascolto si vede già nell'app
         if (!voiceListening && !isInCar()) return
-        if (!voiceListening) {
+        val starting = !voiceListening
+        if (starting) {
             metadataUnderVoice = mMediacontrollercompat?.metadata
             voiceListening = true
         }
@@ -582,7 +588,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
                 .build()
         )
-        updateNotification()
+        // La notifica solo all'inizio: il testo capito cambia più volte al secondo e Android scarta le notifiche
+        // troppo fitte (Android Auto legge la sessione, non la notifica)
+        if (starting) updateNotification()
     }
 
     /** Comando vocale senza nessuna schermata aperta: Android Auto mostra l'avviso, lo stato resta com'è. */
@@ -619,8 +627,9 @@ class CarMediaService : MediaBrowserServiceCompat() {
                 service.isUserPaused = false
 
                 val updatingTitle = service.getString(R.string.weather_updating)
-                val artistStr = service.mMediacontrollercompat?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: service.getString(R.string.weather_generic)
-                val existingBitmap = service.mMediacontrollercompat?.metadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
+                val previous = service.playerMetadata()
+                val artistStr = previous?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) ?: service.getString(R.string.weather_generic)
+                val existingBitmap = previous?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
                 val updatingMetadata = MediaMetadataCompat.Builder()
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, updatingTitle)
@@ -837,15 +846,18 @@ class CarMediaService : MediaBrowserServiceCompat() {
             removeNotification()
             return
         }
-        startForegroundWith(notification)
-        mCarmedianotificationmanager?.notify(notification)
+        // startForeground pubblica già la notifica: pubblicarla due volte raddoppiava gli invii, e oltre circa
+        // cinque al secondo Android li scarta
+        if (!startForegroundWith(notification)) mCarmedianotificationmanager?.notify(notification)
     }
 
-    private fun startForegroundWith(notification: Notification) {
-        try {
+    private fun startForegroundWith(notification: Notification): Boolean {
+        return try {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            true
         } catch (e: Exception) {
             AppLog.e(TAG, "Error in startForeground: ${e.message}", e)
+            false
         }
     }
 
