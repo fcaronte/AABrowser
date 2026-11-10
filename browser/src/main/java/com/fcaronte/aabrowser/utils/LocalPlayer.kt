@@ -94,6 +94,7 @@ object LocalPlayer {
                 path == "/lyrics.js" -> asset(context, "player/lyrics.js", "application/javascript")
                 path == "/track-parser.js" -> asset(context, "player/track-parser.js", "application/javascript")
                 path == "/lists.js" -> asset(context, "player/lists.js", "application/javascript")
+                path == "/store.js" -> asset(context, "player/store.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")
@@ -122,6 +123,7 @@ object LocalPlayer {
                 path.startsWith("/api/podcast/") -> PodcastApi.handle(context, path, url) ?: status(404, "Not Found")
                 // Comandi vocali: quello in attesa per la pagina che chiede, e cosa fare se non ha trovato niente
                 path == "/api/voice" -> json(MediaVoice.take(url.getQueryParameter("section")))
+                path == "/api/pages/save" -> if (MediaPages.save(context, url)) status(204, "No Content") else status(400, "Bad Request")
                 path == "/api/voice/fallback" -> {
                     MediaVoice.runFallback()
                     json(JSONObject())

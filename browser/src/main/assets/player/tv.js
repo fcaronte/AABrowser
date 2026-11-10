@@ -10,6 +10,8 @@
     const config = window.AAB_TV || { token: '', strings: {}, sources: [] };
     const S = config.strings;
     const STORE_KEY = 'aabTvState';
+    // Lo stato sta anche nell'app, che lo mette nei backup (store.js)
+    const store = window.AABPageStore('tv', STORE_KEY, config);
     const ROW = 56; // altezza di una riga della lista (tv.css)
 
     const byId = (id) => document.getElementById(id);
@@ -46,18 +48,11 @@
     const rows = new Map();
 
     function readState() {
-        try {
-            return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
-        } catch (_) {
-            return {};
-        }
+        return store.read() || {};
     }
 
     function saveState() {
-        try {
-            localStorage.setItem(STORE_KEY, JSON.stringify(state));
-        } catch (_) {
-        }
+        store.write(state);
     }
 
     function request(path, params) {

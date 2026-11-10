@@ -88,6 +88,7 @@ internal object RadioApi {
             .put("addOnPhone", appContext.getString(com.fcaronte.aabrowser.R.string.iptv_add_on_phone))
         val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
         val config = JSONObject().put("token", token).put("sources", sourcesJson(appContext)).put("strings", strings).put("client", client)
+            .put("saved", MediaPages.saved(context, MediaPages.RADIO))
         val html = appContext.assets.open("player/radio.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_RADIO = $config;")
             .replace("/*AAB_THEME*/", theme)

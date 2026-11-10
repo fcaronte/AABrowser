@@ -4,6 +4,8 @@
     const config = window.AAB_RADIO || { token: '', sources: [], strings: {} };
     const S = config.strings || {};
     const STORE_KEY = 'aabRadioState';
+    // Lo stato sta anche nell'app, che lo mette nei backup (store.js)
+    const store = window.AABPageStore('radio', STORE_KEY, config);
     const ROW = 56;
     const byId = (id) => document.getElementById(id);
     const media = byId('media');
@@ -36,17 +38,11 @@
     // [extra]: i dati delle stazioni che servono anche fuori dalla loro lista (l'ultima ascoltata, i preferiti)
     function readState() {
         const empty = { source: '', favorites: [], lastUuid: '', extra: {} };
-        try {
-            return Object.assign(empty, JSON.parse(localStorage.getItem(STORE_KEY)));
-        } catch (_) {
-            return empty;
-        }
+        return Object.assign(empty, store.read());
     }
 
     function saveState() {
-        try {
-            localStorage.setItem(STORE_KEY, JSON.stringify(state));
-        } catch (_) {}
+        store.write(state);
     }
 
     function withToken(path, params) {

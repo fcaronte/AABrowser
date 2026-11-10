@@ -35,6 +35,7 @@ internal object IptvApi {
             .put("locale", context.resources.configuration.locales[0].toLanguageTag())
             .put("strings", strings)
             .put("sources", sourcesJson(context))
+            .put("saved", MediaPages.saved(context, MediaPages.TV))
         val html = context.assets.open("player/tv.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_TV = $config;")
             .replace("/*AAB_THEME*/", theme)

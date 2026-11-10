@@ -5,6 +5,8 @@
     const S = config.strings || {};
     const Progress = window.AABPodcastProgress;
     const STORE_KEY = 'aabPodcastState';
+    // Lo stato sta anche nell'app, che lo mette nei backup (store.js); le copertine solo qui, si ritrovano da sole
+    const store = window.AABPageStore('podcast', STORE_KEY, config, ['covers']);
     const ROW = 56;
     const SAVE_PROGRESS_MS = 5000;
     const SAVE_STATE_MS = 1000;
@@ -49,19 +51,13 @@
     // [known]: i dati dei podcast che servono anche fuori dalla loro lista (seguiti, ultimo ascoltato)
     function readState() {
         const empty = { source: '', following: [], known: {}, covers: {}, progress: {}, last: null };
-        try {
-            return Object.assign(empty, JSON.parse(localStorage.getItem(STORE_KEY)));
-        } catch (_) {
-            return empty;
-        }
+        return Object.assign(empty, store.read());
     }
 
     function saveState() {
         clearTimeout(saveTimer);
         saveTimer = 0;
-        try {
-            localStorage.setItem(STORE_KEY, JSON.stringify(state));
-        } catch (_) {}
+        store.write(state);
     }
 
     function saveStateSoon() {

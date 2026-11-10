@@ -78,6 +78,7 @@ internal object PodcastApi {
             .put("locale", app.resources.configuration.locales[0].toLanguageTag())
             .put("sources", sourcesJson(app))
             .put("strings", strings)
+            .put("saved", MediaPages.saved(context, MediaPages.PODCAST))
         val html = app.assets.open("player/podcast.html").bufferedReader().use { it.readText() }
             .replace("/*AAB_CONFIG*/", "window.AAB_PODCAST = $config;")
             .replace("/*AAB_THEME*/", theme)
