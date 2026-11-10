@@ -243,14 +243,14 @@
     <string name="no_new_favorites">आपकी सूची पहले से ही अद्यतित है</string>
     <string name="are_you_sure">क्या आपको यकीन है?</string>
     <string name="export_settings_label">सेटिंग्स और बुकमार्क निर्यात करें</string>
-    <string name="export_settings_desc">अपने सभी बुकमार्क और सेटिंग्स को JSON बैकअप फ़ाइल में सहेजें</string>
+    <string name="export_settings_desc">बुकमार्क, सेटिंग्स, टीवी, रेडियो और पॉडकास्ट की सूचियाँ, पसंदीदा चैनल और स्टेशन, फ़ॉलो किए गए पॉडकास्ट, AdBlock और साइटों की अनुमतियाँ एक फ़ाइल में सहेजता है। फ़ाइल में सूचियों के पते और पासवर्ड भी होते हैं: इसे किसी के साथ साझा न करें।</string>
     <string name="export_button">निर्यात</string>
     <string name="import_settings_label">सेटिंग्स और बुकमार्क आयात करें</string>
     <string name="import_settings_desc">बैकअप फ़ाइल से बुकमार्क और सेटिंग्स पुनर्स्थापित करें</string>
     <string name="import_button">आयात</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">बैकअप सहेजा गया।</string>
     <string name="backup_error">बैकअप विफल।</string>
-    <string name="import_success">पुनस्थापना पूर्ण! कृपया ऐप पुनः आरंभ करें।</string>
+    <string name="import_success">पुनर्स्थापना पूर्ण: ऐप फिर से शुरू हो रहा है।</string>
     <string name="import_error">पुनस्थापना विफल।</string>
 
     <!-- Onboarding / Welcome -->

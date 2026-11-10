@@ -6,10 +6,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -87,7 +87,6 @@ import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockLists
-import com.fcaronte.aabrowser.utils.BackupRestoreUtils
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SponsorBlock
@@ -122,22 +121,6 @@ fun SettingsScreen(
         if (confirmReset) {
             delay(4000)
             confirmReset = false
-        }
-    }
-
-    var confirmExport by remember { mutableStateOf(false) }
-    LaunchedEffect(confirmExport) {
-        if (confirmExport) {
-            delay(4000)
-            confirmExport = false
-        }
-    }
-
-    var confirmImport by remember { mutableStateOf(false) }
-    LaunchedEffect(confirmImport) {
-        if (confirmImport) {
-            delay(4000)
-            confirmImport = false
         }
     }
 
@@ -593,74 +576,9 @@ fun SettingsScreen(
                                 }
                             }
 
-                            // Esporta e Importa Impostazioni e Preferiti
-                            SettingsCard {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = stringResource(R.string.export_settings_label),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.export_settings_desc),
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        fontSize = 12.sp,
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        Button(
-                                            onClick = {
-                                                if (confirmExport) {
-                                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                                    val aaBrowserFolder = File(downloadsDir, "CarWeb")
-                                                    val file = File(aaBrowserFolder, "carweb_backup.json")
-                                                    val success = BackupRestoreUtils.exportSettingsAndBookmarksToFile(context, file)
-                                                    val msg = if (success) context.getString(R.string.backup_success) else context.getString(R.string.backup_error)
-                                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                                                    confirmExport = false
-                                                } else {
-                                                    confirmExport = true
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = if (confirmExport) MaterialTheme.colorScheme.errorContainer else ButtonDefaults.buttonColors().containerColor,
-                                                contentColor = if (confirmExport) MaterialTheme.colorScheme.onErrorContainer else ButtonDefaults.buttonColors().contentColor
-                                            ),
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(if (confirmExport) stringResource(R.string.are_you_sure) else stringResource(R.string.export_button))
-                                        }
-                                        OutlinedButton(
-                                            onClick = {
-                                                if (confirmImport) {
-                                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                                    val aaBrowserFolder = File(downloadsDir, "CarWeb")
-                                                    val file = File(aaBrowserFolder, "carweb_backup.json")
-                                                    val success = BackupRestoreUtils.importSettingsAndBookmarksFromFile(context, file)
-                                                    val msg = if (success) context.getString(R.string.import_success) else context.getString(R.string.import_error)
-                                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                                                    if (success) {
-                                                        AppSettings.init(context)
-                                                    }
-                                                    confirmImport = false
-                                                } else {
-                                                    confirmImport = true
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = if (confirmImport) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
-                                                contentColor = if (confirmImport) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary
-                                            ),
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(if (confirmImport) stringResource(R.string.are_you_sure) else stringResource(R.string.import_button))
-                                        }
-                                    }
-                                }
+                            // Backup e ripristino: il selettore dei file si apre solo sul telefono
+                            if (!isCarMode && LocalActivityResultRegistryOwner.current != null) {
+                                BackupCard(onRestored = { restartApp() })
                             }
 
                             // Tasto Navigazione Persistente

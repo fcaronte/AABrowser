@@ -247,14 +247,14 @@
     <string name="no_new_favorites">Your list is already up to date</string>
     <string name="are_you_sure">Are you sure?</string>
     <string name="export_settings_label">Export Settings &amp; Bookmarks</string>
-    <string name="export_settings_desc">Save all your bookmarks and settings to a JSON backup file</string>
+    <string name="export_settings_desc">Saves bookmarks, settings, TV, Radio and Podcast lists, favorite channels and stations, followed podcasts, AdBlock and site permissions to a file. The file also holds the addresses and passwords of the lists: keep it to yourself.</string>
     <string name="export_button">Export</string>
     <string name="import_settings_label">Import Settings &amp; Bookmarks</string>
     <string name="import_settings_desc">Restore bookmarks and settings from a backup file</string>
     <string name="import_button">Import</string>
-    <string name="backup_success">Backup saved to Download/CarWeb/carweb_backup.json</string>
+    <string name="backup_success">Backup saved.</string>
     <string name="backup_error">Backup failed.</string>
-    <string name="import_success">Restore completed! Please restart the app.</string>
+    <string name="import_success">Restore completed: the app restarts.</string>
     <string name="import_error">Restore failed.</string>
 
     <!-- Onboarding / Welcome -->

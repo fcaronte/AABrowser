@@ -201,14 +201,14 @@
     <string name="no_new_favorites">La tua lista è già aggiornata</string>
     <string name="are_you_sure">Sei sicuro?</string>
     <string name="export_settings_label">Esporta Impostazioni e Preferiti</string>
-    <string name="export_settings_desc">Salva tutti i preferiti e le impostazioni in un file di backup JSON</string>
+    <string name="export_settings_desc">Salva in un file preferiti, impostazioni, liste di TV, Radio e Podcast, canali e stazioni preferiti, podcast seguiti, AdBlock e permessi dei siti. Il file contiene anche indirizzi e password delle liste: tienilo per te.</string>
     <string name="export_button">Esporta</string>
     <string name="import_settings_label">Importa Impostazioni e Preferiti</string>
     <string name="import_settings_desc">Ripristina preferiti e impostazioni da un file di backup</string>
     <string name="import_button">Importa</string>
-    <string name="backup_success">Backup salvato in Download/CarWeb/carweb_backup.json</string>
+    <string name="backup_success">Backup salvato.</string>
     <string name="backup_error">Errore durante il backup.</string>
-    <string name="import_success">Ripristino completato! Riavvia l\'app.</string>
+    <string name="import_success">Ripristino completato: l\'app si riavvia.</string>
     <string name="import_error">Errore durante il ripristino.</string>
 
     <!-- Onboarding / Welcome -->

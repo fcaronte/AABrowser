@@ -246,15 +246,15 @@
     </plurals>
     <string name="no_new_favorites">قائمتك محدثة بالفعل</string>
     <string name="are_you_sure">هل أنت متأكد؟</string>
-    <string name="export_settings_label">تصدير الإعدادات والمراشح</string>
-    <string name="export_settings_desc">حفظ جميع الإشارات المرجعية والإعدادات في ملف نسخ احتياطي JSON</string>
+    <string name="export_settings_label">تصدير الإعدادات والإشارات المرجعية</string>
+    <string name="export_settings_desc">يحفظ في ملف الإشارات المرجعية والإعدادات وقوائم التلفزيون والراديو والبودكاست والقنوات والمحطات المفضلة والبودكاست المتابَعة وAdBlock وأذونات المواقع. يحتوي الملف أيضًا على عناوين القوائم وكلمات مرورها: احتفظ به لنفسك.</string>
     <string name="export_button">تصدير</string>
     <string name="import_settings_label">استيراد الإعدادات والمراشح</string>
     <string name="import_settings_desc">استعادة الإشارات المرجعية والإعدادات من ملف نسخ احتياطي</string>
     <string name="import_button">استيراد</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">تم حفظ النسخة الاحتياطية.</string>
     <string name="backup_error">فشل النسخ الاحتياطي.</string>
-    <string name="import_success">اكتملت الاستعادة! يرجى إعادة تشغيل التطبيق.</string>
+    <string name="import_success">اكتملت الاستعادة: يُعاد تشغيل التطبيق.</string>
     <string name="import_error">فشلت الاستعادة.</string>
 
     <!-- Onboarding / Welcome -->

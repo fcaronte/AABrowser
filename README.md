@@ -59,7 +59,7 @@ from the misuse of this application. Use at your own risk.
   full link with username and password is enough). Groups, search and favorites, which gather channels from all your lists
   without switching list; HLS (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
-  to change channel. Addresses and passwords stay on the phone (not in the backup). Channels with AC3/E-AC3 audio may
+  to change channel. Addresses and passwords stay on the phone: out of Google's backup, only in the backup file you export from Settings. Channels with AC3/E-AC3 audio may
   play without sound (WebView limit); DASH (.mpd), RTMP and UDP channels are not supported.
 * **AdBlock:** blocks ads on the pages; the shield turns it off for the site you are on (in the tab bar
   and the navigation menu of CarWeb, at the top right of the Widescreen). New in 2.6: it also stops the ads that open
@@ -267,7 +267,7 @@ proprio rischio e pericolo.
   telefono; per Xtream basta il link completo con utente e password). Gruppi, ricerca e preferiti, che raccolgono i canali di
   tutte le liste senza cambiare lista; stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
-  player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono (fuori dal backup). I
+  player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono: fuori dal backup di Google, solo nel file di backup che esporti dalle Impostazioni. I
   canali con audio AC3/E-AC3 possono restare senza audio (limite della WebView); i canali DASH (.mpd), RTMP e UDP non
   sono supportati.
 * **AdBlock:** blocca le pubblicità nelle pagine; lo scudo lo spegne per il sito che stai guardando (nella

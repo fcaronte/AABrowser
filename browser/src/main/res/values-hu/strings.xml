@@ -243,14 +243,14 @@
     <string name="no_new_favorites">A listája már naprakész</string>
     <string name="are_you_sure">Biztos benne?</string>
     <string name="export_settings_label">Beállítások és könyvjelzők exportálása</string>
-    <string name="export_settings_desc">Az összes könyvjelző és beállítás mentése egy JSON biztonsági mentési fájlba</string>
+    <string name="export_settings_desc">Fájlba menti a könyvjelzőket, a beállításokat, a TV-, rádió- és podcastlistákat, a kedvenc csatornákat és állomásokat, a követett podcastokat, az AdBlockot és a webhelyek engedélyeit. A fájl a listák címeit és jelszavait is tartalmazza: ne adja tovább.</string>
     <string name="export_button">Exportálás</string>
     <string name="import_settings_label">Beállítások és könyvjelzők importálása</string>
     <string name="import_settings_desc">Könyvjelzők és beállítások visszaállítása biztonsági mentési fájlból</string>
     <string name="import_button">Importálás</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Biztonsági mentés elmentve.</string>
     <string name="backup_error">A biztonsági mentés sikertelen.</string>
-    <string name="import_success">Visszaállítás kész! Kérjük, indítsa újra az alkalmazást.</string>
+    <string name="import_success">Visszaállítás kész: az alkalmazás újraindul.</string>
     <string name="import_error">A visszaállítás sikertelen.</string>
 
     <!-- Onboarding / Welcome -->

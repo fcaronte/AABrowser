@@ -243,14 +243,14 @@
     <string name="no_new_favorites">Ihre Liste ist bereits auf dem neuesten Stand</string>
     <string name="are_you_sure">Sind Sie sicher?</string>
     <string name="export_settings_label">Einstellungen &amp; Lesezeichen exportieren</string>
-    <string name="export_settings_desc">Alle Lesezeichen und Einstellungen in einer JSON-Sicherungsdatei speichern</string>
+    <string name="export_settings_desc">Speichert Lesezeichen, Einstellungen, TV-, Radio- und Podcast-Listen, Lieblingssender, abonnierte Podcasts, AdBlock und Website-Berechtigungen in einer Datei. Die Datei enthält auch Adressen und Passwörter der Listen: Geben Sie sie nicht weiter.</string>
     <string name="export_button">Exportieren</string>
     <string name="import_settings_label">Einstellungen &amp; Lesezeichen importieren</string>
     <string name="import_settings_desc">Lesezeichen und Einstellungen aus einer Sicherungsdatei wiederherstellen</string>
     <string name="import_button">Importieren</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Sicherung gespeichert.</string>
     <string name="backup_error">Sicherung fehlgeschlagen.</string>
-    <string name="import_success">Wiederherstellung abgeschlossen! Bitte starten Sie die App neu.</string>
+    <string name="import_success">Wiederherstellung abgeschlossen: Die App wird neu gestartet.</string>
     <string name="import_error">Wiederherstellung fehlgeschlagen.</string>
 
     <!-- Onboarding / Welcome -->

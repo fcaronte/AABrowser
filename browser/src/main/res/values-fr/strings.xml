@@ -244,14 +244,14 @@
     <string name="no_new_favorites">Votre liste est déjà à jour</string>
     <string name="are_you_sure">Êtes-vous sûr ?</string>
     <string name="export_settings_label">Exporter les paramètres et favoris</string>
-    <string name="export_settings_desc">Sauvegarder tous vos favoris et paramètres dans un fichier de sauvegarde JSON</string>
+    <string name="export_settings_desc">Enregistre dans un fichier les favoris, les paramètres, les listes TV, radio et podcasts, les chaînes et stations favorites, les podcasts suivis, l\'AdBlock et les autorisations des sites. Le fichier contient aussi les adresses et mots de passe des listes : gardez-le pour vous.</string>
     <string name="export_button">Exporter</string>
     <string name="import_settings_label">Importer les paramètres et favoris</string>
     <string name="import_settings_desc">Restaurer les favoris et paramètres à partir d\'un fichier de sauvegarde</string>
     <string name="import_button">Importer</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Sauvegarde enregistrée.</string>
     <string name="backup_error">Échec de la sauvegarde.</string>
-    <string name="import_success">Restauration terminée ! Veuillez redémarrer l\'application.</string>
+    <string name="import_success">Restauration terminée : l\'application redémarre.</string>
     <string name="import_error">Échec de la restauration.</string>
 
     <!-- Onboarding / Welcome -->

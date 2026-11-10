@@ -242,14 +242,14 @@
     <string name="no_new_favorites">您的列表已是最新</string>
     <string name="are_you_sure">您确定吗？</string>
     <string name="export_settings_label">导出设置与书签</string>
-    <string name="export_settings_desc">将所有书签和设置保存到 JSON 备份文件</string>
+    <string name="export_settings_desc">将书签、设置、电视/广播/播客列表、收藏的频道和电台、关注的播客、AdBlock 和网站权限保存到一个文件中。该文件还包含列表的地址和密码：请勿外传。</string>
     <string name="export_button">导出</string>
     <string name="import_settings_label">导入设置与书签</string>
     <string name="import_settings_desc">从备份文件恢复书签和设置</string>
     <string name="import_button">导入</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">备份已保存。</string>
     <string name="backup_error">备份失败。</string>
-    <string name="import_success">恢复完成！请重新启动应用。</string>
+    <string name="import_success">恢复完成：应用正在重新启动。</string>
     <string name="import_error">恢复失败。</string>
 
     <!-- Onboarding / Welcome -->

@@ -245,14 +245,14 @@
     <string name="no_new_favorites">Ваш список уже актуален</string>
     <string name="are_you_sure">Вы уверены?</string>
     <string name="export_settings_label">Экспорт настроек и закладок</string>
-    <string name="export_settings_desc">Сохранить все закладки и настройки в резервный файл JSON</string>
+    <string name="export_settings_desc">Сохраняет в файл закладки, настройки, списки ТВ, радио и подкастов, избранные каналы и станции, подписки на подкасты, AdBlock и разрешения сайтов. В файле также есть адреса и пароли списков: не передавайте его другим.</string>
     <string name="export_button">Экспорт</string>
     <string name="import_settings_label">Импорт настроек и закладок</string>
     <string name="import_settings_desc">Восстановить закладки и настройки из файла резервной копии</string>
     <string name="import_button">Импорт</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Резервная копия сохранена.</string>
     <string name="backup_error">Ошибка резервного копирования.</string>
-    <string name="import_success">Восстановление завершено! Перезапустите приложение.</string>
+    <string name="import_success">Восстановление завершено: приложение перезапускается.</string>
     <string name="import_error">Ошибка восстановления.</string>
 
     <!-- Onboarding / Welcome -->

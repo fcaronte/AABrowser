@@ -244,14 +244,14 @@
     <string name="no_new_favorites">Tu lista ya está actualizada</string>
     <string name="are_you_sure">¿Estás seguro?</string>
     <string name="export_settings_label">Exportar ajustes y marcadores</string>
-    <string name="export_settings_desc">Guardar todos tus marcadores y ajustes en un archivo de copia de seguridad JSON</string>
+    <string name="export_settings_desc">Guarda en un archivo los marcadores, los ajustes, las listas de TV, radio y pódcast, los canales y emisoras favoritos, los pódcast que sigues, el AdBlock y los permisos de los sitios. El archivo también contiene las direcciones y contraseñas de las listas: no lo compartas.</string>
     <string name="export_button">Exportar</string>
     <string name="import_settings_label">Importar ajustes y marcadores</string>
     <string name="import_settings_desc">Restaurar marcadores y ajustes desde un archivo de copia de seguridad</string>
     <string name="import_button">Importar</string>
-    <string name="backup_success">Backup saved to Download/AABrowser/aabrowser_backup.json</string>
+    <string name="backup_success">Copia de seguridad guardada.</string>
     <string name="backup_error">Error en la copia de seguridad.</string>
-    <string name="import_success">¡Restauración completada! Por favor, reinicia la aplicación.</string>
+    <string name="import_success">Restauración completada: la aplicación se reinicia.</string>
     <string name="import_error">Error en la restauración.</string>
 
     <!-- Onboarding / Welcome -->
