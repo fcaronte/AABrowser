@@ -329,6 +329,8 @@
     <string name="video_fill">Fill</string>
     <string name="video_stretch">Stretch</string>
     <string name="video_fullscreen">Fullscreen</string>
+    <string name="video_menu_always">Menu always</string>
+    <string name="video_menu_touch">Menu on tap</string>
     <string name="lyrics_button">Lyrics</string>
     <string name="lyrics_loading">Loading lyrics…</string>
     <string name="lyrics_not_found">Lyrics not found.</string>

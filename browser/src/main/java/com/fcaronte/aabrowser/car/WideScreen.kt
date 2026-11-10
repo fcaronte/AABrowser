@@ -284,6 +284,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
+    // Video di CarWeb Media a schermo intero con "Menu al tocco" (barra del video, video-zoom.js): il menu fisso resta
+    // sotto il video e torna con i comandi; all'uscita dallo schermo intero torna sempre
+    private var sidebarHiddenForVideo = false
+
     // Margine in alto e in basso che Android Auto tiene di solito in ogni disposizione (superficie e bordi laterali della
     // visible area): la fascia dei suoi tasti. Quello che toglie in più, come la chiamata in corso, si riconosce da qui
     private val usualAreaTop = HashMap<String, Int>()
@@ -864,6 +868,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         )
     }
 
+    private fun setSidebarOverVideo(visible: Boolean) {
+        sidebarHiddenForVideo = !visible
+        applySidebarOverVideo()
+    }
+
+    private fun applySidebarOverVideo() {
+        val sb = sidebarContainerReference ?: return
+        if (!sidebarFixedEnabled()) return
+        sb.visibility = if (sidebarHiddenForVideo && customView != null) View.INVISIBLE else View.VISIBLE
+    }
+
     private fun usualAreaKey(area: Rect): String = "${surfaceWidth}x$surfaceHeight ${area.left}-${area.right}"
 
     // Solo aree assestate (dopo l'animazione dei tasti), così un passaggio intermedio non conta come il solito
@@ -892,19 +907,22 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         layoutCustomView(view, webView?.layoutParams as? FrameLayout.LayoutParams)
         // Sidebar fissa (il video di CarWeb Media ci va sotto), popup, tastiera passeggero, copertura in movimento e
         // ascolto restano sopra il video
-        sidebarContainerReference?.takeIf { it.isVisible }?.bringToFront()
+        if (sidebarFixedEnabled()) sidebarContainerReference?.bringToFront()
         popupOverlayReference?.bringToFront()
         passengerKeyboard?.view?.bringToFront()
         driveLockReference?.bringToFront()
         voiceCardReference?.bringToFront()
         customView = view
         customViewCallback = callback
+        applySidebarOverVideo()
     }
 
     private fun hideCustomView() {
         val view = customView ?: return
         (view.parent as? ViewGroup)?.removeView(view)
         customView = null
+        sidebarHiddenForVideo = false
+        applySidebarOverVideo()
         try {
             customViewCallback?.onCustomViewHidden()
         } catch (_: Exception) {
@@ -1148,7 +1166,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         )
 
         if (fixed) {
-            sb.visibility = View.VISIBLE
+            sb.visibility = if (sidebarHiddenForVideo && customView != null) View.INVISIBLE else View.VISIBLE
             sb.alpha = 1f
             layoutSidebar(sb, sidebarWidthPx, sidebarEdge, rtl)
         } else {
@@ -1867,6 +1885,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun sponsorBlockMessage(): String = strings.getString(R.string.sponsorblock_skipped)
+
+                                // Barra dei video di CarWeb Media a schermo intero: con il menu fisso sceglie se resta
+                                // sopra il video o compare solo con i comandi (video-zoom.js)
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun hasFixedSidebar(): Boolean = sidebarFixedEnabled()
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun showSidebarOverVideo(visible: Boolean) {
+                                    if (LocalPlayer.isPlayerUrl("https://$pageHost/")) post { setSidebarOverVideo(visible) }
+                                }
                             },
                             "AndroidBridge"
                         )

@@ -323,6 +323,8 @@
     <string name="video_fill">填充</string>
     <string name="video_stretch">拉伸</string>
     <string name="video_fullscreen">全屏</string>
+    <string name="video_menu_always">菜单常显</string>
+    <string name="video_menu_touch">点按显示菜单</string>
     <string name="lyrics_button">歌词</string>
     <string name="lyrics_loading">正在加载歌词…</string>
     <string name="lyrics_not_found">未找到歌词。</string>

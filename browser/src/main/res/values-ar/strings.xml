@@ -328,6 +328,8 @@
     <string name="video_fill">ملء</string>
     <string name="video_stretch">تمديد</string>
     <string name="video_fullscreen">ملء الشاشة</string>
+    <string name="video_menu_always">القائمة دائمًا</string>
+    <string name="video_menu_touch">القائمة عند اللمس</string>
     <string name="lyrics_button">كلمات الأغنية</string>
     <string name="lyrics_loading">جارٍ تحميل الكلمات…</string>
     <string name="lyrics_not_found">لم يتم العثور على الكلمات.</string>

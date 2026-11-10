@@ -325,6 +325,8 @@
     <string name="video_fill">Rellenar</string>
     <string name="video_stretch">Estirar</string>
     <string name="video_fullscreen">Pantalla completa</string>
+    <string name="video_menu_always">Menú siempre</string>
+    <string name="video_menu_touch">Menú al tocar</string>
     <string name="lyrics_button">Letra</string>
     <string name="lyrics_loading">Cargando letra…</string>
     <string name="lyrics_not_found">No se encontraron letras.</string>

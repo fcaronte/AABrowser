@@ -324,6 +324,8 @@
     <string name="video_fill">भरें</string>
     <string name="video_stretch">खींचें</string>
     <string name="video_fullscreen">पूर्ण स्क्रीन</string>
+    <string name="video_menu_always">मेनू हमेशा</string>
+    <string name="video_menu_touch">टैप पर मेनू</string>
     <string name="lyrics_button">गीत के बोल</string>
     <string name="lyrics_loading">बोल लोड हो रहे हैं…</string>
     <string name="lyrics_not_found">बोल नहीं मिले।</string>

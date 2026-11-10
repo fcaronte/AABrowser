@@ -196,6 +196,10 @@ svg {
     background: rgba(255, 255, 255, 0.22);
 }
 
+.zoom-button[hidden] {
+    display: none;
+}
+
 .zoom-button:disabled {
     opacity: 0.35;
 }

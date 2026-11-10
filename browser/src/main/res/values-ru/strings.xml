@@ -326,6 +326,8 @@
     <string name="video_fill">Заполнить</string>
     <string name="video_stretch">Растянуть</string>
     <string name="video_fullscreen">Во весь экран</string>
+    <string name="video_menu_always">Меню всегда</string>
+    <string name="video_menu_touch">Меню по касанию</string>
     <string name="lyrics_button">Текст песни</string>
     <string name="lyrics_loading">Загрузка текста песни…</string>
     <string name="lyrics_not_found">Текст песни не найден.</string>

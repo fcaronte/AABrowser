@@ -214,6 +214,8 @@ object LocalPlayer {
         .put("fill", context.getString(R.string.video_fill))
         .put("stretch", context.getString(R.string.video_stretch))
         .put("fullscreen", context.getString(R.string.video_fullscreen))
+        .put("menuAlways", context.getString(R.string.video_menu_always))
+        .put("menuTouch", context.getString(R.string.video_menu_touch))
 
     private fun page(appContext: Context): WebResourceResponse {
         // Nella Wide il context ha la lingua del telefono: i testi vanno nella lingua dell'app

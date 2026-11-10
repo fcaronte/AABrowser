@@ -282,6 +282,8 @@
     <string name="video_fill">Riempi</string>
     <string name="video_stretch">Allunga</string>
     <string name="video_fullscreen">Schermo intero</string>
+    <string name="video_menu_always">Menu sempre</string>
+    <string name="video_menu_touch">Menu al tocco</string>
     <string name="lyrics_button">Testi</string>
     <string name="lyrics_loading">Caricamento testi…</string>
     <string name="lyrics_not_found">Testo non trovato.</string>
