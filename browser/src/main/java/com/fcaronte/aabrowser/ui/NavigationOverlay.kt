@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -107,8 +108,12 @@ fun NavigationOverlay(
         FABLocation.TOP_LEFT -> Alignment.TopStart
     }
 
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var offsetY by remember { mutableFloatStateOf(0f) }
+    // In basso parte un centimetro sopra l'angolo, per non coprire i tasti in basso dei player (utente, 10/11/2026);
+    // trascinandolo si porta anche più giù. Cambiando l'angolo nelle Impostazioni si riparte da lì
+    val bottomLiftPx = with(LocalDensity.current) { FAB_BOTTOM_LIFT.toPx() }
+    val startsAtBottom = baseAlignment == Alignment.BottomEnd || baseAlignment == Alignment.BottomStart
+    var offsetX by remember(baseAlignment) { mutableFloatStateOf(0f) }
+    var offsetY by remember(baseAlignment) { mutableFloatStateOf(if (startsAtBottom) -bottomLiftPx else 0f) }
 
     // Transizione fluida basata esclusivamente sulla visibilità fornita dall'InactivityTracker
     val animatedFabAlpha by animateFloatAsState(
@@ -353,3 +358,6 @@ fun NavigationOverlay(
         }
     }
 }
+
+// Quanto sale dall'angolo in basso la posizione di partenza del tasto di navigazione: circa un centimetro
+private val FAB_BOTTOM_LIFT = 64.dp
