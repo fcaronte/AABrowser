@@ -13,6 +13,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
@@ -64,6 +65,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import androidx.webkit.WebViewRenderProcess
+import androidx.webkit.WebViewRenderProcessClient
 import com.fcaronte.aabrowser.CarFrameLayout
 import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
@@ -474,6 +477,8 @@ fun BrowserScreen(
                         it.onResume()
                         it.invalidate()
                     }
+                    // La scheda visibile deve tornare a disegnare, altrimenti la si nasconde e rimostra
+                    webViewReference?.takeIf { currentIsTabActive }?.let { PageResumeCheck(it).start() }
                     if (isFullscreenPending) {
                         isFullscreenPending = false
                         // Solo la scheda visibile (una in background resta com'è), e a WebView di nuovo pronta
@@ -622,6 +627,7 @@ fun BrowserScreen(
                             return
                         }
                         override fun onWindowVisibilityChanged(visibility: Int) {
+                            Log.d(PageResumeCheck.TAG, "Window visibility $visibility")
                             super.onWindowVisibilityChanged(VISIBLE)
                             if (visibility == VISIBLE) {
                                 // Forza l'aggiornamento grafico al ritorno in primo piano
@@ -633,6 +639,20 @@ fun BrowserScreen(
                         isFocusableInTouchMode = true
                         isClickable = true
                         isLongClickable = true
+                        // Pagina che non risponde ai tocchi (script bloccato): solo nel registro, anche in rilascio
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
+                            WebViewCompat.setWebViewRenderProcessClient(this, object : WebViewRenderProcessClient() {
+                                private var unresponsive = false
+                                override fun onRenderProcessUnresponsive(view: WebView, renderer: WebViewRenderProcess?) {
+                                    if (!unresponsive) Log.w(PageResumeCheck.TAG, "Page not responding (visible tab=$currentIsTabActive)")
+                                    unresponsive = true
+                                }
+                                override fun onRenderProcessResponsive(view: WebView, renderer: WebViewRenderProcess?) {
+                                    if (unresponsive) Log.d(PageResumeCheck.TAG, "Page responding again")
+                                    unresponsive = false
+                                }
+                            })
+                        }
                         // Notifica l'interazione continua durante swipe/scroll senza bloccare la WebView
                         setOnTouchListener { _, _ ->
                             if (!syntheticTap.get()) {

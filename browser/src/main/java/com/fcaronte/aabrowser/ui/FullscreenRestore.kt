@@ -3,13 +3,13 @@ package com.fcaronte.aabrowser.ui
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.ViewTreeObserver
 import android.webkit.WebView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -112,8 +112,9 @@ internal class FullscreenRestore(
         }, LAYER_CHECK_MS)
     }
 
+    // Anche nelle build di rilascio, con le righe di PageResumeCheck: dicono dove si ferma il ritorno davanti
     private fun log(message: String) {
-        AppLog.d("##BrowserScreen", "Fullscreen restore: $message (+${SystemClock.uptimeMillis() - startedAt} ms)")
+        Log.d(PageResumeCheck.TAG, "Fullscreen restore: $message (+${SystemClock.uptimeMillis() - startedAt} ms)")
     }
 
     private companion object {

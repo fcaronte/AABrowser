@@ -23,6 +23,7 @@ import com.fcaronte.aabrowser.car.CarServiceWide
 import com.fcaronte.aabrowser.car.MainHandOver
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.ui.MainScreen
+import com.fcaronte.aabrowser.ui.PageResumeCheck
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DrivingState
@@ -168,24 +169,29 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         }
     }
 
+    // Le righe "Main in the car" (anche in rilascio), con quelle di PageResumeCheck, dicono cosa succede al ritorno davanti
     override fun onStart() {
         super.onStart()
+        Log.d(PageResumeCheck.TAG, "Main in the car: start")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
     }
 
     override fun onResume() {
         super.onResume()
+        Log.d(PageResumeCheck.TAG, "Main in the car: resume")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         AppSettings.enableWeatherByDefaultIfLocationGranted(this)
         updateSystemUi(true)
     }
 
     override fun onPause() {
+        Log.d(PageResumeCheck.TAG, "Main in the car: pause")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         super.onPause()
     }
 
     override fun onStop() {
+        Log.d(PageResumeCheck.TAG, "Main in the car: stop")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         super.onStop()
     }

@@ -9,6 +9,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.fcaronte.aabrowser.R
@@ -523,7 +524,8 @@ class MediaSessionManager(
         val now = SystemClock.elapsedRealtime()
         if (now - lastUnwantedPauseTime < UNWANTED_PAUSE_INTERVAL_MS) return
         lastUnwantedPauseTime = now
-        AppLog.d(TAG, "Pausing playback of $source: the Android Auto player belongs to ${MediaFocusManager.getActiveSource()}")
+        // Anche in rilascio: una pagina messa in pausa di continuo sembra bloccata
+        Log.d(TAG, "Pausing playback of $source: the Android Auto player belongs to ${MediaFocusManager.getActiveSource()}")
         onPause?.invoke()
     }
 
