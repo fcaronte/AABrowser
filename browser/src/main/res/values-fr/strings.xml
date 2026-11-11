@@ -294,6 +294,15 @@
     <string name="adblock_site_off">AdBlock désactivé sur %1$s</string>
     <string name="adblock_site_on">AdBlock activé sur %1$s</string>
     <string name="adblock_this_site">AdBlock sur ce site</string>
+    <string name="desktop_mode_this_site">Mode bureau pour ce site</string>
+    <string name="desktop_mode_switch_to_mobile">Passer ce site en mode mobile</string>
+    <string name="desktop_mode_switch_to_desktop">Passer ce site en mode bureau</string>
+    <string name="desktop_mode_site_off">Mode bureau désactivé sur %1$s</string>
+    <string name="desktop_mode_site_on">Mode bureau activé sur %1$s</string>
+    <string name="desktop_mode_required_notice">Cette page nécessite le mode bureau</string>
+    <string name="audio_boost_label">Amplification audio</string>
+    <string name="audio_boost_desc">Amplifie uniformément toutes les fréquences des pages et des médias compatibles. Le contenu DRM peut ne pas être amplifié ; les niveaux élevés peuvent déformer le son. La limite de +15 dB ne garantit pas une écoute sans risque.</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">Accorder les autorisations et démarrer</string>
     <string name="skip_onboarding_button">Je sais ce que je fais (Passer)</string>
     <string name="wide_reopen_last_page">Rouvrir la dernière page</string>

@@ -452,6 +452,11 @@ fun BrowserScreen(
 
     var previousDesktopMode by remember(tabId) { mutableStateOf(actualDesktopMode) }
 
+    val audioBoostDb by AppSettings.audioBoostDb
+    LaunchedEffect(audioBoostDb) {
+        webViewReference?.evaluateJavascript("if (typeof window.__aabAudioBoost === 'object' && window.__aabAudioBoost.refresh) { window.__aabAudioBoost.refresh(); }", null)
+    }
+
     LaunchedEffect(actualDesktopMode) {
         if (actualDesktopMode != previousDesktopMode) {
             previousDesktopMode = actualDesktopMode
@@ -463,7 +468,23 @@ fun BrowserScreen(
                     setMobileUserAgent(wv, context)
                 }
                 AppLog.d("BrowserScreen", "Desktop mode toggled (actualDesktopMode: $actualDesktopMode); forcing page reload")
-                wv.reload()
+                val currentUrl = wv.url
+                if (currentUrl != null && WebViewScriptRouter.isYouTubeUrl(currentUrl)) {
+                    val targetUrl = if (needsDesktop) {
+                        WebViewScriptRouter.convertYouTubeToDesktopUrl(currentUrl)
+                    } else {
+                        WebViewScriptRouter.convertYouTubeToMobileUrl(currentUrl)
+                    }
+                    if (targetUrl != currentUrl) {
+                        wv.loadUrl(targetUrl)
+                        return@LaunchedEffect
+                    }
+                }
+                if (!currentUrl.isNullOrBlank()) {
+                    wv.loadUrl(currentUrl)
+                } else {
+                    wv.reload()
+                }
             }
         }
     }
@@ -1090,6 +1111,10 @@ fun BrowserScreen(
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun sponsorBlockMessage(): String = context.getString(R.string.sponsorblock_skipped)
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun getAudioBoostDb(): Float = AppSettings.audioBoostDb.value
                             },
                             "AndroidBridge",
                         )

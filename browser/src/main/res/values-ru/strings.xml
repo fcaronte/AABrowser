@@ -295,6 +295,15 @@
     <string name="adblock_site_off">AdBlock выключен на %1$s</string>
     <string name="adblock_site_on">AdBlock включён на %1$s</string>
     <string name="adblock_this_site">AdBlock на этом сайте</string>
+    <string name="desktop_mode_this_site">Режим ПК для этого сайта</string>
+    <string name="desktop_mode_switch_to_mobile">Переключить сайт в мобильный режим</string>
+    <string name="desktop_mode_switch_to_desktop">Переключить сайт в режим ПК</string>
+    <string name="desktop_mode_site_off">Режим ПК выключен на %1$s</string>
+    <string name="desktop_mode_site_on">Режим ПК включён на %1$s</string>
+    <string name="desktop_mode_required_notice">Для этой страницы требуется режим ПК</string>
+    <string name="audio_boost_label">Усиление звука</string>
+    <string name="audio_boost_desc">Равномерно усиливает все частоты звука страниц и медиа, если это поддерживается. Для DRM-аудио функция может не работать; высокий уровень может вызвать искажения. Ограничение +15 дБ не гарантирует безопасное прослушивание.</string>
+    <string name="audio_boost_value">%1$d дБ</string>
     <string name="grant_permissions_button">Предоставить разрешения и начать</string>
     <string name="skip_onboarding_button">Я знаю, что делаю (Пропустить)</string>
     <string name="wide_reopen_last_page">Открыть последнюю страницу</string>

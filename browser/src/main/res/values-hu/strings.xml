@@ -293,6 +293,15 @@
     <string name="adblock_site_off">AdBlock kikapcsolva: %1$s</string>
     <string name="adblock_site_on">AdBlock bekapcsolva: %1$s</string>
     <string name="adblock_this_site">AdBlock ezen a webhelyen</string>
+    <string name="desktop_mode_this_site">Asztali mód ehhez a webhelyhez</string>
+    <string name="desktop_mode_switch_to_mobile">Váltás a webhely mobil módjára</string>
+    <string name="desktop_mode_switch_to_desktop">Váltás a webhely asztali módjára</string>
+    <string name="desktop_mode_site_off">Asztali mód kikapcsolva: %1$s</string>
+    <string name="desktop_mode_site_on">Asztali mód bekapcsolva: %1$s</string>
+    <string name="desktop_mode_required_notice">Ez az oldal asztali módot igényel</string>
+    <string name="audio_boost_label">Hangkiemelés</string>
+    <string name="audio_boost_desc">Támogatás esetén egyformán növeli az oldalak és a média minden frekvenciáját. DRM-hangot nem feltétlenül erősít; magas szinten torzíthat. A +15 dB-es korlát nem garantálja a biztonságos zenehallgatást.</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>

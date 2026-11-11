@@ -62,6 +62,9 @@ object AppSettings {
     private val _autoplayMedia = mutableStateOf(false)
     val autoplayMedia: State<Boolean> = _autoplayMedia
 
+    private val _audioBoostDb = mutableFloatStateOf(0f)
+    val audioBoostDb: State<Float> = _audioBoostDb
+
     private val _forceMaxYouTubeQuality = mutableStateOf(false)
     val forceMaxYouTubeQuality: State<Boolean> = _forceMaxYouTubeQuality
 
@@ -206,6 +209,7 @@ object AppSettings {
         _dynamicColor.value = prefs.getBoolean("dynamic_color", true)
         _darkPages.value = prefs.getBoolean("dark_pages", false)
         _autoplayMedia.value = prefs.getBoolean("autoplay_media", false)
+        _audioBoostDb.floatValue = prefs.getFloat("audio_boost_db", 0f).coerceIn(0f, 15f)
         _forceMaxYouTubeQuality.value = prefs.getBoolean("force_max_youtube_quality", false)
         _sponsorBlock.value = prefs.getBoolean("sponsorblock", true)
         _sponsorBlockLevel.value = prefs.getString("sponsorblock_level", null)
@@ -365,6 +369,12 @@ object AppSettings {
     fun setAutoplayMedia(context: Context, enabled: Boolean) {
         _autoplayMedia.value = enabled
         saveBoolean(context, "autoplay_media", enabled)
+    }
+
+    fun setAudioBoostDb(context: Context, db: Float) {
+        val value = if (db.isFinite()) db.coerceIn(0f, 15f).let { kotlin.math.round(it) } else 0f
+        _audioBoostDb.floatValue = value
+        saveFloat(context, "audio_boost_db", value)
     }
 
     fun setForceMaxYouTubeQuality(context: Context, enabled: Boolean) {

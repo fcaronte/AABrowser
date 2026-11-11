@@ -73,6 +73,7 @@ import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.LocalPlayer
@@ -80,6 +81,7 @@ import com.fcaronte.aabrowser.utils.MediaVoice
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
+import com.fcaronte.aabrowser.utils.WebViewScriptRouter
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -727,6 +729,48 @@ fun MainScreen(
                                 }
                                 onInteraction()
                             }
+                            val desktopModeSite = activeTab?.url
+                                ?.takeIf {
+                                    UrlUtils.isWebUrl(it) &&
+                                            !LocalPlayer.isPlayerUrl(it) &&
+                                            !WebViewScriptRouter.isDesktopRequired(it)
+                                }
+                                ?.let { DesktopModeSites.siteKey(it.toUri().host) }
+                            val desktopModeSitesVersion by DesktopModeSites.version
+                            val desktopModeOn = remember(
+                                activeTab?.url,
+                                activeTab?.desktopModeOverride,
+                                isDesktopMode,
+                                desktopModeSitesVersion
+                            ) {
+                                desktopModeSite?.let {
+                                    DesktopModeSites.isEnabledForUrl(
+                                        activeTab?.url,
+                                        activeTab?.desktopModeOverride,
+                                        isDesktopMode
+                                    )
+                                }
+                            }
+                            val desktopModeOffMsg =
+                                desktopModeSite?.let { stringResource(R.string.desktop_mode_site_off, it) }
+                            val desktopModeOnMsg =
+                                desktopModeSite?.let { stringResource(R.string.desktop_mode_site_on, it) }
+                            val desktopModeRequiredMsg = stringResource(R.string.desktop_mode_required_notice)
+
+                            val toggleDesktopMode: () -> Unit = {
+                                val site = desktopModeSite
+                                val isEnabled = desktopModeOn
+                                val activeUrl = activeTab?.url
+                                if (activeUrl != null && WebViewScriptRouter.isDesktopRequired(activeUrl)) {
+                                    feedbackMessage = desktopModeRequiredMsg
+                                } else if (site != null && isEnabled != null) {
+                                    val enable = !isEnabled
+                                    DesktopModeSites.setOverride(context, site, enable)
+                                    feedbackMessage = if (enable) desktopModeOnMsg else desktopModeOffMsg
+                                }
+                                onInteraction()
+                            }
+
                             if (isTabBarVisible) {
                                 PersistentTabBar(
                                     modifier = Modifier.align(Alignment.TopCenter),
@@ -761,6 +805,8 @@ fun MainScreen(
                                     },
                                     adBlockOff = adBlockOff,
                                     onToggleAdBlock = toggleAdBlock,
+                                    desktopModeOn = desktopModeOn,
+                                    onToggleDesktopMode = toggleDesktopMode,
                                     isVoiceListening = voiceInput.isListening,
                                     onVoiceCommand = toggleVoiceCommand
                                 )
@@ -786,6 +832,8 @@ fun MainScreen(
                                 },
                                 adBlockOff = adBlockOff,
                                 onToggleAdBlock = toggleAdBlock,
+                                desktopModeOn = desktopModeOn,
+                                onToggleDesktopMode = toggleDesktopMode,
                                 onOpenSettings = {
                                     previousScreen = Screen.Browser
                                     currentScreen = Screen.Settings

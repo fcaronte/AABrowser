@@ -293,6 +293,15 @@
     <string name="adblock_site_off">AdBlock auf %1$s aus</string>
     <string name="adblock_site_on">AdBlock auf %1$s an</string>
     <string name="adblock_this_site">AdBlock auf dieser Website</string>
+    <string name="desktop_mode_this_site">Desktop-Modus für diese Website</string>
+    <string name="desktop_mode_switch_to_mobile">Diese Website in den mobilen Modus wechseln</string>
+    <string name="desktop_mode_switch_to_desktop">Diese Website in den Desktop-Modus wechseln</string>
+    <string name="desktop_mode_site_off">Desktop-Modus auf %1$s aus</string>
+    <string name="desktop_mode_site_on">Desktop-Modus auf %1$s an</string>
+    <string name="desktop_mode_required_notice">Diese Seite erfordert den Desktop-Modus</string>
+    <string name="audio_boost_label">Audioverstärkung</string>
+    <string name="audio_boost_desc">Verstärkt alle Frequenzen von Seiten und Medien gleichmäßig, sofern unterstützt. DRM-Audio wird möglicherweise nicht verstärkt; hohe Werte können den Klang verzerren. Die Grenze von +15 dB garantiert kein sicheres Hören.</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">Berechtigungen erteilen &amp; Starten</string>
     <string name="skip_onboarding_button">Ich weiß, was ich tue (Überspringen)</string>
     <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>

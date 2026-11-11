@@ -298,6 +298,15 @@
     <string name="adblock_site_off">AdBlock off on %1$s</string>
     <string name="adblock_site_on">AdBlock on for %1$s</string>
     <string name="adblock_this_site">AdBlock on this site</string>
+    <string name="desktop_mode_this_site">Desktop mode for this site</string>
+    <string name="desktop_mode_switch_to_mobile">Switch this site to mobile mode</string>
+    <string name="desktop_mode_switch_to_desktop">Switch this site to desktop mode</string>
+    <string name="desktop_mode_site_off">Desktop mode off on %1$s</string>
+    <string name="desktop_mode_site_on">Desktop mode on for %1$s</string>
+    <string name="desktop_mode_required_notice">This page requires desktop mode</string>
+    <string name="audio_boost_label">Audio boost</string>
+    <string name="audio_boost_desc">Boost page and media audio equally across frequencies when supported. DRM audio may not be boosted; high levels can distort sound. The +15 dB cap does not guarantee safe listening.</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">Grant Permissions &amp; Start</string>
     <string name="skip_onboarding_button">I know what I\'m doing (Skip)</string>
     <string name="wide_reopen_last_page">Reopen last page</string>

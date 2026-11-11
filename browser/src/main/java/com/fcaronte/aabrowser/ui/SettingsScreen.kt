@@ -143,6 +143,7 @@ fun SettingsScreen(
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
+    val audioBoostDb by AppSettings.audioBoostDb
     val forceMaxYouTubeQuality by AppSettings.forceMaxYouTubeQuality
     val sponsorBlockOn by AppSettings.sponsorBlock
     val mediaPlayerEnabled by AppSettings.mediaPlayerEnabled
@@ -347,6 +348,35 @@ fun SettingsScreen(
                                             onSelect = { AppSettings.setAutoOpenFavoriteId(context, it) }
                                         )
                                     }
+                                }
+                            }
+
+                            // Potenziamento audio (Audio Boost)
+                            SettingsCard {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.audio_boost_label),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = stringResource(R.string.audio_boost_desc),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.audio_boost_value, audioBoostDb.toInt()),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    Slider(
+                                        value = audioBoostDb,
+                                        onValueChange = { AppSettings.setAudioBoostDb(context, it) },
+                                        valueRange = 0f..15f,
+                                        steps = 14
+                                    )
                                 }
                             }
 

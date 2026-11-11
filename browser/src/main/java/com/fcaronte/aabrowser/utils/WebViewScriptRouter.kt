@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.utils
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.WebSettings
@@ -23,12 +24,27 @@ object WebViewScriptRouter {
                 lowUrl.contains("messenger.com") ||
                 lowUrl.contains("web.telegram.org") ||
                 lowUrl.contains("web.skype.com") ||
-                lowUrl.contains("google.com") ||
                 lowUrl.contains("accounts.google.com") ||
                 lowUrl.contains("login") ||
                 lowUrl.contains("signin") ||
                 lowUrl.contains("auth") ||
                 lowUrl.contains("oauth")
+    }
+
+    fun isYouTubeUrl(url: String?): Boolean {
+        val lowUrl = url?.lowercase() ?: return false
+        return lowUrl.contains("youtube.com") || lowUrl.contains("youtu.be")
+    }
+
+    fun convertYouTubeToMobileUrl(url: String): String {
+        if (url.isBlank()) return url
+        return url.replace("://www.youtube.com", "://m.youtube.com")
+            .replace("://youtube.com", "://m.youtube.com")
+    }
+
+    fun convertYouTubeToDesktopUrl(url: String): String {
+        if (url.isBlank()) return url
+        return url.replace("://m.youtube.com", "://www.youtube.com")
     }
 
     // Piattaforma dello user agent desktop: serve anche a riconoscerlo (hasDesktopUserAgent)
@@ -184,6 +200,9 @@ object WebViewScriptRouter {
 
         val host = urlString.toUri().host ?: "unknown"
         AppLog.d("ScriptRouter", "Routing scripts for host=$host (Spotify: $isSpotify, YouTube: $isYouTube, Chat: $isChatApp, ActiveTab: $isTabActive)")
+
+        // 0. Inietta lo script di potenziamento audio (Audio Boost)
+        webView.evaluateJavascript(AudioBoost.script(webView.context), null)
 
         // 1. Script di pulizia per fermare eventuali intervalli JS rimasti da un dominio precedente
         webView.evaluateJavascript(getCleanupScript(), null)

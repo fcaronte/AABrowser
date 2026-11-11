@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Menu
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.FloatingActionButton
@@ -77,6 +79,8 @@ fun NavigationOverlay(
     onReload: () -> Unit,
     adBlockOff: Boolean? = null, // null: niente sito (pagina locale), true: sito nella whitelist dell'AdBlock
     onToggleAdBlock: () -> Unit = {},
+    desktopModeOn: Boolean? = null,
+    onToggleDesktopMode: () -> Unit = {},
     onOpenSettings: () -> Unit,
     onOpenTabManager: () -> Unit,
     onSearch: (String) -> Unit,
@@ -178,22 +182,32 @@ fun NavigationOverlay(
                     .padding(16.dp)
             ) {
                 Box {
-                    val menuItems = remember(currentUrl, adBlockOff) {
+                    val menuItems = remember(currentUrl, adBlockOff, desktopModeOn) {
                         listOf(
-                            // Inner Ring (5 items: Back, Forward, Home, Tabs, Refresh)
+                            // Inner Ring (2 items: AdBlock, Desktop Mode)
+                            MenuItem(
+                                if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
+                                R.string.adblock_this_site
+                            ) { onInteraction(); onToggleAdBlock(); onShowMenuChange(false) },
+                            MenuItem(
+                                if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows,
+                                when (desktopModeOn) {
+                                    true -> R.string.desktop_mode_switch_to_mobile
+                                    false -> R.string.desktop_mode_switch_to_desktop
+                                    null -> R.string.desktop_mode_this_site
+                                }
+                            ) { onInteraction(); onToggleDesktopMode(); onShowMenuChange(false) },
+
+                            // Middle Ring (5 items: Back, Forward, Home, Tabs, Refresh)
                             MenuItem(Icons.AutoMirrored.Filled.ArrowBack, R.string.back_button) { onInteraction(); onGoBack(); onShowMenuChange(false) },
                             MenuItem(Icons.AutoMirrored.Filled.ArrowForward, R.string.forward_button) { onInteraction(); onGoForward(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Home, R.string.home_button) { onInteraction(); onGoHome(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Layers, R.string.tabs_button) { onInteraction(); onOpenTabManager(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Refresh, R.string.reload_button) { onInteraction(); onReload(); onShowMenuChange(false) },
 
-                            // Outer Ring (7 items)
+                            // Outer Ring (6 items)
                             MenuItem(Icons.Default.Search, R.string.search_button) { onInteraction(); showSearchDialog = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Star, R.string.add_to_favorites) { onInteraction(); onAddToFavorites(); onShowMenuChange(false) },
-                            MenuItem(
-                                if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
-                                R.string.adblock_this_site
-                            ) { onInteraction(); onToggleAdBlock(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Mic, R.string.voice_command_button) { onInteraction(); onVoiceCommand(); onShowMenuChange(false) },
                             MenuItem(Icons.Default.Share, R.string.share_button) { onInteraction(); showQRCode = true; onShowMenuChange(false) },
                             MenuItem(Icons.Default.Settings, R.string.settings_button) { onInteraction(); onOpenSettings(); onShowMenuChange(false) },
@@ -206,20 +220,33 @@ fun NavigationOverlay(
                     }
 
                     val sweepAngle = 90f
-                    val innerRadius = 125.dp
-                    val innerCount = 5
-                    val outerCount = menuItems.size - innerCount
-                    val outerRadius = when {
-                        outerCount > 7 -> 225.dp
-                        outerCount > 6 -> 200.dp
-                        else -> 190.dp
-                    }
+                    val innerRadius = 85.dp
+                    val middleRadius = 145.dp
+                    val outerRadius = 205.dp
+                    val innerCount = 2
+                    val middleCount = 5
 
                     menuItems.forEachIndexed { index, item ->
-                        val isOuter = index >= innerCount
-                        val radius = if (isOuter) outerRadius else innerRadius
-                        val arcIndex = if (isOuter) index - innerCount else index
-                        val arcTotal = if (isOuter) outerCount else innerCount
+                        val ring = when {
+                            index < innerCount -> 0
+                            index < innerCount + middleCount -> 1
+                            else -> 2
+                        }
+                        val radius = when (ring) {
+                            0 -> innerRadius
+                            1 -> middleRadius
+                            else -> outerRadius
+                        }
+                        val arcIndex = when (ring) {
+                            0 -> index
+                            1 -> index - innerCount
+                            else -> index - innerCount - middleCount
+                        }
+                        val arcTotal = when (ring) {
+                            0 -> innerCount
+                            1 -> middleCount
+                            else -> menuItems.size - innerCount - middleCount
+                        }
 
                         val angle = startAngle + (sweepAngle / (arcTotal - 1).coerceAtLeast(1)) * arcIndex
                         val angleRad = Math.toRadians(angle.toDouble())

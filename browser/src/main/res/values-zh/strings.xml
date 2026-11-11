@@ -292,6 +292,15 @@
     <string name="adblock_site_off">已在 %1$s 关闭 AdBlock</string>
     <string name="adblock_site_on">已在 %1$s 开启 AdBlock</string>
     <string name="adblock_this_site">此网站的 AdBlock</string>
+    <string name="desktop_mode_this_site">此网站的桌面模式</string>
+    <string name="desktop_mode_switch_to_mobile">将此网站切换为移动模式</string>
+    <string name="desktop_mode_switch_to_desktop">将此网站切换为桌面模式</string>
+    <string name="desktop_mode_site_off">已在 %1$s 关闭桌面模式</string>
+    <string name="desktop_mode_site_on">已在 %1$s 开启桌面模式</string>
+    <string name="desktop_mode_required_notice">此页面需要桌面模式</string>
+    <string name="audio_boost_label">音频增强</string>
+    <string name="audio_boost_desc">在支持的情况下均衡增强网页和媒体音频的所有频率。DRM 音频可能无法增强；较高的设置可能导致声音失真。+15 dB 上限并不保证聆听安全。</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
     <string name="wide_reopen_last_page">重新打开最后一页</string>

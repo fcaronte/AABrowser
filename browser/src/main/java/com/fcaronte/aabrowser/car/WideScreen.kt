@@ -98,6 +98,7 @@ import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
+import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.IptvSources
@@ -108,6 +109,7 @@ import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslErrorPrompts
+import kotlinx.coroutines.flow.drop
 import com.fcaronte.aabrowser.utils.UpdateManager
 import com.fcaronte.aabrowser.utils.UrlUtils
 import com.fcaronte.aabrowser.utils.MediaVoice
@@ -359,6 +361,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val iconAdBlockOff: CarIcon by lazy { buildShieldIcon(crossed = true) }
     private val iconMic: CarIcon by lazy { maskIcon(::drawMic) }
     private var shownAdBlockState: String? = null   // sito e stato mostrati dallo scudo nell'ultimo template
+    private var shownDesktopState: String? = null
+    private var sidebarDesktopButton: ImageButton? = null
 
     init {
         activeInstance = this
@@ -385,6 +389,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             override fun onCreate(owner: LifecycleOwner) {
                 checkForUpdate()
                 watchMediaLists()
+                watchDesktopModeSites()
                 // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
@@ -452,6 +457,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val site = currentAdBlockSite()
         val siteWhitelisted = site != null && AdBlockHost.isWhitelisted(site)
         shownAdBlockState = adBlockState(site)
+        val desktopOn = desktopModeEnabled(webView?.url ?: lastUrl)
+        val desktopEnabled = desktopModeToggleEnabled(webView?.url ?: lastUrl)
+        shownDesktopState = desktopModeState(site)
 
         val searchAction = Action.Builder()
             .setIcon(iconSearch)
@@ -461,11 +469,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .setIcon(iconMic)
             .setOnClickListener { toggleVoiceCommand() }
             .build()
+        val desktopAction = Action.Builder()
+            .setIcon(buildDesktopCarIcon(desktopOn))
+            .setEnabled(desktopEnabled)
+            .setOnClickListener { toggleDesktopModeForSite() }
+            .build()
 
         // In alto a destra un tasto solo, lo scudo (Android Auto ne vuole almeno uno nell'angolo). Senza sidebar
-        // anche cerca e microfono, alla sua sinistra: in basso non ci stanno
+        // anche cerca, microfono e desktop, alla sua sinistra: in basso non ci stanno
         val stripBuilder = ActionStrip.Builder()
-        if (!fixed) stripBuilder.addAction(searchAction).addAction(voiceAction)
+        if (!fixed) {
+            stripBuilder.addAction(searchAction).addAction(voiceAction).addAction(desktopAction)
+        }
         val strip = stripBuilder
             .addAction(
                 Action.Builder()
@@ -541,6 +556,147 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     /** Cambiato sito (o stato): lo scudo va ridisegnato. */
     private fun refreshAdBlockAction() {
         if (adBlockState(currentAdBlockSite()) != shownAdBlockState) invalidate()
+    }
+
+    private fun desktopModeEnabled(url: String?): Boolean {
+        if (url.isNullOrBlank() || url.startsWith(HomePage.BASE_URL)) return false
+        val preferred = DesktopModeSites.isEnabledForUrl(
+            url,
+            favoriteFor(url)?.isDesktopMode,
+            AppSettings.desktopMode.value
+        )
+        return preferred || WebViewScriptRouter.isDesktopRequired(url) ||
+                (daznDesktopForced && isDazn(url))
+    }
+
+    private fun desktopModeToggleEnabled(url: String?): Boolean =
+        url != null && !url.startsWith(HomePage.BASE_URL) &&
+                !WebViewScriptRouter.isDesktopRequired(url) &&
+                !(daznDesktopForced && isDazn(url))
+
+    private fun desktopModeState(site: String?): String =
+        "$site|${desktopModeEnabled(webView?.url ?: lastUrl)}|${desktopModeToggleEnabled(webView?.url ?: lastUrl)}"
+
+    private fun desktopModeActionLabel(enabled: Boolean, toggleEnabled: Boolean): Int = when {
+        !toggleEnabled -> R.string.desktop_mode_this_site
+        enabled -> R.string.desktop_mode_switch_to_mobile
+        else -> R.string.desktop_mode_switch_to_desktop
+    }
+
+    private fun toggleDesktopModeForSite() {
+        val site = currentAdBlockSite() ?: return
+        val url = webView?.url ?: lastUrl
+        if (url != null && (WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url)))) {
+            CarToast.makeText(
+                carContext,
+                strings.getString(R.string.desktop_mode_required_notice),
+                CarToast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        if (!desktopModeToggleEnabled(url)) return
+        val enabled = !desktopModeEnabled(url)
+        DesktopModeSites.setOverride(carContext, site, enabled)
+        CarToast.makeText(
+            carContext,
+            strings.getString(
+                if (enabled) R.string.desktop_mode_site_on else R.string.desktop_mode_site_off,
+                site
+            ),
+            CarToast.LENGTH_SHORT
+        ).show()
+
+        webView?.let { view ->
+            val currentUrl = view.url ?: url
+            applyUserAgent(view, currentUrl)
+            if (WebViewScriptRouter.isYouTubeUrl(currentUrl)) {
+                val targetUrl = if (enabled) {
+                    WebViewScriptRouter.convertYouTubeToDesktopUrl(currentUrl ?: "")
+                } else {
+                    WebViewScriptRouter.convertYouTubeToMobileUrl(currentUrl ?: "")
+                }
+                if (targetUrl != currentUrl) {
+                    view.loadUrl(targetUrl)
+                } else if (!currentUrl.isNullOrBlank()) {
+                    view.loadUrl(currentUrl)
+                } else {
+                    view.reload()
+                }
+            } else if (!currentUrl.isNullOrBlank()) {
+                view.loadUrl(currentUrl)
+            } else {
+                view.reload()
+            }
+        }
+        refreshDesktopModeAction()
+        invalidate()
+    }
+
+    private fun refreshDesktopModeAction() {
+        updateDesktopSidebarButton()
+        if (desktopModeState(currentAdBlockSite()) != shownDesktopState) invalidate()
+    }
+
+    private fun updateDesktopSidebarButton() {
+        val button = sidebarDesktopButton ?: return
+        val url = webView?.url ?: lastUrl
+        val enabled = desktopModeEnabled(url)
+        val toggleEnabled = desktopModeToggleEnabled(url)
+        button.setImageBitmap(buildDesktopBitmap(enabled))
+        button.isEnabled = toggleEnabled
+        button.contentDescription = strings.getString(desktopModeActionLabel(enabled, toggleEnabled))
+    }
+
+    private fun watchDesktopModeSites() {
+        lifecycleScope.launch {
+            snapshotFlow { DesktopModeSites.version.value }.drop(1).collect {
+                val view = webView
+                val url = view?.url
+                if (view != null && !url.isNullOrBlank() && UrlUtils.isWebUrl(url) &&
+                    needsDesktopForUrl(url) != WebViewScriptRouter.hasDesktopUserAgent(view)
+                ) {
+                    applyUserAgent(view, url)
+                    val needsDesktop = needsDesktopForUrl(url)
+                    if (WebViewScriptRouter.isYouTubeUrl(url)) {
+                        val targetUrl = if (needsDesktop) {
+                            WebViewScriptRouter.convertYouTubeToDesktopUrl(url)
+                        } else {
+                            WebViewScriptRouter.convertYouTubeToMobileUrl(url)
+                        }
+                        if (targetUrl != url) {
+                            view.loadUrl(targetUrl)
+                        } else {
+                            view.loadUrl(url)
+                        }
+                    } else {
+                        view.loadUrl(url)
+                    }
+                }
+                refreshDesktopModeAction()
+            }
+        }
+    }
+
+    private fun buildDesktopBitmap(enabled: Boolean): Bitmap = maskBitmap { c, p, s ->
+        if (enabled) {
+            c.drawRoundRect(RectF(s * 0.32f, s * 0.16f, s * 0.68f, s * 0.84f), s * 0.12f, s * 0.12f, p)
+            c.drawLine(s * 0.44f, s * 0.74f, s * 0.56f, s * 0.74f, p)
+        } else {
+            c.drawRoundRect(RectF(s * 0.15f, s * 0.20f, s * 0.85f, s * 0.65f), s * 0.08f, s * 0.08f, p)
+            c.drawLine(s * 0.50f, s * 0.65f, s * 0.50f, s * 0.80f, p)
+            c.drawLine(s * 0.35f, s * 0.80f, s * 0.65f, s * 0.80f, p)
+        }
+    }
+
+    private fun buildDesktopCarIcon(enabled: Boolean): CarIcon = maskIcon { c, p, s ->
+        if (enabled) {
+            c.drawRoundRect(RectF(s * 0.32f, s * 0.16f, s * 0.68f, s * 0.84f), s * 0.12f, s * 0.12f, p)
+            c.drawLine(s * 0.44f, s * 0.74f, s * 0.56f, s * 0.74f, p)
+        } else {
+            c.drawRoundRect(RectF(s * 0.15f, s * 0.20f, s * 0.85f, s * 0.65f), s * 0.08f, s * 0.08f, p)
+            c.drawLine(s * 0.50f, s * 0.65f, s * 0.50f, s * 0.80f, p)
+            c.drawLine(s * 0.35f, s * 0.80f, s * 0.65f, s * 0.80f, p)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1910,6 +2066,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 fun setVideoMenu(onTap: Boolean, visible: Boolean) {
                                     post { this@WideScreen.setVideoMenu(onTap, visible) }
                                 }
+
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun getAudioBoostDb(): Float = AppSettings.audioBoostDb.value
                             },
                             "AndroidBridge"
                         )
@@ -2325,6 +2485,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         btnSidebarStyle(this)
                         setOnClickListener { openSearch() }
                     }
+                    val btnDesktop = ImageButton(ctx).apply {
+                        setImageBitmap(buildDesktopBitmap(desktopModeEnabled(webView?.url ?: lastUrl)))
+                        btnSidebarStyle(this)
+                        isEnabled = desktopModeToggleEnabled(webView?.url ?: lastUrl)
+                        setOnClickListener { toggleDesktopModeForSite() }
+                    }
+                    sidebarDesktopButton = btnDesktop
                     val btnVoice = ImageButton(ctx).apply {
                         setImageBitmap(buildMicBitmap())
                         btnSidebarStyle(this)
@@ -2336,6 +2503,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     sidebarContainer.addView(btnBack)
                     sidebarContainer.addView(btnReload)
                     sidebarContainer.addView(btnSearch)
+                    sidebarContainer.addView(btnDesktop)
                     sidebarContainer.addView(btnVoice)
 
                     frame.addView(
@@ -2680,6 +2848,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         voiceCardReference = null
         voiceDetailReference = null
         sidebarVoiceButton = null
+        sidebarDesktopButton = null
         isInputPopupVisible = false
 
         // Esce dal video a schermo intero prima di distruggere la WebView

@@ -297,6 +297,15 @@
     <string name="adblock_site_off">تم إيقاف AdBlock على %1$s</string>
     <string name="adblock_site_on">تم تشغيل AdBlock على %1$s</string>
     <string name="adblock_this_site">AdBlock على هذا الموقع</string>
+    <string name="desktop_mode_this_site">وضع سطح المكتب لهذا الموقع</string>
+    <string name="desktop_mode_switch_to_mobile">التبديل بهذا الموقع إلى وضع الهاتف المحمول</string>
+    <string name="desktop_mode_switch_to_desktop">التبديل بهذا الموقع إلى وضع سطح المكتب</string>
+    <string name="desktop_mode_site_off">تم إيقاف وضع سطح المكتب على %1$s</string>
+    <string name="desktop_mode_site_on">تم تشغيل وضع سطح المكتب على %1$s</string>
+    <string name="desktop_mode_required_notice">تتطلب هذه الصفحة وضع سطح المكتب</string>
+    <string name="audio_boost_label">تعزيز الصوت</string>
+    <string name="audio_boost_desc">يعزز جميع الترددات بالتساوي في الصفحات والوسائط عند دعم ذلك. قد لا يعمل مع صوت DRM، وقد تسبب المستويات العالية تشويشًا. حد +15 ديسيبل لا يضمن الاستماع بأمان.</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>

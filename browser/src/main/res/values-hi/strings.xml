@@ -293,6 +293,15 @@
     <string name="adblock_site_off">%1$s पर AdBlock बंद</string>
     <string name="adblock_site_on">%1$s पर AdBlock चालू</string>
     <string name="adblock_this_site">इस साइट पर AdBlock</string>
+    <string name="desktop_mode_this_site">इस साइट के लिए डेस्कटॉप मोड</string>
+    <string name="desktop_mode_switch_to_mobile">इस साइट को मोबाइल मोड में बदलें</string>
+    <string name="desktop_mode_switch_to_desktop">इस साइट को डेस्कटॉप मोड में बदलें</string>
+    <string name="desktop_mode_site_off">%1$s पर डेस्कटॉप मोड बंद</string>
+    <string name="desktop_mode_site_on">%1$s पर डेस्कटॉप मोड चालू</string>
+    <string name="desktop_mode_required_notice">इस पृष्ठ के लिए डेस्कटॉप मोड आवश्यक है</string>
+    <string name="audio_boost_label">ऑडियो बढ़ाएँ</string>
+    <string name="audio_boost_desc">समर्थित पेज और मीडिया की सभी आवृत्तियों का ऑडियो समान रूप से बढ़ाएँ। DRM ऑडियो पर यह काम नहीं कर सकता; अधिक स्तर पर आवाज़ विकृत हो सकती है। +15 dB की सीमा सुरक्षित सुनने की गारंटी नहीं देती।</string>
+    <string name="audio_boost_value">%1$d dB</string>
     <string name="grant_permissions_button">अनुमतियां दें और शुरू करें</string>
     <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>
     <string name="wide_reopen_last_page">पिछला पृष्ठ फिर से खोलें</string>

@@ -20,8 +20,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.RemoveModerator
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +56,8 @@ fun PersistentTabBar(
     onGoForward: () -> Unit,
     adBlockOff: Boolean? = null, // null: niente sito (pagina locale), true: sito nella whitelist dell'AdBlock
     onToggleAdBlock: () -> Unit = {},
+    desktopModeOn: Boolean? = null,
+    onToggleDesktopMode: () -> Unit = {},
     isVoiceListening: Boolean = false,
     onVoiceCommand: (() -> Unit)? = null
 ) {
@@ -152,6 +156,25 @@ fun PersistentTabBar(
                         imageVector = if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
                         contentDescription = stringResource(R.string.adblock_this_site),
                         tint = if (adBlockOff != null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                }
+
+                IconButton(
+                    onClick = onToggleDesktopMode,
+                    enabled = desktopModeOn != null,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Icon(
+                        imageVector = if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows,
+                        contentDescription = stringResource(
+                            when (desktopModeOn) {
+                                true -> R.string.desktop_mode_switch_to_mobile
+                                false -> R.string.desktop_mode_switch_to_desktop
+                                null -> R.string.desktop_mode_this_site
+                            }
+                        ),
+                        tint = if (desktopModeOn != null) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )
                 }
