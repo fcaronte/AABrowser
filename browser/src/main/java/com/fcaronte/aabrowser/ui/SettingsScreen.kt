@@ -629,7 +629,9 @@ fun SettingsScreen(
                                         Spacer(modifier = Modifier.height(12.dp))
                                         Button(
                                             onClick = {
-                                                val intent = android.content.Intent(context, com.fcaronte.aabrowser.SmartphoneAppsActivity::class.java)
+                                                val intent = android.content.Intent(context, com.fcaronte.aabrowser.SmartphoneAppsActivity::class.java).apply {
+                                                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
                                                 context.startActivity(intent)
                                             }
                                         ) {
