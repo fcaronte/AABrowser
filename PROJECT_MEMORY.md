@@ -3,6 +3,12 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.7 prepared locally (10/11/2026), `versionCode 19` / `versionName "2.7"`; not yet published. It covers the 40 commits from tag `2.6` (`234beba`) through `32de504`. Previous release 2.6 was published on GitHub by the user (08/11/2026, `CarWeb-v2.6.apk`); 2.5.1 was published on 04/11/2026 (the APK contains code through `ff10b3a`, while tag `2.5.1` points to older `215ff01`).
 - **Recent Updates**:
+  - **Smartphone Apps Feature - Step 1: Shizuku Infrastructure & Capability Detection**:
+    - Added Shizuku API (`dev.rikka.shizuku:api`) and Provider (`dev.rikka.shizuku:provider`) version `13.1.5` via version catalog (`libs.versions.toml`) and `browser/build.gradle`.
+    - Created `ShizukuManager.kt` (`smartphone/ShizukuManager.kt`) to handle Shizuku availability checking, running service status, permission checks, permission requests, and binder connection listeners safely.
+    - Created `DisplayCapabilityDetector.kt` (`smartphone/DisplayCapabilityDetector.kt`) to detect API level, multi-display support, Samsung One UI detection, Widevine DRM security level (L1/L3), and secure display support.
+    - Modified files: `gradle/libs.versions.toml`, `browser/build.gradle`, `smartphone/ShizukuManager.kt` [NEW], `smartphone/DisplayCapabilityDetector.kt` [NEW], `PROJECT_MEMORY.md`.
+    - Validation: `browser:assembleDebug` and 105 Kotlin unit tests (`browser:testDebugUnitTest`) pass successfully.
   - **Restoring custom mobile URLs & Desktop override cleanup (11/11/2026)**:
     - Fixed issue where toggling Desktop Mode ON for YouTube loaded `www.youtube.com` (desktop UI), breaking custom mobile JS fixes (`tapToSeekScript`, `preventPlaylistScrollScript`, `video-fit.js`, `video-zoom.js`, `YouTubeAdBlockScript`). Turning Desktop Mode OFF now converts `www.youtube.com` / `youtube.com` back to `m.youtube.com` before reloading, restoring the clean YouTube Mobile UI and all custom JS fixes.
     - Added `WebViewScriptRouter.convertYouTubeToMobileUrl` and `convertYouTubeToDesktopUrl` for URL transitions between mobile and desktop YouTube.

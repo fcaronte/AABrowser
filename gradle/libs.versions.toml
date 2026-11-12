@@ -14,6 +14,7 @@ zxing = "3.5.4"
 playServicesLocation = "21.4.0"
 carApp = "1.7.0"
 junit = "4.13.2"
+shizuku = "13.1.5"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -39,6 +40,8 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 androidx-car-app = { module = "androidx.car.app:app", version.ref = "carApp" }
 androidx-car-app-projected = { module = "androidx.car.app:app-projected", version.ref = "carApp" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

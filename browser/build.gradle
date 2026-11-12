@@ -125,6 +125,8 @@ dependencies {
     implementation libs.androidx.car.app.projected
 
     implementation libs.kotlin.stdlib
+    implementation libs.shizuku.api
+    implementation libs.shizuku.provider
 
     // Test sulla JVM (frasi dei comandi vocali)
     testImplementation libs.junit
