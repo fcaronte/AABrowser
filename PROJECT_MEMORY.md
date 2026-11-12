@@ -3,6 +3,12 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.7 prepared locally (10/11/2026), `versionCode 19` / `versionName "2.7"`; not yet published. It covers the 40 commits from tag `2.6` (`234beba`) through `32de504`. Previous release 2.6 was published on GitHub by the user (08/11/2026, `CarWeb-v2.6.apk`); 2.5.1 was published on 04/11/2026 (the APK contains code through `ff10b3a`, while tag `2.5.1` points to older `215ff01`).
 - **Recent Updates**:
+  - **Smartphone Apps Feature - Step 5: Home Integration & Settings UI Card**:
+    - Created `SmartphoneAppsActivity.kt` (`SmartphoneAppsActivity.kt`) to host `SmartphoneAppsScreen` inside `AABrowserTheme`.
+    - Registered `SmartphoneAppsActivity` in `AndroidManifest.xml`.
+    - Added a dedicated `SettingsCard` in `SettingsScreen.kt` allowing users to open the Smartphone Apps management interface directly from Settings.
+    - Committed changes to Git (commit `78e539a`).
+    - Validation: `browser:assembleDebug` and 105 Kotlin unit tests (`browser:testDebugUnitTest`) pass successfully.
   - **Smartphone Apps Feature - Step 4: Variant Renderers (Normal & Wide)**:
     - Created `NormalVirtualDisplayRenderer.kt` (`smartphone/NormalVirtualDisplayRenderer.kt`) to capture virtual display frames via `ImageReader` and deliver decoded bitmaps to the Normal car UI.
     - Created `WideVirtualDisplayRenderer.kt` (`smartphone/WideVirtualDisplayRenderer.kt`) to capture virtual display frames via `ImageReader` and deliver decoded bitmaps to the Wide car UI.
