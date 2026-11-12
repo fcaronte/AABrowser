@@ -9,34 +9,43 @@ class VirtualAppLauncher(private val context: Context) {
     private val TAG = "VirtualAppLauncher"
 
     /**
-     * Launches an app on the specified virtual display ID.
+     * Launches an app on the specified virtual display ID, falling back to direct launch if needed.
      */
-    fun launchAppOnDisplay(packageName: String, displayId: Int): Boolean {
-        if (displayId < 0) {
-            Log.e(TAG, "Invalid display ID: $displayId")
-            return false
-        }
-
+    fun launchAppOnDisplay(packageName: String, displayId: Int = 0): Boolean {
         try {
             val pm = context.packageManager
-            val hiddenIntent = pm.getLaunchIntentForPackage(packageName)
-            if (hiddenIntent == null) {
+            val intent = pm.getLaunchIntentForPackage(packageName)
+            if (intent == null) {
                 Log.w(TAG, "No launch intent found for package: $packageName")
                 return false
             }
 
-            hiddenIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
 
-            val options = ActivityOptions.makeBasic().apply {
-                launchDisplayId = displayId
-            }
+            val options = if (displayId > 0) {
+                ActivityOptions.makeBasic().apply {
+                    launchDisplayId = displayId
+                }
+            } else null
 
-            context.startActivity(hiddenIntent, options.toBundle())
+            context.startActivity(intent, options?.toBundle())
             Log.i(TAG, "Successfully launched $packageName on display $displayId")
             return true
         } catch (e: Throwable) {
-            Log.e(TAG, "Error launching $packageName on display $displayId", e)
-            return false
+            Log.e(TAG, "Error launching $packageName on display $displayId, attempting direct launch", e)
+            return launchDirect(packageName)
+        }
+    }
+
+    private fun launchDirect(packageName: String): Boolean {
+        return try {
+            val intent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        } catch (e: Throwable) {
+            Log.e(TAG, "Error launching direct $packageName", e)
+            false
         }
     }
 }

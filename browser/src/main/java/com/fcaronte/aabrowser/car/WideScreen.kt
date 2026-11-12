@@ -710,7 +710,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         try {
             val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(carContext)
             favManager.getFavoriteApps().forEach { app ->
-                items.add(HomePage.Item("📱 " + app.appName, "app://${app.packageName}"))
+                items.add(HomePage.Item("📱 " + app.appName, "app://${app.packageName}", "${LocalPlayer.BASE_URL}api/app/icon?pkg=${app.packageName}"))
             }
         } catch (_: Throwable) {}
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }

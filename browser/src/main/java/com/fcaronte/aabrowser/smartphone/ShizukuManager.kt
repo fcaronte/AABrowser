@@ -30,8 +30,7 @@ object ShizukuManager {
             }
         }
         return try {
-            rikka.shizuku.Shizuku.getVersion()
-            true
+            rikka.shizuku.Shizuku.getVersion() > 0
         } catch (_: Throwable) {
             try {
                 rikka.shizuku.Shizuku.pingBinder()
@@ -46,7 +45,9 @@ object ShizukuManager {
      */
     fun isShizukuRunning(): Boolean {
         return try {
-            rikka.shizuku.Shizuku.pingBinder()
+            if (rikka.shizuku.Shizuku.pingBinder()) return true
+            if (rikka.shizuku.Shizuku.getVersion() > 0) return true
+            rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) {
             false
         }
@@ -56,13 +57,8 @@ object ShizukuManager {
      * Checks whether permission has been granted to use Shizuku.
      */
     fun hasPermission(): Boolean {
-        if (!isShizukuRunning()) return false
         return try {
-            if (rikka.shizuku.Shizuku.isPreV11()) {
-                false
-            } else {
-                rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-            }
+            rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) {
             Log.e(TAG, "Error checking Shizuku permission", e)
             false
@@ -74,10 +70,8 @@ object ShizukuManager {
      */
     fun requestPermission(requestCode: Int = PERMISSION_REQUEST_CODE) {
         try {
-            if (isShizukuRunning() && !rikka.shizuku.Shizuku.isPreV11()) {
-                if (rikka.shizuku.Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                    rikka.shizuku.Shizuku.requestPermission(requestCode)
-                }
+            if (rikka.shizuku.Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                rikka.shizuku.Shizuku.requestPermission(requestCode)
             }
         } catch (e: Throwable) {
             Log.e(TAG, "Error requesting Shizuku permission", e)

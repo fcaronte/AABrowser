@@ -130,6 +130,7 @@ object LocalPlayer {
                     json(JSONObject())
                 }
                 path == "/api/shared" -> sharedFile(context, url.getQueryParameter("id"), request)
+                path == "/api/app/icon" -> serveAppIcon(context, url.getQueryParameter("pkg"))
                 path == "/api/library" -> library(context)
                 path == "/api/library/find" -> findInLibrary(context, url.getQueryParameter("q").orEmpty())
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
@@ -612,4 +613,35 @@ object LocalPlayer {
 
     private fun status(code: Int, reason: String): WebResourceResponse =
         WebResourceResponse("text/plain", "UTF-8", code, reason, mapOf("Cache-Control" to "no-store"), ByteArrayInputStream(ByteArray(0)))
+
+    private fun serveAppIcon(context: Context, packageName: String?): WebResourceResponse? {
+        if (packageName.isNullOrBlank()) return null
+        return try {
+            val pm = context.packageManager
+            val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                pm.getApplicationInfo(packageName, android.content.pm.PackageManager.ApplicationInfoFlags.of(0.toLong()))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getApplicationInfo(packageName, 0)
+            }
+            val drawable = pm.getApplicationIcon(appInfo)
+            val bitmap = if (drawable is android.graphics.drawable.BitmapDrawable && drawable.bitmap != null) {
+                drawable.bitmap
+            } else {
+                val width = 128
+                val height = 128
+                val bmp = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bmp)
+                drawable.setBounds(0, 0, width, height)
+                drawable.draw(canvas)
+                bmp
+            }
+            val stream = java.io.ByteArrayOutputStream()
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+            val bytes = stream.toByteArray()
+            WebResourceResponse("image/png", null, 200, "OK", mapOf("Access-Control-Allow-Origin" to "*"), ByteArrayInputStream(bytes))
+        } catch (e: Throwable) {
+            null
+        }
+    }
 }
