@@ -1,8 +1,10 @@
 package com.fcaronte.aabrowser
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.smartphone.SmartphoneAppsScreen
 import com.fcaronte.aabrowser.smartphone.SmartphoneAppsViewModel
@@ -13,7 +15,9 @@ class SmartphoneAppsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AABrowserTheme {
-                val viewModel: SmartphoneAppsViewModel = viewModel()
+                val viewModel: SmartphoneAppsViewModel = viewModel(
+                    factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+                )
                 SmartphoneAppsScreen(
                     viewModel = viewModel,
                     onBack = { finish() }
