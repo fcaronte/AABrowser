@@ -3,6 +3,10 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.7 prepared locally (10/11/2026), `versionCode 19` / `versionName "2.7"`; not yet published. It covers the 40 commits from tag `2.6` (`234beba`) through `32de504`. Previous release 2.6 was published on GitHub by the user (08/11/2026, `CarWeb-v2.6.apk`); 2.5.1 was published on 04/11/2026 (the APK contains code through `ff10b3a`, while tag `2.5.1` points to older `215ff01`).
 - **Recent Updates**:
+  - **Smartphone Apps Feature - Intent FLAG_ACTIVITY_NEW_TASK Fix**:
+    - Added `Intent.FLAG_ACTIVITY_NEW_TASK` flag when launching `SmartphoneAppsActivity` from Compose context in `DashboardScreen.kt` and `SettingsScreen.kt`, preventing `AndroidRuntimeException` when starting activities from non-activity contexts.
+    - Committed changes to Git (commit `30372d5`).
+    - Validation: `browser:assembleDebug` and 105 Kotlin unit tests (`browser:testDebugUnitTest`) pass successfully.
   - **Smartphone Apps Feature - ViewModel Factory Crash Fix**:
     - Fixed `IllegalArgumentException` crash in `SmartphoneAppsActivity` when instantiating `SmartphoneAppsViewModel` (which extends `AndroidViewModel`) without an explicit `ViewModelProvider.AndroidViewModelFactory.getInstance(application)`.
     - Committed changes to Git (commit `d8f3495`).
