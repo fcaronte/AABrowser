@@ -2,7 +2,6 @@ package com.fcaronte.aabrowser.smartphone
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -33,9 +32,23 @@ fun SmartphoneAppsScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val favoritePackages by viewModel.favoritePackages.collectAsState()
 
-    val isShizukuInstalled = remember { ShizukuManager.isShizukuInstalled() }
-    val isShizukuRunning = remember { ShizukuManager.isShizukuRunning() }
-    val hasShizukuPerm = remember { ShizukuManager.hasPermission() }
+    val isShizukuInstalled = remember { ShizukuManager.isShizukuInstalled(context) }
+    var isShizukuRunning by remember { mutableStateOf(ShizukuManager.isShizukuRunning()) }
+    var hasShizukuPerm by remember { mutableStateOf(ShizukuManager.hasPermission()) }
+
+    DisposableEffect(Unit) {
+        ShizukuManager.registerListeners(
+            onPermissionResult = { _, grantResult ->
+                hasShizukuPerm = grantResult == android.content.pm.PackageManager.PERMISSION_GRANTED
+                isShizukuRunning = ShizukuManager.isShizukuRunning()
+            },
+            onBinderReceived = {
+                isShizukuRunning = true
+                hasShizukuPerm = ShizukuManager.hasPermission()
+            }
+        )
+        onDispose { }
+    }
 
     Scaffold(
         topBar = {

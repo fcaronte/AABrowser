@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -89,6 +93,17 @@ fun DashboardScreen(
     val lastUrl by AppSettings.lastUrl
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val context = LocalContext.current
+
+    val favoriteSmartphoneApps = remember {
+        try {
+            val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(context)
+            val installed = favManager.getInstalledApps()
+            val favPkgs = favManager.loadFavoritePackageNames().toSet()
+            installed.filter { favPkgs.contains(it.packageName) }
+        } catch (e: Throwable) {
+            emptyList()
+        }
+    }
 
     val currentVersion = remember {
         try {
@@ -294,6 +309,21 @@ fun DashboardScreen(
                     )
                 }
 
+                items(favoriteSmartphoneApps, key = { it.packageName }) { app ->
+                    SmartphoneAppFavoriteGridCard(
+                        app = app,
+                        onClick = {
+                            try {
+                                val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                if (intent != null) {
+                                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+                                }
+                            } catch (_: Throwable) {}
+                        }
+                    )
+                }
+
                 if (isEditMode) {
                     item { AddFavoriteCard(onClick = { showAddDialog = true }) }
                 }
@@ -418,6 +448,78 @@ fun DashboardScreen(
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.settings_button), fontSize = 10.sp, maxLines = 1)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SmartphoneAppFavoriteGridCard(
+    app: com.fcaronte.aabrowser.smartphone.SmartphoneApp,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val bitmap = remember(app.icon) {
+                try {
+                    val drawable = app.icon
+                    if (drawable is android.graphics.drawable.BitmapDrawable && drawable.bitmap != null) {
+                        drawable.bitmap.asImageBitmap()
+                    } else if (drawable != null) {
+                        val width = 96
+                        val height = 96
+                        val bmp = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                        val canvas = android.graphics.Canvas(bmp)
+                        drawable.setBounds(0, 0, canvas.width, canvas.height)
+                        drawable.draw(canvas)
+                        bmp.asImageBitmap()
+                    } else {
+                        null
+                    }
+                } catch (e: Throwable) {
+                    null
+                }
+            }
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp)
+                )
+            } else {
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(app.appName.take(1))
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = app.appName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "App Smartphone",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
