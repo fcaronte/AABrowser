@@ -2,7 +2,10 @@ package com.fcaronte.aabrowser.smartphone
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.IBinder
 import android.util.Log
+import rikka.shizuku.Shizuku
 
 object ShizukuManager {
     private const val TAG = "ShizukuManager"
@@ -16,6 +19,46 @@ object ShizukuManager {
         "rikka.shizuku"
     )
 
+    private val CONTENT_URIS = arrayOf(
+        "content://moe.shizuku.privileged.api",
+        "content://moe.shizuku.manager",
+        "content://moe.shizuku.next",
+        "content://ri.shizuku.server",
+        "content://rikka.shizuku"
+    )
+
+    /**
+     * Attempts to query Shizuku content providers directly to obtain and attach the live IBinder.
+     */
+    fun tryBindShizuku(context: Context): Boolean {
+        if (isShizukuRunning()) return true
+        val cr = context.contentResolver
+        for (uriString in CONTENT_URIS) {
+            try {
+                val uri = Uri.parse(uriString)
+                val reply = cr.call(uri, "BINDER", null, null)
+                if (reply != null) {
+                    reply.classLoader = ShizukuManager::class.java.classLoader
+                    val binder = reply.getBinder("shizuku:binder")
+                    if (binder != null && binder.isBinderAlive) {
+                        try {
+                            val method = Shizuku::class.java.getDeclaredMethod("attachBinder", IBinder::class.java)
+                            method.isAccessible = true
+                            method.invoke(null, binder)
+                            Log.i(TAG, "Successfully attached Shizuku binder from $uriString")
+                            return true
+                        } catch (e: Throwable) {
+                            Log.e(TAG, "Error attaching Shizuku binder via reflection", e)
+                        }
+                    }
+                }
+            } catch (e: Throwable) {
+                // try next authority
+            }
+        }
+        return isShizukuRunning()
+    }
+
     /**
      * Checks whether Shizuku or Shizuku Next app is installed on the device via PackageManager or API check.
      */
@@ -28,12 +71,13 @@ object ShizukuManager {
                     return true
                 } catch (_: Throwable) {}
             }
+            tryBindShizuku(context)
         }
         return try {
-            rikka.shizuku.Shizuku.getVersion() > 0
+            Shizuku.getVersion() > 0
         } catch (_: Throwable) {
             try {
-                rikka.shizuku.Shizuku.pingBinder()
+                Shizuku.pingBinder()
             } catch (_: Throwable) {
                 false
             }
@@ -45,9 +89,9 @@ object ShizukuManager {
      */
     fun isShizukuRunning(): Boolean {
         return try {
-            if (rikka.shizuku.Shizuku.pingBinder()) return true
-            if (rikka.shizuku.Shizuku.getVersion() > 0) return true
-            rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+            if (Shizuku.pingBinder()) return true
+            if (Shizuku.getVersion() > 0) return true
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) {
             false
         }
@@ -58,7 +102,7 @@ object ShizukuManager {
      */
     fun hasPermission(): Boolean {
         return try {
-            rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) {
             Log.e(TAG, "Error checking Shizuku permission", e)
             false
@@ -70,8 +114,8 @@ object ShizukuManager {
      */
     fun requestPermission(requestCode: Int = PERMISSION_REQUEST_CODE) {
         try {
-            if (rikka.shizuku.Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                rikka.shizuku.Shizuku.requestPermission(requestCode)
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Shizuku.requestPermission(requestCode)
             }
         } catch (e: Throwable) {
             Log.e(TAG, "Error requesting Shizuku permission", e)
@@ -86,17 +130,17 @@ object ShizukuManager {
         onBinderReceived: () -> Unit
     ) {
         try {
-            val permListener = object : rikka.shizuku.Shizuku.OnRequestPermissionResultListener {
+            val permListener = object : Shizuku.OnRequestPermissionResultListener {
                 override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
                     onPermissionResult(requestCode, grantResult)
                 }
             }
-            rikka.shizuku.Shizuku.addRequestPermissionResultListener(permListener)
+            Shizuku.addRequestPermissionResultListener(permListener)
 
-            val binderRecListener = rikka.shizuku.Shizuku.OnBinderReceivedListener {
+            val binderRecListener = Shizuku.OnBinderReceivedListener {
                 onBinderReceived()
             }
-            rikka.shizuku.Shizuku.addBinderReceivedListener(binderRecListener)
+            Shizuku.addBinderReceivedListener(binderRecListener)
         } catch (e: Throwable) {
             Log.e(TAG, "Error registering Shizuku listeners", e)
         }

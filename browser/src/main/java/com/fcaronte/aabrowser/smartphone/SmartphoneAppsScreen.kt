@@ -36,6 +36,14 @@ fun SmartphoneAppsScreen(
     var isShizukuRunning by remember { mutableStateOf(ShizukuManager.isShizukuRunning()) }
     var hasShizukuPerm by remember { mutableStateOf(ShizukuManager.hasPermission()) }
 
+    LaunchedEffect(Unit) {
+        val bound = ShizukuManager.tryBindShizuku(context)
+        if (bound) {
+            isShizukuRunning = true
+            hasShizukuPerm = ShizukuManager.hasPermission()
+        }
+    }
+
     DisposableEffect(Unit) {
         ShizukuManager.registerListeners(
             onPermissionResult = { _, grantResult ->
