@@ -95,6 +95,12 @@
             android:label="@string/settings_name">
         </activity>
 
+        <activity
+            android:name=".SmartphoneAppsActivity"
+            android:label="App Smartphone (Shizuku)"
+            android:exported="false">
+        </activity>
+
         <service
             android:name=".CarService"
             android:enabled="true"
