@@ -3,6 +3,12 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.7 prepared locally (10/11/2026), `versionCode 19` / `versionName "2.7"`; not yet published. It covers the 40 commits from tag `2.6` (`234beba`) through `32de504`. Previous release 2.6 was published on GitHub by the user (08/11/2026, `CarWeb-v2.6.apk`); 2.5.1 was published on 04/11/2026 (the APK contains code through `ff10b3a`, while tag `2.5.1` points to older `215ff01`).
 - **Recent Updates**:
+  - **Smartphone Apps Feature - Step 3: Virtual Display & Input Manager**:
+    - Created `VirtualDisplayManager.kt` (`smartphone/VirtualDisplayManager.kt`) to create and release virtual displays with specified dimensions, density, and public presentation flags.
+    - Created `VirtualAppLauncher.kt` (`smartphone/VirtualAppLauncher.kt`) to launch apps on specific virtual display IDs using `ActivityOptions.makeBasic().setLaunchDisplayId(displayId)`.
+    - Created `VirtualInputManager.kt` (`smartphone/VirtualInputManager.kt`) to inject `MotionEvent` and `KeyEvent` into virtual displays via `InputManager` reflection (`injectInputEvent` and `setDisplayId`).
+    - Committed changes to Git (commit `87fb7e2`).
+    - Validation: `browser:assembleDebug` and 105 Kotlin unit tests (`browser:testDebugUnitTest`) pass successfully.
   - **Smartphone Apps Feature - Step 2: Favorite Apps & App Discovery UI**:
     - Created `FavoriteAppsManager.kt` (`smartphone/FavoriteAppsManager.kt`) to manage persistence of favorite smartphone apps in SharedPreferences (`SMARTPHONE_FAVORITES`) and query installed launcher apps.
     - Created `SmartphoneAppsViewModel.kt` (`smartphone/SmartphoneAppsViewModel.kt`) to manage app loading in background IO dispatcher, real-time app search filtering, favorite toggling, and direct app launching.
