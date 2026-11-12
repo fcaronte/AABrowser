@@ -3,22 +3,17 @@ package com.fcaronte.aabrowser.smartphone
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import rikka.shizuku.Shizuku
 
 object ShizukuManager {
     private const val TAG = "ShizukuManager"
     private const val PERMISSION_REQUEST_CODE = 1001
-
-    private var permissionListener: Shizuku.OnRequestPermissionResultListener? = null
-    private var binderReceivedListener: Shizuku.OnBinderReceivedListener? = null
-    private var binderDeadListener: Shizuku.OnBinderDeadListener? = null
 
     /**
      * Checks whether Shizuku API is available (i.e. Shizuku app is installed on the device).
      */
     fun isShizukuInstalled(): Boolean {
         return try {
-            Shizuku.getVersion()
+            rikka.shizuku.Shizuku.getVersion()
             true
         } catch (e: Throwable) {
             false
@@ -30,7 +25,8 @@ object ShizukuManager {
      */
     fun isShizukuRunning(): Boolean {
         return try {
-            Shizuku.pingBinder()
+            if (!isShizukuInstalled()) return false
+            rikka.shizuku.Shizuku.pingBinder()
         } catch (e: Throwable) {
             false
         }
@@ -42,10 +38,10 @@ object ShizukuManager {
     fun hasPermission(): Boolean {
         if (!isShizukuInstalled() || !isShizukuRunning()) return false
         return try {
-            if (Shizuku.isPreV11()) {
+            if (rikka.shizuku.Shizuku.isPreV11()) {
                 false
             } else {
-                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+                rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
             }
         } catch (e: Throwable) {
             Log.e(TAG, "Error checking Shizuku permission", e)
@@ -58,9 +54,9 @@ object ShizukuManager {
      */
     fun requestPermission(requestCode: Int = PERMISSION_REQUEST_CODE) {
         try {
-            if (isShizukuInstalled() && isShizukuRunning() && !Shizuku.isPreV11()) {
-                if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                    Shizuku.requestPermission(requestCode)
+            if (isShizukuInstalled() && isShizukuRunning() && !rikka.shizuku.Shizuku.isPreV11()) {
+                if (rikka.shizuku.Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                    rikka.shizuku.Shizuku.requestPermission(requestCode)
                 }
             }
         } catch (e: Throwable) {
@@ -77,25 +73,23 @@ object ShizukuManager {
         onBinderDead: () -> Unit
     ) {
         try {
-            val permListener = object : Shizuku.OnRequestPermissionResultListener {
+            if (!isShizukuInstalled()) return
+            val permListener = object : rikka.shizuku.Shizuku.OnRequestPermissionResultListener {
                 override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
                     onPermissionResult(requestCode, grantResult)
                 }
             }
-            permissionListener = permListener
-            Shizuku.addRequestPermissionResultListener(permListener)
+            rikka.shizuku.Shizuku.addRequestPermissionResultListener(permListener)
 
-            val binderRecListener = Shizuku.OnBinderReceivedListener {
+            val binderRecListener = rikka.shizuku.Shizuku.OnBinderReceivedListener {
                 onBinderReceived()
             }
-            binderReceivedListener = binderRecListener
-            Shizuku.addBinderReceivedListener(binderRecListener)
+            rikka.shizuku.Shizuku.addBinderReceivedListener(binderRecListener)
 
-            val binderDListener = Shizuku.OnBinderDeadListener {
+            val binderDListener = rikka.shizuku.Shizuku.OnBinderDeadListener {
                 onBinderDead()
             }
-            binderDeadListener = binderDListener
-            Shizuku.addBinderDeadListener(binderDListener)
+            rikka.shizuku.Shizuku.addBinderDeadListener(binderDListener)
         } catch (e: Throwable) {
             Log.e(TAG, "Error registering Shizuku listeners", e)
         }
@@ -106,9 +100,7 @@ object ShizukuManager {
      */
     fun unregisterListeners() {
         try {
-            permissionListener?.let { Shizuku.removeRequestPermissionResultListener(it) }
-            binderReceivedListener?.let { Shizuku.removeBinderReceivedListener(it) }
-            binderDeadListener?.let { Shizuku.removeBinderDeadListener(it) }
+            if (!isShizukuInstalled()) return
         } catch (e: Throwable) {
             Log.e(TAG, "Error unregistering Shizuku listeners", e)
         }
