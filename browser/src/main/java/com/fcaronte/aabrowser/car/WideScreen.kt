@@ -705,7 +705,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun buildHomeHtml(): String {
         favoritesCache = null
-        val items = favorites().map { HomePage.Item(it.name, it.url) }
+        val items = mutableListOf<HomePage.Item>()
+        items.addAll(favorites().map { HomePage.Item(it.name, it.url) })
+        try {
+            val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(carContext)
+            val installed = favManager.getInstalledApps()
+            val favPkgs = favManager.loadFavoritePackageNames().toSet()
+            installed.filter { favPkgs.contains(it.packageName) }.forEach { app ->
+                items.add(HomePage.Item("📱 " + app.appName, "app://${app.packageName}"))
+            }
+        } catch (_: Throwable) {}
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
         return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)
@@ -818,6 +827,23 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun loadUrl(url: String) {
+        if (url.startsWith("app://")) {
+            val packageName = url.removePrefix("app://")
+            val launcher = com.fcaronte.aabrowser.smartphone.VirtualAppLauncher(carContext)
+            val launched = launcher.launchAppOnDisplay(packageName, 0)
+            if (!launched) {
+                try {
+                    val intent = carContext.packageManager.getLaunchIntentForPackage(packageName)
+                    if (intent != null) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        carContext.startActivity(intent)
+                    }
+                } catch (e: Throwable) {
+                    AppLog.e(TAG, "Failed to launch app $packageName", e)
+                }
+            }
+            return
+        }
         lastUrl = url
         webView?.let {
             applyUserAgent(it, url)
