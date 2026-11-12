@@ -1,7 +1,6 @@
 package com.fcaronte.aabrowser.smartphone
 
 import android.app.Application
-import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -77,15 +76,9 @@ class SmartphoneAppsViewModel(application: Application) : AndroidViewModel(appli
     fun launchAppDirectly(packageName: String) {
         try {
             val context = getApplication<Application>()
-            val intent = context.packageManager.getLaunchIntentForPackage(packageName)
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            } else {
-                Log.w(TAG, "No launch intent found for $packageName")
-            }
+            com.fcaronte.aabrowser.VirtualAppActivity.open(context, packageName)
         } catch (e: Throwable) {
-            Log.e(TAG, "Error launching app $packageName", e)
+            Log.e(TAG, "Error opening virtual app $packageName", e)
         }
     }
 }

@@ -1,86 +1,69 @@
 package com.fcaronte.aabrowser.smartphone
 
-import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.PixelFormat
 import android.media.ImageReader
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
 
+/** Captures frames from a Shizuku-owned virtual display into an ImageReader surface. */
 class NormalVirtualDisplayRenderer(
-    private val context: Context,
-    private val width: Int = 1280,
-    private val height: Int = 720,
-    private val density: Int = 216,
+    private val width: Int,
+    private val height: Int,
     private val onFrameAvailable: (Bitmap) -> Unit
 ) {
-    private val TAG = "NormalVirtualDisplayRenderer"
-    private val virtualDisplayManager = VirtualDisplayManager(context)
-    private var imageReader: ImageReader? = null
     private val handler = Handler(Looper.getMainLooper())
+    private var imageReader: ImageReader? = null
 
-    val displayId: Int
-        get() = virtualDisplayManager.displayId
+    val surface: Surface?
+        get() = imageReader?.surface
 
-    fun start() {
-        try {
-            imageReader = ImageReader.newInstance(width, height, android.graphics.PixelFormat.RGBA_8888, 2).apply {
+    fun start(): Surface? {
+        return try {
+            imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2).apply {
                 setOnImageAvailableListener({ reader ->
-                    val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+                    val image = try {
+                        reader.acquireLatestImage()
+                    } catch (_: IllegalStateException) {
+                        null
+                    } ?: return@setOnImageAvailableListener
                     try {
-                        val planes = image.planes
-                        val buffer = planes[0].buffer
-                        val pixelStride = planes[0].pixelStride
-                        val rowStride = planes[0].rowStride
-                        val rowPadding = rowStride - pixelStride * width
-
-                        val bitmap = Bitmap.createBitmap(
-                            width + rowPadding / pixelStride,
-                            height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                        bitmap.copyPixelsFromBuffer(buffer)
-                        image.close()
-
-                        val croppedBitmap = if (rowPadding == 0) {
-                            bitmap
-                        } else {
-                            Bitmap.createBitmap(bitmap, 0, 0, width, height)
-                        }
-
-                        handler.post {
-                            onFrameAvailable(croppedBitmap)
-                        }
-                    } catch (e: Throwable) {
-                        Log.e(TAG, "Error processing virtual display frame", e)
+                        val plane = image.planes[0]
+                        val pixelStride = plane.pixelStride
+                        val rowStride = plane.rowStride
+                        val paddedWidth = width + (rowStride - pixelStride * width) / pixelStride
+                        val padded = Bitmap.createBitmap(paddedWidth, height, Bitmap.Config.ARGB_8888)
+                        padded.copyPixelsFromBuffer(plane.buffer)
+                        val frame = if (paddedWidth == width) padded else Bitmap.createBitmap(padded, 0, 0, width, height)
+                        handler.post { onFrameAvailable(frame) }
+                    } catch (error: Throwable) {
+                        Log.e(TAG, "Could not copy virtual display frame", error)
+                    } finally {
                         image.close()
                     }
                 }, handler)
             }
-
-            val surface = imageReader?.surface
-            virtualDisplayManager.createVirtualDisplay(
-                name = "CarWebNormalVirtualDisplay",
-                width = width,
-                height = height,
-                density = density,
-                surface = surface
-            )
-            Log.i(TAG, "NormalVirtualDisplayRenderer started successfully")
-        } catch (e: Throwable) {
-            Log.e(TAG, "Failed to start NormalVirtualDisplayRenderer", e)
+            imageReader?.surface
+        } catch (error: Throwable) {
+            Log.e(TAG, "Could not create image reader", error)
+            null
         }
     }
 
     fun stop() {
         try {
-            virtualDisplayManager.release()
+            imageReader?.setOnImageAvailableListener(null, null)
             imageReader?.close()
+        } catch (error: Throwable) {
+            Log.w(TAG, "Could not close image reader", error)
+        } finally {
             imageReader = null
-            Log.i(TAG, "NormalVirtualDisplayRenderer stopped")
-        } catch (e: Throwable) {
-            Log.e(TAG, "Error stopping NormalVirtualDisplayRenderer", e)
         }
+    }
+
+    companion object {
+        private const val TAG = "NormalVirtualDisplayRenderer"
     }
 }

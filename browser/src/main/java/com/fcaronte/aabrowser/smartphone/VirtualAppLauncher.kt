@@ -32,20 +32,8 @@ class VirtualAppLauncher(private val context: Context) {
             Log.i(TAG, "Successfully launched $packageName on display $displayId")
             return true
         } catch (e: Throwable) {
-            Log.e(TAG, "Error launching $packageName on display $displayId, attempting direct launch", e)
-            return launchDirect(packageName)
-        }
-    }
-
-    private fun launchDirect(packageName: String): Boolean {
-        return try {
-            val intent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            true
-        } catch (e: Throwable) {
-            Log.e(TAG, "Error launching direct $packageName", e)
-            false
+            Log.e(TAG, "Error launching $packageName on display $displayId", e)
+            return false
         }
     }
 }

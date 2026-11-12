@@ -89,9 +89,7 @@ object ShizukuManager {
      */
     fun isShizukuRunning(): Boolean {
         return try {
-            if (Shizuku.pingBinder()) return true
-            if (Shizuku.getVersion() > 0) return true
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+            Shizuku.pingBinder()
         } catch (e: Throwable) {
             false
         }

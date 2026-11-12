@@ -22,7 +22,7 @@ class VirtualDisplayManager(private val context: Context) {
         height: Int,
         density: Int,
         surface: Surface?,
-        flags: Int = DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC or
+        flags: Int = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY or
                      DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
     ): Int {
         release()

@@ -14,12 +14,13 @@ data class SmartphoneApp(
 
 class FavoriteAppsManager(private val context: Context) {
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("SMARTPHONE_FAVORITES", Context.MODE_PRIVATE)
+        context.getSharedPreferences(FAVORITES_PREFS_NAME, Context.MODE_PRIVATE)
 
     companion object {
         private const val TAG = "FavoriteAppsManager"
         private const val KEY_FAV_COUNT = "FavCount"
         private const val KEY_FAV_PREFIX = "FavPkg_"
+        const val FAVORITES_PREFS_NAME = "SMARTPHONE_FAVORITES"
     }
 
     /**
@@ -42,8 +43,9 @@ class FavoriteAppsManager(private val context: Context) {
      * Saves the list of favorite package names.
      */
     fun saveFavoritePackageNames(packages: List<String>) {
+        val oldCount = prefs.getInt(KEY_FAV_COUNT, 0).coerceAtLeast(0)
         val editor = prefs.edit()
-        editor.clear()
+        repeat(oldCount) { editor.remove("$KEY_FAV_PREFIX$it") }
         editor.putInt(KEY_FAV_COUNT, packages.size)
         packages.forEachIndexed { index, pkg ->
             editor.putString("$KEY_FAV_PREFIX$index", pkg)

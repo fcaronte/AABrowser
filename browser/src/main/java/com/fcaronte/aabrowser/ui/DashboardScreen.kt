@@ -85,6 +85,7 @@ fun DashboardScreen(
     onVoiceCommand: () -> Unit = {},
     onShowFeedback: (String) -> Unit = {},
     onOpenWide: (() -> Unit)? = null,
+    onVirtualAppSelected: ((String) -> Unit)? = null,
 ) {
     val favorites = viewModel.favorites
     var isEditMode by remember { mutableStateOf(value = false) }
@@ -313,13 +314,18 @@ fun DashboardScreen(
                     SmartphoneAppFavoriteGridCard(
                         app = app,
                         onClick = {
-                            try {
-                                val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                                if (intent != null) {
-                                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                }
-                            } catch (_: Throwable) {}
+                            if (onVirtualAppSelected != null) {
+                                onVirtualAppSelected(app.packageName)
+                            } else try {
+                                com.fcaronte.aabrowser.VirtualAppActivity.open(context, app.packageName)
+                            } catch (error: Throwable) {
+                                android.util.Log.e("DashboardScreen", "Unable to open virtual app ${app.packageName}", error)
+                                android.widget.Toast.makeText(
+                                    context,
+                                    error.message ?: "Impossibile aprire l'app virtuale",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
                     )
                 }
