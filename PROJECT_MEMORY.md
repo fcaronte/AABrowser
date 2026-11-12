@@ -3,6 +3,10 @@
 ## 1. Current Status
 - **Version / Milestone**: 2.7 prepared locally (10/11/2026), `versionCode 19` / `versionName "2.7"`; not yet published. It covers the 40 commits from tag `2.6` (`234beba`) through `32de504`. Previous release 2.6 was published on GitHub by the user (08/11/2026, `CarWeb-v2.6.apk`); 2.5.1 was published on 04/11/2026 (the APK contains code through `ff10b3a`, while tag `2.5.1` points to older `215ff01`).
 - **Recent Updates**:
+  - **Smartphone Apps Feature - ViewModel Factory Crash Fix**:
+    - Fixed `IllegalArgumentException` crash in `SmartphoneAppsActivity` when instantiating `SmartphoneAppsViewModel` (which extends `AndroidViewModel`) without an explicit `ViewModelProvider.AndroidViewModelFactory.getInstance(application)`.
+    - Committed changes to Git (commit `d8f3495`).
+    - Validation: `browser:assembleDebug` and 105 Kotlin unit tests (`browser:testDebugUnitTest`) pass successfully.
   - **Smartphone Apps Feature - Crash Fix & Robustness (Shizuku & Android 11+ Queries)**:
     - Added `<queries>` intent filter for `ACTION_MAIN` / `CATEGORY_LAUNCHER` in `AndroidManifest.xml` to comply with Android 11+ package visibility rules for querying installed apps.
     - Hardened `ShizukuManager.kt` with robust `try-catch` blocks protecting against missing Shizuku provider, `NoClassDefFoundError`, and reflection/runtime exceptions when Shizuku is not installed.
