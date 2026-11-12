@@ -222,6 +222,16 @@ fun DashboardScreen(
                                 tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             )
                         }
+                        IconButton(onClick = {
+                            val intent = android.content.Intent(context, com.fcaronte.aabrowser.SmartphoneAppsActivity::class.java)
+                            context.startActivity(intent)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Layers,
+                                contentDescription = "App Smartphone",
+                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                            )
+                        }
                         IconButton(onClick = onOpenSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,

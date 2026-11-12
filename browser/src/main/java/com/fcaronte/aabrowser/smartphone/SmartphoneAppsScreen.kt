@@ -1,5 +1,8 @@
 package com.fcaronte.aabrowser.smartphone
 
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,11 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
-import com.fcaronte.aabrowser.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -160,10 +160,23 @@ fun SmartphoneAppItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // App Icon
+            // App Icon (Safe Conversion)
             val bitmap = remember(app.icon) {
                 try {
-                    app.icon?.toBitmap(width = 96, height = 96)?.asImageBitmap()
+                    val drawable = app.icon
+                    if (drawable is BitmapDrawable && drawable.bitmap != null) {
+                        drawable.bitmap.asImageBitmap()
+                    } else if (drawable != null) {
+                        val width = 96
+                        val height = 96
+                        val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                        val canvas = android.graphics.Canvas(bmp)
+                        drawable.setBounds(0, 0, canvas.width, canvas.height)
+                        drawable.draw(canvas)
+                        bmp.asImageBitmap()
+                    } else {
+                        null
+                    }
                 } catch (e: Throwable) {
                     null
                 }
