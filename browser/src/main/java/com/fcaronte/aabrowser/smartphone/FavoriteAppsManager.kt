@@ -74,6 +74,33 @@ class FavoriteAppsManager(private val context: Context) {
     }
 
     /**
+     * Retrieves only the favorite apps (fast and lightweight).
+     */
+    fun getFavoriteApps(): List<SmartphoneApp> {
+        val favPkgs = loadFavoritePackageNames().toSet()
+        if (favPkgs.isEmpty()) return emptyList()
+
+        val pm = context.packageManager
+        val result = mutableListOf<SmartphoneApp>()
+        for (pkg in favPkgs) {
+            try {
+                val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    pm.getApplicationInfo(pkg, PackageManager.ApplicationInfoFlags.of(0.toLong()))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.getApplicationInfo(pkg, 0)
+                }
+                val appName = pm.getApplicationLabel(appInfo).toString()
+                val icon = pm.getApplicationIcon(appInfo)
+                result.add(SmartphoneApp(pkg, appName, icon))
+            } catch (e: Throwable) {
+                Log.w(TAG, "Favorite app package $pkg not found or disabled", e)
+            }
+        }
+        return result.sortedBy { it.appName.lowercase() }
+    }
+
+    /**
      * Retrieves all installed apps on the device that have a launcher intent.
      */
     fun getInstalledApps(): List<SmartphoneApp> {

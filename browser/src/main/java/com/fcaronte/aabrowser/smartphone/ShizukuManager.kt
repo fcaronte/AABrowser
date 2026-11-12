@@ -6,24 +6,38 @@ import android.util.Log
 
 object ShizukuManager {
     private const val TAG = "ShizukuManager"
-    private const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
     private const val PERMISSION_REQUEST_CODE = 1001
 
+    private val SHIZUKU_PACKAGES = arrayOf(
+        "moe.shizuku.privileged.api",
+        "moe.shizuku.manager",
+        "moe.shizuku.next",
+        "ri.shizuku.server",
+        "rikka.shizuku"
+    )
+
     /**
-     * Checks whether Shizuku app is installed on the device via PackageManager or API check.
+     * Checks whether Shizuku or Shizuku Next app is installed on the device via PackageManager or API check.
      */
     fun isShizukuInstalled(context: Context? = null): Boolean {
-        try {
-            if (context != null) {
+        if (context != null) {
+            val pm = context.packageManager
+            for (pkg in SHIZUKU_PACKAGES) {
                 try {
-                    context.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
+                    pm.getPackageInfo(pkg, 0)
                     return true
                 } catch (_: Throwable) {}
             }
+        }
+        return try {
             rikka.shizuku.Shizuku.getVersion()
-            return true
-        } catch (e: Throwable) {
-            return false
+            true
+        } catch (_: Throwable) {
+            try {
+                rikka.shizuku.Shizuku.pingBinder()
+            } catch (_: Throwable) {
+                false
+            }
         }
     }
 

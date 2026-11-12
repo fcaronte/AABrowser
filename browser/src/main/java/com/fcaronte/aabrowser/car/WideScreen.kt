@@ -709,9 +709,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         items.addAll(favorites().map { HomePage.Item(it.name, it.url) })
         try {
             val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(carContext)
-            val installed = favManager.getInstalledApps()
-            val favPkgs = favManager.loadFavoritePackageNames().toSet()
-            installed.filter { favPkgs.contains(it.packageName) }.forEach { app ->
+            favManager.getFavoriteApps().forEach { app ->
                 items.add(HomePage.Item("📱 " + app.appName, "app://${app.packageName}"))
             }
         } catch (_: Throwable) {}

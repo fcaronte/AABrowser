@@ -94,14 +94,14 @@ fun DashboardScreen(
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val context = LocalContext.current
 
-    val favoriteSmartphoneApps = remember {
-        try {
-            val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(context)
-            val installed = favManager.getInstalledApps()
-            val favPkgs = favManager.loadFavoritePackageNames().toSet()
-            installed.filter { favPkgs.contains(it.packageName) }
-        } catch (e: Throwable) {
-            emptyList()
+    var favoriteSmartphoneApps by remember { mutableStateOf<List<com.fcaronte.aabrowser.smartphone.SmartphoneApp>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(context)
+                favoriteSmartphoneApps = favManager.getFavoriteApps()
+            } catch (_: Throwable) {}
         }
     }
 

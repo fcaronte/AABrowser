@@ -29,6 +29,10 @@
     <queries>
         <package android:name="com.example.kinginstaller" />
         <package android:name="moe.shizuku.privileged.api" />
+        <package android:name="moe.shizuku.manager" />
+        <package android:name="moe.shizuku.next" />
+        <package android:name="ri.shizuku.server" />
+        <package android:name="rikka.shizuku" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
