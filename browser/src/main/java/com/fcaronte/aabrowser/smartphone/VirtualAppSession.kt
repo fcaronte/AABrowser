@@ -78,7 +78,7 @@ class VirtualAppSession(
         this.width = width
         this.height = height
         this.dpi = dpi.coerceAtLeast(60)
-        Log.i(TAG, "$packageName: surface ${width}x$height@${this.dpi} (display $displayId, phase $phase)")
+        Log.i(TAG, "surface ${width}x$height@${this.dpi} (display $displayId, phase $phase)")
         if (displayId <= 0 && phase != Phase.RUNNING) step = 1
 
         if (displayId > 0) {
@@ -127,7 +127,7 @@ class VirtualAppSession(
             if (inCar) {
                 ShizukuAppBridge.phoneGroup(appContext, id) { group ->
                     sharesPhoneGroup = group != 0
-                    Log.i(TAG, "$packageName: display $id phone group=$group")
+                    Log.i(TAG, "display $id phone group=$group")
                     updateInUse()
                 }
             }
@@ -226,7 +226,7 @@ class VirtualAppSession(
     }
 
     private fun fail(problem: Problem) {
-        Log.w(TAG, "$packageName: ${problem.kind} ${problem.detail}")
+        Log.w(TAG, "${problem.kind} ${problem.detail}")
         this.problem = problem
         phase = Phase.ERROR
         updateInUse()

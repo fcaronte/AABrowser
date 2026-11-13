@@ -77,7 +77,7 @@ object ShizukuAppBridge {
     fun launch(context: Context, displayId: Int, component: ComponentName, onResult: ((Boolean, String) -> Unit)? = null) {
         run(context.applicationContext, onFailure = { message -> onResult?.let { main.post { it(false, message) } } }) { service ->
             val reply = service.launch(displayId, component)
-            Log.i(TAG, "launch display=$displayId ${component.packageName} -> $reply")
+            Log.i(TAG, "launch display=$displayId -> ${reply.take(160)}")
             onResult?.let { callback -> main.post { callback(reply.startsWith("OK"), reply.removePrefix("ERROR:")) } }
         }
     }
