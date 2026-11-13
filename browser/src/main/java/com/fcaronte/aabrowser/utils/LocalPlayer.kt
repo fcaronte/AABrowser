@@ -49,6 +49,7 @@ object LocalPlayer {
     const val TV_ICON_URL = "${BASE_URL}tv.svg"
     const val RADIO_ICON_URL = "${BASE_URL}radio.svg"
     const val PODCAST_ICON_URL = "${BASE_URL}podcast.svg"
+    const val APPS_ICON_URL = "${BASE_URL}apps.svg"
     private const val DEFAULT_COVER_PATH = "/cover.png"
 
     // Stesso limite dell'elenco cartella di LastFileSelection
@@ -198,6 +199,12 @@ object LocalPlayer {
     fun isPodcastUrl(url: String?): Boolean {
         val uri = url?.let(Uri::parse) ?: return false
         return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/podcast", "/podcast/")
+    }
+
+    /** "Altre App": l'elenco delle app del telefono da aprire sullo schermo virtuale. */
+    fun isAppsUrl(url: String?): Boolean {
+        val uri = url?.let(Uri::parse) ?: return false
+        return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/apps", "/apps/")
     }
 
     fun isTvUrl(url: String?): Boolean {

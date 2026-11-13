@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.ui
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +17,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import kotlinx.coroutines.delay
 
@@ -26,7 +28,11 @@ private const val MAX_ICON_RETRIES = 5
  * Cosa caricare come icona di un sito (preferiti, barra e gestione schede).
  * CarWeb Media ha la sua: player.local esiste solo nelle WebView dell'app e il servizio di Google non lo conosce.
  */
-fun siteIconModel(url: String, faviconUrl: String?, domain: String): Any = when {
+fun siteIconModel(url: String, faviconUrl: String?, domain: String, context: Context? = null): Any = when {
+    // Un'app del telefono sullo schermo virtuale: la sua icona (la scheda ha come indirizzo app://pacchetto)
+    VirtualApps.isAppUrl(url) ->
+        context?.let { c -> VirtualApps.packageOf(url)?.let { VirtualApps.icon(c, it) } } ?: R.drawable.ic_apps
+    LocalPlayer.isAppsUrl(url) -> R.drawable.ic_apps
     LocalPlayer.isRadioUrl(url) -> R.drawable.ic_radio
     LocalPlayer.isPodcastUrl(url) -> R.drawable.ic_podcast
     LocalPlayer.isTvUrl(url) -> R.drawable.ic_tv

@@ -2,139 +2,49 @@ package com.fcaronte.aabrowser.smartphone
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
-import android.util.Log
 
-data class SmartphoneApp(
-    val packageName: String,
-    val appName: String,
-    val icon: Drawable?
-)
-
-class FavoriteAppsManager(private val context: Context) {
+/**
+ * Le app del telefono con la stella (pagina "Altre App"): solo i nomi dei pacchetti, nell'ordine in cui sono state scelte.
+ * Si aprono dalla home di CarWeb (Main e Wide). Elenco, nomi e icone stanno in [VirtualApps].
+ */
+class FavoriteAppsManager(context: Context) {
     private val prefs: SharedPreferences =
-        context.getSharedPreferences(FAVORITES_PREFS_NAME, Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences(FAVORITES_PREFS_NAME, Context.MODE_PRIVATE)
 
-    companion object {
-        private const val TAG = "FavoriteAppsManager"
-        private const val KEY_FAV_COUNT = "FavCount"
-        private const val KEY_FAV_PREFIX = "FavPkg_"
-        const val FAVORITES_PREFS_NAME = "SMARTPHONE_FAVORITES"
-    }
-
-    /**
-     * Loads the list of favorite package names.
-     */
     fun loadFavoritePackageNames(): List<String> {
         val count = prefs.getInt(KEY_FAV_COUNT, 0)
         val list = mutableListOf<String>()
         for (i in 0 until count) {
-            prefs.getString("$KEY_FAV_PREFIX$i", null)?.let { pkg ->
-                if (pkg.isNotBlank()) {
-                    list.add(pkg)
-                }
-            }
+            prefs.getString("$KEY_FAV_PREFIX$i", null)?.takeIf { it.isNotBlank() && it !in list }?.let(list::add)
         }
         return list
     }
 
-    /**
-     * Saves the list of favorite package names.
-     */
     fun saveFavoritePackageNames(packages: List<String>) {
         val oldCount = prefs.getInt(KEY_FAV_COUNT, 0).coerceAtLeast(0)
-        val editor = prefs.edit()
-        repeat(oldCount) { editor.remove("$KEY_FAV_PREFIX$it") }
-        editor.putInt(KEY_FAV_COUNT, packages.size)
-        packages.forEachIndexed { index, pkg ->
-            editor.putString("$KEY_FAV_PREFIX$index", pkg)
+        prefs.edit().apply {
+            repeat(oldCount) { remove("$KEY_FAV_PREFIX$it") }
+            putInt(KEY_FAV_COUNT, packages.size)
+            packages.forEachIndexed { index, pkg -> putString("$KEY_FAV_PREFIX$index", pkg) }
+            apply()
         }
-        editor.apply()
     }
 
-    /**
-     * Adds or removes a package from favorites.
-     */
-    fun toggleFavorite(packageName: String): Boolean {
+    /** Aggiunge o toglie la stella; restituisce true se ora l'app è tra i preferiti. */
+    fun setFavorite(packageName: String, favorite: Boolean): Boolean {
         val current = loadFavoritePackageNames().toMutableList()
-        val isFavorite = current.contains(packageName)
-        if (isFavorite) {
-            current.remove(packageName)
-        } else {
-            current.add(packageName)
-        }
-        saveFavoritePackageNames(current)
-        return !isFavorite
+        val present = current.contains(packageName)
+        if (favorite && !present) current.add(packageName)
+        if (!favorite && present) current.remove(packageName)
+        if (favorite != present) saveFavoritePackageNames(current)
+        return favorite
     }
 
-    /**
-     * Checks if an app package is in favorites.
-     */
-    fun isFavorite(packageName: String): Boolean {
-        return loadFavoritePackageNames().contains(packageName)
-    }
+    fun isFavorite(packageName: String): Boolean = loadFavoritePackageNames().contains(packageName)
 
-    /**
-     * Retrieves only the favorite apps (fast and lightweight).
-     */
-    fun getFavoriteApps(): List<SmartphoneApp> {
-        val favPkgs = loadFavoritePackageNames().toSet()
-        if (favPkgs.isEmpty()) return emptyList()
-
-        val pm = context.packageManager
-        val result = mutableListOf<SmartphoneApp>()
-        for (pkg in favPkgs) {
-            try {
-                val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    pm.getApplicationInfo(pkg, PackageManager.ApplicationInfoFlags.of(0.toLong()))
-                } else {
-                    @Suppress("DEPRECATION")
-                    pm.getApplicationInfo(pkg, 0)
-                }
-                val appName = pm.getApplicationLabel(appInfo).toString()
-                val icon = pm.getApplicationIcon(appInfo)
-                result.add(SmartphoneApp(pkg, appName, icon))
-            } catch (e: Throwable) {
-                Log.w(TAG, "Favorite app package $pkg not found or disabled", e)
-            }
-        }
-        return result.sortedBy { it.appName.lowercase() }
-    }
-
-    /**
-     * Retrieves all installed apps on the device that have a launcher intent.
-     */
-    fun getInstalledApps(): List<SmartphoneApp> {
-        val pm = context.packageManager
-        val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
-            addCategory(android.content.Intent.CATEGORY_LAUNCHER)
-        }
-
-        val resolveInfos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            pm.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlags.of(0.toLong()))
-        } else {
-            @Suppress("DEPRECATION")
-            pm.queryIntentActivities(mainIntent, 0)
-        }
-
-        val appsMap = mutableMapOf<String, SmartphoneApp>()
-        for (info in resolveInfos) {
-            val packageName = info.activityInfo.packageName
-            // Exclude our own app package to avoid recursion/launch loops
-            if (packageName == context.packageName) continue
-
-            if (!appsMap.containsKey(packageName)) {
-                try {
-                    val appName = info.loadLabel(pm)?.toString() ?: packageName
-                    val icon = info.loadIcon(pm)
-                    appsMap[packageName] = SmartphoneApp(packageName, appName, icon)
-                } catch (e: Throwable) {
-                    Log.e(TAG, "Error loading app info for $packageName", e)
-                }
-            }
-        }
-
-        return appsMap.values.sortedBy { it.appName.lowercase() }
+    companion object {
+        const val FAVORITES_PREFS_NAME = "SMARTPHONE_FAVORITES"
+        private const val KEY_FAV_COUNT = "FavCount"
+        private const val KEY_FAV_PREFIX = "FavPkg_"
     }
 }

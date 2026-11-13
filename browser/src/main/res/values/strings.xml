@@ -480,4 +480,39 @@
     <string name="podcast_rss_url">RSS feed address</string>
     <string name="podcast_rss_error">Not a valid feed, or it cannot be reached</string>
     <string name="podcast_opml_error">Could not read the file. Choose an accessible OPML file.</string>
+    <!-- Altre App: le app del telefono sullo schermo virtuale (Shizuku) -->
+    <string name="favorite_default_name_13">Other Apps</string>
+    <string name="favorite_default_url_13" translatable="false">https://player.local/apps</string>
+    <string name="vapp_tile_label">Phone app</string>
+    <string name="apps_title">Other Apps</string>
+    <string name="apps_search">Search apps</string>
+    <string name="apps_loading">Loading apps…</string>
+    <string name="apps_empty">No apps found</string>
+    <string name="apps_shizuku_ready">Shizuku is active</string>
+    <string name="apps_shizuku_missing">Shizuku is not installed</string>
+    <string name="apps_shizuku_stopped">Shizuku is not running</string>
+    <string name="apps_shizuku_permission">Shizuku: permission missing</string>
+    <string name="apps_authorize">Allow</string>
+    <string name="apps_favorite_add">Add to favorites</string>
+    <string name="apps_favorite_remove">Remove from favorites</string>
+    <string name="apps_hint_phone">Start Shizuku and allow CarWeb on the phone.</string>
+    <string name="vapp_back">Back</string>
+    <string name="vapp_keyboard">Keyboard</string>
+    <string name="vapp_close">Close the app</string>
+    <string name="vapp_sidebar_show">Show the bar</string>
+    <string name="vapp_sidebar_hide">Hide the bar</string>
+    <string name="vapp_starting">Opening the app…</string>
+    <string name="vapp_error_missing">Shizuku is not installed on the phone.</string>
+    <string name="vapp_error_stopped">Shizuku is not running: open it on the phone and start it.</string>
+    <string name="vapp_error_permission">CarWeb is not allowed in Shizuku.</string>
+    <string name="vapp_error_no_app">This app cannot be opened on the virtual screen.</string>
+    <string name="vapp_error_failed">Cannot show the app: %1$s</string>
+    <string name="vapp_retry">Try again</string>
+    <string name="vapp_keyboard_no_field">Tap a text field first</string>
+    <string name="vapp_keyboard_old">The keyboard button needs Android 11 or newer</string>
+    <string name="vapp_keyboard_error">Keyboard: %1$s</string>
+    <string name="standby_title">CarWeb is active</string>
+    <string name="standby_hint">Swipe to unlock</string>
+    <string name="vapp_standby_label">Standby screen on the phone</string>
+    <string name="vapp_standby_desc">While a phone app is on the car screen, the phone stays awake but shows a black “CarWeb is active” screen (swipe to unlock), and shows it again when you stop using the phone.</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,13 +32,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import java.net.URI
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -163,6 +169,72 @@ fun FavoriteCard(
                 Text(
                     text = domain,
                     // Usiamo onSurfaceVariant con peso e opacità piena o quasi per la massima leggibilità
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Un'app del telefono con la stella (pagina "Altre App"): come un preferito, con l'icona dell'app. Il tocco la apre sul
+ * display virtuale, in una scheda.
+ */
+@Composable
+fun FavoriteAppCard(app: VirtualApps.AppEntry, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val icon = remember(app.packageName) { VirtualApps.icon(context, app.packageName)?.asImageBitmap() }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(onClick = onClick)
+                .padding(10.dp),
+        ) {
+            if (icon != null) {
+                Image(
+                    bitmap = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.TopStart)
+                )
+            } else {
+                Icon(
+                    Icons.Default.Language,
+                    null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.TopStart)
+                )
+            }
+            Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                Text(
+                    text = app.name,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(R.string.vapp_tile_label),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,

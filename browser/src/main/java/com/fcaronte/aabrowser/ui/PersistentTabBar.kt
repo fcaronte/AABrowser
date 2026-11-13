@@ -220,7 +220,8 @@ fun TabItem(
         }
     }
 
-    val iconModel = remember(tab.url, tab.faviconUrl) { siteIconModel(tab.url, tab.faviconUrl, domain) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val iconModel = remember(tab.url, tab.faviconUrl) { siteIconModel(tab.url, tab.faviconUrl, domain, context) }
 
     Surface(
         onClick = onClick,

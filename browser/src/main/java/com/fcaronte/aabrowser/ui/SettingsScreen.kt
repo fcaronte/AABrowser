@@ -611,36 +611,6 @@ fun SettingsScreen(
                                 BackupCard(onRestored = { restartApp() })
                             }
 
-                            // App Smartphone & Shizuku
-                            if (!isCarMode) {
-                                SettingsCard {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            text = "App Smartphone (Shizuku)",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = "Gestisci e avvia le applicazioni Android del telefono sullo schermo dell'auto tramite Shizuku e Virtual Display.",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        Button(
-                                            onClick = {
-                                                val intent = android.content.Intent(context, com.fcaronte.aabrowser.SmartphoneAppsActivity::class.java).apply {
-                                                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                context.startActivity(intent)
-                                            }
-                                        ) {
-                                            Text("Apri Gestione App Smartphone")
-                                        }
-                                    }
-                                }
-                            }
-
                             // Tasto Navigazione Persistente
                             SettingsCard {
                                 SettingsSwitchItem(

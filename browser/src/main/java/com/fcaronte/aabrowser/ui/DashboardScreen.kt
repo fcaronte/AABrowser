@@ -20,9 +20,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -65,7 +62,10 @@ import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesViewModel
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.UpdateManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -85,7 +85,7 @@ fun DashboardScreen(
     onVoiceCommand: () -> Unit = {},
     onShowFeedback: (String) -> Unit = {},
     onOpenWide: (() -> Unit)? = null,
-    onVirtualAppSelected: ((String) -> Unit)? = null,
+    onVirtualAppSelected: (String) -> Unit = {},
 ) {
     val favorites = viewModel.favorites
     var isEditMode by remember { mutableStateOf(value = false) }
@@ -95,14 +95,16 @@ fun DashboardScreen(
     val useThreeColumns by AppSettings.dashboardThreeColumns
     val context = LocalContext.current
 
-    var favoriteSmartphoneApps by remember { mutableStateOf<List<com.fcaronte.aabrowser.smartphone.SmartphoneApp>>(emptyList()) }
+    // Le app del telefono con la stella (pagina "Altre App"): si aprono qui con un tocco, in una scheda come una pagina web
+    var favoriteApps by remember { mutableStateOf<List<VirtualApps.AppEntry>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        favoriteApps = withContext(Dispatchers.IO) {
             try {
-                val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(context)
-                favoriteSmartphoneApps = favManager.getFavoriteApps()
-            } catch (_: Throwable) {}
+                VirtualApps.favorites(context)
+            } catch (_: Exception) {
+                emptyList()
+            }
         }
     }
 
@@ -238,18 +240,6 @@ fun DashboardScreen(
                                 tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             )
                         }
-                        IconButton(onClick = {
-                            val intent = android.content.Intent(context, com.fcaronte.aabrowser.SmartphoneAppsActivity::class.java).apply {
-                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Layers,
-                                contentDescription = "App Smartphone",
-                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                            )
-                        }
                         IconButton(onClick = onOpenSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
@@ -310,24 +300,8 @@ fun DashboardScreen(
                     )
                 }
 
-                items(favoriteSmartphoneApps, key = { it.packageName }) { app ->
-                    SmartphoneAppFavoriteGridCard(
-                        app = app,
-                        onClick = {
-                            if (onVirtualAppSelected != null) {
-                                onVirtualAppSelected(app.packageName)
-                            } else try {
-                                com.fcaronte.aabrowser.VirtualAppActivity.open(context, app.packageName)
-                            } catch (error: Throwable) {
-                                android.util.Log.e("DashboardScreen", "Unable to open virtual app ${app.packageName}", error)
-                                android.widget.Toast.makeText(
-                                    context,
-                                    error.message ?: "Impossibile aprire l'app virtuale",
-                                    android.widget.Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    )
+                items(favoriteApps, key = { "app:${it.packageName}" }) { app ->
+                    FavoriteAppCard(app = app, onClick = { if (!isEditMode) onVirtualAppSelected(app.packageName) })
                 }
 
                 if (isEditMode) {
@@ -454,78 +428,6 @@ fun DashboardScreen(
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.settings_button), fontSize = 10.sp, maxLines = 1)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun SmartphoneAppFavoriteGridCard(
-    app: com.fcaronte.aabrowser.smartphone.SmartphoneApp,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val bitmap = remember(app.icon) {
-                try {
-                    val drawable = app.icon
-                    if (drawable is android.graphics.drawable.BitmapDrawable && drawable.bitmap != null) {
-                        drawable.bitmap.asImageBitmap()
-                    } else if (drawable != null) {
-                        val width = 96
-                        val height = 96
-                        val bmp = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                        val canvas = android.graphics.Canvas(bmp)
-                        drawable.setBounds(0, 0, canvas.width, canvas.height)
-                        drawable.draw(canvas)
-                        bmp.asImageBitmap()
-                    } else {
-                        null
-                    }
-                } catch (e: Throwable) {
-                    null
-                }
-            }
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier.size(40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(app.appName.take(1))
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = app.appName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "App Smartphone",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }

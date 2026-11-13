@@ -62,7 +62,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fcaronte.aabrowser.CarInputManager
-import com.fcaronte.aabrowser.VirtualAppViewer
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.mediaservice.CarMediaService
 import com.fcaronte.aabrowser.mediaservice.MediaFocusManager
@@ -96,7 +95,6 @@ sealed class Screen {
     object Browser : Screen()
     object Settings : Screen()
     object TabManager : Screen()
-    object VirtualApp : Screen()
 }
 
 fun calculateCacheSize(context: android.content.Context): String {
@@ -170,7 +168,6 @@ fun MainScreen(
     var currentScreen by remember {
         mutableStateOf<Screen>(Screen.Dashboard)
     }
-    var selectedVirtualAppPackage by remember { mutableStateOf<String?>(null) }
     // Un link, un file condiviso o un comando arrivato mentre l'app si apre: la sua scheda resta davanti, niente pagina iniziale
     var commandOpenedPage by remember { mutableStateOf(false) }
     // Le liste da mostrare aprendo le Impostazioni dalle pagine di TV e Radio; solo per quell'apertura
@@ -420,14 +417,8 @@ fun MainScreen(
             }
 
             VoiceCommands.Plan.Back ->
-                when (currentScreen) {
-                    Screen.VirtualApp -> {
-                        selectedVirtualAppPackage = null
-                        currentScreen = Screen.Dashboard
-                    }
-                    Screen.Browser -> backTrigger++
-                    else -> if (TabManager.activeTab != null) currentScreen = Screen.Browser
-                }
+                if (currentScreen == Screen.Browser) backTrigger++
+                else if (TabManager.activeTab != null) currentScreen = Screen.Browser
 
             // Media, TV e Radio: la scheda di quella pagina; la richiesta la prende la pagina (MediaVoice, BrowserScreen)
             is VoiceCommands.Plan.Media -> {
@@ -516,10 +507,6 @@ fun MainScreen(
                     is Screen.Settings -> currentScreen = previousScreen
                     is Screen.TabManager ->
                         currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen
-                    is Screen.VirtualApp -> {
-                        selectedVirtualAppPackage = null
-                        currentScreen = Screen.Dashboard
-                    }
                     else -> {
                         exitArmed = true
                         feedbackMessage = backAgainToExit
@@ -679,19 +666,6 @@ fun MainScreen(
                 when (currentScreen) {
                     is Screen.Splash -> {}
 
-                    is Screen.VirtualApp -> {
-                        selectedVirtualAppPackage?.let { packageName ->
-                            VirtualAppViewer(
-                                packageName = packageName,
-                                onClose = {
-                                    selectedVirtualAppPackage = null
-                                    currentScreen = Screen.Dashboard
-                                },
-                                handleSystemBack = false
-                            )
-                        } ?: run { currentScreen = Screen.Dashboard }
-                    }
-
                     is Screen.Dashboard -> {
                         DashboardScreen(
                             currentWebView = activeWebView,
@@ -711,11 +685,7 @@ fun MainScreen(
                             onOpenSearch = { showDashboardSearch = true },
                             onVoiceCommand = toggleVoiceCommand,
                             onOpenWide = openWide,
-                            onShowFeedback = { feedbackMessage = it },
-                            onVirtualAppSelected = if (isAutomotive) ({ packageName ->
-                                selectedVirtualAppPackage = packageName
-                                currentScreen = Screen.VirtualApp
-                            }) else null
+                            onShowFeedback = { feedbackMessage = it }
                         )
 
                         if (showDashboardSearch) {
