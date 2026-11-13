@@ -91,6 +91,7 @@ import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLocale
@@ -701,7 +702,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun buildHomeHtml(): String {
         favoritesCache = null
-        val items = favorites().map { HomePage.Item(it.name, it.url) }
+        // Dopo i preferiti, le app del telefono con la stella (pagina "Altre App"): si aprono sullo schermo virtuale
+        val apps = try {
+            VirtualApps.favorites(carContext).map {
+                HomePage.Item(it.name, VirtualApps.urlFor(it.packageName), LocalPlayer.appIconUrl(it.packageName))
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val items = favorites().map { HomePage.Item(it.name, it.url) } + apps
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
         return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)

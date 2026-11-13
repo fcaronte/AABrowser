@@ -12,6 +12,7 @@ import androidx.core.text.htmlEncode
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SearchEngine
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.UrlUtils
 
@@ -59,7 +60,10 @@ object HomePage {
      * icona salvata -> Google -> DuckDuckGo -> /favicon.ico del sito -> lettera (gestita in JS).
      */
     private fun iconCandidates(item: Item): List<String> {
+        // Un'app del telefono: la sua icona (con il token), niente favicon di Google per un pacchetto
+        if (VirtualApps.isAppUrl(item.url)) return listOfNotNull(item.iconUrl)
         // CarWeb Media: la sua icona la serve l'app (player.local esiste solo nelle WebView)
+        if (LocalPlayer.isAppsUrl(item.url)) return listOf(LocalPlayer.APPS_ICON_URL)
         if (LocalPlayer.isTvUrl(item.url)) return listOf(LocalPlayer.TV_ICON_URL)
         if (LocalPlayer.isRadioUrl(item.url)) return listOf(LocalPlayer.RADIO_ICON_URL)
         if (LocalPlayer.isPodcastUrl(item.url)) return listOf(LocalPlayer.PODCAST_ICON_URL)

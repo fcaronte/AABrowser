@@ -114,6 +114,11 @@ object LocalPlayer {
                 path == "/podcast.js" -> asset(context, "player/podcast.js", "application/javascript")
                 path == "/podcast-progress.js" -> asset(context, "player/podcast-progress.js", "application/javascript")
                 path == "/podcast.css" -> asset(context, "player/podcast.css", "text/css")
+                // Altre App: le app del telefono da aprire sullo schermo virtuale (Shizuku)
+                path == "/apps" || path == "/apps/" -> AppsApi.page(context, token, themeCss(context))
+                path == "/apps.js" -> asset(context, "player/apps.js", "application/javascript")
+                path == "/apps.css" -> asset(context, "player/apps.css", "text/css")
+                path == "/apps.svg" -> asset(context, "player/apps.svg", "image/svg+xml")
                 // Foto, video e file audio condivisi dal telefono ("Condividi su CarWeb")
                 path.startsWith(SharedMedia.PAGE_PATH) -> sharedPage(context, path.removePrefix(SharedMedia.PAGE_PATH))
                 path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
@@ -131,7 +136,8 @@ object LocalPlayer {
                     json(JSONObject())
                 }
                 path == "/api/shared" -> sharedFile(context, url.getQueryParameter("id"), request)
-                path == "/api/app/icon" -> serveAppIcon(context, url.getQueryParameter("pkg"))
+                path == "/api/app/icon" || path.startsWith("/api/apps/") ->
+                    AppsApi.handle(context, path, url) ?: status(404, "Not Found")
                 path == "/api/library" -> library(context)
                 path == "/api/library/find" -> findInLibrary(context, url.getQueryParameter("q").orEmpty())
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
@@ -185,6 +191,10 @@ object LocalPlayer {
     }
 
     fun isPlayerUrl(url: String?): Boolean = url?.startsWith(BASE_URL) == true
+
+    /** Icona di un'app del telefono per la home della Wide (con il token: i dati di player.local non sono per i siti). */
+    fun appIconUrl(packageName: String): String =
+        "${BASE_URL}api/app/icon?pkg=${Uri.encode(packageName)}&t=$token"
 
     fun isPlayerHost(host: String?): Boolean = host == HOST
 
@@ -620,35 +630,4 @@ object LocalPlayer {
 
     private fun status(code: Int, reason: String): WebResourceResponse =
         WebResourceResponse("text/plain", "UTF-8", code, reason, mapOf("Cache-Control" to "no-store"), ByteArrayInputStream(ByteArray(0)))
-
-    private fun serveAppIcon(context: Context, packageName: String?): WebResourceResponse? {
-        if (packageName.isNullOrBlank()) return null
-        return try {
-            val pm = context.packageManager
-            val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                pm.getApplicationInfo(packageName, android.content.pm.PackageManager.ApplicationInfoFlags.of(0.toLong()))
-            } else {
-                @Suppress("DEPRECATION")
-                pm.getApplicationInfo(packageName, 0)
-            }
-            val drawable = pm.getApplicationIcon(appInfo)
-            val bitmap = if (drawable is android.graphics.drawable.BitmapDrawable && drawable.bitmap != null) {
-                drawable.bitmap
-            } else {
-                val width = 128
-                val height = 128
-                val bmp = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(bmp)
-                drawable.setBounds(0, 0, width, height)
-                drawable.draw(canvas)
-                bmp
-            }
-            val stream = java.io.ByteArrayOutputStream()
-            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
-            val bytes = stream.toByteArray()
-            WebResourceResponse("image/png", null, 200, "OK", mapOf("Access-Control-Allow-Origin" to "*"), ByteArrayInputStream(bytes))
-        } catch (e: Throwable) {
-            null
-        }
-    }
 }

@@ -1,0 +1,150 @@
+/*
+ * Altre App: stessa grafica di player.css (colori, barra, tasti); qui lo stato di Shizuku, la ricerca e la griglia delle
+ * app del telefono, ognuna con la sua stella.
+ */
+
+body {
+    overflow-y: auto;
+}
+
+.bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.shizuku {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 24px;
+    background: var(--soft);
+    font-weight: 600;
+}
+
+.shizuku .dot {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #9aa3b2;
+}
+
+.shizuku.ready .dot {
+    background: #2ecc71;
+}
+
+.shizuku.problem .dot {
+    background: #ef4444;
+}
+
+.shizuku.ready {
+    color: #2ecc71;
+}
+
+.shizuku.problem {
+    color: #ef4444;
+}
+
+.apps-search {
+    padding: 8px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+}
+
+.search {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 24px;
+    background: var(--soft);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.apps-hint {
+    padding: 10px 16px;
+    color: var(--muted);
+    font-size: 15px;
+}
+
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 14px;
+}
+
+.app {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 120px;
+    padding: 14px 8px 10px;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+}
+
+.app:active {
+    background: var(--pressed);
+}
+
+.app img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.app .name {
+    width: 100%;
+    font-size: 15px;
+    line-height: 1.2;
+    text-align: center;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* La stella nell'angolo: tocco grande, ma l'app sotto resta quella del resto del riquadro */
+.app .star {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+}
+
+.app .star svg {
+    width: 26px;
+    height: 26px;
+}
+
+.app.favorite .star {
+    color: #f5b301;
+}
+
+.apps-message {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+}
+
+@media (min-width: 900px) {
+    .apps-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}

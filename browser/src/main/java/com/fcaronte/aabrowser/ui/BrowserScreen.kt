@@ -320,7 +320,7 @@ fun BrowserScreen(
                     host == "spotify.com" ||
                     host.endsWith(".spotify.com") ||
                     host == "music.youtube.com" ||
-                    (LocalPlayer.isPlayerUrl(pageUrl) && !LocalPlayer.isPodcastUrl(pageUrl))
+                    (LocalPlayer.isPlayerUrl(pageUrl) && !LocalPlayer.isPodcastUrl(pageUrl) && !LocalPlayer.isAppsUrl(pageUrl))
 
         val isYouTubePlaylist =
             isYouTube &&
