@@ -17,6 +17,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
+import android.hardware.display.VirtualDisplay
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
@@ -29,7 +30,6 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.view.Display
 import android.view.Gravity
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -91,8 +91,6 @@ import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
-import com.fcaronte.aabrowser.smartphone.FavoriteAppsManager
-import com.fcaronte.aabrowser.smartphone.ShizukuAppBridge
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLocale
@@ -230,9 +228,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun savedUrl(): String = AppSettings.wideLastUrl.value
     private fun saveUrl(url: String) = AppSettings.setWideLastUrl(carContext, url)
 
-    private var carDisplayId: Int = -1
-    private var displayCreationInProgress = false
-    private var activeFavoriteAppPackage: String? = null
+    private var virtualDisplay: VirtualDisplay? = null
     private var presentation: Presentation? = null
     private var backdrop: FrameLayout? = null      // contenitore radice nella Presentation
     private var webView: WebView? = null
@@ -532,10 +528,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun goBack() {
         if (customView != null) {
             hideCustomView()
-        } else if (activeFavoriteAppPackage != null) {
-            carDisplayId.takeIf { it > 0 }?.let {
-                ShizukuAppBridge.back(carContext, it)
-            }
         } else {
             webView?.let { if (it.canGoBack()) it.goBack() }
         }
@@ -709,14 +701,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun buildHomeHtml(): String {
         favoritesCache = null
-        val items = mutableListOf<HomePage.Item>()
-        items.addAll(favorites().map { HomePage.Item(it.name, it.url) })
-        try {
-            val favManager = com.fcaronte.aabrowser.smartphone.FavoriteAppsManager(carContext)
-            favManager.getFavoriteApps().forEach { app ->
-                items.add(HomePage.Item("📱 " + app.appName, "app://${app.packageName}", "${LocalPlayer.BASE_URL}api/app/icon?pkg=${app.packageName}"))
-            }
-        } catch (_: Throwable) {}
+        val items = favorites().map { HomePage.Item(it.name, it.url) }
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
         return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)
@@ -830,37 +815,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun loadUrl(url: String) {
         if (url.startsWith("app://")) {
-            val packageName = url.removePrefix("app://").substringBefore('/')
-            val targetDisplayId = carDisplayId
-            if (targetDisplayId <= 0) {
-                CarToast.makeText(carContext, "Display Android Auto non disponibile", CarToast.LENGTH_LONG).show()
-                Log.e(TAG, "Cannot launch $packageName: virtual display id=$targetDisplayId")
-                return
-            }
-            if (!FavoriteAppsManager(carContext).isFavorite(packageName)) {
-                CarToast.makeText(carContext, "App non presente tra i preferiti", CarToast.LENGTH_LONG).show()
-                return
-            }
-            if (!com.fcaronte.aabrowser.smartphone.ShizukuManager.isShizukuRunning() ||
-                !com.fcaronte.aabrowser.smartphone.ShizukuManager.hasPermission()
-            ) {
-                CarToast.makeText(carContext, "Avvia Shizuku e autorizza CarWeb dal telefono", CarToast.LENGTH_LONG).show()
-                return
-            }
-            Log.i(TAG, "Launching favorite app $packageName on display $targetDisplayId")
-            ShizukuAppBridge.launchFavoriteApp(carContext, packageName, targetDisplayId) { success, message ->
-                if (success) {
-                    activeFavoriteAppPackage = packageName
-                } else {
-                    activeFavoriteAppPackage = null
-                    CarToast.makeText(
-                        carContext,
-                        message.ifBlank { "Avvio sul display auto non riuscito" },
-                        CarToast.LENGTH_LONG
-                    ).show()
-                    Log.e(TAG, "Cannot launch $packageName on display $targetDisplayId: $message")
-                }
-            }
+            openVirtualApp(url.removePrefix("app://").substringBefore('/'))
             return
         }
         lastUrl = url
@@ -868,6 +823,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             applyUserAgent(it, url)
             it.loadUrl(url)
         }
+    }
+
+    /** Un'app del telefono sullo schermo virtuale (si completa con la vista dello schermo virtuale della Wide). */
+    private fun openVirtualApp(packageName: String) {
+        Log.i(TAG, "Virtual app requested: $packageName")
+        CarToast.makeText(carContext, "Schermo virtuale in preparazione", CarToast.LENGTH_LONG).show()
     }
 
     /** Mostra l'avviso di certificato in attesa, oppure chiude quello che non serve più (nuova pagina). */
@@ -1282,18 +1243,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // La UI dell'host sta ancora caricando: ricalcolo il resize più volte all'avvio
         scheduleStartupReapply()
 
-        if (carDisplayId > 0 && presentation != null && webView != null) {
-            val displayId = carDisplayId
-            ShizukuAppBridge.updateDisplay(
-                carContext, displayId, surface, surfaceWidth, surfaceHeight, surfaceDensity
-            ) { success, message ->
-                if (!success && surfaceContainer.surface === surface) {
-                    Log.w(TAG, "Failed to update Shizuku display, recreating: $message")
-                    createVirtualDisplayAndPresentation()
-                }
+        if (virtualDisplay != null && presentation != null && webView != null) {
+            try {
+                virtualDisplay?.surface = surface
+                virtualDisplay?.resize(surfaceWidth, surfaceHeight, surfaceDensity)
+                applyVisibleArea()
+                return
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to swap surface on VirtualDisplay, recreating", e)
             }
-            applyVisibleArea()
-            return
         }
 
         createVirtualDisplayAndPresentation()
@@ -1301,13 +1259,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
-        val displayId = carDisplayId
+        try {
+            virtualDisplay?.surface = null
+        } catch (_: Exception) {}
         surface = null
-        if (displayId > 0) {
-            ShizukuAppBridge.updateDisplay(
-                carContext, displayId, null, surfaceWidth, surfaceHeight, surfaceDensity
-            )
-        }
     }
 
     override fun onVisibleAreaChanged(visibleArea: Rect) {
@@ -1495,16 +1450,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // In movimento senza la Modalità passeggero la pagina è coperta: i tocchi si fermano
         if (isDriveLocked()) return
 
-        if (activeFavoriteAppPackage != null) {
-            carDisplayId.takeIf { it > 0 }?.let { displayId ->
-                ShizukuAppBridge.tap(
-                    carContext, displayId, surfaceWidth, surfaceHeight,
-                    x.toInt().coerceIn(0, surfaceWidth - 1), y.toInt().coerceIn(0, surfaceHeight - 1)
-                )
-            }
-            return
-        }
-
         passengerKeyboard?.takeIf { it.isVisible }?.let { keyboard ->
             dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_DOWN, x, y)
             dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_UP, x, y)
@@ -1559,20 +1504,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
-        if (activeFavoriteAppPackage != null) {
-            carDisplayId.takeIf { it > 0 }?.let { displayId ->
-                val centerX = surfaceWidth / 2
-                val centerY = surfaceHeight / 2
-                ShizukuAppBridge.swipe(
-                    carContext, displayId, surfaceWidth, surfaceHeight,
-                    centerX, centerY,
-                    (centerX - distanceX.toInt()).coerceIn(0, surfaceWidth - 1),
-                    (centerY - distanceY.toInt()).coerceIn(0, surfaceHeight - 1),
-                    70
-                )
-            }
-            return
-        }
         val wv = webView ?: return
         // Pagina di un video di YouTube: niente scorrimento nativo, decide lo script (prima le colonne, video in alto)
         if (!isYouTubeWatchPage(wv.url)) wv.scrollBy(distanceX.toInt(), distanceY.toInt())
@@ -1602,20 +1533,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onFling(velocityX: Float, velocityY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
-        if (activeFavoriteAppPackage != null) {
-            carDisplayId.takeIf { it > 0 }?.let { displayId ->
-                val centerX = surfaceWidth / 2
-                val centerY = surfaceHeight / 2
-                ShizukuAppBridge.swipe(
-                    carContext, displayId, surfaceWidth, surfaceHeight,
-                    centerX, centerY,
-                    (centerX + velocityX * 0.2f).toInt().coerceIn(0, surfaceWidth - 1),
-                    (centerY + velocityY * 0.2f).toInt().coerceIn(0, surfaceHeight - 1),
-                    220
-                )
-            }
-            return
-        }
         val wv = webView ?: return
         if (isYouTubeWatchPage(wv.url)) {
             // Come lo scorrimento: il fling nativo sposterebbe la pagina e il video
@@ -1690,56 +1607,36 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // VirtualDisplay + Presentation + WebView + Popup
     // ------------------------------------------------------------------
 
+    @SuppressLint("SetJavaScriptEnabled")
     private fun createVirtualDisplayAndPresentation() {
         val surf = surface ?: return
         if (!surf.isValid) {
             Log.w(TAG, "Surface non valida")
             return
         }
-        // Android Auto può inviare più callback durante il layout iniziale. Evita di
-        // creare display/WebView duplicati mentre Shizuku sta ancora rispondendo.
-        if (displayCreationInProgress) return
-        displayCreationInProgress = true
-        val requestedWidth = surfaceWidth
-        val requestedHeight = surfaceHeight
-        val requestedDensity = surfaceDensity
         releaseVirtualDisplay()
-        ShizukuAppBridge.createDisplay(
-            carContext, surf, requestedWidth, requestedHeight, requestedDensity
-        ) { createdId, message ->
-            displayCreationInProgress = false
-            val surfaceChanged = surface !== surf || !surf.isValid ||
-                surfaceWidth != requestedWidth || surfaceHeight != requestedHeight ||
-                surfaceDensity != requestedDensity
-            if (surfaceChanged) {
-                if (createdId > 0) ShizukuAppBridge.releaseDisplay(carContext, createdId)
-                if (surface?.isValid == true) createVirtualDisplayAndPresentation()
-                return@createDisplay
-            }
-            if (createdId <= 0) {
-                val error = message.ifBlank { "creazione display Shizuku fallita" }
-                Log.e(TAG, "Cannot create trusted car display: $error")
-                CarToast.makeText(carContext, error, CarToast.LENGTH_LONG).show()
-                return@createDisplay
-            }
-            val displayManager = carContext.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-            val display = displayManager.getDisplay(createdId)
-            if (display == null) {
-                ShizukuAppBridge.releaseDisplay(carContext, createdId)
-                val error = "Android non espone il display virtuale $createdId a CarWeb"
-                Log.e(TAG, error)
-                CarToast.makeText(carContext, error, CarToast.LENGTH_LONG).show()
-                return@createDisplay
-            }
-            carDisplayId = createdId
-            createPresentation(display)
-        }
-    }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun createPresentation(display: Display) {
         try {
-            activeFavoriteAppPackage = null
+            // Il display della Wide è dell'app e non dipende da Shizuku: la pagina si vede anche senza. Le app del
+            // telefono hanno un display proprio (smartphone/VirtualAppSession), che questa schermata mostra in una vista
+            val displayManager = carContext.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            val vd = displayManager.createVirtualDisplay(
+                "AABrowserWideDisplay",
+                surfaceWidth,
+                surfaceHeight,
+                surfaceDensity,
+                surf,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY or
+                        DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
+            )
+            virtualDisplay = vd
+
+            val display = vd.display
+            if (display == null) {
+                Log.e(TAG, "VirtualDisplay senza display")
+                return
+            }
+
             presentation = object : Presentation(carContext, display) {
                 override fun onCreate(savedInstanceState: Bundle?) {
                     super.onCreate(savedInstanceState)
@@ -2950,12 +2847,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun releaseVirtualDisplay() {
-        val oldDisplayId = carDisplayId
-        carDisplayId = -1
-        if (oldDisplayId > 0) {
-            ShizukuAppBridge.releaseDisplay(carContext, oldDisplayId)
-        }
-        activeFavoriteAppPackage = null
         mediaSessionManager.disconnect()
         sslPrompts.cancelAll()
         sitePrompts.cancelAll()
@@ -3002,7 +2893,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
         presentation = null
 
-
+        try {
+            virtualDisplay?.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "release virtualDisplay", e)
+        }
+        virtualDisplay = null
     }
 
     // ------------------------------------------------------------------
