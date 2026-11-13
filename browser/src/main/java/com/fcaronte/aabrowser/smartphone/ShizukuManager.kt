@@ -75,8 +75,19 @@ object ShizukuManager {
      */
     fun status(context: Context): Status {
         if (isShizukuRunning()) return statusOf(installed = true, running = true, permission = hasPermission())
-        val installed = isShizukuInstalled(context)
+        // Il binder lo spinge Shizuku nel processo dell'app quando nasce o cambia stato: in un processo avviato dall'auto
+        // può non essere ancora arrivato. Prima si prova a prenderlo, poi si dice che non gira (se arriva dopo, chi mostra
+        // l'errore riprova da sé: registerListeners)
+        tryBindShizuku(context)
         val running = isShizukuRunning()
+        val installed = running || SHIZUKU_PACKAGES.any { pkg ->
+            try {
+                context.packageManager.getPackageInfo(pkg, 0)
+                true
+            } catch (_: Throwable) {
+                false
+            }
+        }
         return statusOf(installed, running, permission = running && hasPermission())
     }
 

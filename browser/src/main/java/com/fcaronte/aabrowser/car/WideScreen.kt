@@ -314,6 +314,25 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val mediaSessionManager = MediaSessionManager(carContext, MediaFocusManager.Source.WIDE_APP)
     private val handler = Handler(Looper.getMainLooper())
 
+    // Un'app del telefono sullo schermo virtuale, sopra la pagina (Altre App)
+    private val virtualApp = WideVirtualApp(carContext, handler, { strings }, object : WideVirtualApp.Callbacks {
+        override fun onShownChanged(shown: Boolean) {
+            handler.post {
+                // Sotto l'app la pagina non serve: nascosta non si disegna. Il tasto in alto a destra cambia (template)
+                webView?.visibility = if (shown) View.INVISIBLE else View.VISIBLE
+                invalidate()
+            }
+        }
+
+        override fun openAppsPage() {
+            handler.post { loadUrl("${LocalPlayer.BASE_URL}apps") }
+        }
+
+        override fun message(text: String) {
+            handler.post { CarToast.makeText(carContext, text, CarToast.LENGTH_LONG).show() }
+        }
+    })
+
     // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
     @Volatile
     private var pageHost: String? = null
@@ -361,6 +380,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val iconAdBlockOn: CarIcon by lazy { buildShieldIcon(crossed = false) }
     private val iconAdBlockOff: CarIcon by lazy { buildShieldIcon(crossed = true) }
     private val iconMic: CarIcon by lazy { maskIcon(::drawMic) }
+    // Tre righe: mostra o nasconde la barra dell'app sullo schermo virtuale
+    private val iconSidebarToggle: CarIcon by lazy {
+        maskIcon { c, p, s ->
+            for (y in floatArrayOf(0.30f, 0.50f, 0.70f)) c.drawLine(s * 0.24f, s * y, s * 0.76f, s * y, p)
+        }
+    }
     private var shownAdBlockState: String? = null   // sito e stato mostrati dallo scudo nell'ultimo template
     private var shownDesktopState: String? = null
     private var sidebarDesktopButton: ImageButton? = null
@@ -430,6 +455,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 handler.removeCallbacks(applyAreaRunnable)
                 handler.removeCallbacks(applyAreaSettledRunnable)
                 handler.removeCallbacks(startupReapplyRunnable)
+                virtualApp.shutdown()
                 releaseVirtualDisplay()
                 mediaSessionManager.disconnect()
                 try {
@@ -477,20 +503,30 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
 
         // In alto a destra un tasto solo, lo scudo (Android Auto ne vuole almeno uno nell'angolo). Senza sidebar
-        // anche cerca, microfono e desktop, alla sua sinistra: in basso non ci stanno
+        // anche cerca, microfono e desktop, alla sua sinistra: in basso non ci stanno.
+        // Con un'app del telefono sullo schermo virtuale quel tasto mostra o nasconde la barra dell'app, al posto dello
+        // scudo: senza, si resterebbe chiusi nell'app. Alla home o a una pagina ritorna lo scudo
         val stripBuilder = ActionStrip.Builder()
-        if (!fixed) {
-            stripBuilder.addAction(searchAction).addAction(voiceAction).addAction(desktopAction)
-        }
-        val strip = stripBuilder
-            .addAction(
+        if (virtualApp.isShown) {
+            stripBuilder.addAction(
+                Action.Builder()
+                    .setIcon(iconSidebarToggle)
+                    .setOnClickListener { virtualApp.toggleSidebar() }
+                    .build()
+            )
+        } else {
+            if (!fixed) {
+                stripBuilder.addAction(searchAction).addAction(voiceAction).addAction(desktopAction)
+            }
+            stripBuilder.addAction(
                 Action.Builder()
                     .setIcon(if (siteWhitelisted) iconAdBlockOff else iconAdBlockOn)
                     .setEnabled(site != null)
                     .setOnClickListener { toggleAdBlockForSite() }
                     .build()
             )
-            .build()
+        }
+        val strip = stripBuilder.build()
 
         // In basso al massimo 4 tasti, e PAN serve: senza, l'host non manda lo scorrimento (onScroll)
         val mapStripBuilder = ActionStrip.Builder()
@@ -525,10 +561,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
     }
 
-    /** Indietro: chiude il video a schermo intero, altrimenti la pagina precedente. */
+    /** Indietro: chiude il video a schermo intero, poi l'app del telefono torna indietro da sola, altrimenti la pagina precedente. */
     private fun goBack() {
         if (customView != null) {
             hideCustomView()
+        } else if (virtualApp.isShown) {
+            virtualApp.back()
         } else {
             webView?.let { if (it.canGoBack()) it.goBack() }
         }
@@ -748,6 +786,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun showHome() {
         hideCustomView()
+        virtualApp.hide()
         homeHtml = buildHomeHtml()
         lastUrl = HOME
         val wv = webView ?: return
@@ -823,10 +862,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun loadUrl(url: String) {
-        if (url.startsWith("app://")) {
-            openVirtualApp(url.removePrefix("app://").substringBefore('/'))
+        if (VirtualApps.isAppUrl(url)) {
+            VirtualApps.packageOf(url)?.let { openVirtualApp(it) }
             return
         }
+        // Una pagina o la home: l'app del telefono esce di scena (continua a girare, la riapre il suo tasto)
+        virtualApp.hide()
         lastUrl = url
         webView?.let {
             applyUserAgent(it, url)
@@ -834,10 +875,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    /** Un'app del telefono sullo schermo virtuale (si completa con la vista dello schermo virtuale della Wide). */
+    /** Un'app del telefono sullo schermo virtuale, sopra la pagina: serve Shizuku (se manca l'app lo dice sullo schermo). */
     private fun openVirtualApp(packageName: String) {
-        Log.i(TAG, "Virtual app requested: $packageName")
-        CarToast.makeText(carContext, "Schermo virtuale in preparazione", CarToast.LENGTH_LONG).show()
+        if (!VirtualApps.isAvailable(carContext, packageName)) {
+            CarToast.makeText(carContext, strings.getString(R.string.vapp_error_no_app), CarToast.LENGTH_LONG).show()
+            return
+        }
+        hideCustomView()
+        virtualApp.open(packageName)
     }
 
     /** Mostra l'avviso di certificato in attesa, oppure chiude quello che non serve più (nuova pagina). */
@@ -1370,6 +1415,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.bottomMargin = 0
         wv.layoutParams = lp
         wv.requestLayout()
+        // L'app del telefono sta nella stessa area libera della pagina e, in più, fuori dalle fasce dei tasti di Android Auto
+        // (la stable area): lì sotto i suoi comandi in alto a destra non si raggiungerebbero
+        val stable = stableArea
+        virtualApp.layout(
+            leftPx = maxOf(lp.leftMargin, stable?.left ?: 0),
+            topPx = (stable?.top ?: 0).coerceAtLeast(0),
+            rightPx = maxOf(lp.rightMargin, stable?.let { surfaceWidth - it.right } ?: 0),
+            bottomPx = (stable?.let { surfaceHeight - it.bottom } ?: 0).coerceAtLeast(0)
+        )
         wv.post {
             Log.d(
                 TAG,
@@ -1465,6 +1519,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
+        // Un'app del telefono sullo schermo virtuale: i tocchi sono suoi (la sua barra, oppure l'app)
+        if (virtualApp.isShown) {
+            virtualApp.onClick(x, y)
+            return
+        }
+
         if (isInputPopupVisible) {
             dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_DOWN, x, y)
             dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_UP, x, y)
@@ -1513,6 +1573,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
+        if (virtualApp.isShown) {
+            virtualApp.onScroll(distanceX, distanceY)
+            return
+        }
         val wv = webView ?: return
         // Pagina di un video di YouTube: niente scorrimento nativo, decide lo script (prima le colonne, video in alto)
         if (!isYouTubeWatchPage(wv.url)) wv.scrollBy(distanceX.toInt(), distanceY.toInt())
@@ -1542,6 +1606,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onFling(velocityX: Float, velocityY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
+        if (virtualApp.isShown) {
+            virtualApp.onFling(velocityX, velocityY)
+            return
+        }
         val wv = webView ?: return
         if (isYouTubeWatchPage(wv.url)) {
             // Come lo scorrimento: il fling nativo sposterebbe la pagina e il video
@@ -1560,6 +1628,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
+        if (virtualApp.isShown && !isPageCovered()) {
+            virtualApp.onScale(focusX, focusY, scaleFactor)
+            return
+        }
         // Niente zoom sulla home o zoom improvviso (doppio tap to zoom dell'host Android Auto)
         if (isInputPopupVisible || customView != null || isHome() || isPageCovered()) return
 
@@ -2238,10 +2310,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             ): Boolean {
                                 val url = request?.url?.toString() ?: ""
 
-                                // Le app preferite usano uno schema interno: inoltralo al launcher prima
-                                // del filtro che blocca gli schemi non web.
-                                if (url.startsWith("app://")) {
-                                    if (request?.isForMainFrame == true) this@WideScreen.loadUrl(url)
+                                // Un'app del telefono (app://pacchetto): solo dalla home e dalla pagina "Altre App" di CarWeb, dopo
+                                // un tocco. Da un sito qualunque no: aprirebbe app del telefono a sua scelta
+                                if (VirtualApps.isAppUrl(url)) {
+                                    val trusted = view?.url?.let { it.startsWith(HomePage.BASE_URL) || LocalPlayer.isAppsUrl(it) } == true
+                                    if (request?.isForMainFrame == true && request.hasGesture() && trusted) {
+                                        handler.post { this@WideScreen.loadUrl(url) }
+                                    }
                                     return true
                                 }
 
@@ -2538,6 +2613,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         )
                     )
                     frame.addView(sidebarContainer, FrameLayout.LayoutParams(sidebarWidthPx(), ViewGroup.LayoutParams.MATCH_PARENT))
+                    // L'app del telefono sullo schermo virtuale: sopra pagina e menu fisso, sotto popup, tastiera e copertura
+                    frame.addView(virtualApp.install(ctx, sidebarWidthPx()), FrameLayout.LayoutParams(-1, -1))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(keyboard.view, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))
@@ -2856,6 +2933,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     private fun releaseVirtualDisplay() {
+        virtualApp.release()
         mediaSessionManager.disconnect()
         sslPrompts.cancelAll()
         sitePrompts.cancelAll()

@@ -12,8 +12,10 @@ interface IVirtualDisplayService {
 
     // Crea un display virtuale fidato che disegna in [surface] (anche null: le app girano, non si disegna niente).
     // [keyboardOnDisplay]: la tastiera si apre sul display (l'auto) o sullo schermo del telefono.
-    // Risponde "OK:<id del display>" o "ERROR:<motivo>".
-    String createDisplay(in Surface surface, int width, int height, int dpi, boolean keyboardOnDisplay) = 1;
+    // [secure]: prova un display "sicuro", che disegna anche le finestre FLAG_SECURE invece di lasciarle nere (se il
+    // sistema lo rifiuta si crea senza).
+    // Risponde "OK:<id del display>;<dettagli>" o "ERROR:<motivo>".
+    String createDisplay(in Surface surface, int width, int height, int dpi, boolean keyboardOnDisplay, boolean secure) = 1;
 
     // Nuova superficie (null: in pausa) e nuove misure. "OK" o "ERROR:<motivo>".
     String updateDisplay(int displayId, in Surface surface, int width, int height, int dpi) = 2;

@@ -105,6 +105,19 @@
             android:label="@string/settings_name">
         </activity>
 
+        <!-- Schermata di attesa del telefono con un'app sullo schermo dell'auto (nera, scorri per sbloccare). Esportata
+             perché la avvia la shell di Shizuku dallo sfondo; si chiude da sola se nessuna app è sull'auto -->
+        <activity
+            android:name=".StandbyActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:turnScreenOn="true"
+            tools:ignore="ExportedActivity" />
+
         <service
             android:name=".CarService"
             android:enabled="true"

@@ -87,40 +87,50 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
     // ------------------------------------------------------------------ display
 
     @Synchronized
-    override fun createDisplay(surface: Surface?, width: Int, height: Int, dpi: Int, keyboardOnDisplay: Boolean): String {
+    override fun createDisplay(
+        surface: Surface?, width: Int, height: Int, dpi: Int, keyboardOnDisplay: Boolean, secure: Boolean
+    ): String {
         if (width !in 1..MAX_SIDE || height !in 1..MAX_SIDE || dpi !in 60..1000) return "ERROR:invalid display size"
         return try {
             val sdk = Build.VERSION.SDK_INT
             // Prima l'insieme completo, poi si tolgono un passo alla volta i flag nuovi o che chiedono permessi
-            val candidates = intArrayOf(
+            val sets = intArrayOf(
                 if (sdk >= 34) BASE or TRUSTED or OWN_DISPLAY_GROUP or ALWAYS_UNLOCKED or TOUCH_FEEDBACK_DISABLED or OWN_FOCUS else -1,
                 if (sdk >= 33) BASE or TRUSTED or OWN_DISPLAY_GROUP or ALWAYS_UNLOCKED or TOUCH_FEEDBACK_DISABLED else -1,
                 BASE or TRUSTED,
                 BASE
             )
+            // Contenuti protetti (finestre FLAG_SECURE: banche, alcune app video): il display "sicuro" le disegna invece
+            // di lasciarle nere, ma chiede CAPTURE_SECURE_VIDEO_OUTPUT. Prima con, poi senza se il sistema rifiuta
+            val secureOptions = if (secure) intArrayOf(SECURE, 0) else intArrayOf(0)
             var failure: Exception? = null
-            for (flags in candidates) {
-                if (flags < 0) continue
-                try {
-                    val virtualDisplay = displayManager().createVirtualDisplay(
-                        "CarWebApps", width, height, dpi, surface?.takeIf { it.isValid }, flags
-                    ) ?: continue
-                    val id = virtualDisplay.display?.displayId ?: -1
-                    if (id <= 0) {
-                        virtualDisplay.release()
-                        continue
+            for (extra in secureOptions) {
+                for (set in sets) {
+                    if (set < 0) continue
+                    val flags = set or extra
+                    try {
+                        val virtualDisplay = displayManager().createVirtualDisplay(
+                            "CarWebApps", width, height, dpi, surface?.takeIf { it.isValid }, flags
+                        ) ?: continue
+                        val id = virtualDisplay.display?.displayId ?: -1
+                        if (id <= 0) {
+                            virtualDisplay.release()
+                            continue
+                        }
+                        entries[id] = Entry(virtualDisplay, surface, width, height, dpi, flags, keyboardOnDisplay)
+                        val orientation = keepOrientation(id)
+                        val keyboard = applyKeyboardPolicy(id, keyboardOnDisplay)
+                        val details = "flags=0x${flags.toString(16)} orientation=[$orientation] keyboard=$keyboard"
+                        Log.i(TAG, "display $id ${width}x$height@$dpi $details")
+                        // L'app mette i dettagli nel suo registro (questo processo non è nel registro che si condivide)
+                        return "OK:$id;$details"
+                    } catch (error: SecurityException) {
+                        failure = error
+                        Log.i(TAG, "flags 0x${flags.toString(16)} refused: $error")
+                    } catch (error: IllegalArgumentException) {
+                        failure = error
+                        Log.i(TAG, "flags 0x${flags.toString(16)} refused: $error")
                     }
-                    entries[id] = Entry(virtualDisplay, surface, width, height, dpi, flags, keyboardOnDisplay)
-                    keepOrientation(id)
-                    applyKeyboardPolicy(id, keyboardOnDisplay)
-                    Log.i(TAG, "display $id ${width}x$height@$dpi flags 0x${flags.toString(16)}")
-                    return "OK:$id"
-                } catch (error: SecurityException) {
-                    failure = error
-                    Log.i(TAG, "flags 0x${flags.toString(16)} refused: $error")
-                } catch (error: IllegalArgumentException) {
-                    failure = error
-                    Log.i(TAG, "flags 0x${flags.toString(16)} refused: $error")
                 }
             }
             "ERROR:${failure?.let(::describe) ?: "createVirtualDisplay returned null"}"
@@ -320,33 +330,48 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
      * dritta, a tutta altezza, in una colonna al centro. Ognuna delle tre impostazioni basta su Android 14; tutte
      * sono facoltative (servono SET_ORIENTATION, che la shell ha).
      */
-    private fun keepOrientation(displayId: Int) {
+    private fun keepOrientation(displayId: Int): String {
         val wm = try {
             windowManager()
         } catch (error: Throwable) {
             Log.i(TAG, "orientation: no window manager: ${describe(error)}")
-            return
+            return "no-window-manager"
         }
         val int = Int::class.javaPrimitiveType
         val boolean = Boolean::class.javaPrimitiveType
+        val applied = StringBuilder()
         for (method in wm.javaClass.methods) {
             val p = method.parameterTypes
             try {
                 when (method.name) {
                     // Android 12+: (displayId, ignore)
-                    "setIgnoreOrientationRequest" -> if (p.size == 2 && p[0] == int && p[1] == boolean) method.invoke(wm, displayId, true)
+                    "setIgnoreOrientationRequest" -> if (p.size == 2 && p[0] == int && p[1] == boolean) {
+                        method.invoke(wm, displayId, true)
+                        applied.append("ignore-requests ")
+                    }
                     // Android 10+: (displayId, FIXED_TO_USER_ROTATION_ENABLED = 2)
-                    "setFixedToUserRotation" -> if (p.size == 2 && p[0] == int && p[1] == int) method.invoke(wm, displayId, 2)
+                    "setFixedToUserRotation" -> if (p.size == 2 && p[0] == int && p[1] == int) {
+                        method.invoke(wm, displayId, 2)
+                        applied.append("fixed-to-user ")
+                    }
                     // (displayId, rotation), su 14+ anche il chiamante
                     "freezeDisplayRotation" -> when {
-                        p.size == 2 && p[0] == int && p[1] == int -> method.invoke(wm, displayId, 0)
-                        p.size == 3 && p[0] == int && p[1] == int && p[2] == String::class.java -> method.invoke(wm, displayId, 0, "CarWeb")
+                        p.size == 2 && p[0] == int && p[1] == int -> {
+                            method.invoke(wm, displayId, 0)
+                            applied.append("rotation-0 ")
+                        }
+                        p.size == 3 && p[0] == int && p[1] == int && p[2] == String::class.java -> {
+                            method.invoke(wm, displayId, 0, "CarWeb")
+                            applied.append("rotation-0 ")
+                        }
                     }
                 }
             } catch (error: Throwable) {
                 Log.i(TAG, "orientation ${method.name}: ${describe(error)}")
+                applied.append("${method.name}-failed ")
             }
         }
+        return applied.toString().trim().ifEmpty { "nothing" }
     }
 
     /**
@@ -354,10 +379,10 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
      * (l'auto), FALLBACK_DISPLAY sullo schermo del telefono. Serve un display fidato; se è rifiutato il display funziona
      * lo stesso e la tastiera resta sul telefono.
      */
-    private fun applyKeyboardPolicy(displayId: Int, onDisplay: Boolean) {
-        val entry = entries[displayId] ?: return
-        if (entry.flags and TRUSTED == 0) return
-        try {
+    private fun applyKeyboardPolicy(displayId: Int, onDisplay: Boolean): String {
+        val entry = entries[displayId] ?: return "no-display"
+        if (entry.flags and TRUSTED == 0) return "not-trusted"
+        return try {
             val wm = windowManager()
             val int = Int::class.javaPrimitiveType
             if (Build.VERSION.SDK_INT >= 31) {
@@ -367,8 +392,10 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
                 wm.javaClass.getMethod("setShouldShowIme", int, Boolean::class.javaPrimitiveType).invoke(wm, displayId, onDisplay)
             }
             Log.i(TAG, "keyboard of display $displayId opens ${if (onDisplay) "on it" else "on the phone"}")
+            if (onDisplay) "on-display" else "on-phone"
         } catch (error: Throwable) {
             Log.i(TAG, "keyboard stays on the phone: ${describe(error)}")
+            "refused"
         }
     }
 
@@ -596,6 +623,7 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
         private const val ALWAYS_UNLOCKED = 1 shl 12
         private const val TOUCH_FEEDBACK_DISABLED = 1 shl 13
         private const val OWN_FOCUS = 1 shl 14
+        private const val SECURE = 1 shl 2
         private const val BASE = PUBLIC or PRESENTATION or OWN_CONTENT_ONLY or SUPPORTS_TOUCH
 
         @SuppressLint("PrivateApi")

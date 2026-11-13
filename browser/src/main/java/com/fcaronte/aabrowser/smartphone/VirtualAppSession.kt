@@ -5,16 +5,19 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.Surface
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.fcaronte.aabrowser.settings.AppSettings
 
 /**
  * Un'app del telefono aperta sul suo display virtuale, per una scheda della Main o per la schermata della Wide.
  *
- * La vista che la mostra (una SurfaceView) dà la sua superficie con [attach] e la toglie con [detach]; la sessione crea il
+ * La vista che la mostra (una TextureView) dà la sua superficie con [attach] e la toglie con [detach]; la sessione crea il
  * display fidato con Shizuku, ci avvia l'app e gli passa tocchi e tasti. Il display nasce alla prima superficie e resta
  * finché la sessione non è chiusa: con la scheda nascosta si toglie solo la superficie (l'app continua a girare, niente
- * si disegna). Tutto si chiama dal thread principale; i risultati di Shizuku tornano lì.
+ * si disegna). Sull'auto il telefono deve restare sveglio finché l'app è davanti ([VirtualScreenPower]). Tutto si chiama
+ * dal thread principale; i risultati di Shizuku tornano lì.
  */
 class VirtualAppSession(
     context: Context,
@@ -40,6 +43,13 @@ class VirtualAppSession(
     var displayId = -1
         private set
 
+    /**
+     * A che punto è l'apertura, per capire dove si ferma se non parte: 1 = la vista ha la superficie, 2 = si crea il display
+     * (Shizuku), 3 = il display c'è e si avvia l'app. Si mostra accanto a "Apro l'app…".
+     */
+    var step by mutableIntStateOf(0)
+        private set
+
     private var creating = false
     private var closed = false
     private var surface: Surface? = null
@@ -49,8 +59,15 @@ class VirtualAppSession(
     private var recreations = 0
     private var inUse = false
 
-    /** Chiamato quando l'app comincia o smette di essere davanti sull'auto: tiene sveglio il telefono (VirtualScreenPower). */
+    // Il display divide il gruppo del telefono (se dorme, il display si ferma): finché non lo si sa, si suppone di sì
+    private var sharesPhoneGroup = true
+    private var powered = false
+
+    /** Chiamato quando l'app comincia o smette di essere davanti sull'auto. */
     var inUseListener: ((Boolean) -> Unit)? = null
+
+    /** Chiamato a ogni cambio di fase o di problema, per le viste che non osservano lo stato di Compose (la Wide). */
+    var stateListener: (() -> Unit)? = null
 
     val isRunning: Boolean get() = phase == Phase.RUNNING
 
@@ -61,6 +78,8 @@ class VirtualAppSession(
         this.width = width
         this.height = height
         this.dpi = dpi.coerceAtLeast(60)
+        Log.i(TAG, "$packageName: surface ${width}x$height@${this.dpi} (display $displayId, phase $phase)")
+        if (displayId <= 0 && phase != Phase.RUNNING) step = 1
 
         if (displayId > 0) {
             val id = displayId
@@ -79,9 +98,16 @@ class VirtualAppSession(
         if (!shizukuReady()) return
         creating = true
         phase = Phase.STARTING
+        step = 2
         problem = null
+        stateListener?.invoke()
+        // Il telefono si sveglia prima di aprire l'app: su un telefono bloccato il display virtuale non parte
+        updateInUse()
         val createdWith = surface
-        ShizukuAppBridge.createDisplay(appContext, surface, width, height, this.dpi, inCar) { id, message ->
+        ShizukuAppBridge.createDisplay(
+            appContext, surface, width, height, this.dpi,
+            keyboardOnDisplay = inCar, secure = AppSettings.virtualSecureContent.value
+        ) { id, message ->
             creating = false
             if (closed) {
                 if (id > 0) ShizukuAppBridge.releaseDisplay(appContext, id)
@@ -92,9 +118,18 @@ class VirtualAppSession(
                 return@createDisplay
             }
             displayId = id
+            step = 3
+            stateListener?.invoke()
             // Nel frattempo la superficie può essere cambiata o sparita
             if (this.surface !== createdWith) {
                 ShizukuAppBridge.updateDisplay(appContext, id, this.surface, this.width, this.height, this.dpi)
+            }
+            if (inCar) {
+                ShizukuAppBridge.phoneGroup(appContext, id) { group ->
+                    sharesPhoneGroup = group != 0
+                    Log.i(TAG, "$packageName: display $id phone group=$group")
+                    updateInUse()
+                }
             }
             launchApp()
         }
@@ -118,6 +153,7 @@ class VirtualAppSession(
         if (closed || phase == Phase.RUNNING || creating) return
         problem = null
         phase = Phase.IDLE
+        stateListener?.invoke()
         surface?.let { attach(it, width, height, dpi) }
     }
 
@@ -152,6 +188,7 @@ class VirtualAppSession(
         }
         phase = Phase.IDLE
         updateInUse()
+        stateListener?.invoke()
     }
 
     // ------------------------------------------------------------------ interno
@@ -181,6 +218,7 @@ class VirtualAppSession(
                 problem = null
                 recreations = 0
                 updateInUse()
+                stateListener?.invoke()
             } else {
                 fail(Problem(Kind.FAILED, message))
             }
@@ -192,13 +230,24 @@ class VirtualAppSession(
         this.problem = problem
         phase = Phase.ERROR
         updateInUse()
+        stateListener?.invoke()
     }
 
+    /**
+     * Sull'auto l'app è "davanti" da quando si apre fino a quando la vista la tiene: il telefono resta sveglio (se il display
+     * è nel suo gruppo), con la schermata di attesa sopra. Con la vista nascosta o l'app chiusa il telefono torna libero.
+     */
     private fun updateInUse() {
-        val now = inCar && !closed && phase == Phase.RUNNING && surface != null
-        if (now == inUse) return
-        inUse = now
-        inUseListener?.invoke(now)
+        val now = inCar && !closed && (phase == Phase.STARTING || phase == Phase.RUNNING) && surface != null
+        if (now != inUse) {
+            inUse = now
+            inUseListener?.invoke(now)
+        }
+        val needsPhone = now && sharesPhoneGroup
+        if (needsPhone != powered) {
+            powered = needsPhone
+            VirtualScreenPower.setInUse(appContext, this, needsPhone)
+        }
     }
 
     companion object {

@@ -25,7 +25,7 @@ object ShizukuAppBridge {
     private const val TAG = "ShizukuAppBridge"
 
     // Da alzare a ogni modifica di VirtualDisplayService: Shizuku altrimenti riusa il processo di prima con il codice vecchio
-    private const val SERVICE_VERSION = 2
+    private const val SERVICE_VERSION = 3
     private const val CONNECT_TIMEOUT_SECONDS = 20L
 
     private val thread = HandlerThread("carweb-virtual-apps").apply { start() }
@@ -42,12 +42,14 @@ object ShizukuAppBridge {
     val isConnected: Boolean get() = remote?.asBinder()?.isBinderAlive == true
 
     fun createDisplay(
-        context: Context, surface: Surface?, width: Int, height: Int, dpi: Int, keyboardOnDisplay: Boolean,
+        context: Context, surface: Surface?, width: Int, height: Int, dpi: Int, keyboardOnDisplay: Boolean, secure: Boolean,
         onResult: (displayId: Int, message: String) -> Unit
     ) {
         run(context.applicationContext, onFailure = { main.post { onResult(-1, it) } }) { service ->
-            val reply = service.createDisplay(surface, width, height, dpi, keyboardOnDisplay)
-            val id = reply.removePrefix("OK:").toIntOrNull()?.takeIf { reply.startsWith("OK:") } ?: -1
+            val reply = service.createDisplay(surface, width, height, dpi, keyboardOnDisplay, secure)
+            // "OK:<id>;<dettagli>": i dettagli (flag, orientamento, tastiera) vanno nel registro, che si condivide dall'app
+            val id = if (reply.startsWith("OK:")) reply.removePrefix("OK:").substringBefore(';').toIntOrNull() ?: -1 else -1
+            Log.i(TAG, "createDisplay ${width}x$height@$dpi secure=$secure -> ${reply.take(200)}")
             main.post { onResult(id, if (id > 0) "" else reply.removePrefix("ERROR:")) }
         }
     }
@@ -58,7 +60,7 @@ object ShizukuAppBridge {
     ) {
         run(context.applicationContext, onFailure = { message -> onResult?.let { main.post { it(false, message) } } }) { service ->
             val reply = service.updateDisplay(displayId, surface, width, height, dpi)
-            if (!reply.startsWith("OK")) Log.w(TAG, "updateDisplay: $reply")
+            Log.i(TAG, "updateDisplay display=$displayId surface=${surface != null} ${width}x$height -> $reply")
             onResult?.let { callback -> main.post { callback(reply.startsWith("OK"), reply.removePrefix("ERROR:")) } }
         }
     }
@@ -75,7 +77,7 @@ object ShizukuAppBridge {
     fun launch(context: Context, displayId: Int, component: ComponentName, onResult: ((Boolean, String) -> Unit)? = null) {
         run(context.applicationContext, onFailure = { message -> onResult?.let { main.post { it(false, message) } } }) { service ->
             val reply = service.launch(displayId, component)
-            if (!reply.startsWith("OK")) Log.w(TAG, "launch: $reply")
+            Log.i(TAG, "launch display=$displayId ${component.packageName} -> $reply")
             onResult?.let { callback -> main.post { callback(reply.startsWith("OK"), reply.removePrefix("ERROR:")) } }
         }
     }

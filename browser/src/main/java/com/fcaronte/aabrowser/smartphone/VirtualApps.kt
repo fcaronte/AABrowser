@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.util.LruCache
 import android.view.KeyEvent
+import com.fcaronte.aabrowser.R
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -50,6 +51,15 @@ object VirtualApps {
         pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
     } catch (_: Exception) {
         packageName
+    }
+
+    /** Il motivo per cui l'app non si mostra, nella lingua del contesto (la Wide: sul display dell'auto non c'è altro). */
+    fun problemMessage(context: Context, problem: VirtualAppSession.Problem): String = when (problem.kind) {
+        VirtualAppSession.Kind.SHIZUKU_MISSING -> context.getString(R.string.vapp_error_missing) + "\n" + context.getString(R.string.apps_hint_phone)
+        VirtualAppSession.Kind.SHIZUKU_STOPPED -> context.getString(R.string.vapp_error_stopped) + "\n" + context.getString(R.string.apps_hint_phone)
+        VirtualAppSession.Kind.SHIZUKU_PERMISSION -> context.getString(R.string.vapp_error_permission) + "\n" + context.getString(R.string.apps_hint_phone)
+        VirtualAppSession.Kind.NO_APP -> context.getString(R.string.vapp_error_no_app)
+        VirtualAppSession.Kind.FAILED -> context.getString(R.string.vapp_error_failed, problem.detail)
     }
 
     /** Tutte le app con un'icona nel launcher (tranne CarWeb), per nome. */
