@@ -80,6 +80,7 @@ import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
+import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.InactivityTracker
@@ -263,7 +264,11 @@ fun BrowserScreen(
     val isAppDark = isAppDarkOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
     val activeDarkPages = isAppDark && darkPages
 
-    val actualDesktopMode = desktopModeOverride ?: isDesktopMode
+    // Scelta per sito (icona desktop/mobile), preferito della scheda e impostazione generale: i callback della WebView
+    // nascono una volta sola, quindi leggono sempre il valore attuale e non quello della prima composizione
+    val currentDesktopOverride by rememberUpdatedState(desktopModeOverride)
+    val currentGlobalDesktop by rememberUpdatedState(isDesktopMode)
+    val desktopSitesVersion by DesktopModeSites.version
     var daznDesktopForced by remember(tabId) { mutableStateOf(false) }
     val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
     val actualDesktopScale = desktopZoomOverride ?: globalDesktopScale
@@ -285,10 +290,9 @@ fun BrowserScreen(
     val currentIsTabActive by rememberUpdatedState(isTabActive)
     val currentIsGlobalSearchActive by rememberUpdatedState(isGlobalSearchActive)
 
+    // Un solo punto (DesktopModeSites.wantsDesktop) per user agent, zoom e icona: sito, poi preferito, poi generale
     fun needsDesktopForUrl(pageUrl: String?): Boolean =
-        actualDesktopMode ||
-                isDesktopRequired(pageUrl) ||
-                (daznDesktopForced && pageUrl?.contains("dazn.com", ignoreCase = true) == true)
+        DesktopModeSites.wantsDesktop(pageUrl, currentDesktopOverride, currentGlobalDesktop, daznDesktopForced)
 
     fun isDaznUrl(pageUrl: String?): Boolean =
         pageUrl?.contains("dazn.com", ignoreCase = true) == true
@@ -450,43 +454,36 @@ fun BrowserScreen(
         }
     }
 
-    var previousDesktopMode by remember(tabId) { mutableStateOf(actualDesktopMode) }
-
     val audioBoostDb by AppSettings.audioBoostDb
     LaunchedEffect(audioBoostDb) {
         webViewReference?.evaluateJavascript("if (typeof window.__aabAudioBoost === 'object' && window.__aabAudioBoost.refresh) { window.__aabAudioBoost.refresh(); }", null)
     }
 
-    LaunchedEffect(actualDesktopMode) {
-        if (actualDesktopMode != previousDesktopMode) {
-            previousDesktopMode = actualDesktopMode
-            webViewReference?.let { wv ->
-                val needsDesktop = actualDesktopMode || isDesktopRequired(wv.url)
-                if (needsDesktop) {
-                    setDesktopUserAgent(wv, context)
-                } else {
-                    setMobileUserAgent(wv, context)
-                }
-                AppLog.d("BrowserScreen", "Desktop mode toggled (actualDesktopMode: $actualDesktopMode); forcing page reload")
-                val currentUrl = wv.url
-                if (currentUrl != null && WebViewScriptRouter.isYouTubeUrl(currentUrl)) {
-                    val targetUrl = if (needsDesktop) {
-                        WebViewScriptRouter.convertYouTubeToDesktopUrl(currentUrl)
-                    } else {
-                        WebViewScriptRouter.convertYouTubeToMobileUrl(currentUrl)
-                    }
-                    if (targetUrl != currentUrl) {
-                        wv.loadUrl(targetUrl)
-                        return@LaunchedEffect
-                    }
-                }
-                if (!currentUrl.isNullOrBlank()) {
-                    wv.loadUrl(currentUrl)
-                } else {
-                    wv.reload()
-                }
-            }
+    // Desktop o mobile cambiato per il sito (icona), per il preferito o nelle Impostazioni: la pagina aperta cambia user
+    // agent e si ricarica. Conta lo user agent che la WebView usa davvero (come nella Wide): se coincide già con quello
+    // voluto non si tocca niente, quindi pagine locali, siti che restano desktop e altre schede non si ricaricano.
+    // Prima la scelta per sito non entrava in questo calcolo: l'icona cambiava e la pagina restava com'era
+    LaunchedEffect(desktopSitesVersion, desktopModeOverride, isDesktopMode) {
+        val wv = webViewReference ?: return@LaunchedEffect
+        val currentUrl = wv.url
+        if (currentUrl.isNullOrBlank() || !UrlUtils.isWebUrl(currentUrl) || LocalPlayer.isPlayerUrl(currentUrl)) {
+            return@LaunchedEffect
         }
+        val needsDesktop = needsDesktopForUrl(currentUrl)
+        if (needsDesktop == WebViewScriptRouter.hasDesktopUserAgent(wv)) return@LaunchedEffect
+        if (needsDesktop) {
+            setDesktopUserAgent(wv, context)
+        } else {
+            setMobileUserAgent(wv, context)
+        }
+        AppLog.d("BrowserScreen", "Desktop mode changed (desktop=$needsDesktop); reloading the page")
+        // YouTube: gli script di CarWeb sono fatti per m.youtube.com, che resta la pagina mobile; in desktop si va su www
+        val targetUrl = when {
+            !WebViewScriptRouter.isYouTubeUrl(currentUrl) -> currentUrl
+            needsDesktop -> WebViewScriptRouter.convertYouTubeToDesktopUrl(currentUrl)
+            else -> WebViewScriptRouter.convertYouTubeToMobileUrl(currentUrl)
+        }
+        wv.loadUrl(targetUrl)
     }
 
     var isFullscreenPending by remember { mutableStateOf(false) }
@@ -804,7 +801,7 @@ fun BrowserScreen(
                             )
                         }
 
-                        val needsDesktop = actualDesktopMode || isDesktopRequired(url)
+                        val needsDesktop = needsDesktopForUrl(url)
                         if (needsDesktop) {
                             val ua = setDesktopUserAgent(this, context)
                             if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {

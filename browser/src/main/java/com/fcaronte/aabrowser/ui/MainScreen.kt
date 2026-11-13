@@ -795,7 +795,11 @@ fun MainScreen(
                                     feedbackMessage = desktopModeRequiredMsg
                                 } else if (site != null && isEnabled != null) {
                                     val enable = !isEnabled
-                                    DesktopModeSites.setOverride(context, site, enable)
+                                    // Senza scelta per il sito vale il preferito della scheda, poi l'impostazione generale
+                                    DesktopModeSites.setOverride(
+                                        context, site, enable,
+                                        baseline = activeTab?.desktopModeOverride ?: isDesktopMode
+                                    )
                                     feedbackMessage = if (enable) desktopModeOnMsg else desktopModeOffMsg
                                 }
                                 onInteraction()

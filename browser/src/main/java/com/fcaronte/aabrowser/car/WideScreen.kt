@@ -566,16 +566,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (adBlockState(currentAdBlockSite()) != shownAdBlockState) invalidate()
     }
 
-    private fun desktopModeEnabled(url: String?): Boolean {
-        if (url.isNullOrBlank() || url.startsWith(HomePage.BASE_URL)) return false
-        val preferred = DesktopModeSites.isEnabledForUrl(
-            url,
-            favoriteFor(url)?.isDesktopMode,
-            AppSettings.desktopMode.value
-        )
-        return preferred || WebViewScriptRouter.isDesktopRequired(url) ||
-                (daznDesktopForced && isDazn(url))
-    }
+    private fun desktopModeEnabled(url: String?): Boolean =
+        !url.isNullOrBlank() && !url.startsWith(HomePage.BASE_URL) && needsDesktopForUrl(url)
 
     private fun desktopModeToggleEnabled(url: String?): Boolean =
         url != null && !url.startsWith(HomePage.BASE_URL) &&
@@ -604,7 +596,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
         if (!desktopModeToggleEnabled(url)) return
         val enabled = !desktopModeEnabled(url)
-        DesktopModeSites.setOverride(carContext, site, enabled)
+        // Senza scelta per il sito vale il preferito, poi l'impostazione generale
+        DesktopModeSites.setOverride(
+            carContext, site, enabled,
+            baseline = favoriteFor(url)?.isDesktopMode ?: AppSettings.desktopMode.value
+        )
         CarToast.makeText(
             carContext,
             strings.getString(
@@ -959,9 +955,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun needsDesktopForUrl(url: String?): Boolean {
         if (url != null && url.startsWith(HomePage.BASE_URL)) return false
-        // Come nel Main: la scelta del preferito sostituisce quella generale, i siti "solo desktop" restano desktop
-        val desktopPreferred = favoriteFor(url)?.isDesktopMode ?: AppSettings.desktopMode.value
-        return desktopPreferred || WebViewScriptRouter.isDesktopRequired(url) || (daznDesktopForced && isDazn(url))
+        // Come nel Main (DesktopModeSites.wantsDesktop): scelta per il sito, poi preferito, poi impostazione generale;
+        // i siti "solo desktop" restano desktop. La scelta per il sito mancava: l'icona cambiava e la pagina no
+        return DesktopModeSites.wantsDesktop(url, favoriteFor(url)?.isDesktopMode, AppSettings.desktopMode.value, daznDesktopForced)
     }
 
     /** Host senza "www.": "https://www.dazn.com/it" e "https://dazn.com" sono lo stesso sito. */
