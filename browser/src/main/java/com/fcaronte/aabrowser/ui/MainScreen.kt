@@ -70,6 +70,7 @@ import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
@@ -179,6 +180,13 @@ fun MainScreen(
     var reloadTrigger by remember { mutableIntStateOf(0) }
     var backTrigger by remember { mutableIntStateOf(0) }
     var forwardTrigger by remember { mutableIntStateOf(0) }
+
+    // Indietro: la pagina precedente della scheda, oppure Indietro dentro l'app se la scheda è un'app del telefono
+    // sullo schermo virtuale (indirizzo app://pacchetto)
+    val goBack: () -> Unit = {
+        val tab = TabManager.activeTab
+        if (tab != null && VirtualApps.isAppUrl(tab.url)) VirtualApps.back(tab.id) else backTrigger++
+    }
 
     var isNavVisible by remember { mutableStateOf(true) }
     var isNavMenuOpen by remember { mutableStateOf(false) }
@@ -336,6 +344,34 @@ fun MainScreen(
         localized.setTheme(R.style.AppTheme)
         localized
     }
+
+    // Un'app del telefono sullo schermo virtuale: una scheda come una pagina web (indirizzo app://pacchetto)
+    val openVirtualApp: (String) -> Unit = { packageName ->
+        if (VirtualApps.isAvailable(context, packageName)) {
+            TabManager.openOrSwitchTo(
+                url = VirtualApps.urlFor(packageName),
+                title = VirtualApps.label(context, packageName)
+            )
+            currentScreen = Screen.Browser
+        } else {
+            feedbackMessage = localizedContext.getString(R.string.vapp_error_no_app)
+        }
+    }
+    // "Altre App" dalla barra dell'app sullo schermo virtuale: l'elenco delle app, in una scheda
+    val openAppsPage: () -> Unit = {
+        TabManager.openOrSwitchTo(
+            url = "${LocalPlayer.BASE_URL}apps",
+            title = localizedContext.getString(R.string.apps_title)
+        )
+        currentScreen = Screen.Browser
+    }
+    val closeTabById: (String) -> Unit = { id ->
+        val index = TabManager.tabs.indexOfFirst { it.id == id }
+        if (index >= 0) {
+            TabManager.closeTab(index)
+            if (TabManager.tabs.isEmpty()) currentScreen = Screen.Dashboard
+        }
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Comandi vocali: tasto microfono (barra delle schede e menu) e "Ok Google, metti … su AABrowser".
@@ -417,7 +453,7 @@ fun MainScreen(
             }
 
             VoiceCommands.Plan.Back ->
-                if (currentScreen == Screen.Browser) backTrigger++
+                if (currentScreen == Screen.Browser) goBack()
                 else if (TabManager.activeTab != null) currentScreen = Screen.Browser
 
             // Media, TV e Radio: la scheda di quella pagina; la richiesta la prende la pagina (MediaVoice, BrowserScreen)
@@ -502,7 +538,9 @@ fun MainScreen(
             PhoneBackHandler(enabled = currentScreen != Screen.Splash && !(currentScreen == Screen.Dashboard && exitArmed)) {
                 when (currentScreen) {
                     is Screen.Browser ->
-                        if (isFullScreen || activeWebView?.canGoBack() == true) backTrigger++
+                        // Un'app del telefono torna indietro da sola; per uscirne ci sono la barra dell'app e le schede
+                        if (VirtualApps.isAppUrl(TabManager.activeTab?.url)) goBack()
+                        else if (isFullScreen || activeWebView?.canGoBack() == true) backTrigger++
                         else currentScreen = Screen.Dashboard
                     is Screen.Settings -> currentScreen = previousScreen
                     is Screen.TabManager ->
@@ -615,10 +653,15 @@ fun MainScreen(
                     TabBarMode.ALWAYS_ON -> !isFullScreen
                 }
 
+                // Lo spazio della barra delle schede, tolto a ogni scheda (non al contenitore): un'app del telefono ha sempre
+                // quello della barra, anche quando la barra si nasconde da sola, così il suo display non cambia misura e l'app
+                // non si ridisegna a ogni tocco
+                val webTopPadding = if (isTabBarVisible && isBrowserVisible) 48.dp else 0.dp
+                val appTopPadding = if (tabBarMode != TabBarMode.OFF) 48.dp else 0.dp
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = if (isTabBarVisible && isBrowserVisible) 48.dp else 0.dp)
                         .graphicsLayer(alpha = if (isBrowserVisible) 1f else 0.01f)
                         .zIndex(if (isBrowserVisible) 1f else -1f)
                 ) {
@@ -626,8 +669,19 @@ fun MainScreen(
                     sortedTabs.forEach { tab ->
                         val isTabActive = activeTab?.id == tab.id
                         androidx.compose.runtime.key(tab.id) { // Se qui forzo il ricaricamneto immediato della pagina web al cambio giorno notte si blocca la musica in riproduzione
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                BrowserScreen(
+                            val virtualApp = VirtualApps.packageOf(tab.url)
+                            Box(modifier = Modifier.fillMaxSize().padding(top = if (virtualApp != null) appTopPadding else webTopPadding)) {
+                                if (virtualApp != null) {
+                                    VirtualAppTab(
+                                        tabId = tab.id,
+                                        packageName = virtualApp,
+                                        isActive = isTabActive && isBrowserVisible,
+                                        inCar = isAutomotive,
+                                        onOpenApps = openAppsPage,
+                                        onClose = { closeTabById(tab.id) },
+                                        onShowFeedback = { if (isTabActive) feedbackMessage = it }
+                                    )
+                                } else BrowserScreen(
                                     tabId = tab.id,
                                     url = tab.url,
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
@@ -653,7 +707,8 @@ fun MainScreen(
                                         settingsLists = section
                                         previousScreen = Screen.Browser
                                         currentScreen = Screen.Settings
-                                    }
+                                    },
+                                    onOpenVirtualApp = openVirtualApp
                                 )
                                 if (!isTabActive || !isBrowserVisible) {
                                     Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Transparent).pointerInput(Unit) {})
@@ -685,7 +740,8 @@ fun MainScreen(
                             onOpenSearch = { showDashboardSearch = true },
                             onVoiceCommand = toggleVoiceCommand,
                             onOpenWide = openWide,
-                            onShowFeedback = { feedbackMessage = it }
+                            onShowFeedback = { feedbackMessage = it },
+                            onVirtualAppSelected = openVirtualApp
                         )
 
                         if (showDashboardSearch) {
@@ -800,7 +856,7 @@ fun MainScreen(
                                         onInteraction()
                                     },
                                     onGoBack = {
-                                        backTrigger++
+                                        goBack()
                                         onInteraction()
                                     },
                                     onGoForward = {
@@ -819,7 +875,7 @@ fun MainScreen(
                             NavigationOverlay(
                                 currentUrl = activeTab?.url ?: "",
                                 onGoBack = {
-                                    backTrigger++
+                                    goBack()
                                     onInteraction()
                                 },
                                 onGoForward = {

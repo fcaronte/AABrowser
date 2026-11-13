@@ -77,6 +77,7 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
 import com.fcaronte.aabrowser.utils.DaznManager
@@ -251,6 +252,8 @@ fun BrowserScreen(
     onShowFeedback: (String) -> Unit = {},
     // Aggiungere una lista dalle pagine di TV e Radio (solo sul telefono): le Impostazioni, al punto giusto
     onOpenMediaLists: (IptvSources.Section) -> Unit = {},
+    // "Altre App": un'app del telefono scelta nella pagina si apre sul display virtuale, in una scheda
+    onOpenVirtualApp: (String) -> Unit = {},
 ) {
     val globalDisplayScale by AppSettings.displayScale
     val globalDesktopScale by AppSettings.desktopScale
@@ -289,6 +292,7 @@ fun BrowserScreen(
     // I callback della WebView vengono creati una volta sola: da qui leggono sempre il valore attuale
     val currentIsTabActive by rememberUpdatedState(isTabActive)
     val currentIsGlobalSearchActive by rememberUpdatedState(isGlobalSearchActive)
+    val currentOpenVirtualApp by rememberUpdatedState(onOpenVirtualApp)
 
     // Un solo punto (DesktopModeSites.wantsDesktop) per user agent, zoom e icona: sito, poi preferito, poi generale
     fun needsDesktopForUrl(pageUrl: String?): Boolean =
@@ -1296,6 +1300,14 @@ fun BrowserScreen(
                                 request: WebResourceRequest?
                             ): Boolean {
                                 val uri = request?.url?.toString() ?: ""
+                                // Altre App: l'app scelta si apre sul display virtuale. Solo dalla pagina "Altre App" di CarWeb
+                                // e dopo un tocco: da un sito qualunque non si aprono app del telefono
+                                if (uri.startsWith(VirtualApps.SCHEME)) {
+                                    if (request?.isForMainFrame == true && request.hasGesture() && LocalPlayer.isAppsUrl(view?.url)) {
+                                        VirtualApps.packageOf(uri)?.let { currentOpenVirtualApp(it) }
+                                    }
+                                    return true
+                                }
                                 if (uri.startsWith("intent://")) {
                                     // Solo dalla pagina principale e solo verso indirizzi web: un iframe (es. una
                                     // pubblicità) con ripiego "javascript:" faceva eseguire il suo codice nella pagina

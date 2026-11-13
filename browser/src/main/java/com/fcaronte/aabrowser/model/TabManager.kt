@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
+import com.fcaronte.aabrowser.smartphone.VirtualApps
+import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import java.net.URI
 import java.util.UUID
@@ -109,6 +111,10 @@ object TabManager {
 
     fun findTabIndexByUrlOrHost(targetUrl: String): Int {
         if (targetUrl.isBlank()) return -1
+        // Un'app del telefono (app://pacchetto): la scheda dello stesso pacchetto, mai un sito
+        if (VirtualApps.isAppUrl(targetUrl)) return tabs.indexOfFirst { it.url == targetUrl }
+        // "Altre App" sta su player.local come Media, TV, Radio e Podcast: non è la scheda di nessuna di loro
+        if (LocalPlayer.isAppsUrl(targetUrl)) return tabs.indexOfFirst { LocalPlayer.isAppsUrl(it.url) }
         // Media, TV, Radio e Podcast hanno lo stesso host ma sono pagine diverse: il preferito della Radio non deve finire
         // sulla scheda di Media
         VoiceCommands.mediaSectionOf(targetUrl)?.let { section ->
