@@ -506,4 +506,12 @@
     <string name="standby_hint">Zum Entsperren wischen</string>
     <string name="vapp_standby_label">Standby-Bildschirm am Telefon</string>
     <string name="vapp_standby_desc">Solange eine App des Telefons auf dem Autobildschirm läuft, bleibt das Telefon an, zeigt aber einen schwarzen Bildschirm „CarWeb ist aktiv“ (zum Entsperren wischen) und zeigt ihn wieder, wenn du das Telefon nicht mehr benutzt.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Tasten rechts in der Tab-Leiste</string>
+    <string name="tab_bar_actions_desc">Wähle, welche angezeigt werden und in welcher Reihenfolge. Wenn du mehr behältst, als du gleichzeitig sehen willst, erreichst du die anderen durch Wischen der Tasten nach rechts oder links.</string>
+    <string name="tab_bar_actions_visible">Gleichzeitig sichtbare Tasten: %1$d</string>
+    <string name="tab_bar_action_up">Nach oben</string>
+    <string name="tab_bar_action_down">Nach unten</string>
+    <string name="vapp_secure_label">Geschützte Inhalte (experimentell)</string>
+    <string name="vapp_secure_desc">Versucht, auch Fenster zu zeigen, die Screenshots blockieren (Banken, manche Apps), statt sie schwarz zu lassen. Videos mit Hardware-DRM wie Netflix in HD bleiben schwarz: Das Telefon lässt sie seinen Bildschirm nicht verlassen. App erneut öffnen, um es anzuwenden.</string>
 </resources>

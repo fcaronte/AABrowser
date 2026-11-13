@@ -506,4 +506,12 @@
     <string name="standby_hint">Húzd el a feloldáshoz</string>
     <string name="vapp_standby_label">Készenléti képernyő a telefonon</string>
     <string name="vapp_standby_desc">Amíg egy telefonos alkalmazás az autó képernyőjén van, a telefon ébren marad, de fekete „A CarWeb aktív” képernyőt mutat (húzd el a feloldáshoz), és újra megmutatja, ha nem használod.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">A lapsáv jobb oldali gombjai</string>
+    <string name="tab_bar_actions_desc">Válaszd ki, melyik látszódjon és milyen sorrendben. Ha többet tartasz meg, mint amennyit egyszerre látni szeretnél, a többit a gombok jobbra vagy balra húzásával éred el.</string>
+    <string name="tab_bar_actions_visible">Egyszerre látható gombok: %1$d</string>
+    <string name="tab_bar_action_up">Fel</string>
+    <string name="tab_bar_action_down">Le</string>
+    <string name="vapp_secure_label">Védett tartalom (kísérleti)</string>
+    <string name="vapp_secure_desc">Megpróbálja megjeleníteni a képernyőmentést tiltó ablakokat (bankok, egyes alkalmazások) ahelyett, hogy feketén hagyná őket. A hardveres DRM-es videók, például az HD Netflix, feketék maradnak: a telefon nem engedi őket kikerülni a saját képernyőjéről. Az alkalmazás újranyitásával érvényesül.</string>
 </resources>

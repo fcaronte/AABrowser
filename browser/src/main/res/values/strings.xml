@@ -515,4 +515,12 @@
     <string name="standby_hint">Swipe to unlock</string>
     <string name="vapp_standby_label">Standby screen on the phone</string>
     <string name="vapp_standby_desc">While a phone app is on the car screen, the phone stays awake but shows a black “CarWeb is active” screen (swipe to unlock), and shows it again when you stop using the phone.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Buttons at the right of the tab bar</string>
+    <string name="tab_bar_actions_desc">Choose which ones to show and in what order. If you keep more than you want to see at once, the others are reached by swiping the buttons left or right.</string>
+    <string name="tab_bar_actions_visible">Buttons visible at once: %1$d</string>
+    <string name="tab_bar_action_up">Move up</string>
+    <string name="tab_bar_action_down">Move down</string>
+    <string name="vapp_secure_label">Protected content (experimental)</string>
+    <string name="vapp_secure_desc">Tries to show windows that block screenshots (banks, some apps) instead of leaving them black. Hardware DRM video such as Netflix in HD stays black: the phone does not let it leave its own screen. Open the app again to apply.</string>
 </resources>

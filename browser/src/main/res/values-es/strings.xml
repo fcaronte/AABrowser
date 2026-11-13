@@ -507,4 +507,12 @@
     <string name="standby_hint">Desliza para desbloquear</string>
     <string name="vapp_standby_label">Pantalla de espera en el teléfono</string>
     <string name="vapp_standby_desc">Mientras una app del teléfono está en la pantalla del coche, el teléfono sigue encendido pero muestra una pantalla negra «CarWeb está activo» (desliza para desbloquear), y la vuelve a mostrar cuando dejas de usarlo.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Botones a la derecha de la barra</string>
+    <string name="tab_bar_actions_desc">Elige cuáles mostrar y en qué orden. Si dejas más de los que quieres ver a la vez, los demás se alcanzan deslizando los botones a derecha o izquierda.</string>
+    <string name="tab_bar_actions_visible">Botones visibles a la vez: %1$d</string>
+    <string name="tab_bar_action_up">Subir</string>
+    <string name="tab_bar_action_down">Bajar</string>
+    <string name="vapp_secure_label">Contenido protegido (experimental)</string>
+    <string name="vapp_secure_desc">Intenta mostrar también las ventanas que bloquean las capturas de pantalla (bancos, algunas apps) en lugar de dejarlas negras. Los vídeos con DRM por hardware, como Netflix en HD, siguen en negro: el teléfono no los deja salir de su pantalla. Vuelve a abrir la app para aplicarlo.</string>
 </resources>

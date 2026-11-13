@@ -507,4 +507,12 @@
     <string name="standby_hint">Balayez pour déverrouiller</string>
     <string name="vapp_standby_label">Écran de veille sur le téléphone</string>
     <string name="vapp_standby_desc">Tant qu\'une appli du téléphone est sur l\'écran de la voiture, le téléphone reste allumé mais affiche un écran noir « CarWeb est actif » (balayez pour déverrouiller), et le réaffiche quand vous ne l\'utilisez plus.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Boutons à droite de la barre</string>
+    <string name="tab_bar_actions_desc">Choisissez lesquels afficher et dans quel ordre. Si vous en gardez plus que vous n\'en voulez voir à la fois, les autres s\'atteignent en faisant glisser les boutons vers la droite ou la gauche.</string>
+    <string name="tab_bar_actions_visible">Boutons visibles à la fois : %1$d</string>
+    <string name="tab_bar_action_up">Monter</string>
+    <string name="tab_bar_action_down">Descendre</string>
+    <string name="vapp_secure_label">Contenus protégés (expérimental)</string>
+    <string name="vapp_secure_desc">Essaie d\'afficher aussi les fenêtres qui bloquent les captures d\'écran (banques, certaines applis) au lieu de les laisser noires. Les vidéos avec DRM matériel, comme Netflix en HD, restent noires : le téléphone ne les laisse pas sortir de son écran. Rouvrez l\'appli pour l\'appliquer.</string>
 </resources>

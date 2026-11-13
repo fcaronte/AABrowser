@@ -160,6 +160,18 @@ object AppSettings {
     private val _tabBarMode = mutableStateOf(TabBarMode.OFF)
     val tabBarMode: State<TabBarMode> = _tabBarMode
 
+    // I tasti a destra della barra delle schede: quali, in che ordine e quanti se ne vedono insieme (gli altri si scorrono)
+    private val _tabBarActions = mutableStateOf(TabBarAction.DEFAULT)
+    val tabBarActions: State<List<TabBarAction>> = _tabBarActions
+    private val _tabBarVisibleCount = mutableIntStateOf(TabBarAction.MAX_VISIBLE)
+    val tabBarVisibleCount: State<Int> = _tabBarVisibleCount
+
+    // App del telefono sullo schermo virtuale (Altre App): schermata di attesa sul telefono, contenuti protetti
+    private val _virtualStandby = mutableStateOf(true)
+    val virtualStandby: State<Boolean> = _virtualStandby
+    private val _virtualSecureContent = mutableStateOf(false)
+    val virtualSecureContent: State<Boolean> = _virtualSecureContent
+
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
 
@@ -245,6 +257,10 @@ object AppSettings {
         _tabBarMode.value = TabBarMode.valueOf(
             prefs.getString("tab_bar_mode", TabBarMode.OFF.name) ?: TabBarMode.OFF.name
         )
+        _tabBarActions.value = TabBarAction.parse(prefs.getString("tab_bar_actions", null))
+        _tabBarVisibleCount.intValue = prefs.getInt("tab_bar_visible", TabBarAction.MAX_VISIBLE).coerceIn(1, TabBarAction.MAX_VISIBLE)
+        _virtualStandby.value = prefs.getBoolean("virtual_standby", true)
+        _virtualSecureContent.value = prefs.getBoolean("virtual_secure_content", false)
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
@@ -369,6 +385,28 @@ object AppSettings {
     fun setAutoplayMedia(context: Context, enabled: Boolean) {
         _autoplayMedia.value = enabled
         saveBoolean(context, "autoplay_media", enabled)
+    }
+
+    fun setTabBarActions(context: Context, actions: List<TabBarAction>) {
+        val clean = actions.distinct()
+        _tabBarActions.value = clean
+        saveString(context, "tab_bar_actions", TabBarAction.serialize(clean))
+    }
+
+    fun setTabBarVisibleCount(context: Context, count: Int) {
+        val value = count.coerceIn(1, TabBarAction.MAX_VISIBLE)
+        _tabBarVisibleCount.intValue = value
+        saveInt(context, "tab_bar_visible", value)
+    }
+
+    fun setVirtualStandby(context: Context, enabled: Boolean) {
+        _virtualStandby.value = enabled
+        saveBoolean(context, "virtual_standby", enabled)
+    }
+
+    fun setVirtualSecureContent(context: Context, enabled: Boolean) {
+        _virtualSecureContent.value = enabled
+        saveBoolean(context, "virtual_secure_content", enabled)
     }
 
     fun setAudioBoostDb(context: Context, db: Float) {

@@ -506,4 +506,12 @@
     <string name="standby_hint">अनलॉक करने के लिए स्वाइप करें</string>
     <string name="vapp_standby_label">फ़ोन पर स्टैंडबाय स्क्रीन</string>
     <string name="vapp_standby_desc">जब तक फ़ोन का कोई ऐप कार की स्क्रीन पर है, फ़ोन चालू रहता है पर काली स्क्रीन “CarWeb चालू है” दिखाता है (अनलॉक करने के लिए स्वाइप करें), और फ़ोन का उपयोग बंद करने पर उसे फिर दिखाता है।</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">टैब बार के दाईं ओर के बटन</string>
+    <string name="tab_bar_actions_desc">चुनें कि कौन से दिखें और किस क्रम में। यदि आप एक साथ दिखाने से अधिक रखते हैं, तो बाकी बटनों को दाएँ या बाएँ स्वाइप करके पहुँचा जा सकता है।</string>
+    <string name="tab_bar_actions_visible">एक साथ दिखने वाले बटन: %1$d</string>
+    <string name="tab_bar_action_up">ऊपर ले जाएँ</string>
+    <string name="tab_bar_action_down">नीचे ले जाएँ</string>
+    <string name="vapp_secure_label">सुरक्षित सामग्री (प्रयोगात्मक)</string>
+    <string name="vapp_secure_desc">स्क्रीनशॉट रोकने वाली विंडो (बैंक, कुछ एप) को काला छोड़ने के बजाय दिखाने की कोशिश करता है। हार्डवेयर DRM वाले वीडियो, जैसे HD में Netflix, काले ही रहते हैं: फ़ोन उन्हें अपनी स्क्रीन से बाहर नहीं जाने देता। लागू करने के लिए ऐप फिर से खोलें।</string>
 </resources>

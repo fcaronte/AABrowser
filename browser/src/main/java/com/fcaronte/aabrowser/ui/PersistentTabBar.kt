@@ -1,6 +1,8 @@
 package com.fcaronte.aabrowser.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,8 +48,13 @@ import androidx.compose.ui.unit.dp
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.model.TabState
+import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.settings.TabBarAction
 import java.net.URI
 
+private val ACTION_SIZE = 44.dp
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PersistentTabBar(
     modifier: Modifier = Modifier,
@@ -64,6 +73,13 @@ fun PersistentTabBar(
     val tabs = TabManager.tabs
     val activeIndex = TabManager.activeTabIndex
     val listState = rememberLazyListState()
+
+    // I tasti a destra: quali, in che ordine e quanti se ne vedono insieme li sceglie l'utente (Impostazioni); gli altri
+    // si raggiungono scorrendo i tasti. Il comando vocale c'è solo dove la Main sa ascoltare
+    val chosen by AppSettings.tabBarActions
+    val wantedVisible by AppSettings.tabBarVisibleCount
+    val actions = chosen.filter { it != TabBarAction.VOICE || onVoiceCommand != null }
+    val visibleActions = TabBarAction.visibleCount(wantedVisible, actions.size)
 
     LaunchedEffect(activeIndex) {
         if (activeIndex >= 0) {
@@ -118,87 +134,97 @@ fun PersistentTabBar(
                 }
             }
 
-            // Tasti Navigazione a destra
-            VerticalDivider(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 12.dp),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
+            // Tasti a destra (scelti nelle Impostazioni)
+            if (actions.isNotEmpty()) {
+                VerticalDivider(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(vertical = 12.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            ) {
-                // Comando vocale: "metti … su YouTube", "apri …", "portami a …", "pausa"... (rosso mentre ascolta)
-                if (onVoiceCommand != null) {
-                    IconButton(
-                        onClick = onVoiceCommand,
-                        modifier = Modifier.size(44.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = stringResource(R.string.voice_command_button),
-                            tint = if (isVoiceListening) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
-                IconButton(
-                    onClick = onToggleAdBlock,
-                    enabled = adBlockOff != null,
-                    modifier = Modifier.size(44.dp)
+                // Si vedono [visibleActions] tasti; strisciando a destra e a sinistra scorrono gli altri, a un tasto per volta
+                val actionsState = rememberLazyListState()
+                LazyRow(
+                    state = actionsState,
+                    flingBehavior = rememberSnapFlingBehavior(actionsState),
+                    modifier = Modifier
+                        .width(ACTION_SIZE * visibleActions)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
-                        contentDescription = stringResource(R.string.adblock_this_site),
-                        tint = if (adBlockOff != null) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
-                }
-
-                IconButton(
-                    onClick = onToggleDesktopMode,
-                    enabled = desktopModeOn != null,
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    Icon(
-                        imageVector = if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows,
-                        contentDescription = stringResource(
-                            when (desktopModeOn) {
-                                true -> R.string.desktop_mode_switch_to_mobile
-                                false -> R.string.desktop_mode_switch_to_desktop
-                                null -> R.string.desktop_mode_this_site
+                    items(actions, key = { it.id }) { action ->
+                        when (action) {
+                            // Comando vocale: "metti … su YouTube", "apri …", "portami a …", "pausa"... (rosso mentre ascolta)
+                            TabBarAction.VOICE -> IconButton(
+                                onClick = { onVoiceCommand?.invoke() },
+                                modifier = Modifier.size(ACTION_SIZE)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = stringResource(R.string.voice_command_button),
+                                    tint = if (isVoiceListening) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.primary
+                                )
                             }
-                        ),
-                        tint = if (desktopModeOn != null) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
-                }
 
-                IconButton(
-                    onClick = onGoBack,
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                            // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist
+                            TabBarAction.ADBLOCK -> IconButton(
+                                onClick = onToggleAdBlock,
+                                enabled = adBlockOff != null,
+                                modifier = Modifier.size(ACTION_SIZE)
+                            ) {
+                                Icon(
+                                    imageVector = if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser,
+                                    contentDescription = stringResource(R.string.adblock_this_site),
+                                    tint = if (adBlockOff != null) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                )
+                            }
 
-                IconButton(
-                    onClick = onGoForward,
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = stringResource(R.string.forward_button),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                            TabBarAction.DESKTOP -> IconButton(
+                                onClick = onToggleDesktopMode,
+                                enabled = desktopModeOn != null,
+                                modifier = Modifier.size(ACTION_SIZE)
+                            ) {
+                                Icon(
+                                    imageVector = if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows,
+                                    contentDescription = stringResource(
+                                        when (desktopModeOn) {
+                                            true -> R.string.desktop_mode_switch_to_mobile
+                                            false -> R.string.desktop_mode_switch_to_desktop
+                                            null -> R.string.desktop_mode_this_site
+                                        }
+                                    ),
+                                    tint = if (desktopModeOn != null) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                )
+                            }
+
+                            TabBarAction.BACK -> IconButton(
+                                onClick = onGoBack,
+                                modifier = Modifier.size(ACTION_SIZE)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.back_button),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            TabBarAction.FORWARD -> IconButton(
+                                onClick = onGoForward,
+                                modifier = Modifier.size(ACTION_SIZE)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = stringResource(R.string.forward_button),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

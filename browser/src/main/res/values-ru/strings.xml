@@ -508,4 +508,12 @@
     <string name="standby_hint">Проведите пальцем, чтобы разблокировать</string>
     <string name="vapp_standby_label">Экран ожидания на телефоне</string>
     <string name="vapp_standby_desc">Пока приложение телефона на экране автомобиля, телефон остаётся включённым, но показывает чёрный экран «CarWeb активен» (проведите, чтобы разблокировать), и снова показывает его, когда вы перестаёте пользоваться телефоном.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Кнопки справа на панели вкладок</string>
+    <string name="tab_bar_actions_desc">Выберите, какие показывать и в каком порядке. Если оставить больше кнопок, чем нужно видеть сразу, остальные доступны смахиванием кнопок вправо или влево.</string>
+    <string name="tab_bar_actions_visible">Кнопок на виду: %1$d</string>
+    <string name="tab_bar_action_up">Вверх</string>
+    <string name="tab_bar_action_down">Вниз</string>
+    <string name="vapp_secure_label">Защищённый контент (экспериментально)</string>
+    <string name="vapp_secure_desc">Пытается показывать и окна, блокирующие снимки экрана (банки, некоторые приложения), вместо чёрного экрана. Видео с аппаратным DRM, например Netflix в HD, остаётся чёрным: телефон не выпускает его за пределы своего экрана. Откройте приложение заново, чтобы применить.</string>
 </resources>

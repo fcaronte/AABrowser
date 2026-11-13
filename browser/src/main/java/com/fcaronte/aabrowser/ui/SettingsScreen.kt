@@ -140,6 +140,8 @@ fun SettingsScreen(
     val forceEnglish by AppSettings.forceEnglish
     val persistentNav by AppSettings.persistentNavigation
     val tabBarMode by AppSettings.tabBarMode
+    val virtualStandby by AppSettings.virtualStandby
+    val virtualSecure by AppSettings.virtualSecureContent
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
@@ -686,6 +688,29 @@ fun SettingsScreen(
                                             }
                                         }
                                     }
+                                }
+                            }
+
+                            // Pulsanti a destra della barra delle schede: quali, in che ordine e quanti se ne vedono insieme
+                            AnimatedVisibility(visible = tabBarMode != TabBarMode.OFF) {
+                                SettingsCard { TabBarActionsCard() }
+                            }
+
+                            // Altre App: le app del telefono sullo schermo dell'auto (Shizuku)
+                            SettingsCard {
+                                Column {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.vapp_standby_label),
+                                        description = stringResource(R.string.vapp_standby_desc),
+                                        checked = virtualStandby,
+                                        onCheckedChange = { AppSettings.setVirtualStandby(context, it) }
+                                    )
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.vapp_secure_label),
+                                        description = stringResource(R.string.vapp_secure_desc),
+                                        checked = virtualSecure,
+                                        onCheckedChange = { AppSettings.setVirtualSecureContent(context, it) }
+                                    )
                                 }
                             }
 

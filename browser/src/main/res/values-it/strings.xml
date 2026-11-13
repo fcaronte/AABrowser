@@ -464,4 +464,12 @@
     <string name="standby_hint">Scorri per sbloccare</string>
     <string name="vapp_standby_label">Schermata di attesa sul telefono</string>
     <string name="vapp_standby_desc">Mentre un\'app del telefono è sullo schermo dell\'auto, il telefono resta acceso ma mostra una schermata nera “CarWeb attivo” (scorri per sbloccare), e la rimostra quando non lo usi più.</string>
+    <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
+    <string name="tab_bar_actions_label">Pulsanti a destra della barra</string>
+    <string name="tab_bar_actions_desc">Scegli quali mostrare e in che ordine. Se ne tieni più di quanti ne vuoi vedere insieme, gli altri si raggiungono strisciando i pulsanti a destra o a sinistra.</string>
+    <string name="tab_bar_actions_visible">Pulsanti visibili insieme: %1$d</string>
+    <string name="tab_bar_action_up">Sposta su</string>
+    <string name="tab_bar_action_down">Sposta giù</string>
+    <string name="vapp_secure_label">Contenuti protetti (sperimentale)</string>
+    <string name="vapp_secure_desc">Prova a mostrare anche le finestre che bloccano gli screenshot (banche, alcune app) invece di lasciarle nere. I video con DRM hardware, come Netflix in HD, restano neri: il telefono non li lascia uscire dal suo schermo. Riapri l\'app per applicarlo.</string>
 </resources>
