@@ -27,6 +27,26 @@
     let resizeObserver = null;
     let fixedMenu = false;      // Wide con il menu fisso
     let menuOnTap = false;
+    let lastLogged = '';
+
+    // Righe nel registro dell'app (le vede chi condivide il log): solo forme e misure, mai indirizzi. Quella di prima non si
+    // ripete: il sito ridimensiona il video di continuo
+    function log(text) {
+        if (text === lastLogged) return;
+        lastLogged = text;
+        try {
+            console.log('AABrowser VideoFit: ' + text);
+        } catch (_) {}
+    }
+
+    function describe(element) {
+        if (!element) return 'none';
+        const rect = element.getBoundingClientRect();
+        const id = element.id ? '#' + String(element.id).slice(0, 24) : '';
+        const first = typeof element.className === 'string' ? element.className.trim().split(/\s+/)[0] : '';
+        return element.tagName.toLowerCase() + id + (first ? '.' + first.slice(0, 24) : '') + ' ' +
+            Math.round(rect.width) + 'x' + Math.round(rect.height);
+    }
 
     // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
     function wideBridge() {
@@ -59,17 +79,30 @@
         } catch (_) {}
     }
 
+    // Nel documento, o nello shadow DOM che contiene il video: le regole del documento non entrano negli shadow DOM
     function useRules() {
-        if (!document.adoptedStyleSheets.includes(rules)) {
-            document.adoptedStyleSheets = document.adoptedStyleSheets.concat(rules);
+        const root = target && target.getRootNode ? target.getRootNode() : document;
+        const holder = root && root.adoptedStyleSheets ? root : document;
+        if (!holder.adoptedStyleSheets.includes(rules)) {
+            holder.adoptedStyleSheets = holder.adoptedStyleSheets.concat(rules);
         }
+    }
+
+    // Anche dentro gli elementi personalizzati con lo shadow DOM aperto (alcuni lettori tengono lì il video)
+    function collectVideos(root, found) {
+        root.querySelectorAll('video').forEach((video) => found.push(video));
+        root.querySelectorAll('*').forEach((element) => {
+            if (element.shadowRoot && element.localName.indexOf('-') > 0) collectVideos(element.shadowRoot, found);
+        });
     }
 
     function largestVideo(root) {
         if (root.tagName === 'VIDEO') return root;
+        const videos = [];
+        collectVideos(root, videos);
         let best = null;
         let bestArea = 0;
-        root.querySelectorAll('video').forEach((video) => {
+        videos.forEach((video) => {
             const rect = video.getBoundingClientRect();
             if (rect.width * rect.height > bestArea) {
                 best = video;
@@ -86,6 +119,19 @@
         video.removeAttribute('data-aab-fit-box');
     }
 
+    // L'area a schermo intero. YouTube (sito per computer) mette a schermo intero l'intero documento (<html>), alto quanto
+    // il suo contenuto, cioè quasi niente, perché il lettore è tutto in posizione fissa: vale lo schermo. Lo schermo vale
+    // sempre: l'elemento a schermo intero lo riempie tutto
+    function fullscreenBox(fullscreen) {
+        const rect = fullscreen.getBoundingClientRect();
+        const wide = innerWidth;
+        const high = innerHeight;
+        if (fullscreen !== document.documentElement && fullscreen !== document.body && rect.width >= wide * 0.5 && rect.height >= high * 0.5) {
+            return rect;
+        }
+        return { left: 0, top: 0, right: wide, bottom: high, width: wide, height: high };
+    }
+
     // Con !important: il sito che riscrive lo stile del video (YouTube a ogni ridimensionamento) non le toglie. Un video
     // grande quanto il filmato e non quanto lo schermo (YouTube) viene allargato a tutto lo schermo intero
     function apply() {
@@ -93,11 +139,14 @@
         if (!fullscreen || !target) return;
         clear(target);
         // Con il solo video a schermo intero la scritta non c'è: quello che non si può cambiare resta com'è
-        if (mode === 'fit' || fullscreen.tagName === 'VIDEO') return;
+        if (mode === 'fit' || fullscreen.tagName === 'VIDEO') {
+            log(mode === 'fit' ? 'mode fit: the site layout stays' : 'mode ' + mode + ' not applied: only the video is in fullscreen');
+            return;
+        }
         useRules();
         let css = 'video[data-aab-fit="fill"]{object-fit:cover!important}' +
             'video[data-aab-fit="stretch"]{object-fit:fill!important}';
-        const box = fullscreen.getBoundingClientRect();
+        const box = fullscreenBox(fullscreen);
         const rect = target.getBoundingClientRect();
         const covers = rect.left <= box.left + 2 && rect.top <= box.top + 2 &&
             rect.right >= box.right - 2 && rect.bottom >= box.bottom - 2;
@@ -114,6 +163,8 @@
         }
         rules.replaceSync(css);
         target.setAttribute('data-aab-fit', mode);
+        log('applied ' + mode + ' covers=' + covers + ' position=' + position + ' box=' + Math.round(box.width) + 'x' +
+            Math.round(box.height) + ' video=' + Math.round(rect.width) + 'x' + Math.round(rect.height));
     }
 
     function makeLabel() {
@@ -161,8 +212,10 @@
         const fullscreen = document.fullscreenElement;
         if (!fullscreen || !target || fullscreen.tagName === 'VIDEO') return;
         if (!host) makeLabel();
-        // Di nuovo dentro, se il lettore del sito ha rifatto i suoi elementi
-        if (host.parentNode !== fullscreen) fullscreen.appendChild(host);
+        // Di nuovo dentro, se il lettore del sito ha rifatto i suoi elementi (con <html> a schermo intero, nel <body>)
+        const parent = fullscreen === document.documentElement && document.body ? document.body : fullscreen;
+        if (host.parentNode !== parent) parent.appendChild(host);
+        log('label shown in ' + describe(parent));
         button.textContent = labels[mode] || mode;
         menuButton.hidden = !fixedMenu;
         menuButton.textContent = (menuOnTap ? labels.menuTouch : labels.menuAlways) || 'Menu';
@@ -177,7 +230,21 @@
         if (host) host.remove();
     }
 
-    document.addEventListener('fullscreenchange', () => {
+    // Il lettore del sito può mettere il video dentro l'elemento a schermo intero un attimo dopo: si riprova qualche volta
+    function findLater(fullscreen, attempt) {
+        if (attempt > 4) return;
+        setTimeout(() => {
+            if (document.fullscreenElement !== fullscreen || target) return;
+            if (largestVideo(fullscreen)) {
+                log('video found ' + attempt + ' retries later');
+                enter();
+            } else {
+                findLater(fullscreen, attempt + 1);
+            }
+        }, 300 * attempt);
+    }
+
+    function enter() {
         if (resizeObserver) resizeObserver.disconnect();
         resizeObserver = null;
         clear(target);
@@ -186,10 +253,12 @@
         // Nella pagina che contiene il riquadro a schermo intero (iframe del video) qui non c'è un video: fa lo script
         // dentro il riquadro
         target = fullscreen ? largestVideo(fullscreen) : null;
+        log(fullscreen ? 'fullscreen ' + describe(fullscreen) + ', video ' + describe(target) : 'fullscreen left');
         if (!target) {
             // All'uscita il menu lo rimette la Wide: niente richieste che arriverebbero dopo
             fixedMenu = false;
             hide();
+            if (fullscreen) findLater(fullscreen, 1);
             return;
         }
         const bridge = wideBridge();
@@ -205,11 +274,20 @@
             resizeObserver.observe(fullscreen);
         }
         show();
-    }, true);
+    }
+
+    document.addEventListener('fullscreenchange', enter, true);
+
+    // Lo schermo che cambia misura (rotazione, Wide che sposta i margini): <html> a schermo intero non lo dice all'osservatore
+    window.addEventListener('resize', () => {
+        if (document.fullscreenElement && target) apply();
+    });
 
     // Un tocco a schermo intero mostra la scritta, insieme ai comandi del sito
     document.addEventListener('pointerdown', () => {
-        if (document.fullscreenElement && target) show();
+        if (!document.fullscreenElement) return;
+        if (target) show();
+        else log('tap in fullscreen without a video');
     }, { capture: true, passive: true });
 
     // Filmato nuovo o con altre dimensioni nello stesso video
@@ -218,4 +296,6 @@
             if (event.target === target) apply();
         }, true);
     });
+
+    log('ready in ' + (window === window.top ? 'the page' : 'a frame'));
 })(/*AAB_LABELS*/null);
