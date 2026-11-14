@@ -2,6 +2,7 @@ package com.fcaronte.aabrowser.ui
 
 import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
 import androidx.compose.foundation.background
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
@@ -54,6 +56,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
+import com.fcaronte.aabrowser.smartphone.VirtualScreenPower
 
 /**
  * Una scheda della Main con un'app del telefono sul suo display virtuale (indirizzo `app://pacchetto`): sta nella barra delle
@@ -201,6 +204,8 @@ fun VirtualAppTab(
                             surfaceTextureListener = listener
                             // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
                             setOnTouchListener { _, event ->
+                                // Un tocco sull'auto con il telefono spento (tasto di blocco) lo riaccende
+                                if (event.actionMasked == MotionEvent.ACTION_DOWN) VirtualScreenPower.touchOnCar()
                                 session.touchRaw(event)
                                 true
                             }
@@ -211,6 +216,20 @@ fun VirtualAppTab(
                 VirtualAppStatus(session = session, onClose = onClose)
 
                 if (sidebarVisible && !docked) sidebar(Modifier.align(Alignment.CenterStart).fillMaxHeight())
+
+                // Il telefono dorme (tasto di blocco): il display è fermo e l'auto resta nera. Lo si dice, e un tocco lo riaccende
+                if (VirtualScreenPower.asleep) {
+                    Text(
+                        text = stringResource(R.string.vapp_phone_asleep),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 72.dp)
+                            .background(Color(0xCC000000), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 20.dp, vertical = 14.dp)
+                    )
+                }
             }
         }
 

@@ -131,7 +131,10 @@ class VirtualAppSession(
             displayId = id
             step = 3
             // Contenuti protetti voluti ma il sistema non li concede: le banche e simili restano nere, l'utente lo deve sapere
-            if (AppSettings.virtualSecureContent.value && !message.contains("secure=granted")) onNotice?.invoke(Notice.SECURE_REFUSED)
+            // Una volta sola per app (il display si ricrea dopo uno spegnimento o un riavvio del servizio: non si ripete)
+            if (AppSettings.virtualSecureContent.value && message.contains("secure=refused") && noticed.add(packageName)) {
+                onNotice?.invoke(Notice.SECURE_REFUSED)
+            }
             stateListener?.invoke()
             // Nel frattempo la superficie può essere cambiata o sparita
             if (this.surface !== createdWith) {
@@ -283,5 +286,8 @@ class VirtualAppSession(
         private const val TAG = "VirtualAppSession"
         private const val MAX_RECREATIONS = 1
         private const val MAX_GESTURE_LOGS = 40
+
+        // Le app per cui si è già detto che i contenuti protetti sono stati rifiutati (thread principale)
+        private val noticed = HashSet<String>()
     }
 }

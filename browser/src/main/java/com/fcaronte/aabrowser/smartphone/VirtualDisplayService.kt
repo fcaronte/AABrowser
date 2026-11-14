@@ -78,6 +78,7 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
     private var a11yThread: HandlerThread? = null
     private val a11yLock = Any()
     private var phoneLock: PowerManager.WakeLock? = null
+    private var phoneManager: PowerManager? = null
 
     override fun destroy() {
         synchronized(this) { releaseAll() }
@@ -552,25 +553,60 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
      * schermo). Il blocco chiaro, non quello "dim": con quello il sistema abbassa la luce prima di spegnere.
      */
     @Synchronized
-    override fun keepPhoneAwake(on: Boolean) {
+    override fun keepPhoneAwake(on: Boolean): String = try {
+        val pm = powerManager()
+        if (on) {
+            acquirePhoneLock(pm)
+            "OK held interactive=${pm.isInteractive}"
+        } else {
+            phoneLock?.takeIf { it.isHeld }?.release()
+            "OK released"
+        }
+    } catch (error: Throwable) {
+        Log.w(TAG, "keepPhoneAwake($on) failed: ${describe(error)}")
+        "ERROR:${describe(error)}"
+    }
+
+    /**
+     * Riaccende il telefono spento dal tasto di blocco (o dal timeout): il tasto vince sul blocco dello schermo, quindi si
+     * prende di nuovo il blocco (ACQUIRE_CAUSES_WAKEUP) e, se lo schermo è ancora spento, si chiama PowerManager.wakeUp.
+     * L'app lo chiede quando sente lo schermo spegnersi e a ogni tocco sull'auto (come AnyAuto, che riaccende così).
+     */
+    @Synchronized
+    override fun wakePhone(): String = try {
+        val pm = powerManager()
+        val was = pm.isInteractive
+        acquirePhoneLock(pm)
+        if (!pm.isInteractive) wakeUp(pm)
+        "OK interactive=${pm.isInteractive} was=$was"
+    } catch (error: Throwable) {
+        Log.w(TAG, "wakePhone failed: ${describe(error)}")
+        "ERROR:${describe(error)}"
+    }
+
+    // PowerManager con i diritti della shell: le chiamate risultano di com.android.shell
+    private fun powerManager(): PowerManager =
+        phoneManager ?: context.createPackageContext(SHELL, 0).getSystemService(PowerManager::class.java)
+            .also { phoneManager = it }
+
+    /** Il blocco dello schermo preso di nuovo: con ACQUIRE_CAUSES_WAKEUP riaccende lo schermo (se è già acceso non fa altro). */
+    @Suppress("DEPRECATION")
+    private fun acquirePhoneLock(pm: PowerManager) {
+        val lock = phoneLock ?: pm.newWakeLock(
+            PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "CarWeb:virtual-apps"
+        ).apply { setReferenceCounted(false) }.also { phoneLock = it }
+        if (lock.isHeld) lock.release()
+        lock.acquire()
+    }
+
+    /** PowerManager.wakeUp (nascosto, vuole DEVICE_POWER, che la shell ha): (tempo, motivo, dettagli) o, prima, (tempo). */
+    private fun wakeUp(pm: PowerManager) {
+        val long = Long::class.javaPrimitiveType
         try {
-            if (on) {
-                val lock = phoneLock ?: run {
-                    val pm = context.createPackageContext(SHELL, 0).getSystemService(PowerManager::class.java)
-                    @Suppress("DEPRECATION")
-                    val level = PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-                    pm.newWakeLock(level or PowerManager.ACQUIRE_CAUSES_WAKEUP, "CarWeb:virtual-apps")
-                        .apply { setReferenceCounted(false) }
-                        .also { phoneLock = it }
-                }
-                // Prenderlo di nuovo con ACQUIRE_CAUSES_WAKEUP riaccende lo schermo; se è già preso non succede niente
-                if (lock.isHeld) lock.release()
-                lock.acquire()
-            } else {
-                phoneLock?.takeIf { it.isHeld }?.release()
-            }
-        } catch (error: Throwable) {
-            Log.w(TAG, "keepPhoneAwake($on) failed: ${describe(error)}")
+            pm.javaClass.getMethod("wakeUp", long, Int::class.javaPrimitiveType, String::class.java)
+                .invoke(pm, SystemClock.uptimeMillis(), 0, "CarWeb")
+        } catch (_: NoSuchMethodException) {
+            pm.javaClass.getMethod("wakeUp", long).invoke(pm, SystemClock.uptimeMillis())
         }
     }
 

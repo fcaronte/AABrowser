@@ -25,7 +25,7 @@ object ShizukuAppBridge {
     private const val TAG = "ShizukuAppBridge"
 
     // Da alzare a ogni modifica di VirtualDisplayService: Shizuku altrimenti riusa il processo di prima con il codice vecchio
-    private const val SERVICE_VERSION = 3
+    private const val SERVICE_VERSION = 4
     private const val CONNECT_TIMEOUT_SECONDS = 20L
 
     private val thread = HandlerThread("carweb-virtual-apps").apply { start() }
@@ -139,7 +139,24 @@ object ShizukuAppBridge {
 
     /** Tiene sveglio il telefono (e lo accende) con un blocco della shell; false lo lascia. */
     fun keepPhoneAwake(context: Context, on: Boolean) {
-        run(context.applicationContext, onFailure = {}) { service -> service.keepPhoneAwake(on) }
+        run(context.applicationContext, onFailure = {}) { service ->
+            Log.i(TAG, "keepPhoneAwake($on) -> ${service.keepPhoneAwake(on)}")
+        }
+    }
+
+    /**
+     * Riaccende il telefono spento o bloccato (il tasto di blocco vince sul blocco dello schermo). La risposta del servizio
+     * ("OK interactive=… was=…" o l'errore) va al registro e a [onResult], sul thread principale.
+     */
+    fun wakePhone(context: Context, onResult: ((String) -> Unit)? = null) {
+        run(context.applicationContext, onFailure = { message ->
+            Log.w(TAG, "wakePhone failed: $message")
+            onResult?.let { main.post { it("ERROR:$message") } }
+        }) { service ->
+            val reply = service.wakePhone()
+            Log.i(TAG, "wakePhone -> $reply")
+            onResult?.let { callback -> main.post { callback(reply) } }
+        }
     }
 
     /**

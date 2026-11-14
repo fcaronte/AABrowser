@@ -494,6 +494,7 @@
     <string name="vapp_sidebar_hide">पट्टी छिपाएँ</string>
     <string name="vapp_sidebar_dock">ऐप के बगल में पट्टी</string>
     <string name="vapp_sidebar_overlay">ऐप के ऊपर पट्टी</string>
+    <string name="vapp_phone_asleep">फ़ोन स्लीप मोड में चला गया है। उसे जगाने के लिए कार की स्क्रीन को छुएँ।</string>
     <string name="vapp_secure_refused">सिस्टम वर्चुअल स्क्रीन पर सुरक्षित विंडो की अनुमति नहीं देता: बैंक जैसे ऐप काले ही रहते हैं।</string>
     <string name="vapp_scale_label">कार की स्क्रीन पर ऐप का आकार</string>
     <string name="vapp_scale_desc">बड़ा करने से ऐप बड़े और छूने में आसान होते हैं, छोटा करने से ज़्यादा दिखता है। अब से खोले जाने वाले ऐप पर लागू होता है।</string>

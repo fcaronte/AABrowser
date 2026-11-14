@@ -44,7 +44,12 @@ interface IVirtualDisplayService {
     int phoneGroup(int displayId) = 9;
 
     // Tiene sveglio il telefono (lo accende subito) con un blocco dello schermo preso dalla shell; false lo lascia.
-    oneway void keepPhoneAwake(boolean on) = 10;
+    // Risponde "OK held interactive=<true|false>", "OK released" o "ERROR:<motivo>" (finisce nel registro dell'app).
+    String keepPhoneAwake(boolean on) = 10;
+
+    // Riaccende il telefono spento o bloccato (il tasto di blocco): prende di nuovo il blocco dello schermo e chiama
+    // PowerManager.wakeUp. Risponde "OK interactive=<true|false> was=<true|false>" o "ERROR:<motivo>".
+    String wakePhone() = 12;
 
     // Riga di diagnosi: versione di Android, uid, display aperti.
     String info() = 11;

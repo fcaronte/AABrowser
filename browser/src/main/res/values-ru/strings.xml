@@ -496,6 +496,7 @@
     <string name="vapp_sidebar_hide">Скрыть панель</string>
     <string name="vapp_sidebar_dock">Панель рядом с приложением</string>
     <string name="vapp_sidebar_overlay">Панель поверх приложения</string>
+    <string name="vapp_phone_asleep">Телефон перешёл в спящий режим. Коснитесь экрана автомобиля, чтобы разбудить его.</string>
     <string name="vapp_secure_refused">Система не разрешает защищённые окна на виртуальном экране: банковские и похожие приложения остаются чёрными.</string>
     <string name="vapp_scale_label">Размер приложений на экране автомобиля</string>
     <string name="vapp_scale_desc">Крупнее — приложения больше и по ним легче попасть, мельче — помещается больше. Действует для приложений, открытых с этого момента.</string>

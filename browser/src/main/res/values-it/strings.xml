@@ -452,6 +452,7 @@
     <string name="vapp_sidebar_hide">Nascondi la barra</string>
     <string name="vapp_sidebar_dock">Barra accanto all\'app</string>
     <string name="vapp_sidebar_overlay">Barra sopra l\'app</string>
+    <string name="vapp_phone_asleep">Il telefono è andato in standby. Tocca lo schermo dell\'auto per riattivarlo.</string>
     <string name="vapp_secure_refused">Il sistema non permette le finestre protette sullo schermo virtuale: banche e app simili restano nere.</string>
     <string name="vapp_scale_label">Dimensione delle app sullo schermo dell\'auto</string>
     <string name="vapp_scale_desc">Più grande ingrandisce le app e le rende più facili da toccare, più piccola ne mostra di più. Vale per le app aperte da ora.</string>

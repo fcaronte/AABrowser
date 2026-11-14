@@ -494,6 +494,7 @@
     <string name="vapp_sidebar_hide">Leiste ausblenden</string>
     <string name="vapp_sidebar_dock">Leiste neben der App</string>
     <string name="vapp_sidebar_overlay">Leiste über der App</string>
+    <string name="vapp_phone_asleep">Das Telefon ist in den Ruhezustand gegangen. Tippe auf den Autobildschirm, um es aufzuwecken.</string>
     <string name="vapp_secure_refused">Das System erlaubt auf dem virtuellen Bildschirm keine geschützten Fenster: Banking-Apps und ähnliche bleiben schwarz.</string>
     <string name="vapp_scale_label">Größe der Apps auf dem Autobildschirm</string>
     <string name="vapp_scale_desc">Größer macht die Apps größer und leichter zu treffen, kleiner zeigt mehr davon. Gilt für Apps, die ab jetzt geöffnet werden.</string>

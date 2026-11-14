@@ -17,9 +17,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.car.app.CarContext
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
+import com.fcaronte.aabrowser.smartphone.VirtualScreenPower
 import com.fcaronte.aabrowser.smartphone.VirtualTouch
 import kotlin.math.abs
 
@@ -47,6 +49,9 @@ class WideVirtualApp(
         fun openAppsPage()
 
         fun message(text: String)
+
+        /** Lingua scritta da destra a sinistra: la barra sta a destra e l'app comincia prima. */
+        fun isRtl(): Boolean
     }
 
     private var session: VirtualAppSession? = null
@@ -56,6 +61,15 @@ class WideVirtualApp(
     private var sidebar: LinearLayout? = null
     private var statusView: TextView? = null
     private var touch: VirtualTouch? = null
+
+    // La barra accanto all'app (il display si restringe e niente è coperto) o sopra di lei: la scelta è la stessa della Main
+    private var barWidth = 0
+    private var docked = false
+    private var dockButton: ImageButton? = null
+    private var appOffset = 0
+
+    // Il telefono si spegne o si riaccende (tasto di blocco): lo stato sullo schermo dell'auto si aggiorna
+    private val powerListener: () -> Unit = { handler.post { updateStatus() } }
 
     // Shizuku che si accende o dà il permesso mentre si guarda l'errore: l'apertura riprova da sola
     private var removeShizukuListeners: (() -> Unit)? = null
@@ -105,6 +119,9 @@ class WideVirtualApp(
             visibility = if (sidebarVisible) View.VISIBLE else View.GONE
         }
         val s = strings()
+        barWidth = sidebarWidthPx
+        docked = AppSettings.virtualSidebarDocked.value
+        dockButton = addButton(ctx, bar, R.drawable.ic_vapp_dock, s.getString(R.string.vapp_sidebar_dock), sidebarWidthPx) { toggleDock() }
         addButton(ctx, bar, R.drawable.ic_vapp_back, s.getString(R.string.vapp_back), sidebarWidthPx) { back() }
         addButton(ctx, bar, R.drawable.ic_apps, s.getString(R.string.apps_title), sidebarWidthPx) { callbacks.openAppsPage() }
         addButton(ctx, bar, R.drawable.ic_vapp_keyboard, s.getString(R.string.vapp_keyboard), sidebarWidthPx) { toggleKeyboard() }
@@ -116,11 +133,13 @@ class WideVirtualApp(
         sidebar = bar
         statusView = status
         touch = VirtualTouch(handler) { event -> session?.touch(event) }
+        applyDock()
+        VirtualScreenPower.addListener(powerListener)
         if (wantShown) show()
         return frame
     }
 
-    private fun addButton(ctx: Context, bar: LinearLayout, icon: Int, description: String, width: Int, action: () -> Unit) {
+    private fun addButton(ctx: Context, bar: LinearLayout, icon: Int, description: String, width: Int, action: () -> Unit): ImageButton {
         val button = ImageButton(ctx).apply {
             setImageResource(icon)
             background = null
@@ -131,11 +150,13 @@ class WideVirtualApp(
             setOnClickListener { action() }
         }
         bar.addView(button, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        return button
     }
 
     /** La Presentation sparisce: le viste vanno via, l'app resta aperta (si riattacca alla vista nuova). */
     fun release() {
         session?.detach()
+        VirtualScreenPower.removeListener(powerListener)
         textureView?.surfaceTextureListener = null
         surface?.release()
         surface = null
@@ -143,6 +164,7 @@ class WideVirtualApp(
         textureView = null
         sidebar = null
         statusView = null
+        dockButton = null
         touch = null
     }
 
@@ -232,6 +254,38 @@ class WideVirtualApp(
     fun toggleSidebar() {
         sidebarVisible = !sidebarVisible
         sidebar?.visibility = if (sidebarVisible) View.VISIBLE else View.GONE
+        applyDock()
+    }
+
+    /** Il primo tasto della barra: accanto all'app o sopra. Il display cambia misura (le app si ridisegnano). */
+    private fun toggleDock() {
+        docked = !docked
+        AppSettings.setVirtualSidebarDocked(carContext, docked)
+        applyDock()
+    }
+
+    // Con la barra accanto all'app il display comincia dopo di lei (a destra della barra; a sinistra in RTL)
+    private fun applyDock() {
+        val texture = textureView ?: return
+        val beside = sidebarVisible && docked
+        val offset = if (beside) barWidth else 0
+        (texture.layoutParams as? FrameLayout.LayoutParams)?.let { params ->
+            if (params.marginStart != offset) {
+                params.marginStart = offset
+                texture.layoutParams = params
+            }
+        }
+        // Nei tocchi: l'app comincia dopo la barra solo se la barra sta a sinistra
+        appOffset = if (callbacks.isRtl()) 0 else offset
+        // Acceso (azzurro) quando la barra sta accanto all'app
+        if (docked) dockButton?.setColorFilter(0xFF8AB4F8.toInt()) else dockButton?.clearColorFilter()
+        dockButton?.contentDescription = strings().getString(if (docked) R.string.vapp_sidebar_overlay else R.string.vapp_sidebar_dock)
+    }
+
+    /** Il punto (coordinate della superficie dell'host) sta sulla vista dell'app: la sidebar fissa della Wide ne è fuori. */
+    fun contains(x: Float, y: Float): Boolean {
+        val view = layer ?: return false
+        return x >= view.left && x < view.right && y >= view.top && y < view.bottom
     }
 
     /** Indietro dentro l'app (tasto della barra, tasto Indietro di Wide e dell'auto). */
@@ -257,6 +311,8 @@ class WideVirtualApp(
         val s = strings()
         val problem = current?.problem
         val text = when {
+            // Il telefono dorme (tasto di blocco): il display è fermo e l'auto resta nera. Lo si dice, e un tocco lo riaccende
+            current != null && VirtualScreenPower.asleep -> s.getString(R.string.vapp_phone_asleep)
             current == null || current.phase == VirtualAppSession.Phase.RUNNING -> null
             problem != null -> VirtualApps.problemMessage(s, problem)
             // Il passo (n/3) dice dove si ferma l'apertura, se non parte: 1 vista pronta, 2 display, 3 app
@@ -299,6 +355,7 @@ class WideVirtualApp(
 
     /** Tocco di Android Auto (coordinate della superficie dell'host): la barra, oppure l'app. */
     fun onClick(x: Float, y: Float) {
+        VirtualScreenPower.touchOnCar()
         val localX = x - left
         val localY = y - top
         val bar = sidebar
@@ -317,20 +374,22 @@ class WideVirtualApp(
             best?.performClick()
             return
         }
-        touch?.click(localX, localY)
+        touch?.click(localX - appOffset, localY)
     }
 
     fun onScroll(distanceX: Float, distanceY: Float) {
+        VirtualScreenPower.touchOnCar()
         touch?.scroll(distanceX, distanceY)
     }
 
     fun onFling(velocityX: Float, velocityY: Float) {
+        VirtualScreenPower.touchOnCar()
         touch?.fling(velocityX, velocityY)
     }
 
     fun onScale(focusX: Float, focusY: Float, factor: Float) {
         // Il doppio tocco dell'host arriva come un salto brusco (2.0 o 0.5): un pizzico vero cambia poco a ogni passo
         if (abs(factor - 1f) > 0.35f) return
-        touch?.scale(focusX - left, focusY - top, factor)
+        touch?.scale(focusX - left - appOffset, focusY - top, factor)
     }
 }

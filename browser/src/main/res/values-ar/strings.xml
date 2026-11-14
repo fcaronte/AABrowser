@@ -498,6 +498,7 @@
     <string name="vapp_sidebar_hide">إخفاء الشريط</string>
     <string name="vapp_sidebar_dock">الشريط بجانب التطبيق</string>
     <string name="vapp_sidebar_overlay">الشريط فوق التطبيق</string>
+    <string name="vapp_phone_asleep">دخل الهاتف في وضع السكون. المس شاشة السيارة لإيقاظه.</string>
     <string name="vapp_secure_refused">لا يسمح النظام بالنوافذ المحمية على الشاشة الافتراضية: تبقى تطبيقات البنوك وما شابهها سوداء.</string>
     <string name="vapp_scale_label">حجم التطبيقات على شاشة السيارة</string>
     <string name="vapp_scale_desc">الأكبر يجعل التطبيقات أكبر وأسهل في اللمس، والأصغر يعرض منها أكثر. يسري على التطبيقات التي تُفتح من الآن.</string>

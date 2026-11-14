@@ -503,6 +503,7 @@
     <string name="vapp_sidebar_hide">Hide the bar</string>
     <string name="vapp_sidebar_dock">Bar beside the app</string>
     <string name="vapp_sidebar_overlay">Bar over the app</string>
+    <string name="vapp_phone_asleep">The phone went to sleep. Tap the car screen to wake it.</string>
     <string name="vapp_secure_refused">The system does not allow protected windows on the virtual screen: banks and similar apps stay black.</string>
     <string name="vapp_scale_label">Size of the apps on the car screen</string>
     <string name="vapp_scale_desc">Larger makes the apps bigger and easier to touch, smaller shows more of them. Applies to apps opened from now on.</string>

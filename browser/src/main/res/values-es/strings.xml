@@ -495,6 +495,7 @@
     <string name="vapp_sidebar_hide">Ocultar la barra</string>
     <string name="vapp_sidebar_dock">Barra junto a la app</string>
     <string name="vapp_sidebar_overlay">Barra sobre la app</string>
+    <string name="vapp_phone_asleep">El teléfono se ha suspendido. Toca la pantalla del coche para reactivarlo.</string>
     <string name="vapp_secure_refused">El sistema no permite ventanas protegidas en la pantalla virtual: las apps bancarias y similares se quedan en negro.</string>
     <string name="vapp_scale_label">Tamaño de las apps en la pantalla del coche</string>
     <string name="vapp_scale_desc">Más grande hace las apps más grandes y fáciles de tocar, más pequeño muestra más contenido. Se aplica a las apps abiertas a partir de ahora.</string>

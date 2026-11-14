@@ -331,6 +331,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         override fun message(text: String) {
             handler.post { CarToast.makeText(carContext, text, CarToast.LENGTH_LONG).show() }
         }
+
+        override fun isRtl(): Boolean = this@WideScreen.isRtl
     })
 
     // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
@@ -1524,8 +1526,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
-        // Un'app del telefono sullo schermo virtuale: i tocchi sono suoi (la sua barra, oppure l'app)
-        if (virtualApp.isShown) {
+        // Un'app del telefono sullo schermo virtuale: i tocchi sulla sua vista sono suoi (la sua barra, oppure l'app). Quelli
+        // sul menu fisso della Wide (fuori dalla vista) restano del menu: con l'app aperta Home e gli altri tasti non rispondevano
+        if (virtualApp.isShown && virtualApp.contains(x, y)) {
             virtualApp.onClick(x, y)
             return
         }
