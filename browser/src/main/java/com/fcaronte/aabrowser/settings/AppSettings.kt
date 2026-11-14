@@ -111,6 +111,10 @@ object AppSettings {
     private val _wideSidebarSize = mutableStateOf(100)
     val wideSidebarSize: State<Int> = _wideSidebarSize
 
+    // I tasti della sidebar (Wide, e Main se la vuole): quali e in che ordine; Home c'è sempre (SidebarAction)
+    private val _sidebarActions = mutableStateOf(SidebarAction.DEFAULT)
+    val sidebarActions: State<List<SidebarAction>> = _sidebarActions
+
     private val _fabLocation = mutableStateOf(FABLocation.BOTTOM_RIGHT)
     val fabLocation: State<FABLocation> = _fabLocation
 
@@ -240,6 +244,7 @@ object AppSettings {
         _wideSidebarFixed.value = prefs.getBoolean("wide_sidebar_fixed", true)
         _wideVideoMenuOnTap.value = prefs.getBoolean("wide_video_menu_on_tap", false)
         _wideSidebarSize.value = prefs.getInt("wide_sidebar_size", 100).takeIf { it in wideSidebarSizes } ?: 100
+        _sidebarActions.value = SidebarAction.parse(prefs.getString("sidebar_actions", null))
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
                 ?: FABLocation.BOTTOM_RIGHT.name
@@ -460,6 +465,12 @@ object AppSettings {
     fun setWideVideoMenuOnTap(context: Context, onTap: Boolean) {
         _wideVideoMenuOnTap.value = onTap
         saveBoolean(context, "wide_video_menu_on_tap", onTap)
+    }
+
+    fun setSidebarActions(context: Context, actions: List<SidebarAction>) {
+        val clean = SidebarAction.withEssentials(actions.distinct())
+        _sidebarActions.value = clean
+        saveString(context, "sidebar_actions", SidebarAction.serialize(clean))
     }
 
     /** Un passo più grande (+1) o più piccolo (-1) tra [wideSidebarSizes]. */
