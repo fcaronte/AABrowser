@@ -1518,9 +1518,12 @@ fun SettingsScreen(
             )
         }
 
-        // Le novità dell'ultima versione
+        // Le novità dell'ultima versione (in auto una scheda: una finestra di dialogo non si vedrebbe)
         if (showWhatsNew) {
-            whatsNewNotes?.let { WhatsNewDialog(it) { showWhatsNew = false } }
+            whatsNewNotes?.let { notes ->
+                if (isCarMode) WhatsNewOverlay(notes) { showWhatsNew = false }
+                else WhatsNewDialog(notes) { showWhatsNew = false }
+            }
         }
 
         // Overlay QR Code se necessario

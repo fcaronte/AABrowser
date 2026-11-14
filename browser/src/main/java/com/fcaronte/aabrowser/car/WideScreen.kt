@@ -118,6 +118,8 @@ import com.fcaronte.aabrowser.utils.VideoFit
 import com.fcaronte.aabrowser.utils.VoiceCommandRouter
 import com.fcaronte.aabrowser.utils.VoiceCommands
 import com.fcaronte.aabrowser.utils.WebViewScriptRouter
+import com.fcaronte.aabrowser.utils.WhatsNew
+import kotlinx.coroutines.flow.first
 import com.fcaronte.aabrowser.utils.YouTubeManager
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -158,6 +160,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         // Ricaricamenti di fila per cambiare user agent (desktop/mobile): oltre, niente più (evita i loop)
         const val MAX_USER_AGENT_RELOADS = 3
+
+        // Le novità compaiono dopo che la superficie e la prima pagina sono arrivate
+        const val WHATS_NEW_DELAY_MS = 3000L
 
         // Scorrimento in attesa del fotogramma da più di così: si riposta (WebView ricreata nel frattempo)
         const val SCROLL_FLUSH_STALE_MS = 500L
@@ -418,6 +423,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 checkForUpdate()
                 watchMediaLists()
                 watchDesktopModeSites()
+                // Dopo un aggiornamento le novità, se non le si sono già lette sul telefono o nella Main (la superficie e la
+                // prima pagina arrivano prima)
+                handler.postDelayed({ showWhatsNew() }, WHATS_NEW_DELAY_MS)
                 // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
@@ -754,6 +762,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
         return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)
+    }
+
+    /**
+     * Le novità della versione, la prima volta dopo un aggiornamento: un messaggio lungo di Android Auto. Solo se non sono
+     * già state lette (sul telefono o nella Main: lo stato è unico) e da fermi, perché in movimento Android Auto non mostra i
+     * messaggi lunghi: restano per la prossima volta. Se le chiude un'altra schermata, questa si chiude da sola.
+     */
+    private fun showWhatsNew() {
+        if (lifecycle.currentState == Lifecycle.State.DESTROYED) return
+        WhatsNew.check(carContext)
+        val notes = WhatsNew.current ?: return
+        if (DrivingState.isLocked) return
+        val screen = WideWhatsNewScreen(carContext, notes)
+        screenManager.push(screen)
+        lifecycleScope.launch {
+            snapshotFlow { WhatsNew.current }.first { it == null }
+            screen.finish()
+        }
     }
 
     // Come la home della Main: all'apertura controlla se c'è una versione nuova e la mostra in cima alla home

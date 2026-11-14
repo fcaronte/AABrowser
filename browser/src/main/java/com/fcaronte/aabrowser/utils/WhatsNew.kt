@@ -1,17 +1,23 @@
 package com.fcaronte.aabrowser.utils
 
 import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.fcaronte.aabrowser.BuildConfig
 
 /**
- * Le novità di una versione, mostrate in un riquadro la prima volta che si apre l'app dopo un aggiornamento (e dalle
- * Impostazioni, quando si vuole rileggerle).
+ * Le novità di una versione, mostrate la prima volta che si apre l'app dopo un aggiornamento: sul telefono in un riquadro,
+ * nella Main in auto in una scheda sopra la pagina, nella Wide in una schermata di Android Auto. Una volta sola in tutto: lo
+ * stato è unico per l'app ([current]), quindi chi le legge sul telefono non le rivede in auto, e chi le legge in auto non le
+ * rivede sul telefono; chiuse in un posto spariscono dagli altri. Si segnano come lette solo quando l'utente le chiude
+ * ([dismiss]): se l'auto si spegne prima, la prossima volta ricompaiono.
  *
  * I testi sono file di assets, uno per lingua: `whatsnew/<versione>/<lingua>.txt` (it.txt, en.txt, ru.txt, ...); si usa la
  * lingua dell'app e, se manca, l'inglese. Per ogni versione nuova basta aggiungere la sua cartella con almeno en.txt e it.txt
- * (le note di rilascio sono bilingui, italiano per primo): chi la riceve le vede una volta sola. Una versione senza cartella
- * non mostra niente. Righe vuote separano i paragrafi, "• " apre un elenco.
+ * (le note di rilascio sono bilingui, italiano per primo). Una versione senza cartella non mostra niente. Righe vuote
+ * separano i paragrafi, "• " apre un elenco.
  *
  * Una nuova installazione non mostra niente (non c'è una versione prima): lo si riconosce perché l'app non è mai stata
  * aggiornata (prima installazione = ultimo aggiornamento).
@@ -26,27 +32,59 @@ object WhatsNew {
 
     data class Notes(val versionName: String, val text: String)
 
+    /** Le note da mostrare adesso, ovunque (telefono, Main in auto, Wide); null se non ce ne sono o sono già state lette. */
+    var current by mutableStateOf<Notes?>(null)
+        private set
+
+    private var checked = false
+
+    /** Guarda, una volta per processo, se ci sono novità da mostrare dopo un aggiornamento. Dal thread principale. */
+    fun check(context: Context) {
+        if (checked) return
+        checked = true
+        current = pending(context.applicationContext)
+    }
+
+    /** L'utente le ha lette (o chiuse): la versione si segna come vista e le note spariscono da ogni schermata. */
+    fun dismiss(context: Context) {
+        markSeen(context.applicationContext)
+        current = null
+    }
+
     /**
-     * Le novità da mostrare adesso: la prima apertura dopo un aggiornamento a una versione che ha le sue note. La versione si
-     * segna come vista subito, anche se non ci sono note o se è un'installazione nuova: il riquadro compare una volta sola.
+     * Le novità da mostrare ora: la prima apertura dopo un aggiornamento a una versione che ha le sue note. Quando non c'è
+     * niente da dire (installazione nuova, versione senza note, versione più vecchia di quella già vista) la versione si
+     * segna subito come vista; quando ci sono note si segna solo alla chiusura.
      */
-    fun pending(context: Context): Notes? {
-        val app = context.applicationContext
-        val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    internal fun pending(app: Context): Notes? {
+        val seen = seenCode(app)
         val current = BuildConfig.VERSION_CODE
-        val seen = prefs.getInt(KEY_SEEN, -1)
         if (seen == current) return null
-        prefs.edit { putInt(KEY_SEEN, current) }
         // Una versione più vecchia di quella già vista (si è tornati indietro): niente
-        if (seen > current) return null
+        if (seen > current) {
+            markSeen(app)
+            return null
+        }
         val info = try {
             app.packageManager.getPackageInfo(app.packageName, 0)
         } catch (_: Exception) {
             return null
         }
         // Prima installazione: non c'è niente di cui dire "novità"
-        if (info.lastUpdateTime - info.firstInstallTime < FRESH_INSTALL_MS) return null
-        return notesFor(app, BuildConfig.VERSION_NAME)
+        if (info.lastUpdateTime - info.firstInstallTime < FRESH_INSTALL_MS) {
+            markSeen(app)
+            return null
+        }
+        val notes = notesFor(app, BuildConfig.VERSION_NAME)
+        if (notes == null) markSeen(app)
+        return notes
+    }
+
+    private fun seenCode(app: Context): Int =
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_SEEN, -1)
+
+    private fun markSeen(app: Context) {
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt(KEY_SEEN, BuildConfig.VERSION_CODE) }
     }
 
     /** Le note di una versione nella lingua dell'app (o in inglese); null se la versione non ne ha. */

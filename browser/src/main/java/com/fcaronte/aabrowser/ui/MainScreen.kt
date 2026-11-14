@@ -987,8 +987,9 @@ fun MainScreen(
                     DriveLockCover(modifier = Modifier.zIndex(97f))
                 }
 
-                // Novità della versione, la prima volta dopo un aggiornamento (solo sul telefono)
-                if (!isAutomotive) WhatsNewHost()
+                // Novità della versione, la prima volta dopo un aggiornamento: sul telefono un riquadro, in auto una scheda.
+                // Una volta sola per tutta l'app: chi le ha lette sul telefono non le rivede in auto
+                WhatsNewHost(inCar = isAutomotive)
 
                 // Feedback visivo
                 AnimatedVisibility(
