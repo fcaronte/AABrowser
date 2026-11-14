@@ -532,4 +532,6 @@
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_label">What\'s new</string>
     <string name="whats_new_desc">The changes of the latest version.</string>
+    <string name="player_no_audio">This video has no sound track.</string>
+    <string name="player_audio_unsupported">The sound of this video (%1$s) cannot be played here: the phone\'s browser engine does not decode this format.</string>
 </resources>

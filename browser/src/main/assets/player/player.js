@@ -733,8 +733,44 @@
         updateEffects();
     });
 
+    // Nomi leggibili dei formati audio che il motore del browser del telefono di solito non decodifica (e qualche altro)
+    const AUDIO_NAMES = {
+        'audio/ac3': 'AC-3', 'audio/eac3': 'E-AC-3', 'audio/eac3-joc': 'E-AC-3 JOC', 'audio/vnd.dts': 'DTS',
+        'audio/vnd.dts.hd': 'DTS-HD', 'audio/true-hd': 'TrueHD', 'audio/mp4a-latm': 'AAC', 'audio/mpeg': 'MP3',
+        'audio/opus': 'Opus', 'audio/vorbis': 'Vorbis', 'audio/flac': 'FLAC', 'audio/raw': 'PCM', 'audio/amr-wb': 'AMR-WB',
+        'audio/3gpp': 'AMR', 'audio/alac': 'ALAC', 'audio/g711-alaw': 'G.711', 'audio/g711-mlaw': 'G.711'
+    };
+
+    // Il video parte ma tace: o non ha audio, o è in un formato (AC-3, E-AC-3, DTS: film e registrazioni) che il motore del
+    // browser non decodifica e su molti telefoni nemmeno il sistema. Dopo qualche secondo di riproduzione senza audio
+    // decodificato (webkitAudioDecodedByteCount, solo di Chromium) si chiede all'app cosa c'è nel file e lo si dice
+    let soundCheck = 0;
+    function checkSound() {
+        clearTimeout(soundCheck);
+        const id = current && current.id;
+        if (!id || typeof media.webkitAudioDecodedByteCount !== 'number') return;
+        soundCheck = setTimeout(async () => {
+            if (!current || current.id !== id || media.paused || media.muted || media.volume === 0) return;
+            if (media.webkitAudioDecodedByteCount > 0) return;
+            try {
+                const response = await fetch(withToken('/api/tracks/' + id), { cache: 'no-store' });
+                const info = await response.json();
+                if (!current || current.id !== id || media.webkitAudioDecodedByteCount > 0 || info.error) return;
+                const message = info.audio
+                    ? text('audioUnsupported', 'The sound of this video (%1$s) cannot be played here.')
+                        .replace('%1$s', AUDIO_NAMES[info.audio] || info.audio.replace('audio/', ''))
+                    : text('noAudio', 'This video has no sound track.');
+                showMessage(message);
+                setTimeout(() => {
+                    if (byId('message').textContent === message) showMessage('');
+                }, 9000);
+            } catch (e) {}
+        }, 3000);
+    }
+
     media.addEventListener('playing', () => {
         consecutiveErrors = 0;
+        checkSound();
     });
 
     media.addEventListener('pause', () => {

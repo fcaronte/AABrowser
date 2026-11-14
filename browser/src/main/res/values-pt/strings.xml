@@ -524,4 +524,6 @@
     <string name="whats_new_title">Novidades da versão %1$s</string>
     <string name="whats_new_label">Novidades</string>
     <string name="whats_new_desc">As novidades da última versão.</string>
+    <string name="player_no_audio">Este vídeo não tem faixa de áudio.</string>
+    <string name="player_audio_unsupported">O som deste vídeo (%1$s) não pode ser reproduzido aqui: o motor do navegador do telemóvel não descodifica este formato.</string>
 </resources>

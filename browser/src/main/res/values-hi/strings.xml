@@ -523,4 +523,6 @@
     <string name="whats_new_title">संस्करण %1$s में नया क्या है</string>
     <string name="whats_new_label">नया क्या है</string>
     <string name="whats_new_desc">नवीनतम संस्करण के बदलाव।</string>
+    <string name="player_no_audio">इस वीडियो में कोई ऑडियो ट्रैक नहीं है।</string>
+    <string name="player_audio_unsupported">इस वीडियो की आवाज़ (%1$s) यहाँ नहीं चल सकती: फ़ोन का ब्राउज़र इंजन इस फ़ॉर्मैट को डिकोड नहीं करता।</string>
 </resources>

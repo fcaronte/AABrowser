@@ -481,4 +481,6 @@
     <string name="whats_new_title">Novità della versione %1$s</string>
     <string name="whats_new_label">Novità</string>
     <string name="whats_new_desc">Le novità dell\'ultima versione.</string>
+    <string name="player_no_audio">Questo video non ha una traccia audio.</string>
+    <string name="player_audio_unsupported">L\'audio di questo video (%1$s) non si può riprodurre qui: il motore del browser del telefono non decodifica questo formato.</string>
 </resources>

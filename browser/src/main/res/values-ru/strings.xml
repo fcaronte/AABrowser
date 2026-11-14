@@ -525,4 +525,6 @@
     <string name="whats_new_title">Что нового в версии %1$s</string>
     <string name="whats_new_label">Что нового</string>
     <string name="whats_new_desc">Что изменилось в последней версии.</string>
+    <string name="player_no_audio">В этом видео нет звуковой дорожки.</string>
+    <string name="player_audio_unsupported">Звук этого видео (%1$s) здесь не воспроизвести: браузерный движок телефона не декодирует этот формат.</string>
 </resources>

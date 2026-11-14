@@ -8,6 +8,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ImageDecoder
+import android.media.MediaCodecList
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -142,6 +145,7 @@ object LocalPlayer {
                 path == "/api/library/find" -> findInLibrary(context, url.getQueryParameter("q").orEmpty())
                 path.startsWith("/media/") -> media(context, path.removePrefix("/media/"), request)
                 path.startsWith("/api/tags/") -> tags(context, path.removePrefix("/api/tags/"))
+                path.startsWith("/api/tracks/") -> tracks(context, path.removePrefix("/api/tracks/"))
                 path.startsWith("/api/art/") -> artwork(context, path.removePrefix("/api/art/"))
                 else -> status(404, "Not Found")
             }
@@ -244,6 +248,8 @@ object LocalPlayer {
             .put("emptyFolder", context.getString(R.string.player_empty_folder))
             .put("loading", context.getString(R.string.player_loading))
             .put("unplayable", context.getString(R.string.player_unplayable))
+            .put("noAudio", context.getString(R.string.player_no_audio))
+            .put("audioUnsupported", context.getString(R.string.player_audio_unsupported))
             .put("audio", context.getString(R.string.player_tab_audio))
             .put("video", context.getString(R.string.player_tab_video))
             .put("options", context.getString(R.string.player_options))
@@ -511,6 +517,45 @@ object LocalPlayer {
             }
         }
         tagsCache.put(id, result)
+        return json(result)
+    }
+
+    /**
+     * Le tracce del file e se il telefono ha un decoder per la prima di ogni tipo: dice perché un video si vede senza audio.
+     * Il motore del browser (WebView) non decodifica l'audio AC-3, E-AC-3 e DTS dei film e delle registrazioni (e su molti
+     * telefoni, come i Pixel, non c'è nemmeno un decoder di sistema): il video parte e tace. La pagina lo chiede dopo qualche
+     * secondo di riproduzione senza audio decodificato e lo dice, invece di lasciare l'utente a cercare il guasto.
+     * Risponde {"audio": "audio/ac3", "audioDecoder": false, "video": "video/hevc", "videoDecoder": true}; una chiave manca se
+     * il file non ha quella traccia.
+     */
+    private fun tracks(context: Context, id: String): WebResourceResponse {
+        val documentUri = documentUri(context, id) ?: return status(404, "Not Found")
+        val result = JSONObject()
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(context, documentUri, null)
+            val codecs = MediaCodecList(MediaCodecList.REGULAR_CODECS)
+            for (index in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(index)
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
+                val kind = when {
+                    mime.startsWith("audio/") -> "audio"
+                    mime.startsWith("video/") -> "video"
+                    else -> continue
+                }
+                if (result.has(kind)) continue
+                result.put(kind, mime)
+                result.put(kind + "Decoder", codecs.findDecoderForFormat(format) != null)
+            }
+        } catch (e: Exception) {
+            AppLog.w(TAG, "Tracks not readable: ${e.javaClass.simpleName}")
+            result.put("error", true)
+        } finally {
+            try {
+                extractor.release()
+            } catch (_: Exception) {
+            }
+        }
         return json(result)
     }
 

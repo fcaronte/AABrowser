@@ -527,4 +527,6 @@
     <string name="whats_new_title">الجديد في الإصدار %1$s</string>
     <string name="whats_new_label">الجديد</string>
     <string name="whats_new_desc">ما الجديد في أحدث إصدار.</string>
+    <string name="player_no_audio">هذا الفيديو لا يحتوي على مسار صوتي.</string>
+    <string name="player_audio_unsupported">لا يمكن تشغيل صوت هذا الفيديو (%1$s) هنا: محرك المتصفح في الهاتف لا يفك ترميز هذا التنسيق.</string>
 </resources>
