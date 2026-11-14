@@ -453,7 +453,7 @@
     <string name="vapp_sidebar_dock">Barra accanto all\'app</string>
     <string name="vapp_sidebar_overlay">Barra sopra l\'app</string>
     <string name="vapp_phone_asleep">Il telefono è andato in standby. Tocca lo schermo dell\'auto per riattivarlo.</string>
-    <string name="vapp_secure_refused">Il sistema non permette le finestre protette sullo schermo virtuale: banche e app simili restano nere.</string>
+    <string name="vapp_black_notice">Questa app resta nera. Le app delle banche e i video protetti nascondono la finestra agli altri schermi e il telefono non permette di mostrarli sull\'auto.</string>
     <string name="vapp_scale_label">Dimensione delle app sullo schermo dell\'auto</string>
     <string name="vapp_scale_desc">Più grande ingrandisce le app e le rende più facili da toccare, più piccola ne mostra di più. Vale per le app aperte da ora.</string>
     <string name="vapp_starting">Apro l\'app…</string>
@@ -476,8 +476,6 @@
     <string name="tab_bar_actions_visible">Pulsanti visibili insieme: %1$d</string>
     <string name="tab_bar_action_up">Sposta su</string>
     <string name="tab_bar_action_down">Sposta giù</string>
-    <string name="vapp_secure_label">Contenuti protetti (sperimentale)</string>
-    <string name="vapp_secure_desc">Prova a mostrare anche le finestre che bloccano gli screenshot (banche, alcune app) invece di lasciarle nere. I video con DRM hardware, come Netflix in HD, restano neri: il telefono non li lascia uscire dal suo schermo. Riapri l\'app per applicarlo.</string>
     <string name="whats_new_title">Novità della versione %1$s</string>
     <string name="whats_new_label">Novità</string>
     <string name="whats_new_desc">Le novità dell\'ultima versione.</string>

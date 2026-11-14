@@ -496,7 +496,7 @@
     <string name="vapp_sidebar_dock">Barra ao lado da app</string>
     <string name="vapp_sidebar_overlay">Barra sobre a app</string>
     <string name="vapp_phone_asleep">O telemóvel entrou em suspensão. Toque no ecrã do carro para o reativar.</string>
-    <string name="vapp_secure_refused">O sistema não permite janelas protegidas no ecrã virtual: as apps de bancos e semelhantes ficam pretas.</string>
+    <string name="vapp_black_notice">Esta app fica preta. As apps de bancos e os vídeos protegidos escondem a janela dos outros ecrãs e o telemóvel não permite mostrá-los no carro.</string>
     <string name="vapp_scale_label">Tamanho das apps no ecrã do carro</string>
     <string name="vapp_scale_desc">Maior torna as apps maiores e mais fáceis de tocar, menor mostra mais conteúdo. Aplica-se às apps abertas a partir de agora.</string>
     <string name="vapp_starting">A abrir a app…</string>
@@ -519,8 +519,6 @@
     <string name="tab_bar_actions_visible">Botões visíveis em simultâneo: %1$d</string>
     <string name="tab_bar_action_up">Mover para cima</string>
     <string name="tab_bar_action_down">Mover para baixo</string>
-    <string name="vapp_secure_label">Conteúdo protegido (experimental)</string>
-    <string name="vapp_secure_desc">Tenta mostrar também as janelas que bloqueiam capturas de ecrã (bancos, algumas apps) em vez de as deixar pretas. Os vídeos com DRM por hardware, como a Netflix em HD, ficam pretos: o telemóvel não os deixa sair do seu ecrã. Volte a abrir a app para aplicar.</string>
     <string name="whats_new_title">Novidades da versão %1$s</string>
     <string name="whats_new_label">Novidades</string>
     <string name="whats_new_desc">As novidades da última versão.</string>

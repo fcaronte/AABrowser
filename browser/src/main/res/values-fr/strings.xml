@@ -496,7 +496,7 @@
     <string name="vapp_sidebar_dock">Barre à côté de l\'appli</string>
     <string name="vapp_sidebar_overlay">Barre sur l\'appli</string>
     <string name="vapp_phone_asleep">Le téléphone s\'est mis en veille. Touchez l\'écran de la voiture pour le réveiller.</string>
-    <string name="vapp_secure_refused">Le système n\'autorise pas les fenêtres protégées sur l\'écran virtuel : les applis bancaires et similaires restent noires.</string>
+    <string name="vapp_black_notice">Cette appli reste noire. Les applis bancaires et les vidéos protégées cachent leur fenêtre aux autres écrans, et le téléphone ne permet pas de les afficher dans la voiture.</string>
     <string name="vapp_scale_label">Taille des applis sur l\'écran de la voiture</string>
     <string name="vapp_scale_desc">Plus grand agrandit les applis et les rend plus faciles à toucher, plus petit en montre davantage. S\'applique aux applis ouvertes à partir de maintenant.</string>
     <string name="vapp_starting">Ouverture de l\'appli…</string>
@@ -519,8 +519,6 @@
     <string name="tab_bar_actions_visible">Boutons visibles à la fois : %1$d</string>
     <string name="tab_bar_action_up">Monter</string>
     <string name="tab_bar_action_down">Descendre</string>
-    <string name="vapp_secure_label">Contenus protégés (expérimental)</string>
-    <string name="vapp_secure_desc">Essaie d\'afficher aussi les fenêtres qui bloquent les captures d\'écran (banques, certaines applis) au lieu de les laisser noires. Les vidéos avec DRM matériel, comme Netflix en HD, restent noires : le téléphone ne les laisse pas sortir de son écran. Rouvrez l\'appli pour l\'appliquer.</string>
     <string name="whats_new_title">Nouveautés de la version %1$s</string>
     <string name="whats_new_label">Nouveautés</string>
     <string name="whats_new_desc">Les nouveautés de la dernière version.</string>

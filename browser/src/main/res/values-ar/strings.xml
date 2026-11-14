@@ -499,7 +499,7 @@
     <string name="vapp_sidebar_dock">الشريط بجانب التطبيق</string>
     <string name="vapp_sidebar_overlay">الشريط فوق التطبيق</string>
     <string name="vapp_phone_asleep">دخل الهاتف في وضع السكون. المس شاشة السيارة لإيقاظه.</string>
-    <string name="vapp_secure_refused">لا يسمح النظام بالنوافذ المحمية على الشاشة الافتراضية: تبقى تطبيقات البنوك وما شابهها سوداء.</string>
+    <string name="vapp_black_notice">يبقى هذا التطبيق أسود. تخفي تطبيقات البنوك والفيديو المحمي نافذتها عن الشاشات الأخرى، ولا يسمح الهاتف بعرضها على السيارة.</string>
     <string name="vapp_scale_label">حجم التطبيقات على شاشة السيارة</string>
     <string name="vapp_scale_desc">الأكبر يجعل التطبيقات أكبر وأسهل في اللمس، والأصغر يعرض منها أكثر. يسري على التطبيقات التي تُفتح من الآن.</string>
     <string name="vapp_starting">جارٍ فتح التطبيق…</string>
@@ -522,8 +522,6 @@
     <string name="tab_bar_actions_visible">الأزرار الظاهرة معاً: %1$d</string>
     <string name="tab_bar_action_up">انقل لأعلى</string>
     <string name="tab_bar_action_down">انقل لأسفل</string>
-    <string name="vapp_secure_label">المحتوى المحمي (تجريبي)</string>
-    <string name="vapp_secure_desc">يحاول عرض النوافذ التي تمنع لقطات الشاشة (البنوك وبعض التطبيقات) بدل تركها سوداء. أما فيديو DRM العتادي مثل Netflix بدقة عالية فيبقى أسود: الهاتف لا يسمح له بمغادرة شاشته. أعد فتح التطبيق للتطبيق.</string>
     <string name="whats_new_title">الجديد في الإصدار %1$s</string>
     <string name="whats_new_label">الجديد</string>
     <string name="whats_new_desc">ما الجديد في أحدث إصدار.</string>

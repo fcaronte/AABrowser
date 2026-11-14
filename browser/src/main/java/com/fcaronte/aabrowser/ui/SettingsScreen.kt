@@ -142,7 +142,6 @@ fun SettingsScreen(
     val persistentNav by AppSettings.persistentNavigation
     val tabBarMode by AppSettings.tabBarMode
     val virtualStandby by AppSettings.virtualStandby
-    val virtualSecure by AppSettings.virtualSecureContent
     val virtualAppScale by AppSettings.virtualAppScale
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
@@ -710,12 +709,6 @@ fun SettingsScreen(
                                         description = stringResource(R.string.vapp_standby_desc),
                                         checked = virtualStandby,
                                         onCheckedChange = { AppSettings.setVirtualStandby(context, it) }
-                                    )
-                                    SettingsSwitchItem(
-                                        label = stringResource(R.string.vapp_secure_label),
-                                        description = stringResource(R.string.vapp_secure_desc),
-                                        checked = virtualSecure,
-                                        onCheckedChange = { AppSettings.setVirtualSecureContent(context, it) }
                                     )
                                     // La densità del display delle app in auto: più alta = app più grandi
                                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {

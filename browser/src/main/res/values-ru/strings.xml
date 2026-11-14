@@ -497,7 +497,7 @@
     <string name="vapp_sidebar_dock">Панель рядом с приложением</string>
     <string name="vapp_sidebar_overlay">Панель поверх приложения</string>
     <string name="vapp_phone_asleep">Телефон перешёл в спящий режим. Коснитесь экрана автомобиля, чтобы разбудить его.</string>
-    <string name="vapp_secure_refused">Система не разрешает защищённые окна на виртуальном экране: банковские и похожие приложения остаются чёрными.</string>
+    <string name="vapp_black_notice">Это приложение остаётся чёрным. Банковские приложения и защищённое видео скрывают своё окно от других экранов, и телефон не позволяет показывать их в машине.</string>
     <string name="vapp_scale_label">Размер приложений на экране автомобиля</string>
     <string name="vapp_scale_desc">Крупнее — приложения больше и по ним легче попасть, мельче — помещается больше. Действует для приложений, открытых с этого момента.</string>
     <string name="vapp_starting">Открываю приложение…</string>
@@ -520,8 +520,6 @@
     <string name="tab_bar_actions_visible">Кнопок на виду: %1$d</string>
     <string name="tab_bar_action_up">Вверх</string>
     <string name="tab_bar_action_down">Вниз</string>
-    <string name="vapp_secure_label">Защищённый контент (экспериментально)</string>
-    <string name="vapp_secure_desc">Пытается показывать и окна, блокирующие снимки экрана (банки, некоторые приложения), вместо чёрного экрана. Видео с аппаратным DRM, например Netflix в HD, остаётся чёрным: телефон не выпускает его за пределы своего экрана. Откройте приложение заново, чтобы применить.</string>
     <string name="whats_new_title">Что нового в версии %1$s</string>
     <string name="whats_new_label">Что нового</string>
     <string name="whats_new_desc">Что изменилось в последней версии.</string>

@@ -496,7 +496,7 @@
     <string name="vapp_sidebar_dock">Barra junto a la app</string>
     <string name="vapp_sidebar_overlay">Barra sobre la app</string>
     <string name="vapp_phone_asleep">El teléfono se ha suspendido. Toca la pantalla del coche para reactivarlo.</string>
-    <string name="vapp_secure_refused">El sistema no permite ventanas protegidas en la pantalla virtual: las apps bancarias y similares se quedan en negro.</string>
+    <string name="vapp_black_notice">Esta app se queda en negro. Las apps bancarias y los vídeos protegidos ocultan su ventana a otras pantallas y el teléfono no permite mostrarlos en el coche.</string>
     <string name="vapp_scale_label">Tamaño de las apps en la pantalla del coche</string>
     <string name="vapp_scale_desc">Más grande hace las apps más grandes y fáciles de tocar, más pequeño muestra más contenido. Se aplica a las apps abiertas a partir de ahora.</string>
     <string name="vapp_starting">Abriendo la app…</string>
@@ -519,8 +519,6 @@
     <string name="tab_bar_actions_visible">Botones visibles a la vez: %1$d</string>
     <string name="tab_bar_action_up">Subir</string>
     <string name="tab_bar_action_down">Bajar</string>
-    <string name="vapp_secure_label">Contenido protegido (experimental)</string>
-    <string name="vapp_secure_desc">Intenta mostrar también las ventanas que bloquean las capturas de pantalla (bancos, algunas apps) en lugar de dejarlas negras. Los vídeos con DRM por hardware, como Netflix en HD, siguen en negro: el teléfono no los deja salir de su pantalla. Vuelve a abrir la app para aplicarlo.</string>
     <string name="whats_new_title">Novedades de la versión %1$s</string>
     <string name="whats_new_label">Novedades</string>
     <string name="whats_new_desc">Las novedades de la última versión.</string>

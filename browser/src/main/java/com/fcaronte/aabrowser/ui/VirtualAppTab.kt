@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.smartphone.BlackFrame
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
@@ -126,6 +127,7 @@ fun VirtualAppTab(
                 session.detach()
                 texture.surface?.release()
                 texture.surface = null
+                texture.view = null
                 return true
             }
 
@@ -160,14 +162,20 @@ fun VirtualAppTab(
         }
     }
 
-    // I contenuti protetti chiesti ma negati dal sistema (banche, Poste): l'utente lo deve sapere, altrimenti vede solo nero
-    val secureRefused = stringResource(R.string.vapp_secure_refused)
+    // Un'app che resta tutta nera (banche, Poste: finestre protette): lo si dice, altrimenti l'utente vede solo nero e non
+    // capisce. La sessione guarda cosa disegna la vista e avvisa solo se il nero dura
+    val blackNotice = stringResource(R.string.vapp_black_notice)
     val feedback by rememberUpdatedState(onShowFeedback)
+    val sampler = remember(session) { BlackFrame.Sampler() }
     DisposableEffect(session) {
         session.onNotice = { notice ->
-            if (notice == VirtualAppSession.Notice.SECURE_REFUSED) feedback(secureRefused)
+            if (notice == VirtualAppSession.Notice.LOOKS_BLACK) feedback(blackNotice)
         }
-        onDispose { session.onNotice = null }
+        session.frameProbe = { sampler.sample(texture.view) }
+        onDispose {
+            session.onNotice = null
+            session.frameProbe = null
+        }
     }
 
     // La barra sta sopra l'app (la copre un po', il display non cambia misura) o accanto (il display si restringe)
@@ -201,6 +209,7 @@ fun VirtualAppTab(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
                         TextureView(ctx).apply {
+                            texture.view = this
                             surfaceTextureListener = listener
                             // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
                             setOnTouchListener { _, event ->
@@ -254,6 +263,7 @@ fun VirtualAppTab(
 /** Superficie della vista: serve alla scheda quando torna scelta. */
 private class TextureInfo {
     var surface: Surface? = null
+    var view: TextureView? = null
     var width = 0
     var height = 0
 }

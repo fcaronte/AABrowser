@@ -166,11 +166,9 @@ object AppSettings {
     private val _tabBarVisibleCount = mutableIntStateOf(TabBarAction.MAX_VISIBLE)
     val tabBarVisibleCount: State<Int> = _tabBarVisibleCount
 
-    // App del telefono sullo schermo virtuale (Altre App): schermata di attesa sul telefono, contenuti protetti
+    // App del telefono sullo schermo virtuale (Altre App): schermata di attesa sul telefono
     private val _virtualStandby = mutableStateOf(true)
     val virtualStandby: State<Boolean> = _virtualStandby
-    private val _virtualSecureContent = mutableStateOf(false)
-    val virtualSecureContent: State<Boolean> = _virtualSecureContent
 
     // La barra dell'app nella Main: accanto all'app (il display si restringe) invece che sopra; e la dimensione delle app
     // sullo schermo virtuale in percentuale (la densità del display: più alta = app più grandi)
@@ -267,7 +265,6 @@ object AppSettings {
         _tabBarActions.value = TabBarAction.parse(prefs.getString("tab_bar_actions", null))
         _tabBarVisibleCount.intValue = prefs.getInt("tab_bar_visible", TabBarAction.MAX_VISIBLE).coerceIn(1, TabBarAction.MAX_VISIBLE)
         _virtualStandby.value = prefs.getBoolean("virtual_standby", true)
-        _virtualSecureContent.value = prefs.getBoolean("virtual_secure_content", false)
         _virtualSidebarDocked.value = prefs.getBoolean("virtual_sidebar_docked", false)
         _virtualAppScale.intValue = prefs.getInt("virtual_app_scale", 100).coerceIn(50, 200)
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
@@ -411,11 +408,6 @@ object AppSettings {
     fun setVirtualStandby(context: Context, enabled: Boolean) {
         _virtualStandby.value = enabled
         saveBoolean(context, "virtual_standby", enabled)
-    }
-
-    fun setVirtualSecureContent(context: Context, enabled: Boolean) {
-        _virtualSecureContent.value = enabled
-        saveBoolean(context, "virtual_secure_content", enabled)
     }
 
     fun setVirtualSidebarDocked(context: Context, docked: Boolean) {

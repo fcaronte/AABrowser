@@ -495,7 +495,7 @@
     <string name="vapp_sidebar_dock">Sáv az alkalmazás mellett</string>
     <string name="vapp_sidebar_overlay">Sáv az alkalmazás fölött</string>
     <string name="vapp_phone_asleep">A telefon alvó módba lépett. Érintse meg az autó képernyőjét az ébresztéshez.</string>
-    <string name="vapp_secure_refused">A rendszer nem engedi a védett ablakokat a virtuális képernyőn: a banki és hasonló alkalmazások feketék maradnak.</string>
+    <string name="vapp_black_notice">Ez az alkalmazás fekete marad. A banki alkalmazások és a védett videók elrejtik az ablakukat a többi képernyő elől, és a telefon nem engedi megjeleníteni őket az autóban.</string>
     <string name="vapp_scale_label">Az alkalmazások mérete az autó képernyőjén</string>
     <string name="vapp_scale_desc">A nagyobb nagyobbá és könnyebben érinthetővé teszi az alkalmazásokat, a kisebb többet mutat belőlük. A mostantól megnyitott alkalmazásokra érvényes.</string>
     <string name="vapp_starting">Alkalmazás megnyitása…</string>
@@ -518,8 +518,6 @@
     <string name="tab_bar_actions_visible">Egyszerre látható gombok: %1$d</string>
     <string name="tab_bar_action_up">Fel</string>
     <string name="tab_bar_action_down">Le</string>
-    <string name="vapp_secure_label">Védett tartalom (kísérleti)</string>
-    <string name="vapp_secure_desc">Megpróbálja megjeleníteni a képernyőmentést tiltó ablakokat (bankok, egyes alkalmazások) ahelyett, hogy feketén hagyná őket. A hardveres DRM-es videók, például az HD Netflix, feketék maradnak: a telefon nem engedi őket kikerülni a saját képernyőjéről. Az alkalmazás újranyitásával érvényesül.</string>
     <string name="whats_new_title">Újdonságok a(z) %1$s verzióban</string>
     <string name="whats_new_label">Újdonságok</string>
     <string name="whats_new_desc">A legújabb verzió újdonságai.</string>

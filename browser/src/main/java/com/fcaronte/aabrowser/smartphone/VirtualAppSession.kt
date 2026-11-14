@@ -1,6 +1,8 @@
 package com.fcaronte.aabrowser.smartphone
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import android.view.Surface
@@ -69,10 +71,22 @@ class VirtualAppSession(
     /** Chiamato a ogni cambio di fase o di problema, per le viste che non osservano lo stato di Compose (la Wide). */
     var stateListener: (() -> Unit)? = null
 
-    /** Un avviso per l'utente, una volta per apertura: ogni vista lo mostra a modo suo. */
-    enum class Notice { SECURE_REFUSED }
+    /** Un avviso per l'utente, una volta per app: ogni vista lo mostra a modo suo. */
+    enum class Notice { LOOKS_BLACK }
 
     var onNotice: ((Notice) -> Unit)? = null
+
+    /**
+     * La vista che mostra l'app dà un campione piccolo di quello che disegna (vedi [BlackFrame.Sampler]); null se non può.
+     * Serve a capire se l'app resta tutta nera (finestre protette) e a dirlo, invece di lasciare l'utente senza spiegazione.
+     */
+    var frameProbe: (() -> IntArray?)? = null
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val blackWatch = Runnable { checkFrame() }
+    private var watching = false
+    private var blackChecks = 0
+    private var blackRun = 0
 
     // I tocchi veri della Main si rifanno puliti prima di andare al display (vedi RawTouch)
     private val rawTouch = RawTouch()
@@ -117,7 +131,9 @@ class VirtualAppSession(
         val createdWith = surface
         ShizukuAppBridge.createDisplay(
             appContext, surface, width, height, this.dpi,
-            keyboardOnDisplay = inCar, secure = AppSettings.virtualSecureContent.value
+            // Sempre un display protetto, se il sistema lo concede (poi senza, in silenzio): così le app con finestre
+            // protette si vedono quando il telefono lo permette, senza chiedere niente all'utente
+            keyboardOnDisplay = inCar, secure = true
         ) { id, message ->
             creating = false
             if (closed) {
@@ -130,11 +146,6 @@ class VirtualAppSession(
             }
             displayId = id
             step = 3
-            // Contenuti protetti voluti ma il sistema non li concede: le banche e simili restano nere, l'utente lo deve sapere
-            // Una volta sola per app (il display si ricrea dopo uno spegnimento o un riavvio del servizio: non si ripete)
-            if (AppSettings.virtualSecureContent.value && message.contains("secure=refused") && noticed.add(packageName)) {
-                onNotice?.invoke(Notice.SECURE_REFUSED)
-            }
             stateListener?.invoke()
             // Nel frattempo la superficie può essere cambiata o sparita
             if (this.surface !== createdWith) {
@@ -211,6 +222,7 @@ class VirtualAppSession(
     fun close() {
         if (closed) return
         closed = true
+        stopBlackWatch()
         val id = displayId
         displayId = -1
         surface = null
@@ -251,6 +263,7 @@ class VirtualAppSession(
                 recreations = 0
                 updateInUse()
                 stateListener?.invoke()
+                startBlackWatch()
             } else {
                 fail(Problem(Kind.FAILED, message))
             }
@@ -261,8 +274,57 @@ class VirtualAppSession(
         Log.w(TAG, "${problem.kind} ${problem.detail}")
         this.problem = problem
         phase = Phase.ERROR
+        stopBlackWatch()
         updateInUse()
         stateListener?.invoke()
+    }
+
+    /**
+     * Dopo l'apertura si guarda cosa disegna l'app: se per diversi secondi di seguito è tutto nero, l'app nasconde la sua
+     * finestra al display virtuale (banche, Poste, video protetti) e si avvisa l'utente, una volta per app. Un'app che si vede
+     * non ha niente da dire: il controllo finisce al primo fotogramma con qualcosa. Il nero di un'app che sta partendo dura
+     * poco: per questo si comincia dopo qualche secondo e il nero deve durare.
+     */
+    private fun startBlackWatch() {
+        if (watching || packageName in noticed) return
+        watching = true
+        blackChecks = 0
+        blackRun = 0
+        handler.postDelayed(blackWatch, BLACK_FIRST_CHECK_MS)
+    }
+
+    private fun stopBlackWatch() {
+        watching = false
+        handler.removeCallbacks(blackWatch)
+    }
+
+    private fun checkFrame() {
+        if (!watching || closed || phase != Phase.RUNNING) {
+            watching = false
+            return
+        }
+        // Con la vista tolta o il telefono che dorme non c'è niente da giudicare (il display è fermo): si ricomincia a contare
+        val pixels = if (surface != null && !VirtualScreenPower.asleep) frameProbe?.invoke() else null
+        if (pixels == null) {
+            blackRun = 0
+        } else if (!BlackFrame.looksBlack(pixels)) {
+            // L'app si vede
+            watching = false
+            return
+        } else if (++blackRun >= BLACK_SAMPLES) {
+            val listener = onNotice
+            if (listener != null && noticed.add(packageName)) {
+                Log.i(TAG, "the app has shown only black for $blackRun checks")
+                watching = false
+                listener(Notice.LOOKS_BLACK)
+                return
+            }
+        }
+        if (++blackChecks < MAX_BLACK_CHECKS) {
+            handler.postDelayed(blackWatch, BLACK_CHECK_MS)
+        } else {
+            watching = false
+        }
     }
 
     /**
@@ -287,7 +349,15 @@ class VirtualAppSession(
         private const val MAX_RECREATIONS = 1
         private const val MAX_GESTURE_LOGS = 40
 
-        // Le app per cui si è già detto che i contenuti protetti sono stati rifiutati (thread principale)
+        // Controllo del nero: la prima occhiata dopo l'apertura, poi una al secondo; per dire "tutta nera" servono sei occhiate
+        // nere di seguito (circa otto secondi dall'apertura) e si smette dopo quaranta
+        private const val BLACK_FIRST_CHECK_MS = 3000L
+        private const val BLACK_CHECK_MS = 1000L
+        private const val BLACK_SAMPLES = 6
+        private const val MAX_BLACK_CHECKS = 40
+
+        // Le app per cui si è già detto che restano nere (thread principale): il display si ricrea dopo uno spegnimento o un
+        // riavvio del servizio, e l'avviso non si ripete
         private val noticed = HashSet<String>()
     }
 }

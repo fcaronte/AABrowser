@@ -121,11 +121,12 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
                         entries[id] = Entry(virtualDisplay, surface, width, height, dpi, flags, keyboardOnDisplay)
                         val orientation = keepOrientation(id)
                         val keyboard = applyKeyboardPolicy(id, keyboardOnDisplay)
-                        // Se l'utente voleva i contenuti protetti: concessi, o rifiutati dal sistema (l'app lo dice all'utente)
+                        // Il display protetto si chiede sempre: concesso, o rifiutato dal sistema (si ripiega sul normale, in silenzio).
+                        // Il motivo del rifiuto (classe e messaggio dell'eccezione: niente dati personali) va nel registro
                         val secureNote = when {
                             !secure -> "off"
                             extra != 0 -> "granted"
-                            else -> "refused(${failure?.javaClass?.simpleName ?: "unknown"})"
+                            else -> "refused(${failure?.let { refusal(it) } ?: "unknown"})"
                         }
                         val details = "flags=0x${flags.toString(16)} secure=$secureNote orientation=[$orientation] keyboard=$keyboard"
                         Log.i(TAG, "display $id ${width}x$height@$dpi $details")
@@ -637,6 +638,10 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
         val actual = if (error is InvocationTargetException && error.cause != null) error.cause!! else error
         return "${actual.javaClass.simpleName}: ${actual.message.orEmpty()}"
     }
+
+    /** Il motivo per cui il sistema ha rifiutato il display protetto, in una riga per il registro (senza ';' e parentesi). */
+    private fun refusal(error: Throwable): String =
+        describe(error).replace(Regex("[;()\n]"), " ").take(160)
 
     /** Le chiamate ai servizi di sistema risultano di com.android.shell, il pacchetto dell'uid 2000. */
     private class ShellContext(base: Context) : ContextWrapper(base) {

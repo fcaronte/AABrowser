@@ -18,6 +18,7 @@ import android.widget.TextView
 import androidx.car.app.CarContext
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.smartphone.BlackFrame
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
@@ -57,6 +58,7 @@ class WideVirtualApp(
     private var session: VirtualAppSession? = null
     private var layer: FrameLayout? = null
     private var textureView: TextureView? = null
+    private val blackSampler = BlackFrame.Sampler()
     private var surface: Surface? = null
     private var sidebar: LinearLayout? = null
     private var statusView: TextView? = null
@@ -203,10 +205,11 @@ class WideVirtualApp(
             session?.close()
             session = VirtualAppSession(carContext, packageName, inCar = true).also { created ->
                 created.stateListener = { handler.post { updateStatus() } }
-                // Contenuti protetti voluti ma negati dal sistema: le banche e simili restano nere, si dice perché
+                // Un'app che resta tutta nera (banche, finestre protette): si dice perché, invece di lasciare il nero senza parole
+                created.frameProbe = { blackSampler.sample(textureView) }
                 created.onNotice = { notice ->
-                    if (notice == VirtualAppSession.Notice.SECURE_REFUSED) {
-                        handler.post { callbacks.message(strings().getString(R.string.vapp_secure_refused)) }
+                    if (notice == VirtualAppSession.Notice.LOOKS_BLACK) {
+                        handler.post { callbacks.message(strings().getString(R.string.vapp_black_notice)) }
                     }
                 }
             }
