@@ -108,6 +108,7 @@ from the misuse of this application. Use at your own risk.
   from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
 * **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
+* **What's new (new):** the first time you open the app after an update a box lists what changed; Settings > What's new shows it again.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -347,6 +348,7 @@ proprio rischio e pericolo.
   è in alto nella pagina.
 * **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
   ordine e quanti vedere insieme; gli altri sono a uno scorrimento di distanza.
+* **Novità (novità):** la prima volta che apri l'app dopo un aggiornamento un riquadro elenca cosa è cambiato; Impostazioni > Novità lo mostra di nuovo.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
