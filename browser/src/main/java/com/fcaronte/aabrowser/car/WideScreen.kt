@@ -12,9 +12,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -29,6 +27,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.support.v4.media.session.PlaybackStateCompat
+import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
 import android.view.InputDevice
@@ -91,6 +90,8 @@ import com.fcaronte.aabrowser.model.FavoriteSite
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.settings.SidebarAction
+import com.fcaronte.aabrowser.settings.SidebarHost
 import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
@@ -106,6 +107,7 @@ import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.JsDialogRequest
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PopupGuard
+import com.fcaronte.aabrowser.utils.QRCodeUtils
 import com.fcaronte.aabrowser.utils.SitePermission
 import com.fcaronte.aabrowser.utils.SitePermissionPrompts
 import com.fcaronte.aabrowser.utils.SponsorBlock
@@ -125,9 +127,8 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.util.UUID
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Schermata "wide" (finto navigatore).
@@ -185,8 +186,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Come il blocco popup di Chrome, ma più largo (i login aprono il popup qualche secondo dopo il tocco)
         private const val USER_GESTURE_MS = 10_000L
 
-        // Margine extra dei tasti della sidebar fissa, solo dal lato del bordo dello schermo
+        // Margine extra dei tasti del dock, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
+
+        // Un tasto del dock che non si può usare in questo momento (lo scudo sulla home) si vede spento
+        const val DOCK_DISABLED_ALPHA = 0.35f
+
+        // La pagina delle impostazioni per la Wide (passo successivo del piano): finché non c'è il tasto non si mostra
+        const val SETTINGS_PAGE_AVAILABLE = false
 
         // Fascia dei tasti di Android Auto, al massimo: oltre è un pannello (split con il player o con il menu delle app)
         // o altro che l'host mette sopra. Misure del 10/11/2026: 96 px in alto e 104 px a destra su 1447x694
@@ -218,8 +225,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
     private fun reopenEnabled(): Boolean = AppSettings.wideReopenLastPage.value
     private fun toggleReopen() = AppSettings.setWideReopenLastPage(carContext, !reopenEnabled())
-    private fun sidebarFixedEnabled(): Boolean = AppSettings.wideSidebarFixed.value
-    private fun toggleSidebarFixed() = AppSettings.setWideSidebarFixed(carContext, !sidebarFixedEnabled())
+
+    // Il dock (la sidebar a sinistra): una sola modalità, sempre presente. L'unico tasto che Android Auto vuole in alto a
+    // destra lo mostra o lo nasconde, insieme alla barra dell'app del telefono se ce n'è una aperta. Vale per questa apertura
+    private var dockVisible = true
     private val isRtl: Boolean
         get() = carContext.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
 
@@ -256,6 +265,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var popupOverlayReference: FrameLayout? = null
     private var sidebarContainerReference: LinearLayout? = null
 
+    // I tasti del dock, per azione: si ricostruiscono quando l'utente cambia quali mostrare (SidebarAction)
+    private val dockButtons = LinkedHashMap<SidebarAction, ImageButton>()
+
+    // Il codice QR della pagina (tasto Condividi): una scheda sulla superficie, un tocco o Indietro la chiudono
+    private var qrOverlayReference: FrameLayout? = null
+    private var qrImageReference: ImageView? = null
+    private var qrUrlReference: TextView? = null
+    private val closeQrOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            hideShareCode()
+        }
+    }
+
     // Tastiera passeggero (al posto di quella di Android Auto) e copertura dell'auto in movimento, sulla superficie
     private var passengerKeyboard: WidePassengerKeyboard? = null
     private var driveLockReference: FrameLayout? = null
@@ -272,7 +294,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Comandi vocali: scheda "In ascolto…" sulla superficie, tasto della sidebar (rosso mentre ascolta)
     private var voiceCardReference: LinearLayout? = null
     private var voiceDetailReference: TextView? = null
-    private var sidebarVoiceButton: ImageButton? = null
+    private val sidebarVoiceButton: ImageButton? get() = dockButtons[SidebarAction.VOICE]
     private var voiceRecognizer: SpeechRecognizer? = null
     private var isVoiceListening = false
     // "Metti …": su YouTube il video parte anche con l'autoplay spento, finché si resta su YouTube
@@ -381,25 +403,18 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private var downTime = 0L
     private val iconPan: CarIcon = CarIcon.PAN
-    private val iconHome: CarIcon by lazy { buildHomeIcon() }
-    private val iconSearch: CarIcon by lazy { buildSearchIcon() }
-    private val iconReload: CarIcon by lazy { buildReloadIcon() }
-    private val iconAdBlockOn: CarIcon by lazy { buildShieldIcon(crossed = false) }
-    private val iconAdBlockOff: CarIcon by lazy { buildShieldIcon(crossed = true) }
-    private val iconMic: CarIcon by lazy { maskIcon(::drawMic) }
-    // Tre righe: mostra o nasconde la barra dell'app sullo schermo virtuale
+    // Tre righe: mostra o nasconde il dock (la sidebar e la barra dell'app del telefono)
     private val iconSidebarToggle: CarIcon by lazy {
         maskIcon { c, p, s ->
             for (y in floatArrayOf(0.30f, 0.50f, 0.70f)) c.drawLine(s * 0.24f, s * y, s * 0.76f, s * y, p)
         }
     }
-    private var shownAdBlockState: String? = null   // sito e stato mostrati dallo scudo nell'ultimo template
-    private var shownDesktopState: String? = null
-    private var sidebarDesktopButton: ImageButton? = null
+    private val sidebarDesktopButton: ImageButton? get() = dockButtons[SidebarAction.DESKTOP]
 
     init {
         activeInstance = this
         carContext.onBackPressedDispatcher.addCallback(this, closeKeyboardOnBack)
+        carContext.onBackPressedDispatcher.addCallback(this, closeQrOnBack)
         try {
             carContext.getCarService(AppManager::class.java).setSurfaceCallback(this)
 
@@ -423,6 +438,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 checkForUpdate()
                 watchMediaLists()
                 watchDesktopModeSites()
+                watchDockActions()
                 // Dopo un aggiornamento le novità, se non le si sono già lette sul telefono o nella Main (la superficie e la
                 // prima pagina arrivano prima)
                 handler.postDelayed({ showWhatsNew() }, WHATS_NEW_DELAY_MS)
@@ -487,88 +503,33 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // ------------------------------------------------------------------
 
     override fun onGetTemplate(): Template {
-        val fixed = sidebarFixedEnabled()
-
-        // AdBlock su questo sito: scudo con la spunta = attivo, barrato = sito in whitelist. Sempre presente
-        // (spento sulla home), così la barra non cambia larghezza e la pagina non si ridimensiona
-        val site = currentAdBlockSite()
-        val siteWhitelisted = site != null && AdBlockHost.isWhitelisted(site)
-        shownAdBlockState = adBlockState(site)
-        val desktopOn = desktopModeEnabled(webView?.url ?: lastUrl)
-        val desktopEnabled = desktopModeToggleEnabled(webView?.url ?: lastUrl)
-        shownDesktopState = desktopModeState(site)
-
-        val searchAction = Action.Builder()
-            .setIcon(iconSearch)
-            .setOnClickListener { openSearch() }
-            .build()
-        val voiceAction = Action.Builder()
-            .setIcon(iconMic)
-            .setOnClickListener { toggleVoiceCommand() }
-            .build()
-        val desktopAction = Action.Builder()
-            .setIcon(buildDesktopCarIcon(desktopOn))
-            .setEnabled(desktopEnabled)
-            .setOnClickListener { toggleDesktopModeForSite() }
-            .build()
-
-        // In alto a destra un tasto solo, lo scudo (Android Auto ne vuole almeno uno nell'angolo). Senza sidebar
-        // anche cerca, microfono e desktop, alla sua sinistra: in basso non ci stanno.
-        // Con un'app del telefono sullo schermo virtuale quel tasto mostra o nasconde la barra dell'app, al posto dello
-        // scudo: senza, si resterebbe chiusi nell'app. Alla home o a una pagina ritorna lo scudo
-        val stripBuilder = ActionStrip.Builder()
-        if (virtualApp.isShown) {
-            stripBuilder.addAction(
+        // In alto a destra un tasto solo, quello che Android Auto vuole nell'angolo: mostra o nasconde il dock (la sidebar e,
+        // con un'app del telefono aperta, anche la sua barra). Tutto il resto, l'AdBlock compreso, sta nel dock
+        val strip = ActionStrip.Builder()
+            .addAction(
                 Action.Builder()
                     .setIcon(iconSidebarToggle)
-                    .setOnClickListener { virtualApp.toggleSidebar() }
+                    .setOnClickListener { toggleDock() }
                     .build()
             )
-        } else {
-            if (!fixed) {
-                stripBuilder.addAction(searchAction).addAction(voiceAction).addAction(desktopAction)
-            }
-            stripBuilder.addAction(
-                Action.Builder()
-                    .setIcon(if (siteWhitelisted) iconAdBlockOff else iconAdBlockOn)
-                    .setEnabled(site != null)
-                    .setOnClickListener { toggleAdBlockForSite() }
-                    .build()
-            )
-        }
-        val strip = stripBuilder.build()
+            .build()
 
-        // In basso al massimo 4 tasti, e PAN serve: senza, l'host non manda lo scorrimento (onScroll)
-        val mapStripBuilder = ActionStrip.Builder()
+        // In basso solo PAN: senza, l'host non manda lo scorrimento (onScroll)
+        val mapStrip = ActionStrip.Builder()
             .addAction(Action.Builder(Action.PAN).setIcon(iconPan).build())
-
-        if (!fixed) {
-            // Dal basso: home, indietro, ricarica
-            mapStripBuilder
-                .addAction(
-                    Action.Builder()
-                        .setIcon(iconReload)
-                        .setOnClickListener { webView?.reload() }
-                        .build()
-                )
-                .addAction(
-                    Action.Builder()
-                        .setIcon(CarIcon.BACK)
-                        .setOnClickListener { goBack() }
-                        .build()
-                )
-                .addAction(
-                    Action.Builder()
-                        .setIcon(iconHome)
-                        .setOnClickListener { showHome() }
-                        .build()
-                )
-        }
+            .build()
 
         return NavigationTemplate.Builder()
             .setActionStrip(strip)
-            .setMapActionStrip(mapStripBuilder.build())
+            .setMapActionStrip(mapStrip)
             .build()
+    }
+
+    /** Mostra o nasconde il dock e, insieme, la barra dell'app del telefono se ce n'è una aperta: la pagina si riadatta. */
+    private fun toggleDock() {
+        dockVisible = !dockVisible
+        virtualApp.setSidebarVisible(dockVisible)
+        applyVisibleArea()
     }
 
     /** Indietro: chiude il video a schermo intero, poi l'app del telefono torna indietro da sola, altrimenti la pagina precedente. */
@@ -589,8 +550,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         return AdBlockHost.siteKey(Uri.parse(url).host)
     }
 
-    private fun adBlockState(site: String?): String = "$site|${site != null && AdBlockHost.isWhitelisted(site)}"
-
     /** Aggiunge o toglie il sito dalla whitelist dell'AdBlock e ricarica la pagina. */
     private fun toggleAdBlockForSite() {
         val site = currentAdBlockSite() ?: return
@@ -598,13 +557,158 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (disable) AdBlockHost.addToWhitelist(site) else AdBlockHost.removeFromWhitelist(site)
         val message = strings.getString(if (disable) R.string.adblock_site_off else R.string.adblock_site_on, site)
         CarToast.makeText(carContext, message, CarToast.LENGTH_SHORT).show()
-        invalidate()
+        refreshDockStates()
         webView?.reload()
     }
 
-    /** Cambiato sito (o stato): lo scudo va ridisegnato. */
-    private fun refreshAdBlockAction() {
-        if (adBlockState(currentAdBlockSite()) != shownAdBlockState) invalidate()
+    /** Avanti: solo nella pagina (con un video a schermo intero o un'app del telefono davanti non c'è niente da avanzare). */
+    private fun goForward() {
+        if (customView != null || virtualApp.isShown) return
+        webView?.let { if (it.canGoForward()) it.goForward() }
+    }
+
+    // ------------------------------------------------------------------
+    // Dock: la sidebar, con i tasti scelti dall'utente (SidebarAction)
+    // ------------------------------------------------------------------
+
+    /** I tasti da mostrare: quelli scelti dall'utente che la Wide sa fare (le impostazioni arrivano con la loro pagina). */
+    private fun dockActions(): List<SidebarAction> =
+        SidebarAction.forHost(AppSettings.sidebarActions.value, SidebarHost.WIDE)
+            .filter { it != SidebarAction.SETTINGS || SETTINGS_PAGE_AVAILABLE }
+
+    private fun dockLabel(action: SidebarAction): Int = when (action) {
+        SidebarAction.HOME -> R.string.home_button
+        SidebarAction.BACK -> R.string.back_button
+        SidebarAction.FORWARD -> R.string.forward_button
+        SidebarAction.RELOAD -> R.string.reload_button
+        SidebarAction.TABS -> R.string.tabs_button
+        SidebarAction.SEARCH -> R.string.search_button
+        SidebarAction.FAVORITE -> R.string.add_to_favorites
+        SidebarAction.ADBLOCK -> R.string.adblock_this_site
+        SidebarAction.DESKTOP -> R.string.desktop_mode_this_site
+        SidebarAction.VOICE -> R.string.voice_command_button
+        SidebarAction.SHARE -> R.string.share_button
+        SidebarAction.SETTINGS -> R.string.settings_button
+        SidebarAction.EXIT -> R.string.exit_button
+    }
+
+    /** Mette nel dock i tasti scelti dall'utente, al posto di quelli che c'erano. */
+    private fun fillDock(sb: LinearLayout) {
+        val ctx = sb.context
+        sb.removeAllViews()
+        dockButtons.clear()
+        for (action in dockActions()) {
+            val button = ImageButton(ctx).apply {
+                background = null
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                setImageBitmap(WideDockIcons.bitmap(action))
+                contentDescription = strings.getString(dockLabel(action))
+                setOnClickListener { performDockAction(action) }
+            }
+            dockButtons[action] = button
+            sb.addView(button)
+        }
+        refreshDockStates()
+    }
+
+    /** Cambiata la scelta dei tasti (Impostazioni): il dock si ricostruisce e la pagina si riadatta. */
+    private fun rebuildDock() {
+        val sb = sidebarContainerReference ?: return
+        fillDock(sb)
+        applyVisibleArea()
+    }
+
+    private fun watchDockActions() {
+        lifecycleScope.launch {
+            snapshotFlow { AppSettings.sidebarActions.value }.drop(1).collect { rebuildDock() }
+        }
+    }
+
+    /**
+     * Lo stato dei tasti che dipendono dalla pagina: scudo e desktop del sito, preferiti e condividi solo su una pagina
+     * web (non sulla home e su CarWeb Media). Si chiama a ogni pagina finita e quando qualcosa cambia.
+     */
+    private fun refreshDockStates() {
+        val url = webView?.url ?: lastUrl
+        val site = currentAdBlockSite()
+        val webPage = site != null
+        dockButtons[SidebarAction.ADBLOCK]?.let { button ->
+            button.setImageBitmap(WideDockIcons.bitmap(SidebarAction.ADBLOCK, site != null && AdBlockHost.isWhitelisted(site)))
+            setDockEnabled(button, webPage)
+        }
+        dockButtons[SidebarAction.DESKTOP]?.let { button ->
+            val enabled = desktopModeEnabled(url)
+            val toggleEnabled = desktopModeToggleEnabled(url)
+            button.setImageBitmap(WideDockIcons.bitmap(SidebarAction.DESKTOP, enabled))
+            button.contentDescription = strings.getString(desktopModeActionLabel(enabled, toggleEnabled))
+            // Resta toccabile anche quando non si può cambiare: il tocco spiega perché (siti che vogliono il desktop)
+            button.alpha = if (toggleEnabled) 1f else DOCK_DISABLED_ALPHA
+        }
+        dockButtons[SidebarAction.FAVORITE]?.let { setDockEnabled(it, webPage) }
+        dockButtons[SidebarAction.SHARE]?.let { setDockEnabled(it, webPage) }
+    }
+
+    private fun setDockEnabled(button: ImageButton, enabled: Boolean) {
+        button.isEnabled = enabled
+        button.alpha = if (enabled) 1f else DOCK_DISABLED_ALPHA
+    }
+
+    private fun performDockAction(action: SidebarAction) {
+        when (action) {
+            SidebarAction.HOME -> showHome()
+            SidebarAction.BACK -> goBack()
+            SidebarAction.FORWARD -> goForward()
+            SidebarAction.RELOAD -> webView?.reload()
+            SidebarAction.SEARCH -> openSearch()
+            SidebarAction.FAVORITE -> addCurrentPageToFavorites()
+            SidebarAction.ADBLOCK -> toggleAdBlockForSite()
+            SidebarAction.DESKTOP -> toggleDesktopModeForSite()
+            SidebarAction.VOICE -> toggleVoiceCommand()
+            SidebarAction.SHARE -> showShareCode()
+            SidebarAction.EXIT -> closeApp()
+            // Le schede sono solo della Main; la pagina delle impostazioni arriva con il suo passo del piano
+            SidebarAction.TABS, SidebarAction.SETTINGS -> Unit
+        }
+    }
+
+    /** La pagina aperta tra i preferiti (come la stella del tasto a ventaglio della Main), se non c'è già. */
+    private fun addCurrentPageToFavorites() {
+        val view = webView ?: return
+        val url = view.url?.takeIf { UrlUtils.isWebUrl(it) } ?: return
+        val repository = FavoritesRepository(carContext)
+        val list = repository.loadFavorites().toMutableList()
+        val known = FavoritesRepository.normalizeUrl(url)
+        if (list.none { FavoritesRepository.normalizeUrl(it.url) == known }) {
+            val name = view.title?.trim()?.takeIf { it.isNotEmpty() } ?: siteHost(url) ?: url
+            list.add(FavoriteSite(id = UUID.randomUUID().toString(), name = name, url = url))
+            repository.saveFavorites(list)
+            favoritesCache = null
+            homeHtml = null
+        }
+        CarToast.makeText(carContext, strings.getString(R.string.favorite_added), CarToast.LENGTH_SHORT).show()
+    }
+
+    /** Il codice QR della pagina aperta, da leggere con il telefono: una scheda al centro, un tocco la chiude. */
+    private fun showShareCode() {
+        val url = webView?.url?.takeIf { UrlUtils.isWebUrl(it) } ?: return
+        val overlay = qrOverlayReference ?: return
+        val bitmap = QRCodeUtils.generateQRCode(url, 512) ?: return
+        val side = (minOf(surfaceWidth, surfaceHeight) * 0.55f).toInt().coerceAtLeast(160)
+        qrImageReference?.apply {
+            setImageBitmap(bitmap)
+            layoutParams = (layoutParams as? LinearLayout.LayoutParams)?.also {
+                it.width = side
+                it.height = side
+            } ?: LinearLayout.LayoutParams(side, side)
+        }
+        qrUrlReference?.text = url
+        overlay.visibility = View.VISIBLE
+        closeQrOnBack.isEnabled = true
+    }
+
+    private fun hideShareCode() {
+        qrOverlayReference?.visibility = View.GONE
+        closeQrOnBack.isEnabled = false
     }
 
     private fun desktopModeEnabled(url: String?): Boolean =
@@ -614,9 +718,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         url != null && !url.startsWith(HomePage.BASE_URL) &&
                 !WebViewScriptRouter.isDesktopRequired(url) &&
                 !(daznDesktopForced && isDazn(url))
-
-    private fun desktopModeState(site: String?): String =
-        "$site|${desktopModeEnabled(webView?.url ?: lastUrl)}|${desktopModeToggleEnabled(webView?.url ?: lastUrl)}"
 
     private fun desktopModeActionLabel(enabled: Boolean, toggleEnabled: Boolean): Int = when {
         !toggleEnabled -> R.string.desktop_mode_this_site
@@ -673,23 +774,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 view.reload()
             }
         }
-        refreshDesktopModeAction()
-        invalidate()
-    }
-
-    private fun refreshDesktopModeAction() {
-        updateDesktopSidebarButton()
-        if (desktopModeState(currentAdBlockSite()) != shownDesktopState) invalidate()
-    }
-
-    private fun updateDesktopSidebarButton() {
-        val button = sidebarDesktopButton ?: return
-        val url = webView?.url ?: lastUrl
-        val enabled = desktopModeEnabled(url)
-        val toggleEnabled = desktopModeToggleEnabled(url)
-        button.setImageBitmap(buildDesktopBitmap(enabled))
-        button.isEnabled = toggleEnabled
-        button.contentDescription = strings.getString(desktopModeActionLabel(enabled, toggleEnabled))
+        refreshDockStates()
     }
 
     private fun watchDesktopModeSites() {
@@ -717,30 +802,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         view.loadUrl(url)
                     }
                 }
-                refreshDesktopModeAction()
+                refreshDockStates()
             }
-        }
-    }
-
-    private fun buildDesktopBitmap(enabled: Boolean): Bitmap = maskBitmap { c, p, s ->
-        if (enabled) {
-            c.drawRoundRect(RectF(s * 0.32f, s * 0.16f, s * 0.68f, s * 0.84f), s * 0.12f, s * 0.12f, p)
-            c.drawLine(s * 0.44f, s * 0.74f, s * 0.56f, s * 0.74f, p)
-        } else {
-            c.drawRoundRect(RectF(s * 0.15f, s * 0.20f, s * 0.85f, s * 0.65f), s * 0.08f, s * 0.08f, p)
-            c.drawLine(s * 0.50f, s * 0.65f, s * 0.50f, s * 0.80f, p)
-            c.drawLine(s * 0.35f, s * 0.80f, s * 0.65f, s * 0.80f, p)
-        }
-    }
-
-    private fun buildDesktopCarIcon(enabled: Boolean): CarIcon = maskIcon { c, p, s ->
-        if (enabled) {
-            c.drawRoundRect(RectF(s * 0.32f, s * 0.16f, s * 0.68f, s * 0.84f), s * 0.12f, s * 0.12f, p)
-            c.drawLine(s * 0.44f, s * 0.74f, s * 0.56f, s * 0.74f, p)
-        } else {
-            c.drawRoundRect(RectF(s * 0.15f, s * 0.20f, s * 0.85f, s * 0.65f), s * 0.08f, s * 0.08f, p)
-            c.drawLine(s * 0.50f, s * 0.65f, s * 0.50f, s * 0.80f, p)
-            c.drawLine(s * 0.35f, s * 0.80f, s * 0.65f, s * 0.80f, p)
         }
     }
 
@@ -761,7 +824,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val items = favorites().map { HomePage.Item(it.name, it.url) } + apps
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
-        return HomePage.build(strings, items, reopenEnabled(), sidebarFixedEnabled(), updateText, AppSettings.wideSidebarSize.value)
+        return HomePage.build(strings, items, reopenEnabled(), updateText, AppSettings.wideSidebarSize.value)
     }
 
     /**
@@ -1075,8 +1138,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val lp = (view.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         val margins = area?.let { fullscreenMargins(it) } ?: IntArray(4)
-        // Menu fisso sempre in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto)
-        if (sidebarFixedEnabled() && !videoMenuOnTap) {
+        // Dock sempre in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto)
+        if (dockVisible && !videoMenuOnTap) {
             if (isRtl) margins[2] = maxOf(margins[2], pageLp?.rightMargin ?: 0)
             else margins[0] = maxOf(margins[0], pageLp?.leftMargin ?: 0)
         }
@@ -1125,7 +1188,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun applySidebarOverVideo() {
         val sb = sidebarContainerReference ?: return
-        if (!sidebarFixedEnabled()) return
+        if (!dockVisible) return
         sb.visibility = if (sidebarHiddenForVideo && customView != null) View.INVISIBLE else View.VISIBLE
     }
 
@@ -1155,9 +1218,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
         )
         layoutCustomView(view, webView?.layoutParams as? FrameLayout.LayoutParams)
-        // Sidebar fissa (il video di CarWeb Media ci va sotto), popup, tastiera passeggero, copertura in movimento e
-        // ascolto restano sopra il video
-        if (sidebarFixedEnabled()) sidebarContainerReference?.bringToFront()
+        // Il dock (il video di CarWeb Media ci va sotto), il codice QR, popup, tastiera passeggero, copertura in movimento
+        // e ascolto restano sopra il video
+        if (dockVisible) sidebarContainerReference?.bringToFront()
+        qrOverlayReference?.bringToFront()
         popupOverlayReference?.bringToFront()
         passengerKeyboard?.view?.bringToFront()
         driveLockReference?.bringToFront()
@@ -1398,7 +1462,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val rightAreaM = rightInsetPx()
         val sidebarWidthPx = sidebarWidthPx()
 
-        val fixed = sidebarFixedEnabled()
+        // Il dock in vista: la pagina parte dal suo bordo; nascosto, la pagina prende tutta l'area libera
+        val fixed = dockVisible
         val rtl = isRtl
 
         // La fascia stretta sul bordo (angoli arrotondati dell'host) resta alla sidebar fissa; un pannello
@@ -1505,7 +1570,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun isDriveLocked(): Boolean = driveLockReference?.isVisible == true
 
     /** Pagina sotto la copertura in movimento o sotto la tastiera passeggero: niente scorrimento né zoom. */
-    private fun isPageCovered(): Boolean = isDriveLocked() || passengerKeyboard?.isVisible == true
+    private fun isPageCovered(): Boolean =
+        isDriveLocked() || passengerKeyboard?.isVisible == true || qrOverlayReference?.isVisible == true
 
     /**
      * Auto in movimento (lo dice Android Auto) e Modalità passeggero spenta: la pagina resta coperta da un avviso che
@@ -1546,6 +1612,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // In movimento senza la Modalità passeggero la pagina è coperta: i tocchi si fermano
         if (isDriveLocked()) return
 
+        // Il codice QR della pagina: un tocco qualsiasi lo chiude
+        if (qrOverlayReference?.isVisible == true) {
+            hideShareCode()
+            return
+        }
+
         passengerKeyboard?.takeIf { it.isVisible }?.let { keyboard ->
             dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_DOWN, x, y)
             dispatchTouchToOverlay(keyboard.view, MotionEvent.ACTION_UP, x, y)
@@ -1568,7 +1640,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lastTapAt = SystemClock.uptimeMillis()
         webView?.evaluateJavascript("window.__lastTouchX = $x; window.__lastTouchY = $y;", null)
 
-        val fixed = sidebarFixedEnabled()
+        val fixed = dockVisible
         val rtl = isRtl
         val sb = sidebarContainerReference
 
@@ -1596,7 +1668,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         bestButton = child
                     }
                 }
-                bestButton?.performClick()
+                // Un tasto spento (lo scudo sulla home) non fa niente: il tocco resta suo, non passa alla pagina
+                bestButton?.takeIf { it.isEnabled }?.performClick()
                 return
             }
         }
@@ -2178,7 +2251,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 // intero (setVideoMenu), la scelta è una per tutti i siti
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun hasFixedSidebar(): Boolean = sidebarFixedEnabled()
+                                fun hasFixedSidebar(): Boolean = dockVisible
 
                                 @JavascriptInterface
                                 @Suppress("unused")
@@ -2394,13 +2467,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     return true
                                 }
 
-                                if (url.startsWith("about:toggle_sidebar_fixed")) {
-                                    toggleSidebarFixed()
-                                    homeHtml = null
-                                    carContext.finishCarApp()
-                                    return true
-                                }
-
                                 // Link "intent://": usa l'indirizzo di ripiego invece di aprire un'app. Solo dalla
                                 // pagina principale e solo verso indirizzi web: un iframe (es. una pubblicità) con
                                 // ripiego "javascript:" faceva eseguire il suo codice nella pagina
@@ -2504,7 +2570,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 if (url.isNullOrEmpty()) return
                                 userAgentReloads = 0
-                                refreshAdBlockAction()
+                                refreshDockStates()
 
                                 view?.evaluateJavascript(BrowserJavascript.getDisableDoubleTapScript(), null)
 
@@ -2584,60 +2650,57 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                     webView = wv
 
-                    // Misure, posizione e dimensione dei tasti: layoutSidebar
+                    // Il dock: i tasti scelti dall'utente (SidebarAction). Misure, posizione e dimensione: layoutSidebar
                     val sidebarContainer = LinearLayout(ctx).apply {
                         orientation = LinearLayout.VERTICAL
                         setBackgroundColor("#1e1e1e".toColorInt())
                         gravity = Gravity.TOP
                     }
                     sidebarContainerReference = sidebarContainer
+                    fillDock(sidebarContainer)
 
-                    val btnSidebarStyle = { btn: ImageButton ->
-                        btn.background = null
-                        btn.scaleType = ImageView.ScaleType.FIT_CENTER
+                    // Il codice QR della pagina (tasto Condividi): una scheda al centro; un tocco o Indietro la chiudono
+                    val qrOverlay = FrameLayout(ctx).apply {
+                        visibility = View.GONE
+                        setBackgroundColor("#99000000".toColorInt())
+                        isClickable = true
+                        setOnClickListener { hideShareCode() }
                     }
-
-                    val btnHome = ImageButton(ctx).apply {
-                        setImageBitmap(buildHomeBitmap())
-                        btnSidebarStyle(this)
-                        setOnClickListener { showHome() }
+                    val qrCard = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        val pad = (20 * dp).toInt()
+                        setPadding(pad, pad, pad, pad)
+                        background = GradientDrawable().apply {
+                            setColor("#202124".toColorInt())
+                            cornerRadius = 20 * dp
+                            setStroke(1, "#44464A".toColorInt())
+                        }
                     }
-                    val btnBack = ImageButton(ctx).apply {
-                        setImageBitmap(buildBackBitmap())
-                        btnSidebarStyle(this)
-                        setOnClickListener { goBack() }
+                    qrCard.addView(TextView(ctx).apply {
+                        text = strings.getString(R.string.qr_code_title)
+                        textSize = 20f
+                        setTextColor(Color.WHITE)
+                        gravity = Gravity.CENTER
+                    }, LinearLayout.LayoutParams(-2, -2))
+                    val qrImage = ImageView(ctx).apply {
+                        setBackgroundColor(Color.WHITE)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = strings.getString(R.string.qr_code_label)
                     }
-                    // Il ricarica era in alto a destra: lì ora c'è lo scudo dell'AdBlock
-                    val btnReload = ImageButton(ctx).apply {
-                        setImageBitmap(buildReloadBitmap())
-                        btnSidebarStyle(this)
-                        setOnClickListener { webView?.reload() }
+                    qrCard.addView(qrImage, LinearLayout.LayoutParams(160, 160).apply { topMargin = (14 * dp).toInt() })
+                    val qrUrl = TextView(ctx).apply {
+                        textSize = 14f
+                        setTextColor("#BDC1C6".toColorInt())
+                        gravity = Gravity.CENTER
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.MIDDLE
                     }
-                    val btnSearch = ImageButton(ctx).apply {
-                        setImageBitmap(buildSearchBitmap())
-                        btnSidebarStyle(this)
-                        setOnClickListener { openSearch() }
-                    }
-                    val btnDesktop = ImageButton(ctx).apply {
-                        setImageBitmap(buildDesktopBitmap(desktopModeEnabled(webView?.url ?: lastUrl)))
-                        btnSidebarStyle(this)
-                        isEnabled = desktopModeToggleEnabled(webView?.url ?: lastUrl)
-                        setOnClickListener { toggleDesktopModeForSite() }
-                    }
-                    sidebarDesktopButton = btnDesktop
-                    val btnVoice = ImageButton(ctx).apply {
-                        setImageBitmap(buildMicBitmap())
-                        btnSidebarStyle(this)
-                        setOnClickListener { toggleVoiceCommand() }
-                    }
-                    sidebarVoiceButton = btnVoice
-
-                    sidebarContainer.addView(btnHome)
-                    sidebarContainer.addView(btnBack)
-                    sidebarContainer.addView(btnReload)
-                    sidebarContainer.addView(btnSearch)
-                    sidebarContainer.addView(btnDesktop)
-                    sidebarContainer.addView(btnVoice)
+                    qrCard.addView(qrUrl, LinearLayout.LayoutParams(-1, -2).apply { topMargin = (10 * dp).toInt() })
+                    qrOverlay.addView(qrCard, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
+                    qrOverlayReference = qrOverlay
+                    qrImageReference = qrImage
+                    qrUrlReference = qrUrl
 
                     frame.addView(
                         wv,
@@ -2647,8 +2710,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                         )
                     )
                     frame.addView(sidebarContainer, FrameLayout.LayoutParams(sidebarWidthPx(), ViewGroup.LayoutParams.MATCH_PARENT))
-                    // L'app del telefono sullo schermo virtuale: sopra pagina e menu fisso, sotto popup, tastiera e copertura
+                    // L'app del telefono sullo schermo virtuale: sopra pagina e dock, sotto popup, tastiera e copertura
                     frame.addView(virtualApp.install(ctx, sidebarWidthPx()), FrameLayout.LayoutParams(-1, -1))
+                    virtualApp.setSidebarVisible(dockVisible)
+                    frame.addView(qrOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(keyboard.view, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))
@@ -2983,8 +3048,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         driveLockCardReference = null
         voiceCardReference = null
         voiceDetailReference = null
-        sidebarVoiceButton = null
-        sidebarDesktopButton = null
+        dockButtons.clear()
+        qrOverlayReference = null
+        qrImageReference = null
+        qrUrlReference = null
+        closeQrOnBack.isEnabled = false
         isInputPopupVisible = false
 
         // Esce dal video a schermo intero prima di distruggere la WebView
@@ -3043,135 +3111,4 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             .build()
     }
 
-    // Ricarica: tasto in basso (senza sidebar) e nella sidebar fissa, stesso disegno
-    private fun buildReloadIcon(): CarIcon = maskIcon(::drawReload)
-
-    private fun buildReloadBitmap(): Bitmap = maskBitmap(::drawReload)
-
-    private fun drawReload(c: Canvas, p: Paint, s: Float) {
-        val cx = s / 2f
-        val cy = s / 2f
-        val r = s * 0.30f
-        c.drawArc(RectF(cx - r, cy - r, cx + r, cy + r), -60f, 290f, false, p)
-
-        val a = Math.toRadians(-60.0)
-        val px = cx + r * cos(a).toFloat()
-        val py = cy + r * sin(a).toFloat()
-        val fill = Paint(p).apply { style = Paint.Style.FILL }
-        val head = Path().apply {
-            moveTo(px + s * 0.14f, py - s * 0.02f)
-            lineTo(px - s * 0.02f, py - s * 0.14f)
-            lineTo(px - s * 0.04f, py + s * 0.10f)
-            close()
-        }
-        c.drawPath(head, fill)
-    }
-
-    // Scudo dell'AdBlock: con la spunta attivo sul sito, barrato se il sito è in whitelist
-    private fun buildShieldIcon(crossed: Boolean): CarIcon = maskIcon { c, p, s ->
-        val shield = Path().apply {
-            moveTo(s * 0.50f, s * 0.16f)
-            lineTo(s * 0.78f, s * 0.27f)
-            lineTo(s * 0.78f, s * 0.48f)
-            quadTo(s * 0.78f, s * 0.72f, s * 0.50f, s * 0.84f)
-            quadTo(s * 0.22f, s * 0.72f, s * 0.22f, s * 0.48f)
-            lineTo(s * 0.22f, s * 0.27f)
-            close()
-        }
-        c.drawPath(shield, p)
-        if (crossed) {
-            c.drawLine(s * 0.16f, s * 0.84f, s * 0.84f, s * 0.16f, p)
-        } else {
-            val check = Path().apply {
-                moveTo(s * 0.37f, s * 0.50f)
-                lineTo(s * 0.47f, s * 0.60f)
-                lineTo(s * 0.64f, s * 0.41f)
-            }
-            c.drawPath(check, p)
-        }
-    }
-
-    // Microfono dei comandi vocali: tasto in alto (senza sidebar) e nella sidebar fissa, stesso disegno
-    private fun buildMicBitmap(): Bitmap = maskBitmap(::drawMic)
-
-    private fun drawMic(c: Canvas, p: Paint, s: Float) {
-        c.drawRoundRect(RectF(s * 0.38f, s * 0.14f, s * 0.62f, s * 0.56f), s * 0.12f, s * 0.12f, p)
-        c.drawArc(RectF(s * 0.26f, s * 0.30f, s * 0.74f, s * 0.70f), 0f, 180f, false, p)
-        c.drawLine(s * 0.50f, s * 0.70f, s * 0.50f, s * 0.84f, p)
-        c.drawLine(s * 0.36f, s * 0.84f, s * 0.64f, s * 0.84f, p)
-    }
-
-    private fun buildSearchIcon(): CarIcon = maskIcon { c, p, s ->
-        val cx = s * 0.42f
-        val cy = s * 0.42f
-        val r = s * 0.22f
-        c.drawCircle(cx, cy, r, p)
-        val d = r * 0.72f
-        c.drawLine(cx + d, cy + d, s * 0.78f, s * 0.78f, p)
-    }
-
-    private fun maskBitmap(draw: (Canvas, Paint, Float) -> Unit): Bitmap {
-        val size = 96
-        val bmp = createBitmap(size, size)
-        val canvas = Canvas(bmp)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = size * 0.08f
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
-        }
-        draw(canvas, paint, size.toFloat())
-        return bmp
-    }
-
-    private fun buildHomeBitmap(): Bitmap = maskBitmap { c, p, s ->
-        val roof = Path().apply {
-            moveTo(s * 0.18f, s * 0.48f)
-            lineTo(s * 0.50f, s * 0.20f)
-            lineTo(s * 0.82f, s * 0.48f)
-        }
-        c.drawPath(roof, p)
-        val body = Path().apply {
-            moveTo(s * 0.28f, s * 0.44f)
-            lineTo(s * 0.28f, s * 0.78f)
-            lineTo(s * 0.72f, s * 0.78f)
-            lineTo(s * 0.72f, s * 0.44f)
-        }
-        c.drawPath(body, p)
-    }
-
-    private fun buildBackBitmap(): Bitmap = maskBitmap { c, p, s ->
-        val path = Path().apply {
-            moveTo(s * 0.65f, s * 0.25f)
-            lineTo(s * 0.35f, s * 0.50f)
-            lineTo(s * 0.65f, s * 0.75f)
-        }
-        c.drawPath(path, p)
-    }
-
-    private fun buildSearchBitmap(): Bitmap = maskBitmap { c, p, s ->
-        val cx = s * 0.42f
-        val cy = s * 0.42f
-        val r = s * 0.22f
-        c.drawCircle(cx, cy, r, p)
-        val d = r * 0.72f
-        c.drawLine(cx + d, cy + d, s * 0.78f, s * 0.78f, p)
-    }
-
-    private fun buildHomeIcon(): CarIcon = maskIcon { c, p, s ->
-        val roof = Path().apply {
-            moveTo(s * 0.18f, s * 0.48f)
-            lineTo(s * 0.50f, s * 0.20f)
-            lineTo(s * 0.82f, s * 0.48f)
-        }
-        c.drawPath(roof, p)
-        val body = Path().apply {
-            moveTo(s * 0.28f, s * 0.44f)
-            lineTo(s * 0.28f, s * 0.78f)
-            lineTo(s * 0.72f, s * 0.78f)
-            lineTo(s * 0.72f, s * 0.44f)
-        }
-        c.drawPath(body, p)
-    }
 }

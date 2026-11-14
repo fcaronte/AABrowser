@@ -98,9 +98,6 @@ object AppSettings {
     private val _wideReopenLastPage = mutableStateOf(false)
     val wideReopenLastPage: State<Boolean> = _wideReopenLastPage
 
-    private val _wideSidebarFixed = mutableStateOf(true)
-    val wideSidebarFixed: State<Boolean> = _wideSidebarFixed
-
     // Wide, video a schermo intero con il menu fisso: true = il menu sta sotto il video e compare con i comandi
     // ("Menu al tocco" nella barra del video), false = il video si ferma al bordo del menu
     private val _wideVideoMenuOnTap = mutableStateOf(false)
@@ -241,7 +238,6 @@ object AppSettings {
         _preloadFavorites.value = prefs.getBoolean("preload_favorites", false)
         _preloadFavoritesCount.intValue = prefs.getInt("preload_favorites_count", 4)
         _wideReopenLastPage.value = prefs.getBoolean("reopen_last_page", false)
-        _wideSidebarFixed.value = prefs.getBoolean("wide_sidebar_fixed", true)
         _wideVideoMenuOnTap.value = prefs.getBoolean("wide_video_menu_on_tap", false)
         _wideSidebarSize.value = prefs.getInt("wide_sidebar_size", 100).takeIf { it in wideSidebarSizes } ?: 100
         _sidebarActions.value = SidebarAction.parse(prefs.getString("sidebar_actions", null))
@@ -455,11 +451,6 @@ object AppSettings {
     fun setWideReopenLastPage(context: Context, enabled: Boolean) {
         _wideReopenLastPage.value = enabled
         saveBoolean(context, "reopen_last_page", enabled)
-    }
-
-    fun setWideSidebarFixed(context: Context, enabled: Boolean) {
-        _wideSidebarFixed.value = enabled
-        saveBoolean(context, "wide_sidebar_fixed", enabled)
     }
 
     fun setWideVideoMenuOnTap(context: Context, onTap: Boolean) {

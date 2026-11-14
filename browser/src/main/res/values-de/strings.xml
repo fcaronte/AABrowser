@@ -305,7 +305,6 @@
     <string name="grant_permissions_button">Berechtigungen erteilen &amp; Starten</string>
     <string name="skip_onboarding_button">Ich weiß, was ich tue (Überspringen)</string>
     <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>
-    <string name="wide_sidebar_fixed">Festes Menü</string>
     <string name="wide_sidebar_size">Menügröße</string>
     <string name="wide_no_favorites">Keine Favoriten. Nutzen Sie die Lupe zum Suchen.</string>
 

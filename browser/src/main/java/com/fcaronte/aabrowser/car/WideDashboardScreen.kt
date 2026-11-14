@@ -86,7 +86,6 @@ object HomePage {
         context: Context,
         items: List<Item>,
         reopenLastPage: Boolean,
-        sidebarFixed: Boolean = true,
         updateText: String? = null,
         sidebarSize: Int = 100
     ): String {
@@ -99,20 +98,13 @@ object HomePage {
         val toggleText = if (reopenLastPage) "ON" else "OFF"
         val toggleColor = if (reopenLastPage) "#22c55e" else "#ef4444"
 
-        val fixedText = if (sidebarFixed) "ON" else "OFF"
-        val fixedColor = if (sidebarFixed) "#22c55e" else "#ef4444"
-
         val reopenLabel = context.getString(R.string.wide_reopen_last_page)
-        val fixedLabel = context.getString(R.string.wide_sidebar_fixed)
-        val sizeControl = if (sidebarFixed) {
-            """<span class="stepper">
+        // La dimensione del dock (la sidebar), un passo alla volta: finché le impostazioni non hanno la loro pagina sta qui
+        val sizeControl = """<span class="stepper">
         <a class="toggle step" href="$SIDEBAR_SMALLER">−</a>
         <span class="toggle size">${context.getString(R.string.wide_sidebar_size).htmlEncode()}: $sidebarSize%</span>
         <a class="toggle step" href="$SIDEBAR_LARGER">+</a>
     </span>"""
-        } else {
-            ""
-        }
 
         val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()
@@ -323,9 +315,6 @@ $updateBanner
     <a class="toggle" href="$OPEN_MAIN">↗ ${context.getString(R.string.app_name).htmlEncode()}</a>
     <a class="toggle" href="about:toggle_reopen">
         $reopenLabel: <span style="color:$toggleColor">$toggleText</span>
-    </a>
-    <a class="toggle" href="about:toggle_sidebar_fixed">
-        $fixedLabel: <span style="color:$fixedColor">$fixedText</span>
     </a>
     $sizeControl
 </div>

@@ -254,8 +254,12 @@ class WideVirtualApp(
         hide()
     }
 
-    fun toggleSidebar() {
-        sidebarVisible = !sidebarVisible
+    /**
+     * La barra dell'app si mostra o si nasconde insieme al dock della Wide (il tasto in alto a destra li comanda tutti e due:
+     * prima nascondeva solo la barra dell'app e il menu restava), e all'apertura segue lo stato del dock.
+     */
+    fun setSidebarVisible(visible: Boolean) {
+        sidebarVisible = visible
         sidebar?.visibility = if (sidebarVisible) View.VISIBLE else View.GONE
         applyDock()
     }
