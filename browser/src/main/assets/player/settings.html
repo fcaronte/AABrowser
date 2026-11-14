@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CarWeb</title>
+    <link rel="stylesheet" href="/player.css">
+    <link rel="stylesheet" href="/settings.css">
+    <!-- Colori Material You del telefono, inseriti dall'app (vuoto = colori di player.css) -->
+    <style>/*AAB_THEME*/</style>
+    <!-- Token e testi tradotti, inseriti dall'app quando serve la pagina (SettingsApi) -->
+    <script>/*AAB_CONFIG*/</script>
+</head>
+<body>
+<header class="bar">
+    <button class="icon-button" id="back">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="settings-title" id="title"></div>
+</header>
+
+<main class="settings" id="sections"></main>
+
+<!-- Le altre impostazioni sono ancora quelle del telefono: lo dice la pagina -->
+<p class="settings-note" id="note"></p>
+
+<div class="message settings-error" id="error" hidden></div>
+
+<script src="/settings.js"></script>
+</body>
+</html>

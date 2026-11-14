@@ -474,6 +474,9 @@
     <string name="tab_bar_actions_desc">Scegli quali mostrare e in che ordine. Se ne tieni più di quanti ne vuoi vedere insieme, gli altri si raggiungono strisciando i pulsanti a destra o a sinistra.</string>
     <string name="tab_bar_actions_visible">Pulsanti visibili insieme: %1$d</string>
     <string name="tab_bar_action_up">Sposta su</string>
+    <string name="settings_phone_note">Le altre impostazioni sono in CarWeb sul telefono.</string>
+    <string name="settings_page_error">Impossibile salvare l\'impostazione.</string>
+    <string name="wide_video_menu_label">Menu con il video a schermo intero</string>
     <string name="main_dock_label">Sidebar anche in CarWeb</string>
     <string name="main_dock_desc">Mostra in CarWeb la stessa sidebar di CarWebWide. Il tasto rotondo del menu serve allora solo ad aprirla e chiuderla.</string>
     <string name="sidebar_actions_label">Tasti della sidebar</string>

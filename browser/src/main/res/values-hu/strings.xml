@@ -516,6 +516,9 @@
     <string name="tab_bar_actions_desc">Válaszd ki, melyik látszódjon és milyen sorrendben. Ha többet tartasz meg, mint amennyit egyszerre látni szeretnél, a többit a gombok jobbra vagy balra húzásával éred el.</string>
     <string name="tab_bar_actions_visible">Egyszerre látható gombok: %1$d</string>
     <string name="tab_bar_action_up">Fel</string>
+    <string name="settings_phone_note">A többi beállítás a telefonon, a CarWebben található.</string>
+    <string name="settings_page_error">A beállítást nem sikerült elmenteni.</string>
+    <string name="wide_video_menu_label">Menü teljes képernyős videónál</string>
     <string name="main_dock_label">Oldalsáv a CarWebben</string>
     <string name="main_dock_desc">A CarWebben is megjeleníti a CarWebWide oldalsávját. A kerek menügomb ilyenkor csak megnyitja és bezárja.</string>
     <string name="sidebar_actions_label">Az oldalsáv gombjai</string>

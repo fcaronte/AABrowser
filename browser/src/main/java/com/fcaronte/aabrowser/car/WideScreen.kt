@@ -192,9 +192,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Un tasto del dock che non si può usare in questo momento (lo scudo sulla home) si vede spento
         const val DOCK_DISABLED_ALPHA = 0.35f
 
-        // La pagina delle impostazioni per la Wide (passo successivo del piano): finché non c'è il tasto non si mostra
-        const val SETTINGS_PAGE_AVAILABLE = false
-
         // Fascia dei tasti di Android Auto, al massimo: oltre è un pannello (split con il player o con il menu delle app)
         // o altro che l'host mette sopra. Misure del 10/11/2026: 96 px in alto e 104 px a destra su 1447x694
         const val BUTTON_BAND_MAX_WIDTH = 0.15f
@@ -224,7 +221,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Impostazioni della wide (se hai nomi diversi in AppSettings, cambia solo queste 4 righe)
     // ------------------------------------------------------------------
     private fun reopenEnabled(): Boolean = AppSettings.wideReopenLastPage.value
-    private fun toggleReopen() = AppSettings.setWideReopenLastPage(carContext, !reopenEnabled())
 
     // Il dock (la sidebar a sinistra): una sola modalità, sempre presente. L'unico tasto che Android Auto vuole in alto a
     // destra lo mostra o lo nasconde, insieme alla barra dell'app del telefono se ce n'è una aperta. Vale per questa apertura
@@ -439,6 +435,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 watchMediaLists()
                 watchDesktopModeSites()
                 watchDockActions()
+                watchSidebarSize()
                 // Dopo un aggiornamento le novità, se non le si sono già lette sul telefono o nella Main (la superficie e la
                 // prima pagina arrivano prima)
                 handler.postDelayed({ showWhatsNew() }, WHATS_NEW_DELAY_MS)
@@ -571,10 +568,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Dock: la sidebar, con i tasti scelti dall'utente (SidebarAction)
     // ------------------------------------------------------------------
 
-    /** I tasti da mostrare: quelli scelti dall'utente che la Wide sa fare (le impostazioni arrivano con la loro pagina). */
+    /** I tasti da mostrare: quelli scelti dall'utente che la Wide sa fare (niente schede: ha una pagina sola). */
     private fun dockActions(): List<SidebarAction> =
         SidebarAction.forHost(AppSettings.sidebarActions.value, SidebarHost.WIDE)
-            .filter { it != SidebarAction.SETTINGS || SETTINGS_PAGE_AVAILABLE }
 
     /** Mette nel dock i tasti scelti dall'utente, al posto di quelli che c'erano. */
     private fun fillDock(sb: LinearLayout) {
@@ -605,6 +601,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun watchDockActions() {
         lifecycleScope.launch {
             snapshotFlow { AppSettings.sidebarActions.value }.drop(1).collect { rebuildDock() }
+        }
+    }
+
+    // La dimensione del dock cambia dalla pagina delle impostazioni: il dock e la pagina si riadattano
+    private fun watchSidebarSize() {
+        lifecycleScope.launch {
+            snapshotFlow { AppSettings.wideSidebarSize.value }.drop(1).collect { applyVisibleArea() }
         }
     }
 
@@ -649,9 +652,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             SidebarAction.DESKTOP -> toggleDesktopModeForSite()
             SidebarAction.VOICE -> toggleVoiceCommand()
             SidebarAction.SHARE -> showShareCode()
+            SidebarAction.SETTINGS -> loadUrl(LocalPlayer.SETTINGS_URL)
             SidebarAction.EXIT -> closeApp()
-            // Le schede sono solo della Main; la pagina delle impostazioni arriva con il suo passo del piano
-            SidebarAction.TABS, SidebarAction.SETTINGS -> Unit
+            // Le schede sono solo della Main: la Wide ha una pagina sola
+            SidebarAction.TABS -> Unit
         }
     }
 
@@ -808,7 +812,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val items = favorites().map { HomePage.Item(it.name, it.url) } + apps
         val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
             ?.let { strings.getString(R.string.update_available, it.latestVersion) }
-        return HomePage.build(strings, items, reopenEnabled(), updateText, AppSettings.wideSidebarSize.value)
+        return HomePage.build(strings, items, updateText)
     }
 
     /**
@@ -2421,13 +2425,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     if (!fromHome) return true
                                 }
 
-                                if (url.startsWith("about:toggle_reopen")) {
-                                    toggleReopen()
-                                    homeHtml = null
-                                    carContext.finishCarApp()
-                                    return true
-                                }
-
                                 if (url.startsWith(HomePage.UPDATE_DOWNLOAD)) {
                                     startUpdateDownload()
                                     return true
@@ -2440,13 +2437,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 if (url.startsWith(HomePage.UPDATE_DISMISS)) {
                                     UpdateManager.isBannerDismissed = true
-                                    showHome()
-                                    return true
-                                }
-
-                                if (url.startsWith(HomePage.SIDEBAR_SMALLER) || url.startsWith(HomePage.SIDEBAR_LARGER)) {
-                                    AppSettings.stepWideSidebarSize(carContext, if (url.startsWith(HomePage.SIDEBAR_LARGER)) 1 else -1)
-                                    applyVisibleArea()
                                     showHome()
                                     return true
                                 }

@@ -516,6 +516,9 @@
     <string name="tab_bar_actions_desc">चुनें कि कौन से दिखें और किस क्रम में। यदि आप एक साथ दिखाने से अधिक रखते हैं, तो बाकी बटनों को दाएँ या बाएँ स्वाइप करके पहुँचा जा सकता है।</string>
     <string name="tab_bar_actions_visible">एक साथ दिखने वाले बटन: %1$d</string>
     <string name="tab_bar_action_up">ऊपर ले जाएँ</string>
+    <string name="settings_phone_note">बाकी सेटिंग्स फ़ोन पर CarWeb में हैं।</string>
+    <string name="settings_page_error">सेटिंग सहेजी नहीं जा सकी।</string>
+    <string name="wide_video_menu_label">फ़ुलस्क्रीन वीडियो के साथ मेनू</string>
     <string name="main_dock_label">CarWeb में साइडबार</string>
     <string name="main_dock_desc">CarWeb में CarWebWide जैसा ही साइडबार दिखाता है। तब गोल मेनू बटन उसे केवल खोलता और बंद करता है।</string>
     <string name="sidebar_actions_label">साइडबार के बटन</string>

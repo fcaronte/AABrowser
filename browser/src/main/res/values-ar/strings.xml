@@ -520,6 +520,9 @@
     <string name="tab_bar_actions_desc">اختر ما تريد عرضه وبأي ترتيب. إذا أبقيت أكثر مما تريد رؤيته دفعة واحدة، يمكن الوصول إلى الباقي بتمرير الأزرار يميناً أو يساراً.</string>
     <string name="tab_bar_actions_visible">الأزرار الظاهرة معاً: %1$d</string>
     <string name="tab_bar_action_up">انقل لأعلى</string>
+    <string name="settings_phone_note">باقي الإعدادات موجودة في CarWeb على الهاتف.</string>
+    <string name="settings_page_error">تعذّر حفظ الإعداد.</string>
+    <string name="wide_video_menu_label">القائمة مع الفيديو بملء الشاشة</string>
     <string name="main_dock_label">الشريط الجانبي في CarWeb</string>
     <string name="main_dock_desc">يعرض في CarWeb الشريط الجانبي نفسه الموجود في CarWebWide. يصبح زر القائمة الدائري مخصصًا لفتحه وإغلاقه فقط.</string>
     <string name="sidebar_actions_label">أزرار الشريط الجانبي</string>

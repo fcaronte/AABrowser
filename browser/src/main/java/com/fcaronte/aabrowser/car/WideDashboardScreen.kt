@@ -24,10 +24,6 @@ object HomePage {
     const val UPDATE_DOWNLOAD = "about:update_download"
     const val UPDATE_DISMISS = "about:update_dismiss"
 
-    // Dimensione del menu fisso, un passo alla volta (valgono solo dalla home, come tutti gli "about:toggle_…")
-    const val SIDEBAR_SMALLER = "about:toggle_sidebar_smaller"
-    const val SIDEBAR_LARGER = "about:toggle_sidebar_larger"
-
     // Apre CarWeb (la Main), anche se nascosta dal menu di Android Auto
     const val OPEN_MAIN = "about:toggle_open_main"
 
@@ -85,9 +81,7 @@ object HomePage {
     fun build(
         context: Context,
         items: List<Item>,
-        reopenLastPage: Boolean,
-        updateText: String? = null,
-        sidebarSize: Int = 100
+        updateText: String? = null
     ): String {
         val version = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
@@ -95,16 +89,9 @@ object HomePage {
             "1.0"
         }
 
-        val toggleText = if (reopenLastPage) "ON" else "OFF"
-        val toggleColor = if (reopenLastPage) "#22c55e" else "#ef4444"
-
-        val reopenLabel = context.getString(R.string.wide_reopen_last_page)
-        // La dimensione del dock (la sidebar), un passo alla volta: finché le impostazioni non hanno la loro pagina sta qui
-        val sizeControl = """<span class="stepper">
-        <a class="toggle step" href="$SIDEBAR_SMALLER">−</a>
-        <span class="toggle size">${context.getString(R.string.wide_sidebar_size).htmlEncode()}: $sidebarSize%</span>
-        <a class="toggle step" href="$SIDEBAR_LARGER">+</a>
-    </span>"""
+        // Le scelte della Wide (riaprire l'ultima pagina, dimensione e tasti del dock, menu del video) stanno nella pagina
+        // delle impostazioni: da qui si apre con un tasto
+        val settingsLabel = context.getString(R.string.settings_button).htmlEncode()
 
         val tiles = items.joinToString("\n") { item ->
             val name = item.name.htmlEncode()
@@ -313,10 +300,7 @@ $updateBanner
 
 <div class="settings">
     <a class="toggle" href="$OPEN_MAIN">↗ ${context.getString(R.string.app_name).htmlEncode()}</a>
-    <a class="toggle" href="about:toggle_reopen">
-        $reopenLabel: <span style="color:$toggleColor">$toggleText</span>
-    </a>
-    $sizeControl
+    <a class="toggle" href="${LocalPlayer.SETTINGS_URL}">⚙ $settingsLabel</a>
 </div>
 
 <div class="grid">

@@ -474,11 +474,11 @@ object AppSettings {
         saveString(context, "sidebar_actions", SidebarAction.serialize(clean))
     }
 
-    /** Un passo più grande (+1) o più piccolo (-1) tra [wideSidebarSizes]. */
-    fun stepWideSidebarSize(context: Context, step: Int) {
-        val index = (wideSidebarSizes.indexOf(_wideSidebarSize.value) + step).coerceIn(wideSidebarSizes.indices)
-        _wideSidebarSize.value = wideSidebarSizes[index]
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt("wide_sidebar_size", _wideSidebarSize.value).apply()
+    /** La dimensione del dock della Wide in percentuale, una di [wideSidebarSizes] (un altro valore si ignora). */
+    fun setWideSidebarSize(context: Context, size: Int) {
+        if (size !in wideSidebarSizes) return
+        _wideSidebarSize.value = size
+        saveInt(context, "wide_sidebar_size", size)
     }
 
     fun setDarkPages(context: Context, enabled: Boolean) {

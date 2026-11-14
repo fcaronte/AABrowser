@@ -525,6 +525,9 @@
     <string name="tab_bar_actions_desc">Choose which ones to show and in what order. If you keep more than you want to see at once, the others are reached by swiping the buttons left or right.</string>
     <string name="tab_bar_actions_visible">Buttons visible at once: %1$d</string>
     <string name="tab_bar_action_up">Move up</string>
+    <string name="settings_phone_note">The other settings are in CarWeb on the phone.</string>
+    <string name="settings_page_error">Could not save the setting.</string>
+    <string name="wide_video_menu_label">Menu with a fullscreen video</string>
     <string name="main_dock_label">Sidebar in CarWeb</string>
     <string name="main_dock_desc">Shows in CarWeb the same sidebar as CarWebWide. The round menu button then just opens and closes it.</string>
     <string name="sidebar_actions_label">Sidebar buttons</string>

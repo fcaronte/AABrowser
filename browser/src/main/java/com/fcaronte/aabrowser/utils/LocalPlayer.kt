@@ -123,6 +123,10 @@ object LocalPlayer {
                 path == "/apps.js" -> asset(context, "player/apps.js", "application/javascript")
                 path == "/apps.css" -> asset(context, "player/apps.css", "text/css")
                 path == "/apps.svg" -> asset(context, "player/apps.svg", "image/svg+xml")
+                // Impostazioni come pagina: la Wide non ha schermate sue, la Main può usare la stessa
+                path == "/settings" || path == "/settings/" -> SettingsApi.page(context, token, themeCss(context))
+                path == "/settings.js" -> asset(context, "player/settings.js", "application/javascript")
+                path == "/settings.css" -> asset(context, "player/settings.css", "text/css")
                 // Foto, video e file audio condivisi dal telefono ("Condividi su CarWeb")
                 path.startsWith(SharedMedia.PAGE_PATH) -> sharedPage(context, path.removePrefix(SharedMedia.PAGE_PATH))
                 path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
@@ -132,6 +136,7 @@ object LocalPlayer {
                 path.startsWith("/api/tv/") -> IptvApi.handle(context, path, url) ?: status(404, "Not Found")
                 path.startsWith("/api/radio/") -> RadioApi.handle(context, path, url) ?: status(404, "Not Found")
                 path.startsWith("/api/podcast/") -> PodcastApi.handle(context, path, url) ?: status(404, "Not Found")
+                path.startsWith("/api/settings/") -> SettingsApi.handle(context, path, url) ?: status(404, "Not Found")
                 // Comandi vocali: quello in attesa per la pagina che chiede, e cosa fare se non ha trovato niente
                 path == "/api/voice" -> json(MediaVoice.take(url.getQueryParameter("section")))
                 path == "/api/pages/save" -> if (MediaPages.save(context, url)) status(204, "No Content") else status(400, "Bad Request")
@@ -226,6 +231,9 @@ object LocalPlayer {
         val uri = url?.let(Uri::parse) ?: return false
         return uri.scheme == "https" && uri.host == HOST && uri.path in setOf("/tv", "/tv/")
     }
+
+    /** Le impostazioni come pagina: il tasto Impostazioni del dock e delle home la apre. */
+    const val SETTINGS_URL = "${BASE_URL}settings"
 
     // ------------------------------------------------------------------
     // Pagina

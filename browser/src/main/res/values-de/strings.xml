@@ -516,6 +516,9 @@
     <string name="tab_bar_actions_desc">Wähle, welche angezeigt werden und in welcher Reihenfolge. Wenn du mehr behältst, als du gleichzeitig sehen willst, erreichst du die anderen durch Wischen der Tasten nach rechts oder links.</string>
     <string name="tab_bar_actions_visible">Gleichzeitig sichtbare Tasten: %1$d</string>
     <string name="tab_bar_action_up">Nach oben</string>
+    <string name="settings_phone_note">Die anderen Einstellungen findest du in CarWeb auf dem Telefon.</string>
+    <string name="settings_page_error">Die Einstellung konnte nicht gespeichert werden.</string>
+    <string name="wide_video_menu_label">Menü bei Vollbildvideo</string>
     <string name="main_dock_label">Seitenleiste in CarWeb</string>
     <string name="main_dock_desc">Zeigt in CarWeb dieselbe Seitenleiste wie CarWebWide. Die runde Menütaste öffnet und schließt sie dann nur.</string>
     <string name="sidebar_actions_label">Tasten der Seitenleiste</string>
