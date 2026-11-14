@@ -521,6 +521,7 @@
     <string name="whats_new_title">Neu in Version %1$s</string>
     <string name="whats_new_label">Neuigkeiten</string>
     <string name="whats_new_desc">Die Neuerungen der neuesten Version.</string>
+    <string name="player_other_apps_hint">Öffne die Datei mit der App, die du sonst auf dem Telefon benutzt, über „Weitere Apps“.</string>
     <string name="player_no_audio">Dieses Video hat keine Tonspur.</string>
     <string name="player_audio_unsupported">Der Ton dieses Videos (%1$s) kann hier nicht abgespielt werden: Die Browser-Engine des Telefons dekodiert dieses Format nicht.</string>
 </resources>

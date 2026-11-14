@@ -250,6 +250,7 @@ object LocalPlayer {
             .put("unplayable", context.getString(R.string.player_unplayable))
             .put("noAudio", context.getString(R.string.player_no_audio))
             .put("audioUnsupported", context.getString(R.string.player_audio_unsupported))
+            .put("otherAppsHint", context.getString(R.string.player_other_apps_hint))
             .put("audio", context.getString(R.string.player_tab_audio))
             .put("video", context.getString(R.string.player_tab_video))
             .put("options", context.getString(R.string.player_options))

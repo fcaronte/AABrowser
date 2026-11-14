@@ -522,6 +522,7 @@
     <string name="whats_new_title">Novedades de la versión %1$s</string>
     <string name="whats_new_label">Novedades</string>
     <string name="whats_new_desc">Las novedades de la última versión.</string>
+    <string name="player_other_apps_hint">Prueba a abrir el archivo con la app que usas normalmente en el teléfono, desde «Otras apps».</string>
     <string name="player_no_audio">Este vídeo no tiene pista de audio.</string>
     <string name="player_audio_unsupported">El sonido de este vídeo (%1$s) no se puede reproducir aquí: el motor del navegador del teléfono no decodifica este formato.</string>
 </resources>

@@ -520,6 +520,7 @@
     <string name="whats_new_title">%1$s 版本的新功能</string>
     <string name="whats_new_label">新功能</string>
     <string name="whats_new_desc">最新版本的更新内容。</string>
+    <string name="player_other_apps_hint">试试用你平时在手机上使用的应用打开该文件，入口在“更多应用”。</string>
     <string name="player_no_audio">此视频没有音轨。</string>
     <string name="player_audio_unsupported">此视频的声音（%1$s）无法在此播放：手机的浏览器引擎不支持解码这种格式。</string>
 </resources>

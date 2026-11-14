@@ -521,6 +521,7 @@
     <string name="whats_new_title">Újdonságok a(z) %1$s verzióban</string>
     <string name="whats_new_label">Újdonságok</string>
     <string name="whats_new_desc">A legújabb verzió újdonságai.</string>
+    <string name="player_other_apps_hint">Próbáld megnyitni a fájlt azzal az alkalmazással, amelyet a telefonon általában használsz, a „További alkalmazások” menüből.</string>
     <string name="player_no_audio">Ennek a videónak nincs hangsávja.</string>
     <string name="player_audio_unsupported">A videó hangja (%1$s) itt nem játszható le: a telefon böngészőmotorja nem dekódolja ezt a formátumot.</string>
 </resources>

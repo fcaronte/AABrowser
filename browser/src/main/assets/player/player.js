@@ -756,14 +756,17 @@
                 const response = await fetch(withToken('/api/tracks/' + id), { cache: 'no-store' });
                 const info = await response.json();
                 if (!current || current.id !== id || media.webkitAudioDecodedByteCount > 0 || info.error) return;
+                // Formato non decodificabile: si suggerisce di aprire il file con l'app che l'utente usa di solito sul telefono
+                // (le Altre App la aprono sullo schermo dell'auto). Senza traccia audio non c'è niente da suggerire
                 const message = info.audio
                     ? text('audioUnsupported', 'The sound of this video (%1$s) cannot be played here.')
-                        .replace('%1$s', AUDIO_NAMES[info.audio] || info.audio.replace('audio/', ''))
+                        .replace('%1$s', AUDIO_NAMES[info.audio] || info.audio.replace('audio/', '')) +
+                        ' ' + text('otherAppsHint', 'Try opening the file with the app you normally use on your phone, from Other Apps.')
                     : text('noAudio', 'This video has no sound track.');
                 showMessage(message);
                 setTimeout(() => {
                     if (byId('message').textContent === message) showMessage('');
-                }, 9000);
+                }, info.audio ? 15000 : 9000);
             } catch (e) {}
         }, 3000);
     }
