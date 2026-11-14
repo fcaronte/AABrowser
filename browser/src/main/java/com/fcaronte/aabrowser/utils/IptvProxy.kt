@@ -157,12 +157,23 @@ object IptvProxy {
                 ByteArrayInputStream(rewritten.toByteArray(Charsets.UTF_8))
             )
         }
-        val mime = upstream.contentType?.takeIf { it.startsWith("video/") || it.startsWith("audio/") } ?: "video/mp2t"
+        val mime = streamMime(upstream.contentType)
         // Chiuso dalla WebView (cambio canale, pagina chiusa): si chiude anche la connessione al server
         val closing = object : FilterInputStream(stream) {
             override fun close() = upstream.close()
         }
         return WebResourceResponse(mime, null, 200, "OK", NO_STORE, closing)
+    }
+
+    /**
+     * Il tipo da dichiarare alla WebView per uno stream che non è una lista: quello del server se è audio o video, altrimenti
+     * MPEG-TS (i canali senza tipo). Le radio Icecast in Ogg (Vorbis, Opus) dichiarano `application/ogg`: è audio.
+     */
+    internal fun streamMime(contentType: String?): String = when {
+        contentType == null -> "video/mp2t"
+        contentType.startsWith("video/") || contentType.startsWith("audio/") -> contentType
+        contentType == "application/ogg" -> "audio/ogg"
+        else -> "video/mp2t"
     }
 
     private fun isPlaylist(upstream: Upstream, stream: BufferedInputStream): Boolean {

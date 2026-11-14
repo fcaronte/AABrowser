@@ -65,4 +65,18 @@ class IptvStreamKindTest {
         assertEquals(null, IptvProxy.kindOfPath("/live/12345"))
         assertEquals(null, IptvProxy.kindOfPath("/play.php"))
     }
+
+    @Test
+    fun mimeDeclaredToTheWebView() {
+        // Audio e video restano come li dice il server
+        assertEquals("audio/mpeg", IptvProxy.streamMime("audio/mpeg"))
+        assertEquals("audio/aacp", IptvProxy.streamMime("audio/aacp"))
+        assertEquals("video/mp4", IptvProxy.streamMime("video/mp4"))
+        // Le radio Icecast in Ogg (Vorbis, Opus) dichiarano application/ogg: è audio
+        assertEquals("audio/ogg", IptvProxy.streamMime("application/ogg"))
+        // Senza tipo, o con uno che non c'entra (i canali IPTV spesso dichiarano octet-stream): MPEG-TS, come prima
+        assertEquals("video/mp2t", IptvProxy.streamMime(null))
+        assertEquals("video/mp2t", IptvProxy.streamMime("application/octet-stream"))
+        assertEquals("video/mp2t", IptvProxy.streamMime("text/plain"))
+    }
 }
