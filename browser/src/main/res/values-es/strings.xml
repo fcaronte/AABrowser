@@ -517,6 +517,10 @@
     <string name="tab_bar_actions_desc">Elige cuáles mostrar y en qué orden. Si dejas más de los que quieres ver a la vez, los demás se alcanzan deslizando los botones a derecha o izquierda.</string>
     <string name="tab_bar_actions_visible">Botones visibles a la vez: %1$d</string>
     <string name="tab_bar_action_up">Subir</string>
+    <string name="sidebar_actions_label">Botones de la barra lateral</string>
+    <string name="sidebar_actions_desc">Elige qué botones muestra la barra lateral (el dock de CarWebWide) y en qué orden. Inicio siempre está. El botón de pestañas solo existe en CarWeb.</string>
+    <string name="sidebar_actions_count">Botones: %1$d</string>
+    <string name="sidebar_action_main_only">Solo en CarWeb</string>
     <string name="tab_bar_action_down">Bajar</string>
     <string name="whats_new_title">Novedades de la versión %1$s</string>
     <string name="whats_new_label">Novedades</string>

@@ -517,6 +517,10 @@
     <string name="tab_bar_actions_desc">Choisissez lesquels afficher et dans quel ordre. Si vous en gardez plus que vous n\'en voulez voir à la fois, les autres s\'atteignent en faisant glisser les boutons vers la droite ou la gauche.</string>
     <string name="tab_bar_actions_visible">Boutons visibles à la fois : %1$d</string>
     <string name="tab_bar_action_up">Monter</string>
+    <string name="sidebar_actions_label">Boutons de la barre latérale</string>
+    <string name="sidebar_actions_desc">Choisissez les boutons que montre la barre latérale (le dock de CarWebWide) et leur ordre. Accueil est toujours là. Le bouton des onglets n\'existe que dans CarWeb.</string>
+    <string name="sidebar_actions_count">Boutons : %1$d</string>
+    <string name="sidebar_action_main_only">Seulement dans CarWeb</string>
     <string name="tab_bar_action_down">Descendre</string>
     <string name="whats_new_title">Nouveautés de la version %1$s</string>
     <string name="whats_new_label">Nouveautés</string>

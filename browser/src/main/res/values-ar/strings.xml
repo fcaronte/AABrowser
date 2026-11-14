@@ -520,6 +520,10 @@
     <string name="tab_bar_actions_desc">اختر ما تريد عرضه وبأي ترتيب. إذا أبقيت أكثر مما تريد رؤيته دفعة واحدة، يمكن الوصول إلى الباقي بتمرير الأزرار يميناً أو يساراً.</string>
     <string name="tab_bar_actions_visible">الأزرار الظاهرة معاً: %1$d</string>
     <string name="tab_bar_action_up">انقل لأعلى</string>
+    <string name="sidebar_actions_label">أزرار الشريط الجانبي</string>
+    <string name="sidebar_actions_desc">اختر الأزرار التي يعرضها الشريط الجانبي (لوحة CarWebWide) وترتيبها. زر الرئيسية موجود دائمًا. زر علامات التبويب موجود في CarWeb فقط.</string>
+    <string name="sidebar_actions_count">عدد الأزرار: %1$d</string>
+    <string name="sidebar_action_main_only">في CarWeb فقط</string>
     <string name="tab_bar_action_down">انقل لأسفل</string>
     <string name="whats_new_title">الجديد في الإصدار %1$s</string>
     <string name="whats_new_label">الجديد</string>

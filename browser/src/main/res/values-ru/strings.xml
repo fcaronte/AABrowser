@@ -518,6 +518,10 @@
     <string name="tab_bar_actions_desc">Выберите, какие показывать и в каком порядке. Если оставить больше кнопок, чем нужно видеть сразу, остальные доступны смахиванием кнопок вправо или влево.</string>
     <string name="tab_bar_actions_visible">Кнопок на виду: %1$d</string>
     <string name="tab_bar_action_up">Вверх</string>
+    <string name="sidebar_actions_label">Кнопки боковой панели</string>
+    <string name="sidebar_actions_desc">Выберите, какие кнопки показывает боковая панель (док CarWebWide) и в каком порядке. Кнопка «Домой» есть всегда. Кнопка вкладок есть только в CarWeb.</string>
+    <string name="sidebar_actions_count">Кнопок: %1$d</string>
+    <string name="sidebar_action_main_only">Только в CarWeb</string>
     <string name="tab_bar_action_down">Вниз</string>
     <string name="whats_new_title">Что нового в версии %1$s</string>
     <string name="whats_new_label">Что нового</string>

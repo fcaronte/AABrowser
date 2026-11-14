@@ -515,6 +515,10 @@
     <string name="tab_bar_actions_desc">选择要显示的按钮及其顺序。如果保留的按钮多于想同时看到的数量，其余按钮可通过向左或向右滑动按钮来访问。</string>
     <string name="tab_bar_actions_visible">同时可见的按钮：%1$d</string>
     <string name="tab_bar_action_up">上移</string>
+    <string name="sidebar_actions_label">侧边栏按钮</string>
+    <string name="sidebar_actions_desc">选择侧边栏（CarWebWide 的停靠栏）显示哪些按钮以及顺序。“主页”按钮始终存在。标签页按钮只在 CarWeb 中有。</string>
+    <string name="sidebar_actions_count">按钮：%1$d</string>
+    <string name="sidebar_action_main_only">仅 CarWeb</string>
     <string name="tab_bar_action_down">下移</string>
     <string name="whats_new_title">%1$s 版本的新功能</string>
     <string name="whats_new_label">新功能</string>

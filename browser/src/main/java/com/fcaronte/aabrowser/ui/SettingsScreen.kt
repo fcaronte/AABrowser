@@ -701,6 +701,9 @@ fun SettingsScreen(
                                 SettingsCard { TabBarActionsCard() }
                             }
 
+                            // I tasti della sidebar (il dock della Wide, e della Main se la si vuole): quali e in che ordine
+                            SettingsCard { SidebarActionsCard() }
+
                             // Altre App: le app del telefono sullo schermo dell'auto (Shizuku)
                             SettingsCard {
                                 Column {
