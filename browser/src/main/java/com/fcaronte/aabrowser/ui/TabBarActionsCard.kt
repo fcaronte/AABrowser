@@ -1,5 +1,6 @@
 package com.fcaronte.aabrowser.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,6 +41,7 @@ import com.fcaronte.aabrowser.settings.TabBarAction
 /**
  * Impostazioni dei pulsanti a destra della barra delle schede: quali mostrare (interruttore), in che ordine (frecce) e
  * quanti se ne vedono insieme. Gli altri si raggiungono strisciando i pulsanti a destra e a sinistra (PersistentTabBar).
+ * Chiusa di serie (utente, 14/11/2026): tocca il titolo per aprirla.
  */
 @Composable
 fun TabBarActionsCard() {
@@ -45,6 +50,7 @@ fun TabBarActionsCard() {
     val wantedVisible by AppSettings.tabBarVisibleCount
     val hidden = TabBarAction.DEFAULT.filter { it !in shown }
     val visible = TabBarAction.visibleCount(wantedVisible, shown.size)
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -52,65 +58,83 @@ fun TabBarActionsCard() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(
-            text = stringResource(R.string.tab_bar_actions_label),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-        )
-        Text(
-            text = stringResource(R.string.tab_bar_actions_desc),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            fontSize = 12.sp
-        )
-
-        // Prima quelli mostrati, nell'ordine in cui compaiono; sotto quelli nascosti
-        shown.forEachIndexed { index, action ->
-            ActionRow(
-                action = action,
-                on = true,
-                canMoveUp = index > 0,
-                canMoveDown = index < shown.lastIndex,
-                onToggle = { AppSettings.setTabBarActions(context, shown - action) },
-                onUp = { AppSettings.setTabBarActions(context, TabBarAction.moved(shown, index, -1)) },
-                onDown = { AppSettings.setTabBarActions(context, TabBarAction.moved(shown, index, 1)) }
-            )
-        }
-        hidden.forEach { action ->
-            ActionRow(
-                action = action,
-                on = false,
-                canMoveUp = false,
-                canMoveDown = false,
-                onToggle = { AppSettings.setTabBarActions(context, shown + action) },
-                onUp = {},
-                onDown = {}
-            )
-        }
-
-        if (shown.size > 1) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.tab_bar_actions_visible, visible),
+                    text = stringResource(R.string.tab_bar_actions_label),
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
-                    modifier = Modifier.weight(1f)
+                    fontSize = 16.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
-                IconButton(
-                    onClick = { AppSettings.setTabBarVisibleCount(context, visible - 1) },
-                    enabled = visible > 1
+                // Chiusa: in una riga quanti se ne vedono; aperta: la spiegazione
+                Text(
+                    text = if (expanded) stringResource(R.string.tab_bar_actions_desc)
+                    else stringResource(R.string.tab_bar_actions_visible, visible),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 12.sp
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        }
+
+        if (expanded) {
+            // Prima quelli mostrati, nell'ordine in cui compaiono; sotto quelli nascosti
+            shown.forEachIndexed { index, action ->
+                ActionRow(
+                    action = action,
+                    on = true,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < shown.lastIndex,
+                    onToggle = { AppSettings.setTabBarActions(context, shown - action) },
+                    onUp = { AppSettings.setTabBarActions(context, TabBarAction.moved(shown, index, -1)) },
+                    onDown = { AppSettings.setTabBarActions(context, TabBarAction.moved(shown, index, 1)) }
+                )
+            }
+            hidden.forEach { action ->
+                ActionRow(
+                    action = action,
+                    on = false,
+                    canMoveUp = false,
+                    canMoveDown = false,
+                    onToggle = { AppSettings.setTabBarActions(context, shown + action) },
+                    onUp = {},
+                    onDown = {}
+                )
+            }
+
+            if (shown.size > 1) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = null)
-                }
-                IconButton(
-                    onClick = { AppSettings.setTabBarVisibleCount(context, visible + 1) },
-                    enabled = visible < shown.size
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Text(
+                        text = stringResource(R.string.tab_bar_actions_visible, visible),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = { AppSettings.setTabBarVisibleCount(context, visible - 1) },
+                        enabled = visible > 1
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = null)
+                    }
+                    IconButton(
+                        onClick = { AppSettings.setTabBarVisibleCount(context, visible + 1) },
+                        enabled = visible < shown.size
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                    }
                 }
             }
         }
