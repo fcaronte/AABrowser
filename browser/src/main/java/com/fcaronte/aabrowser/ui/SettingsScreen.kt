@@ -142,6 +142,7 @@ fun SettingsScreen(
     val persistentNav by AppSettings.persistentNavigation
     val tabBarMode by AppSettings.tabBarMode
     val virtualStandby by AppSettings.virtualStandby
+    val mainDock by AppSettings.mainDock
     val virtualAppScale by AppSettings.virtualAppScale
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
@@ -701,8 +702,18 @@ fun SettingsScreen(
                                 SettingsCard { TabBarActionsCard() }
                             }
 
-                            // I tasti della sidebar (il dock della Wide, e della Main se la si vuole): quali e in che ordine
-                            SettingsCard { SidebarActionsCard() }
+                            // La sidebar (il dock della Wide) anche nella Main, e i suoi tasti: quali e in che ordine
+                            SettingsCard {
+                                Column {
+                                    SettingsSwitchItem(
+                                        label = stringResource(R.string.main_dock_label),
+                                        description = stringResource(R.string.main_dock_desc),
+                                        checked = mainDock,
+                                        onCheckedChange = { AppSettings.setMainDock(context, it) }
+                                    )
+                                    SidebarActionsCard()
+                                }
+                            }
 
                             // Altre App: le app del telefono sullo schermo dell'auto (Shizuku)
                             SettingsCard {

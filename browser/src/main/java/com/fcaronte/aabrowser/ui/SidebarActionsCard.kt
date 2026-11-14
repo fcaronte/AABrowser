@@ -147,7 +147,7 @@ private fun SidebarActionRow(
                 .padding(horizontal = 12.dp)
         ) {
             Text(
-                text = stringResource(action.label()),
+                text = stringResource(action.labelRes),
                 color = if (on) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                 fontSize = 15.sp
             )
@@ -173,7 +173,8 @@ private fun SidebarActionRow(
     }
 }
 
-private fun SidebarAction.icon(): ImageVector = when (this) {
+// Anche il dock della Main usa le stesse icone (MainDock)
+internal fun SidebarAction.icon(): ImageVector = when (this) {
     SidebarAction.HOME -> Icons.Default.Home
     SidebarAction.BACK -> Icons.AutoMirrored.Filled.ArrowBack
     SidebarAction.FORWARD -> Icons.AutoMirrored.Filled.ArrowForward
@@ -187,20 +188,4 @@ private fun SidebarAction.icon(): ImageVector = when (this) {
     SidebarAction.SHARE -> Icons.Default.Share
     SidebarAction.SETTINGS -> Icons.Default.Settings
     SidebarAction.EXIT -> Icons.AutoMirrored.Filled.ExitToApp
-}
-
-private fun SidebarAction.label(): Int = when (this) {
-    SidebarAction.HOME -> R.string.home_button
-    SidebarAction.BACK -> R.string.back_button
-    SidebarAction.FORWARD -> R.string.forward_button
-    SidebarAction.RELOAD -> R.string.reload_button
-    SidebarAction.TABS -> R.string.tabs_button
-    SidebarAction.SEARCH -> R.string.search_button
-    SidebarAction.FAVORITE -> R.string.add_to_favorites
-    SidebarAction.ADBLOCK -> R.string.adblock_this_site
-    SidebarAction.DESKTOP -> R.string.desktop_mode_this_site
-    SidebarAction.VOICE -> R.string.voice_command_button
-    SidebarAction.SHARE -> R.string.share_button
-    SidebarAction.SETTINGS -> R.string.settings_button
-    SidebarAction.EXIT -> R.string.exit_button
 }

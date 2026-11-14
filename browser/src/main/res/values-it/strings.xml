@@ -474,6 +474,8 @@
     <string name="tab_bar_actions_desc">Scegli quali mostrare e in che ordine. Se ne tieni più di quanti ne vuoi vedere insieme, gli altri si raggiungono strisciando i pulsanti a destra o a sinistra.</string>
     <string name="tab_bar_actions_visible">Pulsanti visibili insieme: %1$d</string>
     <string name="tab_bar_action_up">Sposta su</string>
+    <string name="main_dock_label">Sidebar anche in CarWeb</string>
+    <string name="main_dock_desc">Mostra in CarWeb la stessa sidebar di CarWebWide. Il tasto rotondo del menu serve allora solo ad aprirla e chiuderla.</string>
     <string name="sidebar_actions_label">Tasti della sidebar</string>
     <string name="sidebar_actions_desc">Scegli quali tasti mostra la sidebar (il dock di CarWebWide) e in che ordine. Home c\'è sempre. Il tasto Schede esiste solo in CarWeb.</string>
     <string name="sidebar_actions_count">Tasti: %1$d</string>

@@ -516,6 +516,8 @@
     <string name="tab_bar_actions_desc">चुनें कि कौन से दिखें और किस क्रम में। यदि आप एक साथ दिखाने से अधिक रखते हैं, तो बाकी बटनों को दाएँ या बाएँ स्वाइप करके पहुँचा जा सकता है।</string>
     <string name="tab_bar_actions_visible">एक साथ दिखने वाले बटन: %1$d</string>
     <string name="tab_bar_action_up">ऊपर ले जाएँ</string>
+    <string name="main_dock_label">CarWeb में साइडबार</string>
+    <string name="main_dock_desc">CarWeb में CarWebWide जैसा ही साइडबार दिखाता है। तब गोल मेनू बटन उसे केवल खोलता और बंद करता है।</string>
     <string name="sidebar_actions_label">साइडबार के बटन</string>
     <string name="sidebar_actions_desc">चुनें कि साइडबार (CarWebWide का डॉक) कौन-से बटन दिखाए और किस क्रम में। होम हमेशा रहता है। टैब बटन केवल CarWeb में है।</string>
     <string name="sidebar_actions_count">बटन: %1$d</string>

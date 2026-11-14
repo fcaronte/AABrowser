@@ -196,6 +196,10 @@ fun MainScreen(
     val persistentNav by AppSettings.persistentNavigation
     val tabBarMode by AppSettings.tabBarMode
 
+    // Il dock (la sidebar della Wide) nella Main, se acceso nelle Impostazioni: il tasto rotondo lo apre e lo chiude
+    val mainDock by AppSettings.mainDock
+    var isDockOpen by remember { mutableStateOf(true) }
+
     LaunchedEffect(persistentNav) {
         if (persistentNav) {
             isNavVisible = true
@@ -659,6 +663,9 @@ fun MainScreen(
                 val webTopPadding = if (isTabBarVisible && isBrowserVisible) 48.dp else 0.dp
                 val appTopPadding = if (tabBarMode != TabBarMode.OFF) 48.dp else 0.dp
 
+                // Il dock aperto prende il suo spazio sul bordo di inizio: la pagina e le app non finiscono sotto i tasti
+                val dockPadding = if (mainDock && isDockOpen && isBrowserVisible && !isFullScreen) MAIN_DOCK_WIDTH else 0.dp
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -670,7 +677,11 @@ fun MainScreen(
                         val isTabActive = activeTab?.id == tab.id
                         androidx.compose.runtime.key(tab.id) { // Se qui forzo il ricaricamneto immediato della pagina web al cambio giorno notte si blocca la musica in riproduzione
                             val virtualApp = VirtualApps.packageOf(tab.url)
-                            Box(modifier = Modifier.fillMaxSize().padding(top = if (virtualApp != null) appTopPadding else webTopPadding)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = dockPadding, top = if (virtualApp != null) appTopPadding else webTopPadding)
+                            ) {
                                 if (virtualApp != null) {
                                     VirtualAppTab(
                                         tabId = tab.id,
@@ -935,6 +946,9 @@ fun MainScreen(
                                     onInteraction()
                                 },
                                 onInteraction = { onInteraction(fromPage = false) },
+                                dockMode = mainDock,
+                                dockOpen = isDockOpen,
+                                onDockToggle = { isDockOpen = !isDockOpen },
                                 onExit = {
                                     try {
                                         val activity = context as? Activity

@@ -520,6 +520,8 @@
     <string name="tab_bar_actions_desc">اختر ما تريد عرضه وبأي ترتيب. إذا أبقيت أكثر مما تريد رؤيته دفعة واحدة، يمكن الوصول إلى الباقي بتمرير الأزرار يميناً أو يساراً.</string>
     <string name="tab_bar_actions_visible">الأزرار الظاهرة معاً: %1$d</string>
     <string name="tab_bar_action_up">انقل لأعلى</string>
+    <string name="main_dock_label">الشريط الجانبي في CarWeb</string>
+    <string name="main_dock_desc">يعرض في CarWeb الشريط الجانبي نفسه الموجود في CarWebWide. يصبح زر القائمة الدائري مخصصًا لفتحه وإغلاقه فقط.</string>
     <string name="sidebar_actions_label">أزرار الشريط الجانبي</string>
     <string name="sidebar_actions_desc">اختر الأزرار التي يعرضها الشريط الجانبي (لوحة CarWebWide) وترتيبها. زر الرئيسية موجود دائمًا. زر علامات التبويب موجود في CarWeb فقط.</string>
     <string name="sidebar_actions_count">عدد الأزرار: %1$d</string>

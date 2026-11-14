@@ -576,22 +576,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         SidebarAction.forHost(AppSettings.sidebarActions.value, SidebarHost.WIDE)
             .filter { it != SidebarAction.SETTINGS || SETTINGS_PAGE_AVAILABLE }
 
-    private fun dockLabel(action: SidebarAction): Int = when (action) {
-        SidebarAction.HOME -> R.string.home_button
-        SidebarAction.BACK -> R.string.back_button
-        SidebarAction.FORWARD -> R.string.forward_button
-        SidebarAction.RELOAD -> R.string.reload_button
-        SidebarAction.TABS -> R.string.tabs_button
-        SidebarAction.SEARCH -> R.string.search_button
-        SidebarAction.FAVORITE -> R.string.add_to_favorites
-        SidebarAction.ADBLOCK -> R.string.adblock_this_site
-        SidebarAction.DESKTOP -> R.string.desktop_mode_this_site
-        SidebarAction.VOICE -> R.string.voice_command_button
-        SidebarAction.SHARE -> R.string.share_button
-        SidebarAction.SETTINGS -> R.string.settings_button
-        SidebarAction.EXIT -> R.string.exit_button
-    }
-
     /** Mette nel dock i tasti scelti dall'utente, al posto di quelli che c'erano. */
     private fun fillDock(sb: LinearLayout) {
         val ctx = sb.context
@@ -602,7 +586,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 background = null
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 setImageBitmap(WideDockIcons.bitmap(action))
-                contentDescription = strings.getString(dockLabel(action))
+                contentDescription = strings.getString(action.labelRes)
                 setOnClickListener { performDockAction(action) }
             }
             dockButtons[action] = button

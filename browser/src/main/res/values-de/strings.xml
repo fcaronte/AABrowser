@@ -516,6 +516,8 @@
     <string name="tab_bar_actions_desc">Wähle, welche angezeigt werden und in welcher Reihenfolge. Wenn du mehr behältst, als du gleichzeitig sehen willst, erreichst du die anderen durch Wischen der Tasten nach rechts oder links.</string>
     <string name="tab_bar_actions_visible">Gleichzeitig sichtbare Tasten: %1$d</string>
     <string name="tab_bar_action_up">Nach oben</string>
+    <string name="main_dock_label">Seitenleiste in CarWeb</string>
+    <string name="main_dock_desc">Zeigt in CarWeb dieselbe Seitenleiste wie CarWebWide. Die runde Menütaste öffnet und schließt sie dann nur.</string>
     <string name="sidebar_actions_label">Tasten der Seitenleiste</string>
     <string name="sidebar_actions_desc">Wähle, welche Tasten die Seitenleiste (das Dock von CarWebWide) zeigt und in welcher Reihenfolge. Start ist immer dabei. Die Tabs-Taste gibt es nur in CarWeb.</string>
     <string name="sidebar_actions_count">Tasten: %1$d</string>

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.Home
@@ -59,6 +60,8 @@ import com.fcaronte.aabrowser.CarInputManager
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.FABLocation
+import com.fcaronte.aabrowser.settings.SidebarAction
+import com.fcaronte.aabrowser.settings.SidebarHost
 import com.fcaronte.aabrowser.settings.TabBarMode
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -93,9 +96,35 @@ fun NavigationOverlay(
     showMenu: Boolean = false,
     onShowMenuChange: (Boolean) -> Unit = {},
     onInteraction: () -> Unit = {},
+    // Con il dock nella Main (Impostazioni) il tasto rotondo non apre il menu a ventaglio: apre e chiude il dock, la sidebar
+    // con gli stessi tasti della Wide
+    dockMode: Boolean = false,
+    dockOpen: Boolean = true,
+    onDockToggle: () -> Unit = {},
 ) {
     var showQRCode by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+
+    // Cosa fa ogni tasto del dock: gli stessi gesti del menu a ventaglio
+    val sidebarActions by AppSettings.sidebarActions
+    val performDockAction: (SidebarAction) -> Unit = { action ->
+        onInteraction()
+        when (action) {
+            SidebarAction.HOME -> onGoHome()
+            SidebarAction.BACK -> onGoBack()
+            SidebarAction.FORWARD -> onGoForward()
+            SidebarAction.RELOAD -> onReload()
+            SidebarAction.TABS -> onOpenTabManager()
+            SidebarAction.SEARCH -> showSearchDialog = true
+            SidebarAction.FAVORITE -> onAddToFavorites()
+            SidebarAction.ADBLOCK -> onToggleAdBlock()
+            SidebarAction.DESKTOP -> onToggleDesktopMode()
+            SidebarAction.VOICE -> onVoiceCommand()
+            SidebarAction.SHARE -> showQRCode = true
+            SidebarAction.SETTINGS -> onOpenSettings()
+            SidebarAction.EXIT -> onExit()
+        }
+    }
 
     PhoneBackHandler(enabled = showMenu) {
         onInteraction()
@@ -174,6 +203,25 @@ fun NavigationOverlay(
             )
         }
 
+        // Il dock della Main: la sidebar della Wide, sul bordo di inizio e sotto la barra delle schede
+        if (dockMode && dockOpen) {
+            val dockTop = when (tabBarMode) {
+                TabBarMode.OFF -> 0.dp
+                TabBarMode.ALWAYS_ON -> 48.dp
+                TabBarMode.AUTO_HIDE -> if (isVisible) 48.dp else 0.dp
+            }
+            MainDock(
+                actions = SidebarAction.forHost(sidebarActions, SidebarHost.MAIN),
+                currentUrl = currentUrl,
+                adBlockOff = adBlockOff,
+                desktopModeOn = desktopModeOn,
+                onAction = performDockAction,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(top = dockTop)
+            )
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -226,7 +274,8 @@ fun NavigationOverlay(
                     val innerCount = 2
                     val middleCount = 5
 
-                    menuItems.forEachIndexed { index, item ->
+                    // Con il dock acceso non c'è il menu a ventaglio: i suoi tasti stanno nel dock
+                    if (!dockMode) menuItems.forEachIndexed { index, item ->
                         val ring = when {
                             index < innerCount -> 0
                             index < innerCount + middleCount -> 1
@@ -316,7 +365,7 @@ fun NavigationOverlay(
                                             indication = null
                                         ) {
                                             onInteraction()
-                                            onShowMenuChange(true)
+                                            if (dockMode) onDockToggle() else onShowMenuChange(true)
                                         }
                                         .pointerInput(baseAlignment, screenWidth, screenHeight) {
                                             detectDragGestures { change, dragAmount ->
@@ -353,7 +402,11 @@ fun NavigationOverlay(
                     ) {
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                             Icon(
-                                imageVector = if (showMenu) Icons.Default.Close else Icons.Default.Menu,
+                                imageVector = when {
+                                    dockMode -> if (dockOpen) Icons.AutoMirrored.Filled.MenuOpen else Icons.Default.Menu
+                                    showMenu -> Icons.Default.Close
+                                    else -> Icons.Default.Menu
+                                },
                                 contentDescription = stringResource(R.string.menu_button),
                                 modifier = Modifier.size(26.dp),
                             )

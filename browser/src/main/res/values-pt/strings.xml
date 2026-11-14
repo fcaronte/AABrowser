@@ -517,6 +517,8 @@
     <string name="tab_bar_actions_desc">Escolha quais mostrar e por que ordem. Se mantiver mais do que quer ver de cada vez, os outros alcançam-se deslizando os botões para a direita ou para a esquerda.</string>
     <string name="tab_bar_actions_visible">Botões visíveis em simultâneo: %1$d</string>
     <string name="tab_bar_action_up">Mover para cima</string>
+    <string name="main_dock_label">Barra lateral no CarWeb</string>
+    <string name="main_dock_desc">Mostra no CarWeb a mesma barra lateral do CarWebWide. O botão redondo do menu serve então só para a abrir e fechar.</string>
     <string name="sidebar_actions_label">Botões da barra lateral</string>
     <string name="sidebar_actions_desc">Escolha quais os botões que a barra lateral (o dock do CarWebWide) mostra e por que ordem. O Início está sempre lá. O botão dos separadores só existe no CarWeb.</string>
     <string name="sidebar_actions_count">Botões: %1$d</string>

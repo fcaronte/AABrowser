@@ -516,6 +516,8 @@
     <string name="tab_bar_actions_desc">Válaszd ki, melyik látszódjon és milyen sorrendben. Ha többet tartasz meg, mint amennyit egyszerre látni szeretnél, a többit a gombok jobbra vagy balra húzásával éred el.</string>
     <string name="tab_bar_actions_visible">Egyszerre látható gombok: %1$d</string>
     <string name="tab_bar_action_up">Fel</string>
+    <string name="main_dock_label">Oldalsáv a CarWebben</string>
+    <string name="main_dock_desc">A CarWebben is megjeleníti a CarWebWide oldalsávját. A kerek menügomb ilyenkor csak megnyitja és bezárja.</string>
     <string name="sidebar_actions_label">Az oldalsáv gombjai</string>
     <string name="sidebar_actions_desc">Válaszd ki, mely gombokat mutassa az oldalsáv (a CarWebWide dokkja) és milyen sorrendben. A Kezdőlap mindig ott van. A lapok gombja csak a CarWebben van.</string>
     <string name="sidebar_actions_count">Gombok: %1$d</string>

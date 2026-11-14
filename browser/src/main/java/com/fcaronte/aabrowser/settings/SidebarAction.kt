@@ -1,5 +1,7 @@
 package com.fcaronte.aabrowser.settings
 
+import com.fcaronte.aabrowser.R
+
 /** Chi mostra la sidebar (il dock): la Wide (sempre) e, a scelta dell'utente, la Main. */
 enum class SidebarHost { MAIN, WIDE }
 
@@ -10,38 +12,40 @@ enum class SidebarHost { MAIN, WIDE }
  */
 enum class SidebarAction(
     val id: String,
+    /** Il nome del tasto (descrizione per l'accessibilità, elenco nelle Impostazioni): lo stesso del tasto a ventaglio. */
+    val labelRes: Int,
     /** Non si può nascondere: serve a non restare chiusi dentro una pagina. */
     val essential: Boolean = false,
     /** Dove ha senso il tasto. */
     val hosts: Set<SidebarHost> = setOf(SidebarHost.MAIN, SidebarHost.WIDE),
 ) {
-    HOME("home", essential = true),
-    BACK("back"),
-    FORWARD("forward"),
-    RELOAD("reload"),
+    HOME("home", R.string.home_button, essential = true),
+    BACK("back", R.string.back_button),
+    FORWARD("forward", R.string.forward_button),
+    RELOAD("reload", R.string.reload_button),
 
     /** Gestione delle schede: la Wide ha una pagina sola. */
-    TABS("tabs", hosts = setOf(SidebarHost.MAIN)),
-    SEARCH("search"),
+    TABS("tabs", R.string.tabs_button, hosts = setOf(SidebarHost.MAIN)),
+    SEARCH("search", R.string.search_button),
 
     /** Aggiunge la pagina aperta ai preferiti. */
-    FAVORITE("favorite"),
-    ADBLOCK("adblock"),
-    DESKTOP("desktop"),
-    VOICE("voice"),
+    FAVORITE("favorite", R.string.add_to_favorites),
+    ADBLOCK("adblock", R.string.adblock_this_site),
+    DESKTOP("desktop", R.string.desktop_mode_this_site),
+    VOICE("voice", R.string.voice_command_button),
 
     /** Il codice QR della pagina, da leggere con il telefono. */
-    SHARE("share"),
-    SETTINGS("settings"),
+    SHARE("share", R.string.share_button),
+    SETTINGS("settings", R.string.settings_button),
 
     /** Chiude l'app: di serie nascosto, un tocco sbagliato non deve chiudere tutto. */
-    EXIT("exit");
+    EXIT("exit", R.string.exit_button);
 
     fun availableIn(host: SidebarHost): Boolean = host in hosts
 
     companion object {
         /** Tutti, nell'ordine in cui si propongono a chi li vuole aggiungere. */
-        val ALL: List<SidebarAction> = values().toList()
+        val ALL: List<SidebarAction> = entries.toList()
 
         /** Quelli mostrati di serie, nell'ordine di serie: gli altri si accendono nelle Impostazioni. */
         val DEFAULT: List<SidebarAction> = listOf(HOME, BACK, FORWARD, RELOAD, SEARCH, ADBLOCK, DESKTOP, VOICE, FAVORITE, SETTINGS)

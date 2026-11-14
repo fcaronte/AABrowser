@@ -112,6 +112,10 @@ object AppSettings {
     private val _sidebarActions = mutableStateOf(SidebarAction.DEFAULT)
     val sidebarActions: State<List<SidebarAction>> = _sidebarActions
 
+    // Il dock anche nella Main: il tasto rotondo lo apre e lo chiude, al posto del menu a ventaglio (spento di serie)
+    private val _mainDock = mutableStateOf(false)
+    val mainDock: State<Boolean> = _mainDock
+
     private val _fabLocation = mutableStateOf(FABLocation.BOTTOM_RIGHT)
     val fabLocation: State<FABLocation> = _fabLocation
 
@@ -241,6 +245,7 @@ object AppSettings {
         _wideVideoMenuOnTap.value = prefs.getBoolean("wide_video_menu_on_tap", false)
         _wideSidebarSize.value = prefs.getInt("wide_sidebar_size", 100).takeIf { it in wideSidebarSizes } ?: 100
         _sidebarActions.value = SidebarAction.parse(prefs.getString("sidebar_actions", null))
+        _mainDock.value = prefs.getBoolean("main_dock", false)
         _fabLocation.value = FABLocation.valueOf(
             prefs.getString("fab_location", FABLocation.BOTTOM_RIGHT.name)
                 ?: FABLocation.BOTTOM_RIGHT.name
@@ -456,6 +461,11 @@ object AppSettings {
     fun setWideVideoMenuOnTap(context: Context, onTap: Boolean) {
         _wideVideoMenuOnTap.value = onTap
         saveBoolean(context, "wide_video_menu_on_tap", onTap)
+    }
+
+    fun setMainDock(context: Context, enabled: Boolean) {
+        _mainDock.value = enabled
+        saveBoolean(context, "main_dock", enabled)
     }
 
     fun setSidebarActions(context: Context, actions: List<SidebarAction>) {

@@ -525,6 +525,8 @@
     <string name="tab_bar_actions_desc">Choose which ones to show and in what order. If you keep more than you want to see at once, the others are reached by swiping the buttons left or right.</string>
     <string name="tab_bar_actions_visible">Buttons visible at once: %1$d</string>
     <string name="tab_bar_action_up">Move up</string>
+    <string name="main_dock_label">Sidebar in CarWeb</string>
+    <string name="main_dock_desc">Shows in CarWeb the same sidebar as CarWebWide. The round menu button then just opens and closes it.</string>
     <string name="sidebar_actions_label">Sidebar buttons</string>
     <string name="sidebar_actions_desc">Choose which buttons the sidebar (the dock of CarWebWide) shows and in what order. Home is always there. The tabs button exists only in CarWeb.</string>
     <string name="sidebar_actions_count">Buttons: %1$d</string>
