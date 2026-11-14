@@ -100,6 +100,56 @@ svg {
     background: var(--pressed);
 }
 
+/*
+ * Le quattro pagine di CarWeb Media (Media, TV, Radio, Podcast): in ogni pagina le stesse icone, nello stesso ordine e nello
+ * stesso posto. Quella della pagina aperta è in evidenza e non si tocca: un collegamento a se stessa la ricaricherebbe
+ * (a Media fermerebbe la musica). Il codice HTML è uguale in tutte e quattro e lo controlla pages-nav.test.js.
+ */
+.pages {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon-button.current {
+    background: var(--soft);
+    color: var(--accent);
+    pointer-events: none;
+}
+
+/* Telefono in verticale: con quattro icone la barra non starebbe nello schermo, quindi icone e spazi più stretti */
+@media (max-width: 520px) {
+    .bar.has-pages {
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .has-pages .icon-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .has-pages .icon-button svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .pages {
+        gap: 4px;
+    }
+
+    /* "Scegli cartella": se manca il posto il testo si accorcia, non esce dallo schermo */
+    .has-pages .text-button {
+        flex: 0 1 auto;
+        min-width: 0;
+        padding: 0 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
 /* --- Brano in riproduzione --- */
 
 .layout {
