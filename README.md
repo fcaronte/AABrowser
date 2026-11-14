@@ -99,10 +99,12 @@ from the misuse of this application. Use at your own risk.
   a second Back on the home screen exits to Android without stopping playback in the car.
 * **Other Apps (new):** with [Shizuku](https://shizuku.rikka.app) running on the phone, the "Other Apps" page (next to Media, TV, Radio and
   Podcasts) lists the apps of the phone: tap one to use it on the car screen, in a tab of CarWeb or in CarWebWide, with touch, a
-  side bar (back, apps, keyboard, close; shown or hidden by the button at the top right, which takes the place of the AdBlock shield in
-  the Widescreen) and the phone's keyboard. Starred apps become tiles on the home page. While an app is on the car screen the
+  side bar (back, apps, keyboard, close; over the app or beside it, shown or hidden by the button at the top right, which takes the
+  place of the AdBlock shield in the Widescreen, where the app also goes under Android Auto's buttons) and the phone's keyboard.
+  Starred apps become tiles on the home page. While an app is on the car screen the
   phone stays awake behind a black "CarWeb attivo" screen (swipe to get the phone back). Protected video (Netflix and the like,
-  Widevine L1) stays black: Android does not allow it on a virtual screen. Portrait-only apps are shown with side bands. The idea comes
+  Widevine L1) stays black: Android does not allow it on a virtual screen, and banking apps that hide their windows (Poste, banks) stay black
+  too, as in AnyAuto. The size of the apps is a choice in Settings. Portrait-only apps are shown with side bands. The idea comes
   from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
 * **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
@@ -335,10 +337,12 @@ proprio rischio e pericolo.
   poi torna alla home; un secondo Indietro dalla home esce verso Android senza fermare la riproduzione in auto.
 * **Altre App (novità):** con [Shizuku](https://shizuku.rikka.app) attivo sul telefono, la pagina «Altre App» (accanto a Media, TV, Radio e
   Podcast) elenca le app del telefono: toccandone una la usi sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con il
-  tocco, una barra laterale (indietro, app, tastiera, chiudi; si mostra o si nasconde con il tasto in alto a destra, che nella
-  Widescreen prende il posto dello scudo AdBlock) e la tastiera del telefono. Le app con la stella diventano icone nella home. Finché un'app
+  tocco, una barra laterale (indietro, app, tastiera, chiudi; sopra l'app o accanto, si mostra o si nasconde con il tasto in alto a destra, che
+  nella Widescreen prende il posto dello scudo AdBlock e dove l'app va anche sotto i tasti di Android Auto) e la tastiera del telefono. Le app con
+  la stella diventano icone nella home. Finché un'app
   è sullo schermo dell'auto il telefono resta acceso dietro una schermata nera «CarWeb attivo» (scorri per riavere il telefono). I video
-  protetti (Netflix e simili, Widevine L1) restano neri: Android non li permette su uno schermo virtuale. Le app solo verticali si vedono con
+  protetti (Netflix e simili, Widevine L1) restano neri: Android non li permette su uno schermo virtuale, e restano nere anche le app delle banche
+  che nascondono le finestre (Poste, banche), come in AnyAuto. La dimensione delle app si sceglie nelle Impostazioni. Le app solo verticali si vedono con
   due bande ai lati. L'idea viene da [AnyAuto](https://github.com/GitMag/AnyAuto); il codice è nostro. Non tutti i telefoni lo permettono: lo stato
   è in alto nella pagina.
 * **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
