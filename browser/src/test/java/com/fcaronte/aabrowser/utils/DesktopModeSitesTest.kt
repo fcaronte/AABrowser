@@ -46,6 +46,38 @@ class DesktopModeSitesTest {
     }
 
     @Test
+    fun mobileAndDesktopHostsOfASiteShareTheChoice() {
+        // YouTube passa da m.youtube.com a www.youtube.com: la scelta fatta da una pagina deve valere per l'altra
+        assertEquals("youtube.com", DesktopModeSites.siteKey("m.youtube.com"))
+        assertEquals("youtube.com", DesktopModeSites.siteKey("www.youtube.com"))
+        assertEquals("youtube.com", DesktopModeSites.siteKey("YouTube.com"))
+        assertEquals("twitter.com", DesktopModeSites.siteKey("mobile.twitter.com"))
+        assertEquals("example.org", DesktopModeSites.siteKey("touch.example.org"))
+        // I sottodomini veri restano come sono, e un nome che comincia per "m." senza altro dominio dopo non è mobile
+        assertEquals("music.youtube.com", DesktopModeSites.siteKey("music.youtube.com"))
+        assertEquals("m.com", DesktopModeSites.siteKey("m.com"))
+        assertEquals(null, DesktopModeSites.siteKey(""))
+
+        val overrides = setOf("1|youtube.com")
+        assertEquals(true, DesktopModeSites.resolveOverride("m.youtube.com", overrides))
+        assertEquals(true, DesktopModeSites.resolveOverride("www.youtube.com", overrides))
+        assertEquals(true, DesktopModeSites.resolveOverride("music.youtube.com", overrides))
+        // Una scelta con l'host mobile vale per tutto il sito, non solo per m.
+        assertEquals(true, DesktopModeSites.resolveOverride("www.youtube.com", setOf("1|m.youtube.com")))
+    }
+
+    @Test
+    fun oldChoicesSavedWithAMobileHostAreDropped() {
+        val saved = setOf("1|m.youtube.com", "0|mobile.twitter.com", "1|example.org", "0|shop.example.com", "1|www.example.net")
+
+        assertEquals(
+            setOf("1|example.org", "0|shop.example.com", "1|www.example.net"),
+            DesktopModeSites.withoutMobileHosts(saved)
+        )
+        assertEquals(emptySet<String>(), DesktopModeSites.withoutMobileHosts(emptySet()))
+    }
+
+    @Test
     fun youtubeUrlConversionWorksForMobileAndDesktop() {
         val desktopUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         val mobileUrl = "https://m.youtube.com/watch?v=dQw4w9WgXcQ"

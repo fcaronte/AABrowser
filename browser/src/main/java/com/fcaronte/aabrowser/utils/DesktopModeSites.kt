@@ -15,6 +15,11 @@ import androidx.core.content.edit
  * [wantsDesktop] è l'unico punto che lo applica: Main, Wide e icone lo chiamano tutti, così la pagina riceve lo user
  * agent che l'icona mostra. Prima la scelta per sito cambiava solo l'icona: la WebView sceglieva lo user agent senza
  * leggerla e al tocco la pagina restava com'era.
+ *
+ * Il sito è lo stesso con host mobile e desktop (m.youtube.com e www.youtube.com): la scelta si salvava con l'host
+ * esatto della pagina da cui si toccava, quindi da m.youtube.com valeva solo per m.youtube.com, mentre il desktop
+ * è www.youtube.com: tornando a mobile la scelta restava su un host e si toglieva dall'altro, e il sito finiva in uno
+ * stato misto (user agent desktop su m., mobile su www.) con i fix per la versione mobile che non scattavano più.
  */
 object DesktopModeSites {
     private const val KEY_OVERRIDES = "desktop_mode_site_overrides"
@@ -28,10 +33,14 @@ object DesktopModeSites {
 
     fun init(context: Context) {
         prefs = context.applicationContext.getSharedPreferences("aa_browser_settings", Context.MODE_PRIVATE).also {
+            val saved = it.getStringSet(KEY_OVERRIDES, emptySet()).orEmpty()
+            // Le scelte di una versione vecchia, salvate con un host mobile (m.youtube.com), si tolgono: valevano per metà sito
+            val clean = withoutMobileHosts(saved)
             synchronized(overrides) {
                 overrides.clear()
-                overrides.addAll(it.getStringSet(KEY_OVERRIDES, emptySet()).orEmpty())
+                overrides.addAll(clean)
             }
+            if (clean.size != saved.size) it.edit { putStringSet(KEY_OVERRIDES, HashSet(clean)) }
         }
     }
 
@@ -84,8 +93,27 @@ object DesktopModeSites {
         _version.intValue++
     }
 
-    fun siteKey(host: String?): String? =
-        host?.lowercase()?.removePrefix("www.")?.takeIf { it.isNotBlank() }
+    // I prefissi delle versioni mobili dei siti: m.youtube.com, mobile.twitter.com, touch.example.org
+    private val MOBILE_PREFIXES = listOf("m.", "mobile.", "touch.")
+
+    /**
+     * Il sito di un host: senza "www." e senza il prefisso delle versioni mobili, così m.youtube.com, www.youtube.com e
+     * youtube.com sono lo stesso sito. Il prefisso si toglie solo se dopo c'è ancora un nome con un punto ("m.com" resta).
+     */
+    fun siteKey(host: String?): String? {
+        val bare = host?.lowercase()?.removePrefix("www.")?.takeIf { it.isNotBlank() } ?: return null
+        val prefix = MOBILE_PREFIXES.firstOrNull { bare.startsWith(it) && bare.removePrefix(it).contains('.') } ?: return bare
+        return bare.removePrefix(prefix)
+    }
+
+    /** Le scelte salvate senza quelle con un host mobile ("1|m.youtube.com"), che una versione vecchia scriveva per metà sito. */
+    internal fun withoutMobileHosts(entries: Collection<String>): Set<String> =
+        entries.filterNot { entry ->
+            val separator = entry.indexOf('|')
+            separator == 1 && entry.substring(separator + 1).lowercase().removePrefix("www.").let { host ->
+                MOBILE_PREFIXES.any { host.startsWith(it) && host.removePrefix(it).contains('.') }
+            }
+        }.toSet()
 
     internal fun resolveOverride(host: String?, entries: Collection<String>): Boolean? {
         val key = siteKey(host) ?: return null
