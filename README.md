@@ -42,7 +42,9 @@ from the misuse of this application. Use at your own risk.
   wave, circle), lyrics from LRCLIB for local audio, and colors that follow the app theme (light, dark with
   the phone colors, AMOLED). Videos, here and in the TV: a tap on the video shows a bar with zoom − 1× + up to 6× (the
   enlarged picture moves by dragging, or with the Android Auto scroll in the Widescreen), the picture mode Fit, Fill
-  (cropped) or Stretch, and fullscreen (new in 2.7).
+  (cropped) or Stretch, and fullscreen (new in 2.7). In the TV, in fullscreen, the same tap also shows a small panel to change
+  channel (new). A video whose sound the phone cannot decode (AC-3, DTS...) says so and suggests opening the file with the app you
+  normally use on your phone, from Other Apps (new).
 * **Videos of the sites in fullscreen (YouTube and the others, new in 2.7):** a tap shows at the top the picture mode Fit, Fill
   (cropped) or Stretch, remembered for each site. Not shown when a site puts only the bare video in fullscreen (the
   browser's standard controls). In the Widescreen every fullscreen video goes under Android Auto's buttons, centred
@@ -55,7 +57,8 @@ from the misuse of this application. Use at your own risk.
   fetched automatically from LRCLIB and shown from the Lyrics button. The text sent by the station is cleaned first
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
-  controls are also sent to the Android Auto player.
+  controls are also sent to the Android Auto player. The animated visual effects of the music player (bars, wave, circle) are
+  available here too, from the button next to the controls (new).
 * **Podcasts in CarWeb Media (new in 2.7):** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
   your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped, and
   at the end the next one starts; voice commands can find shows and play their latest unfinished episodes. The audio
@@ -103,8 +106,8 @@ from the misuse of this application. Use at your own risk.
   place of the AdBlock shield in the Widescreen, where the app also goes under Android Auto's buttons) and the phone's keyboard.
   Starred apps become tiles on the home page. While an app is on the car screen the
   phone stays awake behind a black "CarWeb attivo" screen (swipe to get the phone back). Protected video (Netflix and the like,
-  Widevine L1) stays black: Android does not allow it on a virtual screen, and banking apps that hide their windows (Poste, banks) stay black
-  too, as in AnyAuto. The size of the apps is a choice in Settings. Portrait-only apps are shown with side bands. The idea comes
+  Widevine L1) stays black: Android does not allow it on a virtual screen. Apps that hide their windows (Poste, banks) are shown when the
+  phone allows it (CarWeb always asks) and otherwise stay black, as in AnyAuto: CarWeb tells you when an app stays black. The size of the apps is a choice in Settings. Portrait-only apps are shown with side bands. The idea comes
   from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
 * **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
@@ -276,7 +279,9 @@ proprio rischio e pericolo.
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
   telefono, AMOLED). Video, qui e nella TV: toccando il video compare una barra con lo zoom − 1× + fino a 6× (l'immagine
   ingrandita si sposta trascinando, o con lo scorrimento di Android Auto nella Widescreen), il modo dell'immagine
-  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero (novità 2.7).
+  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero (novità 2.7). Nella TV, a schermo intero, lo stesso tocco mostra anche
+  un piccolo pannello per cambiare canale (novità). Un video di cui il telefono non sa decodificare l'audio (AC-3, DTS...) lo dice e
+  suggerisce di aprire il file con l'app che usi di solito sul telefono, dalle Altre App (novità).
 * **Video dei siti a schermo intero (YouTube e gli altri, novità 2.7):** un tocco mostra in alto il modo dell'immagine Adatta,
   Riempi (tagliata) o Allunga, ricordato per ogni sito. Non compare quando un sito mette a schermo intero il solo video
   (i comandi standard del browser). Nella Widescreen ogni video a schermo intero va sotto i tasti di Android Auto,
@@ -290,7 +295,8 @@ proprio rischio e pericolo.
   del brano, il testo viene cercato su LRCLIB e si apre dal pulsante Testi. Il testo mandato dalla stazione viene
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
-  iniziare a metà brano. I controlli funzionano anche dal player di Android Auto.
+  iniziare a metà brano. I controlli funzionano anche dal player di Android Auto. Anche qui ci sono gli effetti animati del lettore
+  musicale (barre, onda, cerchio), dal pulsante accanto ai controlli (novità).
 * **Podcast in CarWeb Media (novità 2.7):** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
   e i tuoi feed con indirizzo RSS o file OPML nelle Impostazioni > TV, Radio e Podcast. Gli episodi riprendono da dove eri
   rimasto, e alla fine parte il successivo; i comandi vocali trovano i programmi e avviano l'ultimo episodio non ascoltato.
@@ -342,8 +348,9 @@ proprio rischio e pericolo.
   nella Widescreen prende il posto dello scudo AdBlock e dove l'app va anche sotto i tasti di Android Auto) e la tastiera del telefono. Le app con
   la stella diventano icone nella home. Finché un'app
   è sullo schermo dell'auto il telefono resta acceso dietro una schermata nera «CarWeb attivo» (scorri per riavere il telefono). I video
-  protetti (Netflix e simili, Widevine L1) restano neri: Android non li permette su uno schermo virtuale, e restano nere anche le app delle banche
-  che nascondono le finestre (Poste, banche), come in AnyAuto. La dimensione delle app si sceglie nelle Impostazioni. Le app solo verticali si vedono con
+  protetti (Netflix e simili, Widevine L1) restano neri: Android non li permette su uno schermo virtuale. Le app che nascondono le finestre
+  (Poste, banche) si vedono se il telefono lo permette (CarWeb lo chiede sempre) e altrimenti restano nere, come in AnyAuto: CarWeb avvisa
+  quando un'app resta nera. La dimensione delle app si sceglie nelle Impostazioni. Le app solo verticali si vedono con
   due bande ai lati. L'idea viene da [AnyAuto](https://github.com/GitMag/AnyAuto); il codice è nostro. Non tutti i telefoni lo permettono: lo stato
   è in alto nella pagina.
 * **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
