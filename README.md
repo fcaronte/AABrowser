@@ -115,6 +115,9 @@ from the misuse of this application. Use at your own risk.
 * **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
 * **What's new (new):** the first time you open the app after an update a box lists what changed; Settings > What's new shows it again.
+* **Settings in CarWebWide (new):** a settings page (gear in the side menu, or the button on the CarWebWide home) with the choices of the Widescreen:
+  reopen the last page, the size of the side menu, which buttons it has and in what order, the menu with a fullscreen video, and the side
+  menu in CarWeb. The other settings are still on the phone.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
 * **Home network sites:** sites with a self-signed or invalid certificate (Home Assistant,
   Proxmox, home proxy) open after "Continue anyway", and the choice is remembered for that site and
@@ -361,6 +364,9 @@ proprio rischio e pericolo.
 * **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
   ordine e quanti vedere insieme; gli altri sono a uno scorrimento di distanza.
 * **Novità (novità):** la prima volta che apri l'app dopo un aggiornamento un riquadro elenca cosa è cambiato; Impostazioni > Novità lo mostra di nuovo.
+* **Impostazioni in CarWebWide (novità):** una pagina delle impostazioni (l'ingranaggio nel menu laterale, o il tasto nella home di CarWebWide) con le
+  scelte della Widescreen: riaprire l'ultima pagina, la dimensione del menu laterale, quali tasti ha e in che ordine, il menu con il video a
+  schermo intero e il menu laterale in CarWeb. Le altre impostazioni sono ancora sul telefono.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
 * **Siti della rete di casa:** i siti con certificato autofirmato o non valido (Home
   Assistant, Proxmox, proxy di casa) si aprono con "Continua comunque" e la scelta resta ricordata per quel
