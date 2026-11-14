@@ -3,7 +3,8 @@
  * l'immagine ingrandita che si sposta trascinando (telefono e Main in auto) o con lo scorrimento di Android Auto (nella
  * Wide la pagina chiede che si sposti solo il video: window.__aabScrollOnly); il modo dell'immagine Adatta (intera),
  * Riempi (tagliata ai bordi) o Allunga (deformata); lo schermo intero, del riquadro con la sua barra. La barra compare
- * toccando il video e sparisce dopo qualche secondo. Nella Wide con il menu fisso, a schermo intero, la barra sceglie
+ * toccando il video e sparisce dopo qualche secondo (e finché è visibile il riquadro ha la classe bar-shown: la TV ci
+ * aggancia il suo pannello del cambio canale). Nella Wide con il menu fisso, a schermo intero, la barra sceglie
  * anche se il menu resta sopra il video o compare solo insieme a lei.
  */
 (function (root) {
@@ -150,23 +151,33 @@
         function hideBar() {
             clearTimeout(hideTimer);
             bar.hidden = true;
+            stage.classList.remove('bar-shown');
             syncMenu();
         }
 
         function showBar() {
             if (!isVideo()) return;
             bar.hidden = false;
+            stage.classList.add('bar-shown');
             updateBar();
             syncMenu();
             clearTimeout(hideTimer);
             hideTimer = setTimeout(hideBar, HIDE_MS);
         }
 
+        // Chi usa altri comandi del riquadro (il cambio canale della TV) tiene la barra in vista: il tempo riparte da capo
+        function keepBar() {
+            if (bar.hidden) return;
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hideBar, HIDE_MS);
+        }
+
         // Tocco sul video: la barra compare o sparisce (lo schermo intero ora ha il suo tasto, come su YouTube)
-        box.addEventListener('click', () => {
+        function toggleBar() {
             if (!bar.hidden) hideBar();
             else showBar();
-        });
+        }
+        box.addEventListener('click', toggleBar);
 
         bar.addEventListener('click', (event) => {
             const target = event.target.closest('[data-zoom]');
@@ -229,7 +240,7 @@
         if (typeof root.ResizeObserver === 'function') new root.ResizeObserver(layout).observe(box);
         layout();
 
-        return { reset: () => setZoom(1) };
+        return { reset: () => setZoom(1), toggleBar: toggleBar, keepBar: keepBar };
     }
 
     root.AABVideoZoom = { attach: attach, contentSize: contentSize, nextStep: nextStep, STEPS: STEPS };

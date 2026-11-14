@@ -11,6 +11,81 @@ body.has-video .art {
     display: none;
 }
 
+/*
+ * Cambio canale a schermo intero: in alto al centro (la barra dello zoom è in basso; negli angoli ci sono i tasti di
+ * Android Auto e il menu della Main), solo a schermo intero e finché la barra è in vista (video-zoom.js: bar-shown).
+ */
+.zap {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: none;
+    align-items: center;
+    gap: 2px;
+    width: max-content;
+    max-width: min(520px, calc(100% - 24px));
+    padding: 4px;
+    border-radius: 28px;
+    background: rgba(0, 0, 0, 0.62);
+    color: #fff;
+}
+
+.stage:fullscreen.bar-shown .zap {
+    display: flex;
+}
+
+.zap .zoom-button {
+    flex: none;
+    min-width: 48px;
+    height: 48px;
+    border-radius: 24px;
+}
+
+.zap-channel {
+    min-width: 0;
+    padding: 0 8px;
+    text-align: center;
+}
+
+.zap-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.zap-line img {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.zap-line img[hidden] {
+    display: none;
+}
+
+.zap-line span {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Caricamento o canale non disponibile: a schermo intero il messaggio della pagina non si vede */
+.zap-status {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.zap-status:empty {
+    display: none;
+}
+
 .source {
     flex: 1;
     min-width: 0;

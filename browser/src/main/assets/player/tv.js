@@ -21,6 +21,14 @@
     const channelsBox = byId('channels');
     const space = byId('channelsSpace');
     const message = byId('message');
+    // Il pannello del cambio canale a schermo intero (tv.html): nome, logo e lo stesso messaggio della pagina
+    const zapName = byId('zapName');
+    const zapLogo = byId('zapLogo');
+    const zapStatus = byId('zapStatus');
+    zapLogo.referrerPolicy = 'no-referrer';
+    zapLogo.addEventListener('error', () => {
+        zapLogo.hidden = true;
+    });
 
     // { source, group (indice o 'fav'), last: canale con la sua lista (s), favs: [canali, ognuno con la sua lista (s)] }
     const state = readState();
@@ -74,6 +82,8 @@
     function showMessage(text) {
         message.textContent = text || '';
         message.hidden = !text;
+        // A schermo intero il messaggio sotto il riquadro non si vede: lo ripete il pannello del cambio canale
+        zapStatus.textContent = text || '';
     }
 
     // ------------------------------------------------------------------
@@ -327,6 +337,14 @@
     function showChannel(channel) {
         byId('title').textContent = channel.n;
         byId('subtitle').textContent = channel.g || '';
+        zapName.textContent = channel.n;
+        if (channel.l) {
+            zapLogo.src = channel.l;
+            zapLogo.hidden = false;
+        } else {
+            zapLogo.removeAttribute('src');
+            zapLogo.hidden = true;
+        }
         const art = byId('art');
         const image = byId('artImage');
         if (channel.l) {
@@ -465,12 +483,28 @@
         if (current && media.getAttribute('src')) showMessage(S.unavailable);
     });
 
-    // Tocco sul video: la barra con zoom, modo dell'immagine e schermo intero (video-zoom.js)
-    window.AABVideoZoom.attach({
+    // Tocco sul video: la barra con zoom, modo dell'immagine e schermo intero (video-zoom.js). A schermo intero compare
+    // anche il pannello del cambio canale, e vale anche per un canale che non parte: altrimenti non si potrebbe cambiare
+    // senza uscire dallo schermo intero
+    const zoom = window.AABVideoZoom.attach({
         stage: byId('stage'),
         video: media,
         strings: config.zoom,
-        isVideo: () => document.body.classList.contains('has-video'),
+        isVideo: () => document.body.classList.contains('has-video') || (!!current && !!document.fullscreenElement),
+    });
+
+    // Cambio canale a schermo intero: gli stessi canali di ⏮ ⏭ di sotto (l'elenco mostrato), e la barra resta in vista
+    byId('zapPrevious').addEventListener('click', () => {
+        step(-1);
+        zoom.keepBar();
+    });
+    byId('zapNext').addEventListener('click', () => {
+        step(1);
+        zoom.keepBar();
+    });
+    // Senza video (canale che parte o non parte) la copertina sta sopra il riquadro e prende lei il tocco
+    byId('art').addEventListener('click', () => {
+        if (document.fullscreenElement) zoom.toggleBar();
     });
 
     byId('playToggle').addEventListener('click', () => {
