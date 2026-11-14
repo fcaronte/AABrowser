@@ -49,7 +49,7 @@
 
   - Supports Full Screen and Split View modes.
 
-  - Custom fixed sidebar on the left side (\`Left Sidebar\` option).
+  - One layout (since 2.8, no "fixed menu" setting): the dock, a sidebar on the left side, always built from the user's choice of `SidebarAction` buttons (back, forward, home, reload, search, AdBlock shield, desktop, voice, favorite = add the open page, share = the page's QR code on a card, settings when its page exists, exit; order and visibility in Settings, Home cannot be hidden; each button that needs a web page looks off on the home). The only button Android Auto needs at the top right shows or hides the dock and, with a phone app (Shizuku) open, its own bar too; the bottom strip keeps only PAN. The Main can show the same dock (`AppSettings.mainDock`, Settings > Sidebar in CarWeb): the round menu button then opens and closes it instead of the radial menu (`NavigationOverlay` `dockMode`, `MainDock`, the page and the apps keep clear of it).
 
   - \*Hard Constraint\*: Android Auto stock template framework enforces that the right stock bar MUST keep at least one action button locked at the top-right corner.
 

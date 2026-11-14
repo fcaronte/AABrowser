@@ -28,7 +28,10 @@ from the misuse of this application. Use at your own risk.
 
 * **Two apps on Android Auto:** **CarWeb**, the full browser with tabs, and **CarWebWide
   (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
-  or the app menu, with a fixed side menu whose size you choose on its home. *Limits set by Android Auto for this kind of app:* only the
+  or the app menu, with a side menu (the dock: back, forward, home, reload, search, AdBlock, desktop, voice, favorite, share,
+  settings, exit; you choose which buttons and in what order in Settings, Home is always there) that the button at the top right
+  shows or hides, together with the side bar of a phone app when one is open (new). CarWeb can show the same side menu too (Settings),
+  and its round menu button then opens and closes it. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar). Each app opens the other: **CarWebWide** at the top of the CarWeb
   dashboard, **↗ CarWeb** on the CarWebWide home. Keep both apps in the Android Auto menu: CarWebWide hidden
@@ -140,8 +143,7 @@ Say what you want instead of typing it.
 
 * **CarWeb:** the 🎤 button in the tab bar (left of the shield), in the round navigation menu and next to
   search on the home page.
-* **CarWebWide (Widescreen):** the 🎤 button in the fixed side menu, or at the top right next to search
-  when the side menu is off.
+* **CarWebWide (Widescreen):** the 🎤 button in the side menu (turn it on in Settings > Sidebar buttons if you hid it).
 * **Android Auto player:** in the car, while the "CarWeb Media" player shows the weather, it has a 🎤 button, which
   works even when nothing has played yet (with a page playing, the player keeps its own buttons: use the double
   tap). With "Player tap opens CarWeb" on, this 🎤 and the double tap use CarWeb (CarWebWide while it is the one
@@ -265,7 +267,10 @@ proprio rischio e pericolo.
 
 * **Due app su Android Auto:** **CarWeb**, il browser completo con le schede, e **CarWebWide
   (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
-  o al menu delle app, con il menu laterale fisso, di cui scegli la dimensione dalla sua home. *Limiti imposti da Android Auto a questo tipo di app:*
+  o al menu delle app, con un menu laterale (il dock: indietro, avanti, home, ricarica, cerca, AdBlock, desktop, voce, preferiti,
+  condividi, impostazioni, esci; scegli quali tasti e in che ordine nelle Impostazioni, Home c'è sempre) che il tasto in alto a destra
+  mostra o nasconde, insieme alla barra laterale di un'app del telefono se ce n'è una aperta (novità). Anche CarWeb può mostrare lo stesso
+  menu laterale (Impostazioni), e il suo tasto rotondo del menu lo apre e lo chiude. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento). Ogni app apre l'altra:
   **CarWebWide** in alto nella dashboard di CarWeb, **↗ CarWeb** nella home di CarWebWide. Tieni entrambe le app
@@ -384,8 +389,7 @@ Dì quello che vuoi invece di scriverlo.
 
 * **CarWeb:** il pulsante 🎤 nella barra delle schede (a sinistra dello scudo), nel menu di navigazione
   rotondo e accanto alla ricerca nella pagina iniziale.
-* **CarWebWide (Widescreen):** il pulsante 🎤 nel menu laterale fisso, oppure in alto a destra accanto
-  alla ricerca se il menu laterale è spento.
+* **CarWebWide (Widescreen):** il pulsante 🎤 nel menu laterale (accendilo in Impostazioni > Tasti della sidebar se l'hai nascosto).
 * **Player di Android Auto:** in auto, quando il player "CarWeb Media" mostra il meteo, ha un tasto 🎤 che funziona
   anche quando non ha ancora suonato niente (con una pagina che suona il player tiene i suoi tasti: usa il doppio
   tocco). Con "Il tocco sul player apre CarWeb" attiva, questo 🎤 e il doppio tocco usano CarWeb (CarWebWide quando
