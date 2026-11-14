@@ -520,4 +520,7 @@
     <string name="tab_bar_action_down">Le</string>
     <string name="vapp_secure_label">Védett tartalom (kísérleti)</string>
     <string name="vapp_secure_desc">Megpróbálja megjeleníteni a képernyőmentést tiltó ablakokat (bankok, egyes alkalmazások) ahelyett, hogy feketén hagyná őket. A hardveres DRM-es videók, például az HD Netflix, feketék maradnak: a telefon nem engedi őket kikerülni a saját képernyőjéről. Az alkalmazás újranyitásával érvényesül.</string>
+    <string name="whats_new_title">Újdonságok a(z) %1$s verzióban</string>
+    <string name="whats_new_label">Újdonságok</string>
+    <string name="whats_new_desc">A legújabb verzió újdonságai.</string>
 </resources>

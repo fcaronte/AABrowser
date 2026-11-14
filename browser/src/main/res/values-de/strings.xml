@@ -520,4 +520,7 @@
     <string name="tab_bar_action_down">Nach unten</string>
     <string name="vapp_secure_label">Geschützte Inhalte (experimentell)</string>
     <string name="vapp_secure_desc">Versucht, auch Fenster zu zeigen, die Screenshots blockieren (Banken, manche Apps), statt sie schwarz zu lassen. Videos mit Hardware-DRM wie Netflix in HD bleiben schwarz: Das Telefon lässt sie seinen Bildschirm nicht verlassen. App erneut öffnen, um es anzuwenden.</string>
+    <string name="whats_new_title">Neu in Version %1$s</string>
+    <string name="whats_new_label">Neuigkeiten</string>
+    <string name="whats_new_desc">Die Neuerungen der neuesten Version.</string>
 </resources>

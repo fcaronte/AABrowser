@@ -519,4 +519,7 @@
     <string name="tab_bar_action_down">下移</string>
     <string name="vapp_secure_label">受保护内容（实验性）</string>
     <string name="vapp_secure_desc">尝试显示禁止截屏的窗口（银行、部分应用），而不是留成黑屏。带硬件 DRM 的视频（如高清 Netflix）仍为黑屏：手机不允许它离开自己的屏幕。重新打开应用后生效。</string>
+    <string name="whats_new_title">%1$s 版本的新功能</string>
+    <string name="whats_new_label">新功能</string>
+    <string name="whats_new_desc">最新版本的更新内容。</string>
 </resources>

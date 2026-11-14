@@ -529,4 +529,7 @@
     <string name="tab_bar_action_down">Move down</string>
     <string name="vapp_secure_label">Protected content (experimental)</string>
     <string name="vapp_secure_desc">Tries to show windows that block screenshots (banks, some apps) instead of leaving them black. Hardware DRM video such as Netflix in HD stays black: the phone does not let it leave its own screen. Open the app again to apply.</string>
+    <string name="whats_new_title">What\'s new in %1$s</string>
+    <string name="whats_new_label">What\'s new</string>
+    <string name="whats_new_desc">The changes of the latest version.</string>
 </resources>

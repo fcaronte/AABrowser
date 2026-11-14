@@ -520,4 +520,7 @@
     <string name="tab_bar_action_down">नीचे ले जाएँ</string>
     <string name="vapp_secure_label">सुरक्षित सामग्री (प्रयोगात्मक)</string>
     <string name="vapp_secure_desc">स्क्रीनशॉट रोकने वाली विंडो (बैंक, कुछ एप) को काला छोड़ने के बजाय दिखाने की कोशिश करता है। हार्डवेयर DRM वाले वीडियो, जैसे HD में Netflix, काले ही रहते हैं: फ़ोन उन्हें अपनी स्क्रीन से बाहर नहीं जाने देता। लागू करने के लिए ऐप फिर से खोलें।</string>
+    <string name="whats_new_title">संस्करण %1$s में नया क्या है</string>
+    <string name="whats_new_label">नया क्या है</string>
+    <string name="whats_new_desc">नवीनतम संस्करण के बदलाव।</string>
 </resources>

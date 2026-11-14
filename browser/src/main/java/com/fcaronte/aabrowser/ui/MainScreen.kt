@@ -987,6 +987,9 @@ fun MainScreen(
                     DriveLockCover(modifier = Modifier.zIndex(97f))
                 }
 
+                // Novità della versione, la prima volta dopo un aggiornamento (solo sul telefono)
+                if (!isAutomotive) WhatsNewHost()
+
                 // Feedback visivo
                 AnimatedVisibility(
                     visible = feedbackMessage != null,

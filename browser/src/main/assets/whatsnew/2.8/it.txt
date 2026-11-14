@@ -1,0 +1,7 @@
+• Altre App: con Shizuku usi le app del telefono sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con tocco, barra laterale e tastiera. Le app con la stella sono tessere nella home.
+• Mentre un'app è sullo schermo dell'auto il telefono resta acceso dietro una schermata nera «CarWeb attivo»; se lo blocchi si riaccende da solo, o con un tocco sull'auto.
+• Pulsanti della barra delle schede a scelta: quali, in che ordine e quanti se ne vedono insieme; gli altri si raggiungono scorrendo.
+• Sito desktop o mobile: la scelta ora resta davvero, anche su YouTube e sui siti che cambiano indirizzo (m. / www.), e i fix specifici del sito tornano quando torni a mobile.
+• YouTube a schermo intero: Adatta, Riempi e Allunga funzionano anche sul sito per computer.
+
+Le app che nascondono la loro finestra (banche, Poste) e i video con DRM hardware (Netflix) restano neri: uno schermo virtuale non può mostrarli.

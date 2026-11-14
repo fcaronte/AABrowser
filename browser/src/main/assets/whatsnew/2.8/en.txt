@@ -1,0 +1,7 @@
+• Other Apps: with Shizuku you can use your phone's apps on the car screen, in a CarWeb tab or in CarWebWide, with touch, a side bar and the keyboard. Starred apps are tiles on the home page.
+• While an app is on the car screen the phone stays awake behind a black "CarWeb attivo" screen; if you lock it, it wakes up again by itself, or with a tap on the car screen.
+• Tab bar buttons of your choice: which ones, in what order and how many show together; the others are one swipe away.
+• Desktop or mobile site: the choice now really sticks, also on YouTube and on sites that change address (m. / www.), and the site-specific fixes come back when you return to mobile.
+• YouTube fullscreen: Fit, Fill and Stretch also work on the desktop site.
+
+Apps that hide their windows (banks, Poste) and hardware-DRM video (Netflix) stay black: a virtual screen cannot show them.

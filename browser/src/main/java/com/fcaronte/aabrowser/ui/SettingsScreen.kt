@@ -92,6 +92,7 @@ import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SponsorBlock
 import com.fcaronte.aabrowser.utils.SslExceptions
 import com.fcaronte.aabrowser.utils.UpdateManager
+import com.fcaronte.aabrowser.utils.WhatsNew
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -170,6 +171,9 @@ fun SettingsScreen(
     var cacheSize by remember { mutableStateOf("...") }
     var qrUrlToShow by remember { mutableStateOf<String?>(null) }
     var pendingPassengerToggle by remember { mutableStateOf<PendingPassengerToggle?>(null) }
+    // Le novità dell'ultima versione, da rileggere quando si vuole (se la versione ha le sue note)
+    val whatsNewNotes = remember { WhatsNew.latest(context) }
+    var showWhatsNew by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val isCarMode = isCarModeOverride ||
@@ -1333,6 +1337,17 @@ fun SettingsScreen(
                         }
                     }
 
+                    if (whatsNewNotes != null) {
+                        SettingsCard {
+                            SettingsButtonItem(
+                                label = stringResource(R.string.whats_new_label),
+                                description = stringResource(R.string.whats_new_desc),
+                                buttonText = stringResource(R.string.whats_new_label),
+                                onClick = { showWhatsNew = true }
+                            )
+                        }
+                    }
+
                     SettingsCard {
                         SettingsButtonItem(
                             label = stringResource(R.string.open_readme),
@@ -1501,6 +1516,11 @@ fun SettingsScreen(
                 },
                 onCancel = { pendingPassengerToggle = null }
             )
+        }
+
+        // Le novità dell'ultima versione
+        if (showWhatsNew) {
+            whatsNewNotes?.let { WhatsNewDialog(it) { showWhatsNew = false } }
         }
 
         // Overlay QR Code se necessario

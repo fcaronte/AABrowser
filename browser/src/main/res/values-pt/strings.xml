@@ -521,4 +521,7 @@
     <string name="tab_bar_action_down">Mover para baixo</string>
     <string name="vapp_secure_label">Conteúdo protegido (experimental)</string>
     <string name="vapp_secure_desc">Tenta mostrar também as janelas que bloqueiam capturas de ecrã (bancos, algumas apps) em vez de as deixar pretas. Os vídeos com DRM por hardware, como a Netflix em HD, ficam pretos: o telemóvel não os deixa sair do seu ecrã. Volte a abrir a app para aplicar.</string>
+    <string name="whats_new_title">Novidades da versão %1$s</string>
+    <string name="whats_new_label">Novidades</string>
+    <string name="whats_new_desc">As novidades da última versão.</string>
 </resources>

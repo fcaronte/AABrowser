@@ -521,4 +521,7 @@
     <string name="tab_bar_action_down">Descendre</string>
     <string name="vapp_secure_label">Contenus protégés (expérimental)</string>
     <string name="vapp_secure_desc">Essaie d\'afficher aussi les fenêtres qui bloquent les captures d\'écran (banques, certaines applis) au lieu de les laisser noires. Les vidéos avec DRM matériel, comme Netflix en HD, restent noires : le téléphone ne les laisse pas sortir de son écran. Rouvrez l\'appli pour l\'appliquer.</string>
+    <string name="whats_new_title">Nouveautés de la version %1$s</string>
+    <string name="whats_new_label">Nouveautés</string>
+    <string name="whats_new_desc">Les nouveautés de la dernière version.</string>
 </resources>
