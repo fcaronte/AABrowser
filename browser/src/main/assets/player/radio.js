@@ -37,8 +37,11 @@
 
     // [extra]: i dati delle stazioni che servono anche fuori dalla loro lista (l'ultima ascoltata, i preferiti)
     function readState() {
-        const empty = { source: '', favorites: [], lastUuid: '', extra: {} };
-        return Object.assign(empty, store.read());
+        const empty = { source: '', favorites: [], lastUuid: '', extra: {}, effect: 'off' };
+        const saved = Object.assign(empty, store.read());
+        // Un effetto che non esiste (valore rovinato o di un'altra versione) vale "off"
+        if (!window.AABEffects.EFFECTS.includes(saved.effect)) saved.effect = 'off';
+        return saved;
     }
 
     function saveState() {
@@ -329,7 +332,95 @@
         media.load();
         currentUrl = '';
         currentIsHls = false;
+        currentIsProxied = false;
         document.body.classList.remove('is-playing');
+    }
+
+    // ------------------------------------------------------------------
+    // Effetti animati sulla copertina (Web Audio, come in CarWeb Media)
+    // ------------------------------------------------------------------
+    //
+    // Il suono passa da un AudioContext con un analizzatore. Due cose da sapere:
+    //  - il contesto si crea con un tocco dell'utente: senza gesto resta sospeso e l'audio sarebbe muto;
+    //  - l'elemento si collega una volta sola e per sempre (Web Audio non lo scollega), e un flusso di un altro sito senza
+    //    CORS collegato a Web Audio diventa muto. Per questo con gli effetti gli stream diretti passano dal tramite dell'app
+    //    (proxy=1: stessa origine della pagina), e da quando l'elemento è collegato passano sempre di lì; hls.js (MSE) è
+    //    già della pagina.
+    let audioContext = null;
+    let analyser = null;
+    let sourceNode = null;
+    let currentIsProxied = false;   // lo stream in onda passa dal tramite dell'app: stessa origine della pagina
+
+    const visual = window.AABEffects.attach({
+        canvas: byId('visual'),
+        effect: () => state.effect,
+        active: effectsActive,
+        source: () => (analyser ? { analyser: analyser, sampleRate: audioContext.sampleRate } : null)
+    });
+
+    // Gli stream diretti chiedono la stessa origine se gli effetti sono accesi o l'elemento è già collegato
+    function wantsSameOrigin() {
+        return state.effect !== 'off' || !!sourceNode;
+    }
+
+    // Collegare l'elemento è sicuro solo con niente in onda, con hls.js (MSE) o con un flusso del tramite
+    function sourceIsSafe() {
+        return !currentUrl || !!hls || currentIsProxied;
+    }
+
+    function ensureAudioContext() {
+        if (audioContext) return true;
+        const Context = window.AudioContext || window.webkitAudioContext;
+        if (!Context) return false;
+        try {
+            const context = new Context();
+            const nextAnalyser = context.createAnalyser();
+            nextAnalyser.fftSize = 2048;
+            nextAnalyser.smoothingTimeConstant = 0.78;
+            nextAnalyser.connect(context.destination);
+            audioContext = context;
+            analyser = nextAnalyser;
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function wakeAudio() {
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+    }
+
+    function connectElement() {
+        if (sourceNode || !audioContext || !sourceIsSafe()) return;
+        try {
+            sourceNode = audioContext.createMediaElementSource(media);
+            sourceNode.connect(analyser);
+        } catch (_) {
+        }
+        visual.update();
+    }
+
+    function effectsActive() {
+        return state.effect !== 'off' && !!sourceNode && !media.paused && document.visibilityState === 'visible';
+    }
+
+    function updateEffectsButton() {
+        byId('effects').classList.toggle('active', state.effect !== 'off');
+    }
+
+    function chooseEffect(effect) {
+        state.effect = effect;
+        saveState();
+        visual.reset();
+        // Dentro il tocco dell'utente: contesto attivo. Uno stream diretto di un altro sito riparte dal tramite (a un
+        // istante di pausa), poi l'elemento si collega; hls.js e il resto si collegano subito
+        if (effect !== 'off' && ensureAudioContext()) {
+            wakeAudio();
+            if (current && currentUrl && !sourceIsSafe()) play(current);
+            else connectElement();
+        }
+        updateEffectsButton();
+        visual.update();
     }
 
     async function play(station) {
@@ -348,10 +439,12 @@
         const token = ++requestToken;
         stopStream();
         try {
-            const info = await api('/api/radio/play', { uuid: station.uuid, source: station.s || '' });
+            const info = await api('/api/radio/play', Object.assign(
+                { uuid: station.uuid, source: station.s || '' }, wantsSameOrigin() ? { proxy: '1' } : {}));
             if (token !== requestToken) return;
             currentUrl = info.url;
             currentIsHls = info.kind === 'hls';
+            currentIsProxied = String(info.url).startsWith('/tv/stream/');
             if (currentIsHls && window.Hls && Hls.isSupported()) {
                 hls = new Hls({ backBufferLength: 30, maxBufferLength: 30 });
                 hls.on(Hls.Events.ERROR, (_, data) => {
@@ -370,6 +463,8 @@
             } else {
                 media.src = info.url;
             }
+            // Con la sorgente ora sicura (hls.js o tramite) l'elemento passa dal contesto, se c'è già
+            connectElement();
             const attempt = media.play();
             if (attempt && attempt.catch) attempt.catch(() => {});
         } catch (_) {
@@ -590,8 +685,47 @@
         document.body.classList.add('is-playing');
         message('');
         startMetadataPolling();
+        visual.update();
     });
-    media.addEventListener('pause', () => document.body.classList.remove('is-playing'));
+    media.addEventListener('pause', () => {
+        document.body.classList.remove('is-playing');
+        visual.update();
+    });
+
+    // Effetti: il pulsante apre la scelta (barre, onda, cerchio), salvata nella pagina
+    const optionsSheet = byId('optionsSheet');
+    function renderEffects() {
+        byId('optionsTitle').textContent = S.options || 'Options';
+        byId('effectsLabel').textContent = S.effects || 'Visual effects';
+        const box = byId('effectsChoices');
+        box.textContent = '';
+        window.AABEffects.EFFECTS.forEach((effect) => {
+            const button = document.createElement('button');
+            button.className = 'choice' + (effect === state.effect ? ' active' : '');
+            button.textContent = effect === 'off' ? (S.off || 'Off') : (S[effect] || effect);
+            button.addEventListener('click', () => {
+                chooseEffect(effect);
+                renderEffects();
+            });
+            box.appendChild(button);
+        });
+    }
+    byId('effects').addEventListener('click', () => {
+        renderEffects();
+        optionsSheet.hidden = false;
+    });
+    // Tocco fuori dal riquadro: chiude
+    optionsSheet.addEventListener('click', (event) => {
+        if (event.target === optionsSheet) optionsSheet.hidden = true;
+    });
+    // Ogni tocco, con gli effetti accesi: crea o riattiva il contesto e collega l'elemento (se la sorgente è sicura)
+    document.addEventListener('click', () => {
+        if (state.effect === 'off' || !ensureAudioContext()) return;
+        wakeAudio();
+        connectElement();
+    }, true);
+    document.addEventListener('visibilitychange', () => visual.update());
+    updateEffectsButton();
     media.addEventListener('error', () => {
         if (current) message(S.unavailable || 'Station unavailable');
     });

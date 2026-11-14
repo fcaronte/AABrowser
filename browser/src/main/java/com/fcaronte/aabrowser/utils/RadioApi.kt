@@ -86,6 +86,13 @@ internal object RadioApi {
             .put("lyricsSearch", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_search))
             .put("addList", appContext.getString(com.fcaronte.aabrowser.R.string.media_lists_add))
             .put("addOnPhone", appContext.getString(com.fcaronte.aabrowser.R.string.iptv_add_on_phone))
+            // Effetti animati sulla copertina (gli stessi testi di CarWeb Media)
+            .put("options", appContext.getString(com.fcaronte.aabrowser.R.string.player_options))
+            .put("effects", appContext.getString(com.fcaronte.aabrowser.R.string.player_effects))
+            .put("off", appContext.getString(com.fcaronte.aabrowser.R.string.player_off))
+            .put("bars", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_bars))
+            .put("wave", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_wave))
+            .put("circle", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_circle))
         val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
         val config = JSONObject().put("token", token).put("sources", sourcesJson(appContext)).put("strings", strings).put("client", client)
             .put("saved", MediaPages.saved(context, MediaPages.RADIO))
@@ -98,7 +105,10 @@ internal object RadioApi {
     fun handle(context: Context, path: String, url: Uri): WebResourceResponse? = when (path) {
         "/api/radio/sources" -> json(JSONObject().put("sources", sourcesJson(context)))
         "/api/radio/stations" -> stations(context, url.getQueryParameter("source"), url.getQueryParameter("refresh") == "1")
-        "/api/radio/play" -> play(context, url.getQueryParameter("uuid"), url.getQueryParameter("source"))
+        "/api/radio/play" -> play(
+            context, url.getQueryParameter("uuid"), url.getQueryParameter("source"),
+            sameOrigin = url.getQueryParameter("proxy") == "1"
+        )
         "/api/radio/find" -> find(context, url.getQueryParameter("q").orEmpty(), url.getQueryParameter("source"))
         "/api/radio/metadata" -> metadata(context, url.getQueryParameter("uuid"), url.getQueryParameter("source"))
         else -> null
@@ -274,10 +284,19 @@ internal object RadioApi {
         }
     }
 
-    private fun play(context: Context, uuid: String?, sourceId: String?): WebResourceResponse {
+    /**
+     * Se lo stream passa dal tramite dell'app invece che direttamente: l'HLS in http (hls.js lo legge dalla pagina in https),
+     * gli header chiesti da una lista, o una sorgente della stessa origine della pagina ([sameOrigin]: gli effetti animati
+     * collegano l'audio a Web Audio, e un flusso di un altro sito senza CORS diventerebbe muto; l'HLS va in hls.js, che
+     * dalla pagina fa un MediaSource suo e non ha questo problema).
+     */
+    internal fun viaProxy(url: String, isHls: Boolean, hasHeaders: Boolean, sameOrigin: Boolean): Boolean =
+        hasHeaders || (isHls && url.startsWith("http:", ignoreCase = true)) || (sameOrigin && !isHls)
+
+    private fun play(context: Context, uuid: String?, sourceId: String?, sameOrigin: Boolean): WebResourceResponse {
         if (uuid == null || !uuid.matches(STATION_ID)) return error(400, "station")
         val station = stationById(context, uuid, sourceId) ?: return error(404, "station")
-        if (station.playlistId != null) return playPlaylistStation(station)
+        if (station.playlistId != null) return playPlaylistStation(station, sameOrigin)
 
         val resolvedUrl = try {
             val click = getJson("/json/url/${station.uuid}")
@@ -291,15 +310,14 @@ internal object RadioApi {
         if (!isPublicHttpUrl(resolvedUrl)) return error(403, "station")
         val isHls = station.isHls || isHlsAddress(resolvedUrl)
         // hls.js legge lista e segmenti dalla pagina (https): in http la Main li bloccherebbe, l'audio diretto no
-        val url = if (isHls && resolvedUrl.startsWith("http:", ignoreCase = true)) IptvProxy.proxyPath(resolvedUrl) else resolvedUrl
+        val url = if (viaProxy(resolvedUrl, isHls, hasHeaders = false, sameOrigin = sameOrigin)) IptvProxy.proxyPath(resolvedUrl) else resolvedUrl
         return json(JSONObject().put("url", url).put("kind", if (isHls) "hls" else "file"))
     }
 
     // Una lista dell'utente, come quelle della TV: niente conteggio su Radio Browser e anche gli indirizzi di casa
-    private fun playPlaylistStation(station: Station): WebResourceResponse {
-        val direct = !station.isHls && station.headers.isEmpty() ||
-            station.isHls && station.headers.isEmpty() && station.streamUrl.startsWith("https:", ignoreCase = true)
-        val url = if (direct) station.streamUrl else IptvProxy.proxyPath(station.streamUrl, station.headers)
+    private fun playPlaylistStation(station: Station, sameOrigin: Boolean): WebResourceResponse {
+        val proxied = viaProxy(station.streamUrl, station.isHls, station.headers.isNotEmpty(), sameOrigin)
+        val url = if (proxied) IptvProxy.proxyPath(station.streamUrl, station.headers) else station.streamUrl
         return json(JSONObject().put("url", url).put("kind", if (station.isHls) "hls" else "file"))
     }
 

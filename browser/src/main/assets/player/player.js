@@ -455,17 +455,17 @@
     // Il suono di #media passa da un AudioContext: analizzatore (per gli effetti) e guadagno (per la dissolvenza).
     // Va creato con un tocco dell'utente: un AudioContext creato senza gesto resta sospeso e #media sarebbe muto.
 
-    const canvas = byId('visual');
-    const painter = canvas.getContext('2d');
     let audioContext = null;
     let gainNode = null;
     let analyser = null;
-    let frequencyData = null;
-    let waveData = null;
-    let peaks = [];
-    let drawHandle = 0;
-    let lastFrame = 0;
-    let accentColor = '';
+
+    // Il disegno (barre, onda, cerchio) è in effects.js, condiviso con la Radio
+    const visual = window.AABEffects.attach({
+        canvas: byId('visual'),
+        effect: () => state.effect,
+        active: effectsActive,
+        source: () => (analyser ? { analyser: analyser, sampleRate: audioContext.sampleRate } : null)
+    });
 
     function ensureAudioGraph() {
         if (analyser) return true;
@@ -487,8 +487,6 @@
             audioContext = context;
             analyser = nextAnalyser;
             gainNode = gain;
-            frequencyData = new Uint8Array(analyser.frequencyBinCount);
-            waveData = new Uint8Array(analyser.fftSize);
             return true;
         } catch (e) {
             return false;
@@ -501,136 +499,7 @@
     }
 
     function updateEffects() {
-        const active = effectsActive();
-        canvas.hidden = !active;
-        if (active && !drawHandle) drawHandle = requestAnimationFrame(drawFrame);
-    }
-
-    function drawFrame(now) {
-        drawHandle = 0;
-        if (!effectsActive()) {
-            canvas.hidden = true;
-            return;
-        }
-        drawHandle = requestAnimationFrame(drawFrame);
-        // 30 fotogrammi al secondo bastano e pesano la metà
-        if (now - lastFrame < 33) return;
-        lastFrame = now;
-
-        const ratio = window.devicePixelRatio || 1;
-        const width = Math.max(1, Math.round(canvas.clientWidth * ratio));
-        const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
-        if (canvas.width !== width || canvas.height !== height) {
-            canvas.width = width;
-            canvas.height = height;
-        }
-        if (!accentColor) {
-            accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00bcd4';
-        }
-        painter.clearRect(0, 0, width, height);
-        // Velo scuro: l'effetto si vede su qualunque copertina
-        painter.fillStyle = 'rgba(0, 0, 0, 0.35)';
-        painter.fillRect(0, 0, width, height);
-        if (state.effect === 'wave') drawWave(width, height);
-        else if (state.effect === 'circle') drawCircle(width, height, now);
-        else drawBars(width, height);
-    }
-
-    // Bande logaritmiche, come gli analizzatori dei vecchi lettori: tante per i bassi, poche per gli acuti
-    function bandLevels(count) {
-        analyser.getByteFrequencyData(frequencyData);
-        const nyquist = audioContext.sampleRate / 2;
-        const binWidth = nyquist / frequencyData.length;
-        const minHz = 40;
-        const maxHz = Math.min(16000, nyquist);
-        const levels = new Array(count);
-        for (let i = 0; i < count; i++) {
-            const from = Math.floor(minHz * Math.pow(maxHz / minHz, i / count) / binWidth);
-            const to = Math.max(from + 1, Math.ceil(minHz * Math.pow(maxHz / minHz, (i + 1) / count) / binWidth));
-            let sum = 0;
-            let bins = 0;
-            for (let bin = from; bin < to && bin < frequencyData.length; bin++) {
-                sum += frequencyData[bin];
-                bins++;
-            }
-            levels[i] = bins ? sum / bins / 255 : 0;
-        }
-        return levels;
-    }
-
-    // Barre con il "cappello" che ricade piano, come in Winamp
-    function drawBars(width, height) {
-        const count = 32;
-        const levels = bandLevels(count);
-        const slot = width / count;
-        const barWidth = slot * 0.72;
-        const capHeight = Math.max(2, height * 0.014);
-        const gradient = painter.createLinearGradient(0, height, 0, 0);
-        gradient.addColorStop(0, accentColor);
-        gradient.addColorStop(1, '#ffffff');
-        for (let i = 0; i < count; i++) {
-            const barHeight = Math.max(capHeight, levels[i] * height * 0.85);
-            const x = i * slot + (slot - barWidth) / 2;
-            painter.fillStyle = gradient;
-            painter.fillRect(x, height - barHeight, barWidth, barHeight);
-            const peak = Math.max((peaks[i] || 0) - height * 0.01, barHeight);
-            peaks[i] = peak;
-            painter.fillStyle = '#ffffff';
-            painter.fillRect(x, height - peak - capHeight * 1.5, barWidth, capHeight);
-        }
-    }
-
-    // Oscilloscopio
-    function drawWave(width, height) {
-        analyser.getByteTimeDomainData(waveData);
-        painter.lineWidth = Math.max(2, height * 0.012);
-        painter.lineJoin = 'round';
-        painter.strokeStyle = accentColor;
-        painter.shadowColor = accentColor;
-        painter.shadowBlur = height * 0.05;
-        painter.beginPath();
-        const points = Math.min(waveData.length, Math.round(width / 3));
-        for (let i = 0; i < points; i++) {
-            const value = waveData[Math.floor(i * waveData.length / points)] / 128 - 1;
-            const x = i * width / (points - 1);
-            const y = height / 2 + value * height * 0.42;
-            if (i === 0) painter.moveTo(x, y);
-            else painter.lineTo(x, y);
-        }
-        painter.stroke();
-        painter.shadowBlur = 0;
-    }
-
-    // Raggi intorno al centro che ruotano piano, con un alone che pulsa sui bassi
-    function drawCircle(width, height, now) {
-        const count = 64;
-        const levels = bandLevels(count);
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const radius = Math.min(width, height) * 0.2;
-        const bass = (levels[0] + levels[1] + levels[2] + levels[3]) / 4;
-        const rotation = now / 6000;
-
-        painter.fillStyle = accentColor;
-        painter.globalAlpha = 0.12 + bass * 0.4;
-        painter.beginPath();
-        painter.arc(centerX, centerY, radius * (0.85 + bass * 0.3), 0, Math.PI * 2);
-        painter.fill();
-        painter.globalAlpha = 1;
-
-        painter.strokeStyle = accentColor;
-        painter.lineCap = 'round';
-        painter.lineWidth = Math.max(2, (Math.PI * 2 * radius / count) * 0.5);
-        for (let i = 0; i < count; i++) {
-            const angle = rotation + (i / count) * Math.PI * 2;
-            const length = radius * (0.12 + levels[i] * 1.1);
-            const cos = Math.cos(angle);
-            const sin = Math.sin(angle);
-            painter.beginPath();
-            painter.moveTo(centerX + cos * radius, centerY + sin * radius);
-            painter.lineTo(centerX + cos * (radius + length), centerY + sin * (radius + length));
-            painter.stroke();
-        }
+        visual.update();
     }
 
     // --- Opzioni ---
@@ -651,7 +520,7 @@
             state.effect,
             (effect) => {
                 state.effect = effect;
-                peaks = [];
+                visual.reset();
                 if (effect !== 'off') ensureAudioGraph();
                 updateEffects();
             });

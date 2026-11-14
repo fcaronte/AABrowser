@@ -2,6 +2,8 @@ package com.fcaronte.aabrowser.utils
 
 import java.util.Locale
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RadioApiTest {
@@ -51,5 +53,25 @@ class RadioApiTest {
     fun ignoresEmptyOrMissingIcyStreamTitle() {
         assertEquals(null, RadioApi.parseIcyTitle("StreamTitle='';".toByteArray()))
         assertEquals(null, RadioApi.parseIcyTitle("StreamUrl='https://example.com';".toByteArray()))
+    }
+
+    @Test
+    fun streamsGoDirectUnlessTheyNeedTheProxy() {
+        // Come prima degli effetti: diretto, tranne l'HLS in http (hls.js lo legge dalla pagina in https) e gli header di una lista
+        assertFalse(RadioApi.viaProxy("https://radio.example/live.mp3", isHls = false, hasHeaders = false, sameOrigin = false))
+        assertFalse(RadioApi.viaProxy("http://radio.example/live.mp3", isHls = false, hasHeaders = false, sameOrigin = false))
+        assertFalse(RadioApi.viaProxy("https://radio.example/live.m3u8", isHls = true, hasHeaders = false, sameOrigin = false))
+        assertTrue(RadioApi.viaProxy("http://radio.example/live.m3u8", isHls = true, hasHeaders = false, sameOrigin = false))
+        assertTrue(RadioApi.viaProxy("https://radio.example/live.mp3", isHls = false, hasHeaders = true, sameOrigin = false))
+        assertTrue(RadioApi.viaProxy("https://radio.example/live.m3u8", isHls = true, hasHeaders = true, sameOrigin = false))
+    }
+
+    @Test
+    fun effectsAskForASameOriginSourceForDirectStreamsOnly() {
+        // Con gli effetti l'audio passa da Web Audio: un flusso diretto di un altro sito senza CORS diventerebbe muto
+        assertTrue(RadioApi.viaProxy("https://radio.example/live.mp3", isHls = false, hasHeaders = false, sameOrigin = true))
+        assertTrue(RadioApi.viaProxy("http://radio.example/live", isHls = false, hasHeaders = false, sameOrigin = true))
+        // L'HLS in https resta a hls.js (un MediaSource della pagina, della sua origine): niente tramite in più
+        assertFalse(RadioApi.viaProxy("https://radio.example/live.m3u8", isHls = true, hasHeaders = false, sameOrigin = true))
     }
 }

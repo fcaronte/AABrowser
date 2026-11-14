@@ -36,6 +36,8 @@
                 <img id="artImage" alt="">
                 <img class="radio-mark" src="/radio.svg" alt="">
             </div>
+            <!-- Effetti animati sopra la copertina (come in CarWeb Media), solo con un effetto scelto e la radio in onda -->
+            <canvas class="visual" id="visual" hidden></canvas>
         </div>
         <div class="info">
             <div class="title" id="title">Radio</div>
@@ -56,6 +58,10 @@
             <button class="control toggle" id="favorite" aria-label="Favorite">
                 <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
             </button>
+            <!-- Effetti animati: apre la scelta (barre, onda, cerchio); acceso quando ce n'è uno -->
+            <button class="control toggle" id="effects" aria-label="Visual effects">
+                <svg viewBox="0 0 24 24"><path d="M7 18h2V6H7v12zm4 4h2V2h-2v20zm-8-8h2v-4H3v4zm12 4h2V6h-2v12zm4-8v4h2v-4h-2z"/></svg>
+            </button>
         </div>
         <div class="message" id="message" hidden></div>
         <a class="radio-credit" href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser</a>
@@ -75,7 +81,17 @@
     </section>
 </main>
 
+<!-- Scelta dell'effetto animato (salvata nella pagina) -->
+<div class="sheet" id="optionsSheet" hidden>
+    <div class="sheet-card">
+        <div class="sheet-title" id="optionsTitle"></div>
+        <div class="option-label" id="effectsLabel"></div>
+        <div class="choices" id="effectsChoices"></div>
+    </div>
+</div>
+
 <script src="/lib/hls.min.js"></script>
+<script src="/effects.js"></script>
 <script src="/track-parser.js"></script>
 <script src="/lyrics.js"></script>
 <script src="/store.js"></script>
