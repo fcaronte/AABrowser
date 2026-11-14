@@ -1,11 +1,14 @@
 package com.fcaronte.aabrowser
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.KeyguardManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -21,9 +24,12 @@ import com.fcaronte.aabrowser.utils.AppLocale
 import kotlin.math.abs
 
 /**
- * La schermata di attesa del telefono mentre un'app del telefono gira sullo schermo dell'auto: tutta nera, luminosità al minimo,
- * "CarWeb attivo / Scorri per sbloccare". Tiene il telefono sveglio (serve ai display delle app, vedi [VirtualScreenPower]) senza
- * tenerlo luminoso, compare anche sopra il blocco schermo e torna da sola quando il sistema lo spegne per inattività.
+ * La schermata di attesa del telefono mentre un'app del telefono gira sullo schermo dell'auto: nera, con la scritta
+ * "CarWeb attivo / Scorri per sbloccare" ben leggibile (la luminosità è bassa ma non al minimo: al minimo la scritta non si
+ * vedeva e il telefono sembrava bloccato). Tiene il telefono sveglio (serve ai display delle app, vedi [VirtualScreenPower])
+ * senza tenerlo luminoso, compare anche sopra il blocco schermo e torna da sola quando il sistema lo spegne per inattività.
+ * La freccia pulsa piano, così si vede che non è un telefono fermo, e il blocco di testo si sposta ogni tanto di qualche
+ * millimetro, perché sullo schermo OLED la stessa scritta ferma per ore lascerebbe il segno.
  *
  * Scorrere (o Home, o Indietro) restituisce il telefono: con un blocco schermo prima si chiede lo sblocco. Finita l'ultima app
  * sull'auto la schermata si chiude da sola.
@@ -40,6 +46,21 @@ class StandbyActivity : ComponentActivity() {
     private var downX = 0f
     private var downY = 0f
     private var leaving = false
+    private var column: LinearLayout? = null
+    private var pulse: ObjectAnimator? = null
+    private var driftStep = 0
+
+    // Ogni tanto il blocco di testo cambia posto (poco): niente scritta ferma per ore sugli stessi pixel
+    private val drift = object : Runnable {
+        override fun run() {
+            val view = column ?: return
+            driftStep = (driftStep + 1) % DRIFT_SPOTS.size
+            val density = resources.displayMetrics.density
+            val (dx, dy) = DRIFT_SPOTS[driftStep]
+            view.animate().translationX(dx * density).translationY(dy * density).setDuration(1500).start()
+            view.postDelayed(this, DRIFT_MS)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +71,9 @@ class StandbyActivity : ComponentActivity() {
         setShowWhenLocked(true)
         setTurnScreenOn(true)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        // Luminosità al minimo, qualunque sia quella scelta dall'utente: sullo schermo OLED i pixel neri non consumano
-        window.attributes = window.attributes.apply { screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF }
+        // Luminosità bassa, qualunque sia quella scelta dall'utente: sullo schermo OLED i pixel neri non consumano. Non al
+        // minimo di Android (BRIGHTNESS_OVERRIDE_OFF): su molti telefoni è quasi buio e la scritta non si legge
+        window.attributes = window.attributes.apply { screenBrightness = STANDBY_BRIGHTNESS }
         if (Build.VERSION.SDK_INT >= 33) setRecentsScreenshotEnabled(false)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -74,23 +96,43 @@ class StandbyActivity : ComponentActivity() {
             textSize = size
             setTextColor(color)
             gravity = Gravity.CENTER
-            setPadding(0, (top * density).toInt(), 0, 0)
+            setPadding((24 * density).toInt(), (top * density).toInt(), (24 * density).toInt(), 0)
         }
-        val column = LinearLayout(this).apply {
+        val arrow = label("↑", 30f, HINT_COLOR, top = 20)
+        val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             val wrap = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            addView(label(strings.getString(R.string.standby_title), 26f, 0x66FFFFFF), wrap)
-            addView(label("↑", 20f, 0x44FFFFFF, top = 16), wrap)
-            addView(label(strings.getString(R.string.standby_hint), 15f, 0x44FFFFFF, top = 4), wrap)
+            addView(label(strings.getString(R.string.standby_title), 30f, TITLE_COLOR), wrap)
+            addView(arrow, wrap)
+            addView(label(strings.getString(R.string.standby_hint), 18f, HINT_COLOR, top = 6), wrap)
+        }
+        column = content
+        pulse = ObjectAnimator.ofFloat(arrow, View.ALPHA, 0.3f, 1f).apply {
+            duration = 1400
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
         }
         setContentView(
             FrameLayout(this).apply {
                 setBackgroundColor(Color.BLACK)
-                addView(column, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+                addView(content, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
             }
         )
         VirtualScreenPower.addListener(onPowerChanged)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        pulse?.start()
+        column?.postDelayed(drift, DRIFT_MS)
+    }
+
+    // Con lo schermo spento o l'attività dietro, niente animazioni
+    override fun onStop() {
+        pulse?.cancel()
+        column?.removeCallbacks(drift)
+        super.onStop()
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -144,6 +186,22 @@ class StandbyActivity : ComponentActivity() {
 
     override fun onDestroy() {
         VirtualScreenPower.removeListener(onPowerChanged)
+        pulse?.cancel()
+        column?.removeCallbacks(drift)
         super.onDestroy()
+    }
+
+    companion object {
+        // Abbastanza per leggere la scritta anche al buio dell'auto, poco per non scaldare né consumare
+        private const val STANDBY_BRIGHTNESS = 0.15f
+
+        // Bianco quasi pieno (non pieno: meno segno sull'OLED) per il titolo, un po' meno per il resto
+        private const val TITLE_COLOR = 0xE6FFFFFF.toInt()
+        private const val HINT_COLOR = 0xB3FFFFFF.toInt()
+
+        private const val DRIFT_MS = 45_000L
+
+        // Spostamenti del blocco di testo in dp (x, y), a giro
+        private val DRIFT_SPOTS = arrayOf(0f to 0f, 28f to -36f, -28f to 36f, 20f to 56f, -24f to -56f)
     }
 }

@@ -1415,14 +1415,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.bottomMargin = 0
         wv.layoutParams = lp
         wv.requestLayout()
-        // L'app del telefono sta nella stessa area libera della pagina e, in più, fuori dalle fasce dei tasti di Android Auto
-        // (la stable area): lì sotto i suoi comandi in alto a destra non si raggiungerebbero
-        val stable = stableArea
+        // L'app del telefono va anche sotto i tasti di Android Auto, con il solo tasto in alto a destra e con tutti (utente,
+        // 14/11/2026), come il video a schermo intero: stessi margini (fullscreenMargins). Restano fuori il menu fisso della
+        // Wide, i pannelli dell'host (split) e quello che Android Auto toglie in più del solito (una chiamata)
+        val appMargins = visibleArea?.takeUnless { it.isEmpty }?.let { fullscreenMargins(it) } ?: IntArray(4)
+        if (fixed) {
+            if (rtl) appMargins[2] = maxOf(appMargins[2], lp.rightMargin)
+            else appMargins[0] = maxOf(appMargins[0], lp.leftMargin)
+        }
         virtualApp.layout(
-            leftPx = maxOf(lp.leftMargin, stable?.left ?: 0),
-            topPx = (stable?.top ?: 0).coerceAtLeast(0),
-            rightPx = maxOf(lp.rightMargin, stable?.let { surfaceWidth - it.right } ?: 0),
-            bottomPx = (stable?.let { surfaceHeight - it.bottom } ?: 0).coerceAtLeast(0)
+            leftPx = appMargins[0],
+            topPx = appMargins[1],
+            rightPx = appMargins[2],
+            bottomPx = appMargins[3]
         )
         wv.post {
             Log.d(
