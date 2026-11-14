@@ -342,6 +342,75 @@ object AdBlockJavascript {
             });
         }
 
+        // La pubblicità corrente: quando è cominciata, com'è andato il video e se a 16x si è fermato
+        function startAdTrace(video) {
+            window.aabAdTrace = { start: Date.now(), last: 0, media: -1, key: '', still: 0, checkAt: 0, checkMedia: 0, normal: false };
+            console.log('AABrowser AdBlock: ad started (video duration ' + Math.round(video.duration || 0) + ' s, ready ' +
+                video.readyState + ', ' + video.videoWidth + 'x' + video.videoHeight + ')');
+        }
+
+        function endAdTrace() {
+            const t = window.aabAdTrace;
+            if (t && t.start) {
+                console.log('AABrowser AdBlock: ad ended after ' + Math.round((Date.now() - t.start) / 1000) + ' s' +
+                    (t.normal ? ' (it stalled at 16x: played at normal speed)' : ''));
+            }
+            window.aabAdTrace = null;
+        }
+
+        // Una riga al secondo durante la pubblicità, solo se cambia qualcosa: se si vede nero, il registro dice se il video si
+        // ferma (ready sotto 3, fermo, buffer vuoto) o va avanti ma non si vede
+        function traceAd(video) {
+            const t = window.aabAdTrace;
+            const now = Date.now();
+            if (!t || now - t.last < 1000) return;
+            const moved = t.media >= 0 && Math.abs(video.currentTime - t.media) > 0.2;
+            t.last = now;
+            t.media = video.currentTime;
+            let ahead = 0;
+            try {
+                for (let i = 0; i < video.buffered.length; i++) {
+                    if (video.buffered.start(i) <= video.currentTime && video.buffered.end(i) >= video.currentTime) {
+                        ahead = video.buffered.end(i) - video.currentTime;
+                    }
+                }
+            } catch (e) {}
+            const key = [video.readyState, video.paused, moved, video.playbackRate, Math.round(ahead)].join(',');
+            if (key === t.key) return;
+            t.key = key;
+            console.log('AABrowser AdBlock: ad +' + Math.round((now - t.start) / 1000) + 's ready=' + video.readyState +
+                ' paused=' + video.paused + (moved ? ' moving' : ' still') + ' rate=' + video.playbackRate +
+                ' ahead=' + ahead.toFixed(1) + ' media=' + video.currentTime.toFixed(1) + '/' + Math.round(video.duration || 0));
+        }
+
+        // Velocità durante la pubblicità: 16x. Se il video della pubblicità arriva al passo del tempo reale (inserita dal
+        // server nel flusso), a 16x il buffer si svuota e il video si ferma: si vede nero fino alla fine. Se a 16x il video
+        // non avanza per un secondo e mezzo (dopo i primi due, che servono a caricare), per il resto di questa pubblicità
+        // si va a velocità normale: muta, ma si vede e non si ferma.
+        function adSpeed(video) {
+            const t = window.aabAdTrace;
+            if (!t) return 16.0;
+            if (t.normal) return 1.0;
+            const now = Date.now();
+            if (now - t.start < 2000) {
+                t.checkAt = now;
+                t.checkMedia = video.currentTime;
+                return 16.0;
+            }
+            if (now - t.checkAt >= 500) {
+                const moved = video.currentTime - t.checkMedia;
+                t.still = (video.readyState < 3 || moved < 0.3) ? t.still + (now - t.checkAt) : 0;
+                t.checkAt = now;
+                t.checkMedia = video.currentTime;
+                if (t.still >= 1500) {
+                    t.normal = true;
+                    console.log('AABrowser AdBlock: the ad video stalls at 16x, normal speed for the rest of this ad');
+                    return 1.0;
+                }
+            }
+            return 16.0;
+        }
+
         // Controllo della pubblicità: lo chiamano l'observer (subito), gli eventi di navigazione e il giro ogni 500 ms
         function checkAds() {
             if (!window.location.host.includes('youtube.com') && !window.location.host.includes('youtu.be') && !window.location.host.includes('youtubekids.com')) return;
@@ -402,12 +471,14 @@ object AdBlockJavascript {
             }
 
             if (isActuallyAd) {
+                if (!window.aabIsAdPlaying) startAdTrace(video);
                 window.aabIsAdPlaying = true;
                 if (!video.muted) {
                     video.muted = true;
                     video.dataset.aabAdMuted = 'true';
                 }
-                video.playbackRate = 16.0;
+                video.playbackRate = adSpeed(video);
+                traceAd(video);
 
                 // Pubblicità lunghe non saltabili: anche a 16x durano minuti, o si fermano a caricare perché il
                 // buffer non tiene il passo. Il video della pubblicità va alla fine e YouTube passa a quello vero.
@@ -434,6 +505,7 @@ object AdBlockJavascript {
             } else {
                 if (window.aabIsAdPlaying) {
                     window.aabIsAdPlaying = false;
+                    endAdTrace();
 
                     // Ritardo di assestamento per permettere a YouTube di ripristinare il timing del video principale
                     // ed evitare il salto a inizio video o il disalignamento della seekbar.
