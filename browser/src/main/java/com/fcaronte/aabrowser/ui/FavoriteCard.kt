@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -206,12 +207,14 @@ fun FavoriteAppCard(app: VirtualApps.AppEntry, onClick: () -> Unit) {
                 .clickable(onClick = onClick)
                 .padding(10.dp),
         ) {
+            // Grande quanto quella degli altri preferiti (28 dp): con il testo ingrandito dell'auto una più grande copriva il nome
             if (icon != null) {
                 Image(
                     bitmap = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(28.dp)
+                        .clip(CircleShape)
                         .align(Alignment.TopStart)
                 )
             } else {
@@ -220,7 +223,7 @@ fun FavoriteAppCard(app: VirtualApps.AppEntry, onClick: () -> Unit) {
                     null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(28.dp)
                         .align(Alignment.TopStart)
                 )
             }

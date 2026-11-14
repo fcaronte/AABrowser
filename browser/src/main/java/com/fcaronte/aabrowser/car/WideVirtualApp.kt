@@ -181,6 +181,12 @@ class WideVirtualApp(
             session?.close()
             session = VirtualAppSession(carContext, packageName, inCar = true).also { created ->
                 created.stateListener = { handler.post { updateStatus() } }
+                // Contenuti protetti voluti ma negati dal sistema: le banche e simili restano nere, si dice perché
+                created.onNotice = { notice ->
+                    if (notice == VirtualAppSession.Notice.SECURE_REFUSED) {
+                        handler.post { callbacks.message(strings().getString(R.string.vapp_secure_refused)) }
+                    }
+                }
             }
         }
         if (removeShizukuListeners == null) {

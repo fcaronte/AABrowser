@@ -172,6 +172,13 @@ object AppSettings {
     private val _virtualSecureContent = mutableStateOf(false)
     val virtualSecureContent: State<Boolean> = _virtualSecureContent
 
+    // La barra dell'app nella Main: accanto all'app (il display si restringe) invece che sopra; e la dimensione delle app
+    // sullo schermo virtuale in percentuale (la densità del display: più alta = app più grandi)
+    private val _virtualSidebarDocked = mutableStateOf(false)
+    val virtualSidebarDocked: State<Boolean> = _virtualSidebarDocked
+    private val _virtualAppScale = mutableIntStateOf(100)
+    val virtualAppScale: State<Int> = _virtualAppScale
+
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
 
@@ -261,6 +268,8 @@ object AppSettings {
         _tabBarVisibleCount.intValue = prefs.getInt("tab_bar_visible", TabBarAction.MAX_VISIBLE).coerceIn(1, TabBarAction.MAX_VISIBLE)
         _virtualStandby.value = prefs.getBoolean("virtual_standby", true)
         _virtualSecureContent.value = prefs.getBoolean("virtual_secure_content", false)
+        _virtualSidebarDocked.value = prefs.getBoolean("virtual_sidebar_docked", false)
+        _virtualAppScale.intValue = prefs.getInt("virtual_app_scale", 100).coerceIn(50, 200)
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
@@ -407,6 +416,17 @@ object AppSettings {
     fun setVirtualSecureContent(context: Context, enabled: Boolean) {
         _virtualSecureContent.value = enabled
         saveBoolean(context, "virtual_secure_content", enabled)
+    }
+
+    fun setVirtualSidebarDocked(context: Context, docked: Boolean) {
+        _virtualSidebarDocked.value = docked
+        saveBoolean(context, "virtual_sidebar_docked", docked)
+    }
+
+    fun setVirtualAppScale(context: Context, percent: Int) {
+        val value = percent.coerceIn(50, 200)
+        _virtualAppScale.intValue = value
+        saveInt(context, "virtual_app_scale", value)
     }
 
     fun setAudioBoostDb(context: Context, db: Float) {

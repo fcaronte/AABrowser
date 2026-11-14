@@ -120,7 +120,13 @@ class VirtualDisplayService @Keep constructor(base: Context?) : IVirtualDisplayS
                         entries[id] = Entry(virtualDisplay, surface, width, height, dpi, flags, keyboardOnDisplay)
                         val orientation = keepOrientation(id)
                         val keyboard = applyKeyboardPolicy(id, keyboardOnDisplay)
-                        val details = "flags=0x${flags.toString(16)} orientation=[$orientation] keyboard=$keyboard"
+                        // Se l'utente voleva i contenuti protetti: concessi, o rifiutati dal sistema (l'app lo dice all'utente)
+                        val secureNote = when {
+                            !secure -> "off"
+                            extra != 0 -> "granted"
+                            else -> "refused(${failure?.javaClass?.simpleName ?: "unknown"})"
+                        }
+                        val details = "flags=0x${flags.toString(16)} secure=$secureNote orientation=[$orientation] keyboard=$keyboard"
                         Log.i(TAG, "display $id ${width}x$height@$dpi $details")
                         // L'app mette i dettagli nel suo registro (questo processo non è nel registro che si condivide)
                         return "OK:$id;$details"

@@ -50,7 +50,8 @@ object ShizukuAppBridge {
             // "OK:<id>;<dettagli>": i dettagli (flag, orientamento, tastiera) vanno nel registro, che si condivide dall'app
             val id = if (reply.startsWith("OK:")) reply.removePrefix("OK:").substringBefore(';').toIntOrNull() ?: -1 else -1
             Log.i(TAG, "createDisplay ${width}x$height@$dpi secure=$secure -> ${reply.take(200)}")
-            main.post { onResult(id, if (id > 0) "" else reply.removePrefix("ERROR:")) }
+            // Aperto: i dettagli del servizio (flag, protetto sì o no, orientamento, tastiera); fallito: il motivo
+            main.post { onResult(id, if (id > 0) reply.substringAfter(';', "") else reply.removePrefix("ERROR:")) }
         }
     }
 

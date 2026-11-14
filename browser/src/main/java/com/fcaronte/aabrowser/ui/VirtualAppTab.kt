@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
@@ -59,10 +61,11 @@ import com.fcaronte.aabrowser.smartphone.VirtualApps
  * Una TextureView e non una SurfaceView: disegna dentro la finestra come ogni altra vista, quindi funziona anche nella
  * finestra proiettata sull'auto e sotto gli strati trasparenti di Compose (una SurfaceView sull'auto restava vuota).
  *
- * Sopra l'app, la barra laterale (indietro, altre app, tastiera, chiudi) e in alto a destra un tasto che la mostra o la
- * nasconde: la barra copre un po' dell'app invece di restringerla, così il display non cambia misura a ogni tocco e le
- * app non si ridisegnano. Con la scheda non scelta la superficie si toglie e il display resta fermo, l'app continua a
- * girare (audio compreso).
+ * La barra laterale (indietro, altre app, tastiera, chiudi) e in alto a destra un tasto che la mostra o la nasconde.
+ * Di serie la barra sta sopra l'app e ne copre un po', così il display non cambia misura a ogni tocco e le app non si
+ * ridisegnano; il primo tasto della barra la mette invece accanto all'app (il display si restringe, niente è coperto: una
+ * scelta che resta). Con la scheda non scelta la superficie si toglie e il display resta fermo, l'app continua a girare
+ * (audio compreso). I tocchi della vista vanno all'app rifatti puliti (RawTouch).
  */
 @SuppressLint("ClickableViewAccessibility")
 @Composable
@@ -154,35 +157,61 @@ fun VirtualAppTab(
         }
     }
 
+    // I contenuti protetti chiesti ma negati dal sistema (banche, Poste): l'utente lo deve sapere, altrimenti vede solo nero
+    val secureRefused = stringResource(R.string.vapp_secure_refused)
+    val feedback by rememberUpdatedState(onShowFeedback)
+    DisposableEffect(session) {
+        session.onNotice = { notice ->
+            if (notice == VirtualAppSession.Notice.SECURE_REFUSED) feedback(secureRefused)
+        }
+        onDispose { session.onNotice = null }
+    }
+
+    // La barra sta sopra l'app (la copre un po', il display non cambia misura) o accanto (il display si restringe)
+    val docked by AppSettings.virtualSidebarDocked
+    val sidebar: @Composable (Modifier) -> Unit = { modifier ->
+        VirtualAppSidebar(
+            modifier = modifier,
+            docked = docked,
+            onToggleDock = { AppSettings.setVirtualSidebarDocked(context, !docked) },
+            onBack = { session.key(android.view.KeyEvent.KEYCODE_BACK) },
+            onApps = onOpenApps,
+            onKeyboard = toggleKeyboard,
+            onClose = onClose
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                TextureView(ctx).apply {
-                    surfaceTextureListener = listener
-                    // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
-                    setOnTouchListener { _, event ->
-                        session.touch(event)
-                        true
+        Row(modifier = Modifier.fillMaxSize()) {
+            if (sidebarVisible && docked) sidebar(Modifier.fillMaxHeight())
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { ctx ->
+                        TextureView(ctx).apply {
+                            surfaceTextureListener = listener
+                            // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
+                            setOnTouchListener { _, event ->
+                                session.touchRaw(event)
+                                true
+                            }
+                        }
                     }
-                }
+                )
+
+                VirtualAppStatus(session = session, onClose = onClose)
+
+                if (sidebarVisible && !docked) sidebar(Modifier.align(Alignment.CenterStart).fillMaxHeight())
             }
-        )
-
-        VirtualAppStatus(session = session, onClose = onClose)
-
-        if (sidebarVisible) {
-            VirtualAppSidebar(
-                modifier = Modifier.align(Alignment.CenterStart),
-                onBack = { session.key(android.view.KeyEvent.KEYCODE_BACK) },
-                onApps = onOpenApps,
-                onKeyboard = toggleKeyboard,
-                onClose = onClose
-            )
         }
 
         // In alto a destra: mostra o nasconde la barra. Senza non si potrebbe tornare indietro dall'app a schermo intero
@@ -210,9 +239,14 @@ private class TextureInfo {
     var height = 0
 }
 
+// Stretta: i tasti da 40 dp bastano e all'app resta più spazio
+private val SIDEBAR_WIDTH = 44.dp
+
 @Composable
 private fun VirtualAppSidebar(
     modifier: Modifier,
+    docked: Boolean,
+    onToggleDock: () -> Unit,
     onBack: () -> Unit,
     onApps: () -> Unit,
     onKeyboard: () -> Unit,
@@ -221,14 +255,21 @@ private fun VirtualAppSidebar(
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .width(64.dp)
+            .width(SIDEBAR_WIDTH)
             .background(Color(0xE61E1E1E))
             // I tocchi sulla barra non arrivano all'app sotto, nemmeno fra un tasto e l'altro
             .pointerInput(Unit) {}
-            .padding(vertical = 8.dp),
+            .padding(vertical = 6.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Barra accanto all'app (il display si restringe e niente è coperto) o sopra: acceso quando sta accanto
+        SidebarButton(
+            Icons.Default.VerticalSplit,
+            if (docked) R.string.vapp_sidebar_overlay else R.string.vapp_sidebar_dock,
+            onToggleDock,
+            tint = if (docked) Color(0xFF8AB4F8) else Color.White
+        )
         SidebarButton(Icons.AutoMirrored.Filled.ArrowBack, R.string.vapp_back, onBack)
         SidebarButton(Icons.Default.Apps, R.string.apps_title, onApps)
         SidebarButton(Icons.Default.Keyboard, R.string.vapp_keyboard, onKeyboard)
@@ -237,9 +278,9 @@ private fun VirtualAppSidebar(
 }
 
 @Composable
-private fun SidebarButton(icon: ImageVector, label: Int, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
-        Icon(imageVector = icon, contentDescription = stringResource(label), tint = Color.White, modifier = Modifier.size(28.dp))
+private fun SidebarButton(icon: ImageVector, label: Int, onClick: () -> Unit, tint: Color = Color.White) {
+    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        Icon(imageVector = icon, contentDescription = stringResource(label), tint = tint, modifier = Modifier.size(24.dp))
     }
 }
 
@@ -266,7 +307,7 @@ private fun VirtualAppStatus(session: VirtualAppSession, onClose: () -> Unit) {
         else -> Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 88.dp),
+                .padding(horizontal = 72.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

@@ -491,6 +491,11 @@
     <string name="vapp_close">关闭应用</string>
     <string name="vapp_sidebar_show">显示侧栏</string>
     <string name="vapp_sidebar_hide">隐藏侧栏</string>
+    <string name="vapp_sidebar_dock">侧栏在应用旁边</string>
+    <string name="vapp_sidebar_overlay">侧栏覆盖在应用上</string>
+    <string name="vapp_secure_refused">系统不允许在虚拟屏幕上显示受保护的窗口：银行等应用会保持黑屏。</string>
+    <string name="vapp_scale_label">车机屏幕上的应用大小</string>
+    <string name="vapp_scale_desc">调大后应用更大、更容易点按，调小则显示更多内容。对此后打开的应用生效。</string>
     <string name="vapp_starting">正在打开应用…</string>
     <string name="vapp_error_missing">手机上未安装 Shizuku。</string>
     <string name="vapp_error_stopped">Shizuku 未运行：请在手机上打开并启动它。</string>

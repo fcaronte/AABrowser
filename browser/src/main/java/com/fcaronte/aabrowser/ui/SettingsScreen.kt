@@ -142,6 +142,7 @@ fun SettingsScreen(
     val tabBarMode by AppSettings.tabBarMode
     val virtualStandby by AppSettings.virtualStandby
     val virtualSecure by AppSettings.virtualSecureContent
+    val virtualAppScale by AppSettings.virtualAppScale
     val preloadFavorites by AppSettings.preloadFavorites
     val preloadFavoritesCount by AppSettings.preloadFavoritesCount
     val autoplayMedia by AppSettings.autoplayMedia
@@ -162,6 +163,7 @@ fun SettingsScreen(
     var expandedPassengerSection by remember { mutableStateOf(false) }
     var expandedMediaSection by remember { mutableStateOf(focusLists != null) }
     var expandedShareWhen by remember { mutableStateOf(false) }
+    var expandedVirtualScale by remember { mutableStateOf(false) }
     val youtubeVideoSkip by AppSettings.youtubeVideoSkip
     var expandedSingleVideo by remember { mutableStateOf(false) }
     var expandedWebSection by remember { mutableStateOf(false) }
@@ -710,6 +712,29 @@ fun SettingsScreen(
                                         description = stringResource(R.string.vapp_secure_desc),
                                         checked = virtualSecure,
                                         onCheckedChange = { AppSettings.setVirtualSecureContent(context, it) }
+                                    )
+                                    // La densità del display delle app in auto: più alta = app più grandi
+                                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                        Text(
+                                            text = stringResource(R.string.vapp_scale_label),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.vapp_scale_desc),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    SettingsChoiceList(
+                                        title = stringResource(R.string.vapp_scale_label),
+                                        options = listOf(70, 85, 100, 125, 150).map { it.toString() to "$it%" },
+                                        selectedKey = virtualAppScale.toString(),
+                                        expanded = expandedVirtualScale,
+                                        onExpandedChange = { expandedVirtualScale = it },
+                                        onSelect = {
+                                            AppSettings.setVirtualAppScale(context, it.toIntOrNull() ?: 100)
+                                            expandedVirtualScale = false
+                                        }
                                     )
                                 }
                             }

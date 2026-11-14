@@ -69,6 +69,15 @@ class VirtualAppSession(
     /** Chiamato a ogni cambio di fase o di problema, per le viste che non osservano lo stato di Compose (la Wide). */
     var stateListener: (() -> Unit)? = null
 
+    /** Un avviso per l'utente, una volta per apertura: ogni vista lo mostra a modo suo. */
+    enum class Notice { SECURE_REFUSED }
+
+    var onNotice: ((Notice) -> Unit)? = null
+
+    // I tocchi veri della Main si rifanno puliti prima di andare al display (vedi RawTouch)
+    private val rawTouch = RawTouch()
+    private var gesturesLogged = 0
+
     val isRunning: Boolean get() = phase == Phase.RUNNING
 
     /** La vista ha una superficie (o nuove misure): crea il display, o lo ridimensiona e gli ridà la superficie. */
@@ -77,8 +86,10 @@ class VirtualAppSession(
         this.surface = surface
         this.width = width
         this.height = height
-        this.dpi = dpi.coerceAtLeast(60)
-        Log.i(TAG, "surface ${width}x$height@${this.dpi} (display $displayId, phase $phase)")
+        // La dimensione scelta dall'utente per le app sullo schermo virtuale (Impostazioni): la densità sale o scende
+        val scale = AppSettings.virtualAppScale.value
+        this.dpi = (dpi * scale / 100).coerceIn(60, 1000)
+        Log.i(TAG, "surface ${width}x$height, density $dpi x $scale% = ${this.dpi} (display $displayId, phase $phase)")
         if (displayId <= 0 && phase != Phase.RUNNING) step = 1
 
         if (displayId > 0) {
@@ -119,6 +130,8 @@ class VirtualAppSession(
             }
             displayId = id
             step = 3
+            // Contenuti protetti voluti ma il sistema non li concede: le banche e simili restano nere, l'utente lo deve sapere
+            if (AppSettings.virtualSecureContent.value && !message.contains("secure=granted")) onNotice?.invoke(Notice.SECURE_REFUSED)
             stateListener?.invoke()
             // Nel frattempo la superficie può essere cambiata o sparita
             if (this.surface !== createdWith) {
@@ -160,6 +173,22 @@ class VirtualAppSession(
     /** Tocco in pixel del display (le coordinate della vista: il display ha le sue stesse misure). */
     fun touch(event: MotionEvent) {
         if (displayId > 0 && phase == Phase.RUNNING) ShizukuAppBridge.touch(displayId, event)
+    }
+
+    /**
+     * Tocco vero della vista della Main (coordinate della vista: il display ha le sue stesse misure). Si rifa pulito prima di
+     * mandarlo (alla Wide i tocchi li fa [VirtualTouch], e i suoi scorrimenti funzionavano; quelli della Main no).
+     */
+    fun touchRaw(event: MotionEvent) {
+        if (displayId <= 0 || phase != Phase.RUNNING) return
+        val clean = rawTouch.convert(event) ?: return
+        try {
+            ShizukuAppBridge.touch(displayId, clean)
+        } finally {
+            clean.recycle()
+        }
+        // I primi gesti nel registro: se uno scorrimento non va, si vede se le mosse arrivano
+        rawTouch.takeSummary()?.let { if (gesturesLogged++ < MAX_GESTURE_LOGS) Log.i(TAG, it) }
     }
 
     fun key(keyCode: Int) {
@@ -253,5 +282,6 @@ class VirtualAppSession(
     companion object {
         private const val TAG = "VirtualAppSession"
         private const val MAX_RECREATIONS = 1
+        private const val MAX_GESTURE_LOGS = 40
     }
 }

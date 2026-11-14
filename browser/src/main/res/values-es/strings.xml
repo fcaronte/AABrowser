@@ -493,6 +493,11 @@
     <string name="vapp_close">Cerrar la app</string>
     <string name="vapp_sidebar_show">Mostrar la barra</string>
     <string name="vapp_sidebar_hide">Ocultar la barra</string>
+    <string name="vapp_sidebar_dock">Barra junto a la app</string>
+    <string name="vapp_sidebar_overlay">Barra sobre la app</string>
+    <string name="vapp_secure_refused">El sistema no permite ventanas protegidas en la pantalla virtual: las apps bancarias y similares se quedan en negro.</string>
+    <string name="vapp_scale_label">Tamaño de las apps en la pantalla del coche</string>
+    <string name="vapp_scale_desc">Más grande hace las apps más grandes y fáciles de tocar, más pequeño muestra más contenido. Se aplica a las apps abiertas a partir de ahora.</string>
     <string name="vapp_starting">Abriendo la app…</string>
     <string name="vapp_error_missing">Shizuku no está instalado en el teléfono.</string>
     <string name="vapp_error_stopped">Shizuku no está en marcha: ábrelo en el teléfono e inícialo.</string>
