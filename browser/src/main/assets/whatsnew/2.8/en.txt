@@ -3,5 +3,8 @@
 • Tab bar buttons of your choice: which ones, in what order and how many show together; the others are one swipe away.
 • Desktop or mobile site: the choice now really sticks, also on YouTube and on sites that change address (m. / www.), and the site-specific fixes come back when you return to mobile.
 • YouTube fullscreen: Fit, Fill and Stretch also work on the desktop site.
+• TV in fullscreen: a tap on the video also shows a small panel to change channel.
+• Radio: the music player's animated visual effects (bars, wave, circle), from the button next to the controls.
+• A video whose sound the phone cannot decode says so and suggests opening it with the app you normally use, from Other Apps.
 
-Apps that hide their windows (banks, Poste) and hardware-DRM video (Netflix) stay black: a virtual screen cannot show them.
+Apps that hide their windows (banks, Poste) show if the phone allows it; otherwise they stay black and CarWeb tells you so. Hardware-DRM video (Netflix) stays black: a virtual screen cannot show it.
