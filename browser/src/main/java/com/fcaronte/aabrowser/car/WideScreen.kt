@@ -193,6 +193,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Quanti tocchi dello schermo diviso scrivere nel log (a ogni apertura della Wide): bastano per capire dove vanno
         private const val SPLIT_TAP_LOG_LIMIT = 60
 
+        // Prima di uccidere il processo con Esci: il tempo di scrivere le preferenze in coda
+        private const val EXIT_RESTART_DELAY_MS = 300L
+
+        // All'inizio della pagina l'elemento radice non c'è ancora (provato in Chrome): lo si aspetta con un osservatore, così la
+        // classe c'è prima del primo disegno
+        private const val IN_WIDE_SCRIPT =
+            "(function(){var m=function(){if(!document.documentElement)return false;" +
+                "document.documentElement.classList.add('in-wide');return true;};" +
+                "if(!m()){var o=new MutationObserver(function(){if(m())o.disconnect();});o.observe(document,{childList:true});}})();"
+
         // Margine extra dei tasti del dock, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
 
@@ -1088,13 +1098,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (reopenEnabled() && saved.isNotEmpty()) loadUrl(saved) else showHome()
     }
 
+    /**
+     * Esci: l'app riparte pulita, come l'uscita della Main (che uccide il processo e Android Auto la riapre). Una chiusura
+     * ordinata (`finishCarApp`) porta Android Auto alla sua home: davanti la Main e la Wide a fianco, invece di riaprire la Wide
+     * (prova dell'utente del 15/11/2026). Con il processo che muore mentre la Wide è davanti, Android Auto la ricrea da sola con
+     * gli stessi extra (visto dopo un crash). Una breve attesa lascia scrivere le preferenze in coda (apply()).
+     */
     private fun closeApp() {
-        try {
-            carContext.getCarService(NavigationManager::class.java).navigationEnded()
-        } catch (e: Exception) {
-            Log.w(TAG, "navigationEnded failed", e)
-        }
-        carContext.finishCarApp()
+        Log.d(TAG, "Exit: the app restarts (process killed, Android Auto reopens the Wide)")
+        handler.postDelayed({ android.os.Process.killProcess(android.os.Process.myPid()) }, EXIT_RESTART_DELAY_MS)
     }
 
     // ------------------------------------------------------------------
@@ -2168,6 +2180,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 SponsorBlock.script(carContext),
                                 AdBlockJavascript.YOUTUBE_ORIGINS
                             )
+                            // Le pagine di CarWeb nella Wide sanno di esserlo: la loro barra in alto lascia libero l'angolo del tasto
+                            // che l'host vuole per forza (player.css, .in-wide)
+                            WebViewCompat.addDocumentStartJavaScript(this, IN_WIDE_SCRIPT, setOf("https://player.local", "https://home.local"))
                             WebViewCompat.addDocumentStartJavaScript(this, DaznManager.getAuthProxyScript(), setOf("https://www.dazn.com"))
                             // Aggiungi anche lo script per salvare l'elemento attivo
                             WebViewCompat.addDocumentStartJavaScript(this, BrowserJavascript.getAutoSaveActiveElementScript(), setOf("*"))

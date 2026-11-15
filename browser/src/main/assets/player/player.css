@@ -70,6 +70,15 @@ svg {
     min-width: 0;
 }
 
+/*
+ * Nella Wide (la classe la mette l'app all'inizio della pagina) l'angolo in alto a destra è del tasto che Android Auto vuole
+ * per forza (mostra e nasconde il dock): i tasti della barra in alto, come l'aggiorna e il cerca, gli stanno prima. La fascia
+ * alta dell'host è di 70-90 px.
+ */
+.in-wide .bar {
+    padding-inline-end: var(--host-end, 96px);
+}
+
 .text-button {
     flex: none;
     min-height: 48px;

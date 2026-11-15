@@ -83,6 +83,11 @@ svg {
     align-items: flex-end;
     justify-content: space-between;
     gap: 8px;
+    /*
+     * Nell'angolo in alto a destra c'è il tasto che Android Auto vuole per forza (mostra e nasconde il dock): chi gli sta sotto
+     * non si tocca. I tasti della home si fermano prima (la fascia alta dell'host è di 70-90 px)
+     */
+    padding-inline-end: var(--host-end, 96px);
 }
 
 .brand {
@@ -659,8 +664,12 @@ svg {
     transform: translateX(-50%);
 }
 
-/* Schermo stretto (il telefono in verticale): un modulo a una colonna */
+/* Schermo stretto (il telefono in verticale): un modulo a una colonna, e nessun tasto dell'host da evitare */
 @media (max-width: 640px) {
+    .top {
+        padding-inline-end: 0;
+    }
+
     .sheet-body {
         grid-template-columns: 1fr;
     }
