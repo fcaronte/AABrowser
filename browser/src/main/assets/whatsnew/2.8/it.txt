@@ -6,6 +6,7 @@
 • TV: se un canale si ferma senza che tu abbia messo in pausa, riprende da solo; a schermo intero una fila di canali per saltare a quello che vuoi. I preferiti sono sempre in vista in TV, Radio e Podcast.
 • Radio: effetti animati (barre, onda, cerchio) e un messaggio quando una stazione non parte o resta muta.
 • Pulsanti a destra delle schede a scelta, Potenziamento audio e Adatta, Riempi, Allunga anche su YouTube per computer.
+• In CarWebWide lo schermo diviso manda scorrimento e Indietro al pannello toccato per ultimo (Android Auto non dà la posizione del dito). Il tasto esci riavvia l'app: utile, per esempio, quando il player di CarWeb non si è avviato.
 • Aggiornamenti e link continuano a funzionare quando il repository GitHub cambia nome in CarWeb.
 
 Le app che nascondono la loro finestra (banche, Poste) si vedono se il telefono lo permette; i video con DRM hardware (Netflix) restano neri.

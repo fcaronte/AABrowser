@@ -31,7 +31,7 @@ from the misuse of this application. Use at your own risk.
   or the app menu, with a side menu (the dock: back, forward, home, reload, search, AdBlock, desktop, voice, favorite, share,
   settings, exit; you choose which buttons and in what order in Settings, Home is always there) that the button at the top right
   shows or hides, together with the side bar of a phone app when one is open (new in 2.8). CarWeb can show the same side menu too (Settings),
-  and its round menu button then opens and closes it. *Limits set by Android Auto for this kind of app:* only the
+  and its round menu button then opens and closes it. The exit button restarts the app: handy when, for example, the CarWeb player has not started. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar). Each app opens the other: **CarWebWide** at the top of the CarWeb
   dashboard, **↗ CarWeb** on the CarWebWide home. Keep both apps in the Android Auto menu: CarWebWide hidden
@@ -111,7 +111,7 @@ from the misuse of this application. Use at your own risk.
   phone stays awake behind a black "CarWeb attivo" screen (swipe to get the phone back). Protected video (Netflix and the like,
   Widevine L1) stays black: Android does not allow it on a virtual screen. Apps that hide their windows (Poste, banks) are shown when the
   phone allows it (CarWeb always asks) and otherwise stay black, as in AnyAuto: CarWeb tells you when an app stays black. The size of the apps is a choice in Settings. Portrait-only apps are shown with side bands. The idea comes
-  from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
+  from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page. Split view (Settings > Other Apps) puts the browser and the app side by side, 65/35 by default; in CarWebWide Android Auto gives no finger position for drags, so scrolling and Back go to the panel you touched last.
 * **Tab bar buttons (new in 2.8):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
 * **Audio boost (new in 2.8):** Settings > Audio boost raises the volume of pages and compatible media from 0 to +15 dB (it may not work on
@@ -284,7 +284,7 @@ proprio rischio e pericolo.
   o al menu delle app, con un menu laterale (il dock: indietro, avanti, home, ricarica, cerca, AdBlock, desktop, voce, preferiti,
   condividi, impostazioni, esci; scegli quali tasti e in che ordine nelle Impostazioni, Home c'è sempre) che il tasto in alto a destra
   mostra o nasconde, insieme alla barra laterale di un'app del telefono se ce n'è una aperta (novità 2.8). Anche CarWeb può mostrare lo stesso
-  menu laterale (Impostazioni), e il suo tasto rotondo del menu lo apre e lo chiude. *Limiti imposti da Android Auto a questo tipo di app:*
+  menu laterale (Impostazioni), e il suo tasto rotondo del menu lo apre e lo chiude. Il tasto esci riavvia l'app: utile, per esempio, quando il player di CarWeb non si è avviato. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento). Ogni app apre l'altra:
   **CarWebWide** in alto nella dashboard di CarWeb, **↗ CarWeb** nella home di CarWebWide. Tieni entrambe le app
@@ -370,7 +370,7 @@ proprio rischio e pericolo.
   (Poste, banche) si vedono se il telefono lo permette (CarWeb lo chiede sempre) e altrimenti restano nere, come in AnyAuto: CarWeb avvisa
   quando un'app resta nera. La dimensione delle app si sceglie nelle Impostazioni. Le app solo verticali si vedono con
   due bande ai lati. L'idea viene da [AnyAuto](https://github.com/GitMag/AnyAuto); il codice è nostro. Non tutti i telefoni lo permettono: lo stato
-  è in alto nella pagina.
+  è in alto nella pagina. Lo schermo diviso (Impostazioni > Altre App) mette il browser e l'app uno accanto all'altra, 65/35 di serie; in CarWebWide Android Auto non dà la posizione del dito nei trascinamenti, quindi scorrimento e Indietro vanno al pannello toccato per ultimo.
 * **Pulsanti della barra delle schede (novità 2.8):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
   ordine e quanti vedere insieme; gli altri sono a uno scorrimento di distanza.
 * **Potenziamento audio (novità 2.8):** Impostazioni > Potenziamento audio alza il volume delle pagine e dei contenuti compatibili da 0 a +15 dB

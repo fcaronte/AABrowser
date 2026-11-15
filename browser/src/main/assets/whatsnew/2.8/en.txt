@@ -6,6 +6,7 @@
 • TV: if a channel stops without you pausing it, it resumes by itself; in fullscreen a row of channels to jump straight to the one you want. Favorites are always in view in TV, Radio and Podcasts.
 • Radio: animated effects (bars, wave, circle) and a message when a station does not start or stays silent.
 • Tab bar buttons of your choice, Audio boost, and Fit, Fill, Stretch also on YouTube for computers.
+• In CarWebWide split view, scrolling and Back go to the panel you touched last (Android Auto gives no finger position). The exit button restarts the app: handy when, for example, the CarWeb player has not started.
 • Updates and links keep working when the GitHub repository is renamed to CarWeb.
 
 Apps that hide their windows (banks, Poste) show if the phone allows it; hardware-DRM video (Netflix) stays black.

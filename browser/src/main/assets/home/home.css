@@ -80,14 +80,15 @@ svg {
 
 .top {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
     /*
      * Nell'angolo in alto a destra c'è il tasto che Android Auto vuole per forza (mostra e nasconde il dock): chi gli sta sotto
      * non si tocca. I tasti della home si fermano prima (la fascia alta dell'host è di 70-90 px)
      */
-    padding-inline-end: var(--host-end, 96px);
+    /* Il margine della pagina (16 px) conta già: 36 px in meno dello spazio da lasciare = i tasti circa 1 cm più a destra (utente, 15/11/2026) */
+    padding-inline-end: calc(var(--host-end, 96px) - 36px);
 }
 
 .brand {
