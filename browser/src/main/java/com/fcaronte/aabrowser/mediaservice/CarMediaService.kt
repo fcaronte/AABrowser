@@ -899,6 +899,13 @@ class CarMediaService : MediaBrowserServiceCompat() {
             runningService?.get()?.applyVoiceListening(listening, text)
         }
 
+        /** Una pagina sta suonando sul player di Android Auto (non il meteo, non in pausa): serve a riprenderla dopo un'app (VirtualAppAudio). */
+        fun isBrowserPlaying(): Boolean {
+            val service = runningService?.get() ?: return false
+            val state = service.mMediacontrollercompat?.playbackState?.state ?: return false
+            return service.isPlayingState(state)
+        }
+
         /** Comandi vocali "pausa", "riprendi", "prossimo", "precedente": come i tasti del player di Android Auto. */
         fun sendPlayerCommand(action: VoiceCommands.PlayerAction) {
             val controls = runningService?.get()?.mMediacontrollercompat?.transportControls ?: return

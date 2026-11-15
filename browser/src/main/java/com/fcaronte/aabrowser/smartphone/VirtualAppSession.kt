@@ -36,6 +36,11 @@ class VirtualAppSession(
 
     private val appContext = context.applicationContext
 
+    init {
+        // Finché c'è un'app aperta si guarda l'audio: quando smette, il browser che suonava riprende (VirtualAppAudio)
+        VirtualAppAudio.acquire(appContext)
+    }
+
     var phase by mutableStateOf(Phase.IDLE)
         private set
     var problem by mutableStateOf<Problem?>(null)
@@ -231,6 +236,7 @@ class VirtualAppSession(
     fun close() {
         if (closed) return
         closed = true
+        VirtualAppAudio.release()
         stopBlackWatch()
         val id = displayId
         displayId = -1
