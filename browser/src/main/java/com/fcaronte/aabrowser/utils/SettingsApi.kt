@@ -252,6 +252,10 @@ object SettingsApi {
         pick("virtual_split_side", { AppSettings.virtualSplitSide.value.name }) { c, v ->
             VirtualSplit.Side.entries.firstOrNull { it.name == v }?.also { AppSettings.setVirtualSplitSide(c, it) } != null
         }
+        number(
+            "bt_pointer_speed", BtInput.MIN_SPEED..BtInput.MAX_SPEED, BtInput.SPEED_STEP,
+            { AppSettings.btPointerSpeed.value }
+        ) { c, n -> AppSettings.setBtPointerSpeed(c, n) }
         flag("force_english", { AppSettings.forceEnglish.value }) { c, v -> AppSettings.setForceEnglish(c, v) }
         number("ui_scale", 50..150, 5, { (AppSettings.uiScale.value * 100).roundToInt() }) { c, n -> AppSettings.setUiScale(c, n / 100f) }
         flag("custom_search_engine", { AppSettings.customSearchEngine.value }) { c, v -> AppSettings.setCustomSearchEngine(c, v) }

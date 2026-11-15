@@ -550,4 +550,12 @@
     <string name="player_other_apps_hint">جرّب فتح الملف بالتطبيق الذي تستخدمه عادةً على هاتفك، من «تطبيقات أخرى».</string>
     <string name="player_no_audio">هذا الفيديو لا يحتوي على مسار صوتي.</string>
     <string name="player_audio_unsupported">لا يمكن تشغيل صوت هذا الفيديو (%1$s) هنا: محرك المتصفح في الهاتف لا يفك ترميز هذا التنسيق.</string>
+    <string name="bt_input_label">ماوس ولوحة مفاتيح Bluetooth</string>
+    <string name="bt_input_desc">تحكّم في شاشة السيارة بماوس أو لوحة مفاتيح Bluetooth متصلة بالهاتف. يجب أن تبقى شاشة التحكم مفتوحة على الهاتف.</string>
+    <string name="bt_input_open">فتح شاشة التحكم</string>
+    <string name="bt_pointer_speed">سرعة المؤشر: %1$d%%</string>
+    <string name="bt_input_title">ماوس ولوحة مفاتيح Bluetooth</string>
+    <string name="bt_input_on">أنت تتحكم في %1$s على شاشة السيارة</string>
+    <string name="bt_input_off">لا توجد شاشة من CarWeb في المقدمة على السيارة. افتح CarWeb أو CarWebWide هناك.</string>
+    <string name="bt_input_hint">أبقِ هذه الشاشة مفتوحة: الماوس ولوحة المفاتيح المتصلان بالهاتف يتحكمان في شاشة السيارة. النقر بزر الماوس الأيمن أو Esc: رجوع. F5: إعادة التحميل. Ctrl+L: بحث. Ctrl+T وCtrl+W: علامة تبويب جديدة وإغلاقها. Ctrl+Tab: علامة التبويب التالية. المس هذه الشاشة لإعادة تفعيل الماوس. زر الرجوع للخروج.</string>
 </resources>

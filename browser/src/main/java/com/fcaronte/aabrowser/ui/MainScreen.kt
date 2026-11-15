@@ -77,6 +77,7 @@ import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.AutoOpenFavorite
+import com.fcaronte.aabrowser.utils.BtInput
 import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.IptvSources
@@ -203,6 +204,8 @@ fun MainScreen(
     var showDashboardSearch by remember { mutableStateOf(false) }
     var showBrowserSearch by remember { mutableStateOf(false) }
     val isGlobalSearchActive = showDashboardSearch || showBrowserSearch
+    // Ctrl+L di una tastiera Bluetooth (BtInputActivity): ogni richiesta apre la ricerca del browser
+    var browserSearchRequest by remember { mutableIntStateOf(0) }
 
     // Primo indietro sulla home: finché resta il messaggio il prossimo lo gestisce il sistema, che esce dall'app
     var exitArmed by remember { mutableStateOf(false) }
@@ -512,19 +515,73 @@ fun MainScreen(
             // Indietro del telefono: la pagina precedente della scheda, poi la home e da lì l'uscita al secondo tocco.
             // Prima di tutti gli altri: i riquadri aperti rispondono per primi
             val backAgainToExit = stringResource(R.string.back_again_to_exit)
-            PhoneBackHandler(enabled = currentScreen != Screen.Splash && !(currentScreen == Screen.Dashboard && exitArmed)) {
+            // Un passo indietro: la pagina precedente della scheda, poi la home; dalle Impostazioni e dalle schede si torna a
+            // dov'eravamo. false = si è già alla home, dove il telefono chiede il secondo Indietro per uscire
+            val stepBack: () -> Boolean = {
                 when (currentScreen) {
-                    is Screen.Browser ->
+                    is Screen.Browser -> {
                         // Un'app del telefono torna indietro da sola; per uscirne ci sono la barra dell'app e le schede
                         if (VirtualApps.isAppUrl(TabManager.activeTab?.url)) goBack()
                         else if (isFullScreen || activeWebView?.canGoBack() == true) backTrigger++
                         else currentScreen = Screen.Dashboard
-                    is Screen.Settings -> currentScreen = previousScreen
-                    is Screen.TabManager ->
+                        true
+                    }
+                    is Screen.Settings -> {
+                        currentScreen = previousScreen
+                        true
+                    }
+                    is Screen.TabManager -> {
                         currentScreen = if (TabManager.tabs.isEmpty()) Screen.Dashboard else previousScreen
-                    else -> {
-                        exitArmed = true
-                        feedbackMessage = backAgainToExit
+                        true
+                    }
+                    else -> false
+                }
+            }
+            PhoneBackHandler(enabled = currentScreen != Screen.Splash && !(currentScreen == Screen.Dashboard && exitArmed)) {
+                if (!stepBack()) {
+                    exitArmed = true
+                    feedbackMessage = backAgainToExit
+                }
+            }
+
+            // Mouse e tastiera Bluetooth del telefono sullo schermo dell'auto (BtInputActivity): i tasti rapidi sono quelli di
+            // un browser per computer. Il puntatore e i tasti normali arrivano alla finestra da MainBtTarget
+            if (isAutomotive) {
+                val currentStepBack by rememberUpdatedState(stepBack)
+                val btHomeUrl = stringResource(AppSettings.effectiveSearchEngine.homeUrlRes)
+                val currentBtHomeUrl by rememberUpdatedState(btHomeUrl)
+                LaunchedEffect(Unit) {
+                    BtShortcuts.events.collect { shortcut ->
+                        fun otherTab(step: Int) {
+                            val count = TabManager.tabs.size
+                            if (count > 1) {
+                                TabManager.switchTab((TabManager.activeTabIndex + step + count) % count)
+                                currentScreen = Screen.Browser
+                            }
+                        }
+                        when (shortcut) {
+                            BtInput.Shortcut.BACK -> currentStepBack()
+                            BtInput.Shortcut.FORWARD -> if (currentScreen == Screen.Browser) forwardTrigger++
+                            BtInput.Shortcut.RELOAD -> if (currentScreen == Screen.Browser) reloadTrigger++
+                            BtInput.Shortcut.HOME -> currentScreen = Screen.Dashboard
+                            BtInput.Shortcut.SEARCH -> when (currentScreen) {
+                                is Screen.Dashboard -> showDashboardSearch = true
+                                is Screen.Browser -> browserSearchRequest++
+                                else -> Unit
+                            }
+                            BtInput.Shortcut.NEXT_TAB -> otherTab(1)
+                            BtInput.Shortcut.PREVIOUS_TAB -> otherTab(-1)
+                            BtInput.Shortcut.CLOSE_TAB -> if (TabManager.activeTabIndex >= 0) {
+                                TabManager.closeTab(TabManager.activeTabIndex)
+                                if (TabManager.tabs.isEmpty()) currentScreen = Screen.Dashboard
+                            }
+                            BtInput.Shortcut.NEW_TAB ->
+                                if (AppSettings.openDashboardOnNewTab.value) currentScreen = Screen.Dashboard
+                                else {
+                                    TabManager.addTab(currentBtHomeUrl)
+                                    currentScreen = Screen.Browser
+                                }
+                        }
                     }
                 }
             }
@@ -925,6 +982,7 @@ fun MainScreen(
 
                             NavigationOverlay(
                                 currentUrl = activeTab?.url ?: "",
+                                searchRequest = browserSearchRequest,
                                 onGoBack = {
                                     goBack()
                                     onInteraction()
@@ -1077,6 +1135,9 @@ fun MainScreen(
                         )
                     }
                 }
+
+                // Il puntatore del mouse Bluetooth del telefono (BtInputActivity), solo sullo schermo dell'auto
+                if (isAutomotive) BtCursorOverlay(modifier = Modifier.zIndex(101f))
 
                 // Tasto Emergenza Globale (permette di chiudere la tastiera AA forzatamente)
                 if (isKeyboardActiveManual) {

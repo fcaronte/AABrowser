@@ -65,7 +65,7 @@ internal class SettingsNative {
         val COMMON = setOf("close", "restart")
         val PHONE = setOf(
             "open_link", "share_logs", "change_language", "weather_permission", "backup_export", "backup_import",
-            "iptv_m3u", "iptv_file", "iptv_xtream", "iptv_country", "iptv_rss", "iptv_opml", "adblock_custom",
+            "iptv_m3u", "iptv_file", "iptv_xtream", "iptv_country", "iptv_rss", "iptv_opml", "adblock_custom", "bt_input",
         )
     }
 }

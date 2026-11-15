@@ -546,4 +546,12 @@
     <string name="player_other_apps_hint">Öffne die Datei mit der App, die du sonst auf dem Telefon benutzt, über „Weitere Apps“.</string>
     <string name="player_no_audio">Dieses Video hat keine Tonspur.</string>
     <string name="player_audio_unsupported">Der Ton dieses Videos (%1$s) kann hier nicht abgespielt werden: Die Browser-Engine des Telefons dekodiert dieses Format nicht.</string>
+    <string name="bt_input_label">Bluetooth-Maus und -Tastatur</string>
+    <string name="bt_input_desc">Steuere den Autobildschirm mit einer Bluetooth-Maus oder -Tastatur, die mit dem Smartphone verbunden ist. Der Steuerungsbildschirm muss auf dem Smartphone geöffnet bleiben.</string>
+    <string name="bt_input_open">Steuerungsbildschirm öffnen</string>
+    <string name="bt_pointer_speed">Zeigergeschwindigkeit: %1$d%%</string>
+    <string name="bt_input_title">Bluetooth-Maus und -Tastatur</string>
+    <string name="bt_input_on">Du steuerst %1$s auf dem Autobildschirm</string>
+    <string name="bt_input_off">Im Auto ist kein CarWeb-Bildschirm im Vordergrund. Öffne dort CarWeb oder CarWebWide.</string>
+    <string name="bt_input_hint">Lass diesen Bildschirm geöffnet: Maus und Tastatur am Smartphone steuern den Autobildschirm. Rechtsklick oder Esc: zurück. F5: neu laden. Strg+L: suchen. Strg+T und Strg+W: neuer Tab und Tab schließen. Strg+Tab: nächster Tab. Tippe auf diesen Bildschirm, um die Maus wieder zu aktivieren. Zurück beendet.</string>
 </resources>

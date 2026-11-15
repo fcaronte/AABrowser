@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -101,9 +102,14 @@ fun NavigationOverlay(
     dockMode: Boolean = false,
     dockOpen: Boolean = true,
     onDockToggle: () -> Unit = {},
+    // Una tastiera Bluetooth (Ctrl+L): ogni numero nuovo apre la ricerca
+    searchRequest: Int = 0,
 ) {
     var showQRCode by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(searchRequest) {
+        if (searchRequest > 0) showSearchDialog = true
+    }
 
     // Cosa fa ogni tasto del dock: gli stessi gesti del menu a ventaglio
     val sidebarActions by AppSettings.sidebarActions

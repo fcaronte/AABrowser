@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.fcaronte.aabrowser.BtInputActivity
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
@@ -152,6 +153,9 @@ internal fun SettingsPhoneActions(native: SettingsNative, onFeedback: (String) -
                 "iptv_rss" -> sectionAmong(IptvSources.Section.PODCAST)?.let { dialog = PhoneDialog.Rss }
                 "iptv_opml" -> sectionAmong(IptvSources.Section.PODCAST)?.let { opmlFile.launch(arrayOf("*/*")) }
                 "adblock_custom" -> dialog = PhoneDialog.AdBlock
+                // Mouse e tastiera Bluetooth del telefono per lo schermo dell'auto: una schermata da lasciare aperta
+                // (dall'Activity: il contesto di MainScreen non lo è, e senza una nuova attività non può avviarne altre)
+                "bt_input" -> activity?.startActivity(Intent(activity, BtInputActivity::class.java))
             }
         }
     }

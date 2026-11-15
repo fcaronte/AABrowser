@@ -314,6 +314,19 @@ internal object SettingsSchema {
                     ),
                 )
             ),
+            // Mouse e tastiera Bluetooth collegati al telefono che comandano lo schermo dell'auto: la schermata si apre dal telefono
+            Card(
+                listOf(
+                    Buttons(
+                        label = R.string.bt_input_label, desc = R.string.bt_input_desc,
+                        buttons = listOf(Btn(R.string.bt_input_open, nat = "bt_input", notPhone = R.string.not_available_in_car))
+                    ),
+                    Stepper(
+                        "bt_pointer_speed", BtInput.MIN_SPEED, BtInput.MAX_SPEED, BtInput.SPEED_STEP,
+                        format = R.string.bt_pointer_speed
+                    ),
+                )
+            ),
             Card(listOf(Switch("force_english", R.string.force_english_label, R.string.force_english_desc))),
             Card(listOf(Stepper("ui_scale", 50, 150, 5, label = R.string.ui_scale_label, desc = R.string.ui_scale_desc, unit = "%"))),
             Card(

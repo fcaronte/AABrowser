@@ -546,4 +546,12 @@
     <string name="player_other_apps_hint">फ़ाइल को उस ऐप से खोलकर देखें जिसे आप फ़ोन पर आम तौर पर इस्तेमाल करते हैं, “अन्य ऐप्स” से।</string>
     <string name="player_no_audio">इस वीडियो में कोई ऑडियो ट्रैक नहीं है।</string>
     <string name="player_audio_unsupported">इस वीडियो की आवाज़ (%1$s) यहाँ नहीं चल सकती: फ़ोन का ब्राउज़र इंजन इस फ़ॉर्मैट को डिकोड नहीं करता।</string>
+    <string name="bt_input_label">ब्लूटूथ माउस और कीबोर्ड</string>
+    <string name="bt_input_desc">फ़ोन से जुड़े ब्लूटूथ माउस या कीबोर्ड से कार की स्क्रीन को नियंत्रित करें। नियंत्रण स्क्रीन फ़ोन पर खुली रहनी चाहिए।</string>
+    <string name="bt_input_open">नियंत्रण स्क्रीन खोलें</string>
+    <string name="bt_pointer_speed">पॉइंटर की गति: %1$d%%</string>
+    <string name="bt_input_title">ब्लूटूथ माउस और कीबोर्ड</string>
+    <string name="bt_input_on">आप कार की स्क्रीन पर %1$s को नियंत्रित कर रहे हैं</string>
+    <string name="bt_input_off">कार पर कोई CarWeb स्क्रीन सामने नहीं है। वहाँ CarWeb या CarWebWide खोलें।</string>
+    <string name="bt_input_hint">इस स्क्रीन को खुला रखें: फ़ोन से जुड़े माउस और कीबोर्ड कार की स्क्रीन को नियंत्रित करते हैं। राइट क्लिक या Esc: वापस। F5: रीलोड। Ctrl+L: खोज। Ctrl+T और Ctrl+W: नया टैब और टैब बंद करें। Ctrl+Tab: अगला टैब। माउस दोबारा चालू करने के लिए इस स्क्रीन को छुएँ। बाहर निकलने के लिए बैक।</string>
 </resources>

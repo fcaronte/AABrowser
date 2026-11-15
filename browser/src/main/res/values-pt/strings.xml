@@ -547,4 +547,12 @@
     <string name="player_other_apps_hint">Experimente abrir o ficheiro com a app que costuma usar no telemóvel, a partir de «Outras apps».</string>
     <string name="player_no_audio">Este vídeo não tem faixa de áudio.</string>
     <string name="player_audio_unsupported">O som deste vídeo (%1$s) não pode ser reproduzido aqui: o motor do navegador do telemóvel não descodifica este formato.</string>
+    <string name="bt_input_label">Rato e teclado Bluetooth</string>
+    <string name="bt_input_desc">Controle o ecrã do carro com um rato ou um teclado Bluetooth ligado ao telemóvel. O ecrã de controlo tem de ficar aberto no telemóvel.</string>
+    <string name="bt_input_open">Abrir o ecrã de controlo</string>
+    <string name="bt_pointer_speed">Velocidade do ponteiro: %1$d%%</string>
+    <string name="bt_input_title">Rato e teclado Bluetooth</string>
+    <string name="bt_input_on">Está a controlar %1$s no ecrã do carro</string>
+    <string name="bt_input_off">Nenhum ecrã do CarWeb está à frente no carro. Abra lá o CarWeb ou o CarWebWide.</string>
+    <string name="bt_input_hint">Mantenha este ecrã aberto: o rato e o teclado ligados ao telemóvel controlam o ecrã do carro. Clique direito ou Esc: voltar. F5: recarregar. Ctrl+L: pesquisar. Ctrl+T e Ctrl+W: novo separador e fechar separador. Ctrl+Tab: separador seguinte. Toque neste ecrã para reativar o rato. Voltar para sair.</string>
 </resources>

@@ -19,6 +19,7 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.BtInput
 import com.fcaronte.aabrowser.utils.CarShareTarget
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.SponsorBlock
@@ -189,6 +190,10 @@ object AppSettings {
     private val _virtualSplitSide = mutableStateOf(VirtualSplit.Side.RIGHT)
     val virtualSplitSide: State<VirtualSplit.Side> = _virtualSplitSide
 
+    // Mouse e tastiera Bluetooth del telefono che comandano gli schermi dell'auto: la velocità del puntatore, in percentuale
+    private val _btPointerSpeed = mutableIntStateOf(BtInput.DEFAULT_SPEED)
+    val btPointerSpeed: State<Int> = _btPointerSpeed
+
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
 
@@ -293,6 +298,7 @@ object AppSettings {
         _virtualSplitEnabled.value = prefs.getBoolean("virtual_split_enabled", false)
         _virtualSplitFraction.intValue = VirtualSplit.clampPercent(prefs.getInt("virtual_split_fraction", VirtualSplit.DEFAULT_PERCENT))
         _virtualSplitSide.value = VirtualSplit.Side.parse(prefs.getString("virtual_split_side", null))
+        _btPointerSpeed.intValue = BtInput.clampSpeed(prefs.getInt("bt_pointer_speed", BtInput.DEFAULT_SPEED))
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
@@ -450,6 +456,12 @@ object AppSettings {
     fun setVirtualSplitSide(context: Context, side: VirtualSplit.Side) {
         _virtualSplitSide.value = side
         saveString(context, "virtual_split_side", side.name)
+    }
+
+    fun setBtPointerSpeed(context: Context, percent: Int) {
+        val value = BtInput.clampSpeed(percent)
+        _btPointerSpeed.intValue = value
+        saveInt(context, "bt_pointer_speed", value)
     }
 
     fun setVirtualAppScale(context: Context, percent: Int) {

@@ -31,6 +31,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
 import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
@@ -101,6 +102,8 @@ import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.BtInput
+import com.fcaronte.aabrowser.utils.BtInputRouter
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DaznProxy
 import com.fcaronte.aabrowser.utils.DesktopModeSites
@@ -182,6 +185,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
         const val INPUT_POPUP_SUPPRESS_MS = 1500L
+
+        // Mouse Bluetooth: fino a questo spostamento (in dp) il pulsante sinistro è un clic, oltre trascina la pagina
+        const val BT_CLICK_SLOP_DP = 8f
 
         // Popup tastiera/microfono aperto per così, se non si tocca niente: 3 s, scelta dell'utente (lo vuole
         // poco sullo schermo; provati anche 6 s). Un tocco fuori dalla scheda lo chiude subito
@@ -337,6 +343,41 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         isInputPopupVisible = false
     }
 
+    // Mouse e tastiera Bluetooth del telefono (BtInputActivity): il puntatore sulla superficie. Il pulsante sinistro senza
+    // spostamento è un tocco (come quelli dell'host), con lo spostamento trascina la pagina come un dito: qui il dito c'è, e
+    // lo scorrimento è quello di sempre (onScroll). Dopo BT_CLICK_SLOP_DP di spostamento non è più un clic
+    private var btCursorView: BtCursorView? = null
+    private var btDownX = 0f
+    private var btDownY = 0f
+    private var btLastX = 0f
+    private var btLastY = 0f
+    private var btDragging = false
+    private val btTarget = object : BtInputRouter.Target {
+        override val label = "CarWebWide"
+
+        override fun size(): IntArray? =
+            if (backdrop != null && surfaceWidth > 0 && surfaceHeight > 0) intArrayOf(surfaceWidth, surfaceHeight) else null
+
+        // Solo la Wide davanti sull'auto, e non coperta dall'avviso di guida
+        override fun isInFront(): Boolean = isWideResumed && activeInstance === this@WideScreen && !isDriveLocked()
+
+        override fun cursor(x: Float, y: Float, visible: Boolean) {
+            btCursorView?.moveTip(x, y, visible)
+        }
+
+        override fun pointer(x: Float, y: Float, action: BtInputRouter.PointerAction) = btPointer(x, y, action)
+
+        // La rotellina: su in alto (scatti positivi) la pagina torna verso l'inizio, come lo scorrimento di un dito che scende
+        override fun wheel(x: Float, y: Float, horizontal: Float, vertical: Float) {
+            val density = surfaceDensity / 160f
+            onScroll(BtInput.wheelDistance(horizontal, density), BtInput.wheelDistance(-vertical, density))
+        }
+
+        override fun key(event: KeyEvent): Boolean = btKey(event)
+
+        override fun shortcut(shortcut: BtInput.Shortcut): Boolean = btShortcut(shortcut)
+    }
+
     // Dimensioni REALI della surface: arrivano solo da onSurfaceAvailable, mai da onVisibleAreaChanged
     private var surfaceWidth = 800
     private var surfaceHeight = 480
@@ -488,6 +529,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 // Auto ferma o in movimento: senza la Modalità passeggero, in movimento la pagina resta coperta
                 DrivingState.acquire(carContext)
                 DrivingState.addListener(driveStateListener)
+                // Il mouse e la tastiera Bluetooth del telefono (BtInputActivity) comandano la Wide quando è davanti
+                BtInputRouter.register(btTarget)
                 // "Ok Google, metti … su CarWeb Media" e il doppio tocco su ⏮ al volante arrivano qui finché la Wide è aperta
                 VoiceCommandRouter.register(
                     VoiceCommandRouter.Target.WIDE,
@@ -510,6 +553,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
             override fun onDestroy(owner: LifecycleOwner) {
                 isWideResumed = false
+                BtInputRouter.unregister(btTarget)
                 VoiceCommandRouter.unregister(VoiceCommandRouter.Target.WIDE, voiceExecutor)
                 DrivingState.removeListener(driveStateListener)
                 DrivingState.release()
@@ -1951,6 +1995,62 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    /**
+     * Il pulsante sinistro del mouse Bluetooth: premuto ricorda il punto, trascinato oltre BT_CLICK_SLOP_DP scorre la pagina
+     * (o l'app del telefono) come un dito, lasciato senza spostamento fa un tocco nel punto in cui era stato premuto.
+     */
+    private fun btPointer(x: Float, y: Float, action: BtInputRouter.PointerAction) {
+        when (action) {
+            BtInputRouter.PointerAction.DOWN -> {
+                btDownX = x
+                btDownY = y
+                btLastX = x
+                btLastY = y
+                btDragging = false
+            }
+
+            BtInputRouter.PointerAction.MOVE -> {
+                if (!btDragging && !BtInput.isClick(btDownX, btDownY, x, y, BT_CLICK_SLOP_DP * surfaceDensity / 160f)) {
+                    btDragging = true
+                }
+                if (btDragging) onScroll(btLastX - x, btLastY - y)
+                btLastX = x
+                btLastY = y
+            }
+
+            BtInputRouter.PointerAction.UP -> if (!btDragging) onClick(btDownX, btDownY)
+        }
+    }
+
+    /** Un tasto della tastiera Bluetooth: alla pagina (o al campo con il focus), come su un browser per computer. */
+    private fun btKey(event: KeyEvent): Boolean {
+        if (isPageCovered()) return false
+        val wv = webView ?: return false
+        if (!wv.hasFocus()) wv.requestFocus()
+        return wv.dispatchKeyEvent(event)
+    }
+
+    /** Un tasto rapido o un pulsante del mouse: Indietro chiude prima quello che sta sopra (codice QR, tastiera, popup). */
+    private fun btShortcut(shortcut: BtInput.Shortcut): Boolean {
+        when (shortcut) {
+            BtInput.Shortcut.BACK -> when {
+                closeQrOnBack.isEnabled -> closeQrOnBack.handleOnBackPressed()
+                closeKeyboardOnBack.isEnabled -> closeKeyboardOnBack.handleOnBackPressed()
+                isInputPopupVisible -> hidePopupRunnable.run()
+                else -> goBack()
+            }
+
+            BtInput.Shortcut.FORWARD -> goForward()
+            BtInput.Shortcut.RELOAD -> if (!isHome()) webView?.reload()
+            BtInput.Shortcut.HOME -> showHome()
+            BtInput.Shortcut.SEARCH -> openSearch()
+            // La Wide ha una pagina sola: niente schede
+            BtInput.Shortcut.NEXT_TAB, BtInput.Shortcut.PREVIOUS_TAB,
+            BtInput.Shortcut.CLOSE_TAB, BtInput.Shortcut.NEW_TAB -> Unit
+        }
+        return true
+    }
+
     /** Tocco a una scheda sopra la pagina (popup, tastiera passeggero), che copre tutta la superficie. */
     private fun dispatchTouchToOverlay(overlay: View?, action: Int, x: Float, y: Float) {
         handler.post {
@@ -2373,7 +2473,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun onStartInput() {
                                     post {
-                                        if (SystemClock.uptimeMillis() < suppressInputPopupUntil || isPageCovered()) return@post
+                                        if (SystemClock.uptimeMillis() < suppressInputPopupUntil || isPageCovered() || BtInputRouter.capturing) return@post
                                         popupOverlay.visibility = View.VISIBLE
                                         isInputPopupVisible = true
                                         updatePopupPosition()
@@ -2903,6 +3003,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))
                     // L'ascolto dei comandi vocali resta visibile anche sopra la copertura in movimento
                     frame.addView(voiceCard, FrameLayout.LayoutParams(-1, -2).apply { gravity = Gravity.TOP })
+                    // Il puntatore del mouse Bluetooth, sopra a tutto: non prende tocchi, si sposta con translationX/Y
+                    val btCursor = BtCursorView(ctx, 24 * dp)
+                    btCursorView = btCursor
+                    frame.addView(btCursor, FrameLayout.LayoutParams(btCursor.widthPx, btCursor.heightPx, Gravity.TOP or Gravity.LEFT))
 
                     setContentView(frame)
                     applyVisibleArea()
@@ -3249,6 +3353,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         customViewCallback = null
         backdrop = null
         focusMarkReference = null
+        btCursorView = null
 
         try {
             webView?.url?.let {

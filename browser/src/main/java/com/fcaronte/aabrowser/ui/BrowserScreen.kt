@@ -81,6 +81,7 @@ import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.BtInputRouter
 import com.fcaronte.aabrowser.utils.DaznManager
 import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DaznProxy
@@ -1013,8 +1014,11 @@ fun BrowserScreen(
                                     AppLog.d("##BrowserScreen", "onStartInput called, isTabActive: $currentIsTabActive, isGlobalSearch: $currentIsGlobalSearchActive")
                                     if (currentIsTabActive && !currentIsGlobalSearchActive) {
                                         post {
-                                            // Non sopra la tastiera passeggero, né subito dopo che ha scritto nel campo
-                                            if (passengerField == null && SystemClock.uptimeMillis() >= suppressInputPopupUntil) {
+                                            // Non sopra la tastiera passeggero, né subito dopo che ha scritto nel campo, né con una
+                                            // tastiera Bluetooth del telefono già pronta a scriverci (BtInputActivity aperta)
+                                            if (passengerField == null && SystemClock.uptimeMillis() >= suppressInputPopupUntil &&
+                                                !BtInputRouter.capturing
+                                            ) {
                                                 showInputPopup = true
                                             }
                                         }

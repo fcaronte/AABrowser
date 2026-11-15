@@ -118,6 +118,15 @@
             android:turnScreenOn="true"
             tools:ignore="ExportedActivity" />
 
+        <!-- Mouse e tastiera Bluetooth del telefono che comandano lo schermo dell'auto: si apre dalle Impostazioni, sul telefono.
+             Non esportata: la apre solo l'app -->
+        <activity
+            android:name=".BtInputActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
         <service
             android:name=".CarService"
             android:enabled="true"

@@ -22,10 +22,12 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.fcaronte.aabrowser.car.CarServiceWide
 import com.fcaronte.aabrowser.car.MainHandOver
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.ui.MainBtTarget
 import com.fcaronte.aabrowser.ui.MainScreen
 import com.fcaronte.aabrowser.ui.PageResumeCheck
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.BrowserJavascript
+import com.fcaronte.aabrowser.utils.BtInputRouter
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.google.android.apps.auto.sdk.CarActivity
 import com.google.android.gms.car.CarSensorManager
@@ -54,6 +56,18 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
     private val hostSensorListener = CarSensorManager.CarSensorEventListener { type, _, _, bytes ->
         if (type == DRIVING_STATUS) bytes?.firstOrNull()?.let { DrivingState.onStatus(it.toInt(), "host") }
     }
+
+    // Mouse e tastiera Bluetooth del telefono (BtInputActivity): la Main in auto è una delle due destinazioni, finché è davanti
+    private val btTarget = MainBtTarget(
+        decor = {
+            try {
+                getCarWindow()?.decorView
+            } catch (_: Exception) {
+                null
+            }
+        },
+        isResumed = { lifecycleRegistry.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+    )
 
     override fun onCreate(bundle: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -180,12 +194,15 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
         super.onResume()
         Log.d(PageResumeCheck.TAG, "Main in the car: resume")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        BtInputRouter.register(btTarget)
         AppSettings.enableWeatherByDefaultIfLocationGranted(this)
         updateSystemUi(true)
     }
 
     override fun onPause() {
         Log.d(PageResumeCheck.TAG, "Main in the car: pause")
+        BtInputRouter.unregister(btTarget)
+        btTarget.release()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         super.onPause()
     }
@@ -198,6 +215,8 @@ class MainCarActivity : CarActivity(), LifecycleOwner, ViewModelStoreOwner,
 
     override fun onDestroy() {
         if (running?.get() === this) running = null
+        BtInputRouter.unregister(btTarget)
+        btTarget.release()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mViewModelStore.clear()
 
