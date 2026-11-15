@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -71,6 +72,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.smartphone.VirtualApps
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
@@ -147,6 +149,11 @@ fun MainScreen(
 
     val persistentNav by AppSettings.persistentNavigation
     val tabBarMode by AppSettings.tabBarMode
+
+    // Schermo diviso: il browser e l'app del telefono in primo piano uno accanto all'altra (VirtualSplit)
+    val splitOn by AppSettings.virtualSplitEnabled
+    val splitPercent by AppSettings.virtualSplitFraction
+    val splitSide by AppSettings.virtualSplitSide
 
     // Il dock (la sidebar della Wide) nella Main, se acceso nelle Impostazioni: il tasto rotondo lo apre e lo chiude
     val mainDock by AppSettings.mainDock
@@ -631,22 +638,74 @@ fun MainScreen(
                 // Il dock aperto prende il suo spazio sul bordo di inizio: la pagina e le app non finiscono sotto i tasti
                 val dockPadding = if (mainDock && isDockOpen && isBrowserVisible && !isFullScreen) MAIN_DOCK_WIDTH else 0.dp
 
+                // Schermo diviso (VirtualSplit): con un'app del telefono scelta e lo schermo diviso acceso, l'app sta nel suo
+                // pannello e il browser (l'ultima scheda web usata) nell'altro. Senza schermo diviso tutto com'era
+                val activeIsApp = VirtualApps.isAppUrl(activeTab?.url)
+                val splitActive = splitOn && activeIsApp && isBrowserVisible
+                var lastWebTabId by remember { mutableStateOf<String?>(null) }
+                LaunchedEffect(activeTab?.id, activeIsApp) {
+                    if (activeTab != null && !activeIsApp) lastWebTabId = activeTab.id
+                }
+                val companionId = if (splitActive) {
+                    (TabManager.tabs.firstOrNull { it.id == lastWebTabId && !VirtualApps.isAppUrl(it.url) }
+                        ?: TabManager.tabs.firstOrNull { !VirtualApps.isAppUrl(it.url) })?.id
+                } else null
+                // Nessuna pagina da mostrare accanto all'app: si apre la pagina iniziale in una scheda in secondo piano
+                LaunchedEffect(splitActive, companionId) {
+                    if (splitActive && companionId == null) {
+                        TabManager.addTab(url = localizedContext.getString(AppSettings.effectiveSearchEngine.homeUrlRes), setActive = false)
+                    }
+                }
+                // Larghezza dei pannelli: quella del contenitore (senza il dock) divisa dal rapporto scelto
+                var tabsWidthPx by remember { mutableIntStateOf(0) }
+                val tabsDensity = LocalDensity.current
+                val splitRegion = (with(tabsDensity) { tabsWidthPx.toDp() } - dockPadding).coerceAtLeast(0.dp)
+                val splitAppWidth = splitRegion * (VirtualSplit.clampPercent(splitPercent) / 100f)
+                val splitWebWidth = splitRegion - splitAppWidth
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .onSizeChanged { tabsWidthPx = it.width }
                         .graphicsLayer(alpha = if (isBrowserVisible) 1f else 0.01f)
                         .zIndex(if (isBrowserVisible) 1f else -1f)
                 ) {
-                    val sortedTabs = TabManager.tabs.sortedBy { it.id == activeTab?.id }
+                    // La scheda accanto all'app sta sopra le altre scheda in secondo piano e sotto quella scelta: le altre
+                    // pagine, a tutto schermo, non devono coprirla
+                    val sortedTabs = TabManager.tabs.sortedBy {
+                        when (it.id) {
+                            activeTab?.id -> 2
+                            companionId -> 1
+                            else -> 0
+                        }
+                    }
                     sortedTabs.forEach { tab ->
                         val isTabActive = activeTab?.id == tab.id
+                        // Il browser dello schermo diviso si vede e si usa come una scheda scelta (riproduzione, schermata)
+                        val isCompanion = tab.id == companionId
+                        val interactive = isTabActive || isCompanion
                         androidx.compose.runtime.key(tab.id) { // Se qui forzo il ricaricamneto immediato della pagina web al cambio giorno notte si blocca la musica in riproduzione
                             val virtualApp = VirtualApps.packageOf(tab.url)
-                            Box(
-                                modifier = Modifier
+                            val tabModifier = when {
+                                splitActive && virtualApp != null && isTabActive ->
+                                    if (splitSide == VirtualSplit.Side.RIGHT) {
+                                        Modifier.fillMaxSize().padding(start = dockPadding + splitWebWidth, top = appTopPadding)
+                                    } else {
+                                        Modifier.fillMaxSize().padding(start = dockPadding, end = splitWebWidth, top = appTopPadding)
+                                    }
+
+                                isCompanion ->
+                                    if (splitSide == VirtualSplit.Side.RIGHT) {
+                                        Modifier.fillMaxSize().padding(start = dockPadding, end = splitAppWidth, top = webTopPadding)
+                                    } else {
+                                        Modifier.fillMaxSize().padding(start = dockPadding + splitAppWidth, top = webTopPadding)
+                                    }
+
+                                else -> Modifier
                                     .fillMaxSize()
                                     .padding(start = dockPadding, top = if (virtualApp != null) appTopPadding else webTopPadding)
-                            ) {
+                            }
+                            Box(modifier = tabModifier) {
                                 if (virtualApp != null) {
                                     VirtualAppTab(
                                         tabId = tab.id,
@@ -655,7 +714,9 @@ fun MainScreen(
                                         inCar = isAutomotive,
                                         onOpenApps = openAppsPage,
                                         onClose = { closeTabById(tab.id) },
-                                        onShowFeedback = { if (isTabActive) feedbackMessage = it }
+                                        onShowFeedback = { if (isTabActive) feedbackMessage = it },
+                                        split = splitActive && isTabActive,
+                                        onToggleSplit = { AppSettings.setVirtualSplitEnabled(context, !splitOn) }
                                     )
                                 } else BrowserScreen(
                                     tabId = tab.id,
@@ -668,7 +729,7 @@ fun MainScreen(
                                     desktopModeOverride = tab.desktopModeOverride,
                                     mobileZoomOverride = tab.mobileZoomOverride,
                                     desktopZoomOverride = tab.desktopZoomOverride,
-                                    isTabActive = isTabActive,
+                                    isTabActive = interactive,
                                     isScreenVisible = isBrowserVisible,
                                     isGlobalSearchActive = isGlobalSearchActive,
                                     isAppDarkOverride = isAppDark, // <--- Passato correttamente alla WebView
@@ -676,9 +737,9 @@ fun MainScreen(
                                         TabManager.updateTabUrl(tab.id, newUrl)
                                         if (isTabActive) AppSettings.setLastUrl(context, newUrl)
                                     },
-                                    onWebViewCreated = { if (isTabActive) activeWebView = it },
+                                    onWebViewCreated = { if (interactive) activeWebView = it },
                                     onFullScreenChange = { if (isTabActive) isFullScreen = it },
-                                    onShowFeedback = { if (isTabActive) feedbackMessage = it },
+                                    onShowFeedback = { if (interactive) feedbackMessage = it },
                                     onOpenMediaLists = { section ->
                                         settingsLists = section
                                         previousScreen = Screen.Browser
@@ -686,7 +747,7 @@ fun MainScreen(
                                     },
                                     onOpenVirtualApp = openVirtualApp
                                 )
-                                if (!isTabActive || !isBrowserVisible) {
+                                if (!interactive || !isBrowserVisible) {
                                     Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Transparent).pointerInput(Unit) {})
                                 }
                             }

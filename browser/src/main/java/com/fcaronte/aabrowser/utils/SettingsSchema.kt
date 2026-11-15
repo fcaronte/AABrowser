@@ -4,6 +4,7 @@ import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarAction
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 
 /**
  * Le impostazioni come dati: sezioni, schede e righe, ognuna con l'id del suo testo e la chiave del suo valore. Le legge
@@ -296,6 +297,20 @@ internal object SettingsSchema {
                         "virtual_app_scale", R.string.vapp_scale_label, R.string.vapp_scale_desc,
                         options = listOf(70, 85, 100, 125, 150).map { Option(it.toString(), text = "$it%") },
                         buttons = true
+                    ),
+                    // Schermo diviso con il browser: la larghezza dell'app e il lato si scelgono qui (niente trascinamento)
+                    Switch("virtual_split_enabled", R.string.vapp_split, R.string.vapp_split_desc),
+                    Stepper(
+                        "virtual_split_fraction", VirtualSplit.MIN_PERCENT, VirtualSplit.MAX_PERCENT, VirtualSplit.STEP_PERCENT,
+                        format = R.string.virtual_split_fraction, showIf = listOf(on("virtual_split_enabled"))
+                    ),
+                    Choice(
+                        "virtual_split_side", R.string.virtual_split_side,
+                        options = listOf(
+                            Option(VirtualSplit.Side.RIGHT.name, R.string.virtual_split_side_right),
+                            Option(VirtualSplit.Side.LEFT.name, R.string.virtual_split_side_left)
+                        ),
+                        buttons = true, showIf = listOf(on("virtual_split_enabled"))
                     ),
                 )
             ),

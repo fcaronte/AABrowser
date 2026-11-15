@@ -23,6 +23,7 @@ import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.smartphone.VirtualScreenPower
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.smartphone.VirtualTouch
 import kotlin.math.abs
 
@@ -32,9 +33,14 @@ import kotlin.math.abs
  * l'app continua a girare in secondo plano finché non la si chiude o non se ne apre un'altra.
  *
  * Android Auto non passa tocchi veri: [VirtualTouch] rifà tocchi, scorrimenti, fling e pizzico da quello che manda l'host.
- * La barra dell'app (Indietro, Altre App, Tastiera, Chiudi) sta sul bordo della vista, accanto al menu fisso della Wide se
- * c'è, e si mostra o nasconde con il tasto in alto a destra della Wide, che con l'app aperta prende il posto dello scudo
- * dell'AdBlock (WideScreen.onGetTemplate): serve a non restare chiusi nell'app.
+ * La barra dell'app (schermo diviso, Indietro, Altre App, Tastiera, Chiudi) sta sul bordo della vista, accanto alla sidebar
+ * della Wide se c'è, sempre accanto all'app e mai sopra (il display si restringe, niente è coperto), e si mostra o nasconde
+ * con il tasto in alto a destra della Wide, che con l'app aperta prende il posto dello scudo dell'AdBlock
+ * (WideScreen.onGetTemplate): serve a non restare chiusi nell'app.
+ *
+ * Schermo diviso ([isSplit], VirtualSplit): la vista occupa solo il pannello dell'app (lo decide la Wide, che gli dà i margini)
+ * e la pagina resta visibile e toccabile nell'altro. L'host non dà la posizione del dito per scorrimenti e pizzico: vanno al
+ * pannello toccato per ultimo ([receivesGestures]). Il display è sempre in verticale.
  */
 class WideVirtualApp(
     private val carContext: CarContext,
@@ -45,6 +51,9 @@ class WideVirtualApp(
     interface Callbacks {
         /** L'app si mostra o si nasconde: il template (tasto in alto a destra) e la pagina sotto vanno aggiornati. */
         fun onShownChanged(shown: Boolean)
+
+        /** Lo schermo diviso si accende o si spegne (tasto della barra): la pagina torna visibile accanto all'app, o sparisce. */
+        fun onSplitChanged()
 
         /** Il tasto "Altre App" della barra. */
         fun openAppsPage()
@@ -64,11 +73,16 @@ class WideVirtualApp(
     private var statusView: TextView? = null
     private var touch: VirtualTouch? = null
 
-    // La barra accanto all'app (il display si restringe e niente è coperto) o sopra di lei: la scelta è la stessa della Main
+    // La barra sta sempre accanto all'app (il display si restringe e niente è coperto)
     private var barWidth = 0
-    private var docked = false
-    private var dockButton: ImageButton? = null
+    private var splitButton: ImageButton? = null
+
+    // Dove comincia il display nella vista: dopo la barra (a sinistra) e, nello schermo diviso, dopo la banda nera che centra
+    // il display in verticale. Serve a rifare le coordinate dei tocchi
     private var appOffset = 0
+
+    // Schermo diviso: l'host non dà la posizione del dito per scorrimenti e pizzico, quindi vanno al pannello toccato per ultimo
+    private var focusOnApp = true
 
     // Il telefono si spegne o si riaccende (tasto di blocco): lo stato sullo schermo dell'auto si aggiorna
     private val powerListener: () -> Unit = { handler.post { updateStatus() } }
@@ -89,6 +103,12 @@ class WideVirtualApp(
 
     val isShown: Boolean get() = wantShown && layer != null
     val packageName: String? get() = session?.packageName
+
+    /** Schermo diviso con l'app davanti: la pagina resta visibile accanto, la vista è il pannello dell'app. */
+    val isSplit: Boolean get() = isShown && AppSettings.virtualSplitEnabled.value
+
+    /** A chi vanno i gesti senza posizione (scorrimento, fling, pizzico, Indietro): all'app, o nello schermo diviso al pannello toccato per ultimo. */
+    fun receivesGestures(): Boolean = isShown && (!isSplit || focusOnApp)
 
     // ------------------------------------------------------------------ viste
 
@@ -122,8 +142,7 @@ class WideVirtualApp(
         }
         val s = strings()
         barWidth = sidebarWidthPx
-        docked = AppSettings.virtualSidebarDocked.value
-        dockButton = addButton(ctx, bar, R.drawable.ic_vapp_dock, s.getString(R.string.vapp_sidebar_dock), sidebarWidthPx) { toggleDock() }
+        splitButton = addButton(ctx, bar, R.drawable.ic_vapp_split, s.getString(R.string.vapp_split_on), sidebarWidthPx) { toggleSplit() }
         addButton(ctx, bar, R.drawable.ic_vapp_back, s.getString(R.string.vapp_back), sidebarWidthPx) { back() }
         addButton(ctx, bar, R.drawable.ic_apps, s.getString(R.string.apps_title), sidebarWidthPx) { callbacks.openAppsPage() }
         addButton(ctx, bar, R.drawable.ic_vapp_keyboard, s.getString(R.string.vapp_keyboard), sidebarWidthPx) { toggleKeyboard() }
@@ -135,7 +154,12 @@ class WideVirtualApp(
         sidebar = bar
         statusView = status
         touch = VirtualTouch(handler) { event -> session?.touch(event) }
+        // Il pannello cambia misura (schermo diviso, sidebar, fasce dell'host): il display si rimette in verticale e centrato
+        frame.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
+            if (r - l != or - ol || b - t != ob - ot) frame.post { applyDock() }
+        }
         applyDock()
+        applySplitButton()
         VirtualScreenPower.addListener(powerListener)
         if (wantShown) show()
         return frame
@@ -166,7 +190,7 @@ class WideVirtualApp(
         textureView = null
         sidebar = null
         statusView = null
-        dockButton = null
+        splitButton = null
         touch = null
     }
 
@@ -221,6 +245,7 @@ class WideVirtualApp(
             )
         }
         wantShown = true
+        focusOnApp = true
         show()
     }
 
@@ -264,29 +289,52 @@ class WideVirtualApp(
         applyDock()
     }
 
-    /** Il primo tasto della barra: accanto all'app o sopra. Il display cambia misura (le app si ridisegnano). */
-    private fun toggleDock() {
-        docked = !docked
-        AppSettings.setVirtualSidebarDocked(carContext, docked)
+    /** Il primo tasto della barra: schermo diviso con la pagina, o l'app a schermo intero. Il display cambia misura. */
+    private fun toggleSplit() {
+        AppSettings.setVirtualSplitEnabled(carContext, !AppSettings.virtualSplitEnabled.value)
+        focusOnApp = true
+        applySplitButton()
+        callbacks.onSplitChanged()
+    }
+
+    /** Il tasto dello schermo diviso: azzurro quando è diviso; dice cosa farebbe se lo si tocca. */
+    private fun applySplitButton() {
+        val on = AppSettings.virtualSplitEnabled.value
+        if (on) splitButton?.setColorFilter(0xFF8AB4F8.toInt()) else splitButton?.clearColorFilter()
+        splitButton?.contentDescription = strings().getString(if (on) R.string.vapp_split_off else R.string.vapp_split_on)
+    }
+
+    /** L'impostazione dello schermo diviso è cambiata da fuori (Impostazioni): il tasto e il display si aggiornano. */
+    fun onSettingsChanged() {
+        applySplitButton()
         applyDock()
     }
 
-    // Con la barra accanto all'app il display comincia dopo di lei (a destra della barra; a sinistra in RTL)
+    // La barra sta sempre accanto all'app: il display comincia dopo di lei (a destra della barra; a sinistra in RTL). Nello
+    // schermo diviso è in verticale (VirtualSplit.displayWidth): un pannello largo lascia bande nere ai lati e il display sta in mezzo
     private fun applyDock() {
         val texture = textureView ?: return
-        val beside = sidebarVisible && docked
-        val offset = if (beside) barWidth else 0
-        (texture.layoutParams as? FrameLayout.LayoutParams)?.let { params ->
-            if (params.marginStart != offset) {
-                params.marginStart = offset
-                texture.layoutParams = params
-            }
+        val params = texture.layoutParams as? FrameLayout.LayoutParams ?: return
+        val offset = if (sidebarVisible) barWidth else 0
+        val available = ((layer?.width ?: 0) - offset).coerceAtLeast(0)
+        val height = layer?.height ?: 0
+        val split = AppSettings.virtualSplitEnabled.value
+        val width = if (split && available > 0 && height > 0) VirtualSplit.displayWidth(available, height) else ViewGroup.LayoutParams.MATCH_PARENT
+        val gravity = if (width == ViewGroup.LayoutParams.MATCH_PARENT) FrameLayout.LayoutParams.UNSPECIFIED_GRAVITY else Gravity.CENTER_HORIZONTAL
+        if (params.marginStart != offset || params.width != width || params.gravity != gravity) {
+            params.marginStart = offset
+            params.width = width
+            params.gravity = gravity
+            texture.layoutParams = params
         }
-        // Nei tocchi: l'app comincia dopo la barra solo se la barra sta a sinistra
-        appOffset = if (callbacks.isRtl()) 0 else offset
-        // Acceso (azzurro) quando la barra sta accanto all'app
-        if (docked) dockButton?.setColorFilter(0xFF8AB4F8.toInt()) else dockButton?.clearColorFilter()
-        dockButton?.contentDescription = strings().getString(if (docked) R.string.vapp_sidebar_overlay else R.string.vapp_sidebar_dock)
+        // Nei tocchi: l'app comincia dopo la barra solo se la barra sta a sinistra, e dopo la banda nera che la centra
+        val shift = if (width == ViewGroup.LayoutParams.MATCH_PARENT) 0 else (available - width) / 2
+        appOffset = (if (callbacks.isRtl()) 0 else offset) + shift
+    }
+
+    /** Un tocco dell'host (coordinate della superficie): nello schermo diviso dice quale pannello riceve scorrimenti e Indietro. */
+    fun noteTap(x: Float, y: Float) {
+        if (isSplit) focusOnApp = contains(x, y)
     }
 
     /** Il punto (coordinate della superficie dell'host) sta sulla vista dell'app: la sidebar fissa della Wide ne è fuori. */

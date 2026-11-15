@@ -20,6 +20,7 @@ import com.fcaronte.aabrowser.settings.SidebarHost
 import com.fcaronte.aabrowser.settings.TabBarAction
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.SettingsSchema.Actions
 import com.fcaronte.aabrowser.utils.SettingsSchema.Buttons
 import com.fcaronte.aabrowser.utils.SettingsSchema.Checks
@@ -242,6 +243,14 @@ object SettingsApi {
         flag("virtual_standby", { AppSettings.virtualStandby.value }) { c, v -> AppSettings.setVirtualStandby(c, v) }
         pick("virtual_app_scale", { AppSettings.virtualAppScale.value.toString() }) { c, v ->
             v.toIntOrNull()?.takeIf { it in VIRTUAL_APP_SCALES }?.let { AppSettings.setVirtualAppScale(c, it) } != null
+        }
+        flag("virtual_split_enabled", { AppSettings.virtualSplitEnabled.value }) { c, v -> AppSettings.setVirtualSplitEnabled(c, v) }
+        number(
+            "virtual_split_fraction", VirtualSplit.MIN_PERCENT..VirtualSplit.MAX_PERCENT, VirtualSplit.STEP_PERCENT,
+            { AppSettings.virtualSplitFraction.value }
+        ) { c, n -> AppSettings.setVirtualSplitFraction(c, n) }
+        pick("virtual_split_side", { AppSettings.virtualSplitSide.value.name }) { c, v ->
+            VirtualSplit.Side.entries.firstOrNull { it.name == v }?.also { AppSettings.setVirtualSplitSide(c, it) } != null
         }
         flag("force_english", { AppSettings.forceEnglish.value }) { c, v -> AppSettings.setForceEnglish(c, v) }
         number("ui_scale", 50..150, 5, { (AppSettings.uiScale.value * 100).roundToInt() }) { c, n -> AppSettings.setUiScale(c, n / 100f) }

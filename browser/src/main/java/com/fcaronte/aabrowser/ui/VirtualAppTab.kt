@@ -8,6 +8,7 @@ import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,17 +49,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fcaronte.aabrowser.R
-import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.smartphone.BlackFrame
 import com.fcaronte.aabrowser.smartphone.ShizukuManager
 import com.fcaronte.aabrowser.smartphone.VirtualAppSession
 import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.smartphone.VirtualScreenPower
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 
 /**
  * Una scheda della Main con un'app del telefono sul suo display virtuale (indirizzo `app://pacchetto`): sta nella barra delle
@@ -65,11 +68,12 @@ import com.fcaronte.aabrowser.smartphone.VirtualScreenPower
  * Una TextureView e non una SurfaceView: disegna dentro la finestra come ogni altra vista, quindi funziona anche nella
  * finestra proiettata sull'auto e sotto gli strati trasparenti di Compose (una SurfaceView sull'auto restava vuota).
  *
- * La barra laterale (indietro, altre app, tastiera, chiudi) e in alto a destra un tasto che la mostra o la nasconde.
- * Di serie la barra sta sopra l'app e ne copre un po', così il display non cambia misura a ogni tocco e le app non si
- * ridisegnano; il primo tasto della barra la mette invece accanto all'app (il display si restringe, niente è coperto: una
- * scelta che resta). Con la scheda non scelta la superficie si toglie e il display resta fermo, l'app continua a girare
- * (audio compreso). I tocchi della vista vanno all'app rifatti puliti (RawTouch).
+ * La barra laterale (schermo diviso, indietro, altre app, tastiera, chiudi) sta sempre accanto all'app e non ne copre mai un
+ * pezzo (non c'è più la barra sopra l'app); in alto a destra un tasto la mostra o la nasconde. Il primo tasto della barra
+ * accende lo schermo diviso (VirtualSplit): la scheda occupa solo il suo pannello, il browser sta nell'altro (MainScreen), e il
+ * display dell'app è sempre in verticale (con meno densità, perché l'app veda la larghezza di un telefono). Con la scheda non
+ * scelta la superficie si toglie e il display resta fermo, l'app continua a girare (audio compreso). I tocchi della vista
+ * vanno all'app rifatti puliti (RawTouch).
  */
 @SuppressLint("ClickableViewAccessibility")
 @Composable
@@ -81,9 +85,14 @@ fun VirtualAppTab(
     onOpenApps: () -> Unit,
     onClose: () -> Unit,
     onShowFeedback: (String) -> Unit,
+    // Schermo diviso: la scheda sta in un pannello stretto e il primo tasto della barra lo spegne (o lo accende)
+    split: Boolean = false,
+    onToggleSplit: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val session = remember(tabId) { VirtualAppSession(context, packageName, inCar) }
+    // Prima di ogni attach (cambio di misure compreso): nel pannello la densità si limita (VirtualAppSession.attach)
+    SideEffect { session.splitMode = split }
     DisposableEffect(session) {
         VirtualApps.register(tabId, session)
         onDispose {
@@ -178,13 +187,12 @@ fun VirtualAppTab(
         }
     }
 
-    // La barra sta sopra l'app (la copre un po', il display non cambia misura) o accanto (il display si restringe)
-    val docked by AppSettings.virtualSidebarDocked
+    // La barra sta sempre accanto all'app: il display si restringe, niente è coperto
     val sidebar: @Composable (Modifier) -> Unit = { modifier ->
         VirtualAppSidebar(
             modifier = modifier,
-            docked = docked,
-            onToggleDock = { AppSettings.setVirtualSidebarDocked(context, !docked) },
+            split = split,
+            onToggleSplit = onToggleSplit,
             onBack = { session.key(android.view.KeyEvent.KEYCODE_BACK) },
             onApps = onOpenApps,
             onKeyboard = toggleKeyboard,
@@ -198,33 +206,44 @@ fun VirtualAppTab(
             .background(Color.Black)
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            if (sidebarVisible && docked) sidebar(Modifier.fillMaxHeight())
+            if (sidebarVisible) sidebar(Modifier.fillMaxHeight())
 
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { ctx ->
-                        TextureView(ctx).apply {
-                            texture.view = this
-                            surfaceTextureListener = listener
-                            // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
-                            setOnTouchListener { _, event ->
-                                // Un tocco sull'auto con il telefono spento (tasto di blocco) lo riaccende
-                                if (event.actionMasked == MotionEvent.ACTION_DOWN) VirtualScreenPower.touchOnCar()
-                                session.touchRaw(event)
-                                true
+                // Nello schermo diviso il display è sempre in verticale (VirtualSplit.displayWidth): un pannello già stretto lo
+                // riempie, uno largo (50% di un'auto molto larga) lascia bande nere ai lati. Intero, riempie tutta la vista
+                val density = LocalDensity.current
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val displayWidth = if (split) {
+                        with(density) { VirtualSplit.displayWidth(constraints.maxWidth, constraints.maxHeight).toDp() }
+                    } else {
+                        maxWidth
+                    }
+                    AndroidView(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .width(displayWidth)
+                            .fillMaxHeight(),
+                        factory = { ctx ->
+                            TextureView(ctx).apply {
+                                texture.view = this
+                                surfaceTextureListener = listener
+                                // Il display ha le misure della vista: le coordinate del tocco sono già quelle dell'app
+                                setOnTouchListener { _, event ->
+                                    // Un tocco sull'auto con il telefono spento (tasto di blocco) lo riaccende
+                                    if (event.actionMasked == MotionEvent.ACTION_DOWN) VirtualScreenPower.touchOnCar()
+                                    session.touchRaw(event)
+                                    true
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
 
                 VirtualAppStatus(session = session, onClose = onClose)
-
-                if (sidebarVisible && !docked) sidebar(Modifier.align(Alignment.CenterStart).fillMaxHeight())
 
                 // Il telefono dorme (tasto di blocco): il display è fermo e l'auto resta nera. Lo si dice, e un tocco lo riaccende
                 if (VirtualScreenPower.asleep) {
@@ -274,8 +293,8 @@ private val SIDEBAR_WIDTH = 44.dp
 @Composable
 private fun VirtualAppSidebar(
     modifier: Modifier,
-    docked: Boolean,
-    onToggleDock: () -> Unit,
+    split: Boolean,
+    onToggleSplit: () -> Unit,
     onBack: () -> Unit,
     onApps: () -> Unit,
     onKeyboard: () -> Unit,
@@ -292,12 +311,12 @@ private fun VirtualAppSidebar(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Barra accanto all'app (il display si restringe e niente è coperto) o sopra: acceso quando sta accanto
+        // Schermo diviso: il browser accanto all'app, o l'app a schermo intero; acceso (azzurro) quando è diviso
         SidebarButton(
             Icons.Default.VerticalSplit,
-            if (docked) R.string.vapp_sidebar_overlay else R.string.vapp_sidebar_dock,
-            onToggleDock,
-            tint = if (docked) Color(0xFF8AB4F8) else Color.White
+            if (split) R.string.vapp_split_off else R.string.vapp_split_on,
+            onToggleSplit,
+            tint = if (split) Color(0xFF8AB4F8) else Color.White
         )
         SidebarButton(Icons.AutoMirrored.Filled.ArrowBack, R.string.vapp_back, onBack)
         SidebarButton(Icons.Default.Apps, R.string.apps_title, onApps)

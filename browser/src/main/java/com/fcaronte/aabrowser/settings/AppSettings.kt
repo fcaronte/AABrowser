@@ -16,6 +16,7 @@ import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.CarShareTarget
 import com.fcaronte.aabrowser.utils.DrivingState
@@ -177,12 +178,18 @@ object AppSettings {
     private val _virtualStandby = mutableStateOf(true)
     val virtualStandby: State<Boolean> = _virtualStandby
 
-    // La barra dell'app nella Main: accanto all'app (il display si restringe) invece che sopra; e la dimensione delle app
-    // sullo schermo virtuale in percentuale (la densità del display: più alta = app più grandi)
-    private val _virtualSidebarDocked = mutableStateOf(false)
-    val virtualSidebarDocked: State<Boolean> = _virtualSidebarDocked
+    // La dimensione delle app sullo schermo virtuale in percentuale (la densità del display: più alta = app più grandi)
     private val _virtualAppScale = mutableIntStateOf(100)
     val virtualAppScale: State<Int> = _virtualAppScale
+
+    // Schermo diviso: il browser e l'app del telefono uno accanto all'altra (VirtualSplit). Il primo tasto della barra dell'app lo
+    // accende e lo spegne; la larghezza dell'app (20-50%, di serie 30) e il lato si scelgono qui, mai trascinando
+    private val _virtualSplitEnabled = mutableStateOf(false)
+    val virtualSplitEnabled: State<Boolean> = _virtualSplitEnabled
+    private val _virtualSplitFraction = mutableIntStateOf(VirtualSplit.DEFAULT_PERCENT)
+    val virtualSplitFraction: State<Int> = _virtualSplitFraction
+    private val _virtualSplitSide = mutableStateOf(VirtualSplit.Side.RIGHT)
+    val virtualSplitSide: State<VirtualSplit.Side> = _virtualSplitSide
 
     private val _weatherWidgetEnabled = mutableStateOf(false)
     val weatherWidgetEnabled: State<Boolean> = _weatherWidgetEnabled
@@ -273,8 +280,10 @@ object AppSettings {
         _tabBarActions.value = TabBarAction.parse(prefs.getString("tab_bar_actions", null))
         _tabBarVisibleCount.intValue = prefs.getInt("tab_bar_visible", TabBarAction.MAX_VISIBLE).coerceIn(1, TabBarAction.MAX_VISIBLE)
         _virtualStandby.value = prefs.getBoolean("virtual_standby", true)
-        _virtualSidebarDocked.value = prefs.getBoolean("virtual_sidebar_docked", false)
         _virtualAppScale.intValue = prefs.getInt("virtual_app_scale", 100).coerceIn(50, 200)
+        _virtualSplitEnabled.value = prefs.getBoolean("virtual_split_enabled", false)
+        _virtualSplitFraction.intValue = VirtualSplit.clampPercent(prefs.getInt("virtual_split_fraction", VirtualSplit.DEFAULT_PERCENT))
+        _virtualSplitSide.value = VirtualSplit.Side.parse(prefs.getString("virtual_split_side", null))
         _weatherWidgetEnabled.value = prefs.getBoolean("weather_widget_enabled", false)
         _mediaPlayerEnabled.value = prefs.getBoolean("media_player_enabled", true)
         _playerCardOpensMain.value = prefs.getBoolean("player_card_opens_main", false)
@@ -418,9 +427,20 @@ object AppSettings {
         saveBoolean(context, "virtual_standby", enabled)
     }
 
-    fun setVirtualSidebarDocked(context: Context, docked: Boolean) {
-        _virtualSidebarDocked.value = docked
-        saveBoolean(context, "virtual_sidebar_docked", docked)
+    fun setVirtualSplitEnabled(context: Context, enabled: Boolean) {
+        _virtualSplitEnabled.value = enabled
+        saveBoolean(context, "virtual_split_enabled", enabled)
+    }
+
+    fun setVirtualSplitFraction(context: Context, percent: Int) {
+        val value = VirtualSplit.clampPercent(percent)
+        _virtualSplitFraction.intValue = value
+        saveInt(context, "virtual_split_fraction", value)
+    }
+
+    fun setVirtualSplitSide(context: Context, side: VirtualSplit.Side) {
+        _virtualSplitSide.value = side
+        saveString(context, "virtual_split_side", side.name)
     }
 
     fun setVirtualAppScale(context: Context, percent: Int) {

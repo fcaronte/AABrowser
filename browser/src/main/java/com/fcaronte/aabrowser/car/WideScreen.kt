@@ -93,6 +93,7 @@ import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SidebarAction
 import com.fcaronte.aabrowser.settings.SidebarHost
 import com.fcaronte.aabrowser.smartphone.VirtualApps
+import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.utils.AppLocale
@@ -338,13 +339,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val handler = Handler(Looper.getMainLooper())
 
     // Un'app del telefono sullo schermo virtuale, sopra la pagina (Altre App)
-    private val virtualApp = WideVirtualApp(carContext, handler, { strings }, object : WideVirtualApp.Callbacks {
+    private val virtualApp: WideVirtualApp = WideVirtualApp(carContext, handler, { strings }, object : WideVirtualApp.Callbacks {
         override fun onShownChanged(shown: Boolean) {
             handler.post {
-                // Sotto l'app la pagina non serve: nascosta non si disegna. Il tasto in alto a destra cambia (template)
-                webView?.visibility = if (shown) View.INVISIBLE else View.VISIBLE
+                // Sotto l'app la pagina non serve: nascosta non si disegna. Nello schermo diviso resta accanto all'app.
+                // Il tasto in alto a destra cambia (template)
+                webView?.visibility = if (shown && !virtualApp.isSplit) View.INVISIBLE else View.VISIBLE
+                // La pagina prende il suo pannello accanto all'app (schermo diviso) o torna a tutta l'area libera
+                applyVisibleArea()
                 invalidate()
             }
+        }
+
+        override fun onSplitChanged() {
+            handler.post { refreshSplit() }
         }
 
         override fun openAppsPage() {
@@ -436,6 +444,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 watchDesktopModeSites()
                 watchDockActions()
                 watchSidebarSize()
+                watchVirtualSplit()
                 // Dopo un aggiornamento le novità, se non le si sono già lette sul telefono o nella Main (la superficie e la
                 // prima pagina arrivano prima)
                 handler.postDelayed({ showWhatsNew() }, WHATS_NEW_DELAY_MS)
@@ -533,7 +542,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun goBack() {
         if (customView != null) {
             hideCustomView()
-        } else if (virtualApp.isShown) {
+        } else if (virtualApp.receivesGestures()) {
             virtualApp.back()
         } else {
             webView?.let { if (it.canGoBack()) it.goBack() }
@@ -560,7 +569,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     /** Avanti: solo nella pagina (con un video a schermo intero o un'app del telefono davanti non c'è niente da avanzare). */
     private fun goForward() {
-        if (customView != null || virtualApp.isShown) return
+        if (customView != null || virtualApp.receivesGestures()) return
         webView?.let { if (it.canGoForward()) it.goForward() }
     }
 
@@ -608,6 +617,25 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun watchSidebarSize() {
         lifecycleScope.launch {
             snapshotFlow { AppSettings.wideSidebarSize.value }.drop(1).collect { applyVisibleArea() }
+        }
+    }
+
+    /**
+     * Schermo diviso acceso o spento, larghezza o lato cambiati (tasto della barra dell'app, Impostazioni): con l'app davanti la
+     * pagina si vede accanto a lei (o torna nascosta sotto) e i due pannelli si riadattano.
+     */
+    private fun refreshSplit() {
+        virtualApp.onSettingsChanged()
+        webView?.visibility = if (virtualApp.isShown && !virtualApp.isSplit) View.INVISIBLE else View.VISIBLE
+        applyVisibleArea()
+        invalidate()
+    }
+
+    private fun watchVirtualSplit() {
+        lifecycleScope.launch {
+            snapshotFlow {
+                Triple(AppSettings.virtualSplitEnabled.value, AppSettings.virtualSplitFraction.value, AppSettings.virtualSplitSide.value)
+            }.drop(1).collect { refreshSplit() }
         }
     }
 
@@ -865,7 +893,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun showHome() {
         hideCustomView()
-        virtualApp.hide()
+        // Nello schermo diviso la home va nel pannello del browser e l'app resta accanto
+        if (!virtualApp.isSplit) virtualApp.hide()
         homeHtml = buildHomeHtml()
         lastUrl = HOME
         val wv = webView ?: return
@@ -945,8 +974,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             VirtualApps.packageOf(url)?.let { openVirtualApp(it) }
             return
         }
-        // Una pagina o la home: l'app del telefono esce di scena (continua a girare, la riapre il suo tasto)
-        virtualApp.hide()
+        // Una pagina o la home: l'app del telefono esce di scena (continua a girare, la riapre il suo tasto). Nello schermo
+        // diviso la pagina si apre nel pannello del browser e l'app resta accanto
+        if (!virtualApp.isSplit) virtualApp.hide()
         lastUrl = url
         webView?.let {
             applyUserAgent(it, url)
@@ -1514,6 +1544,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             if (rtl) appMargins[2] = maxOf(appMargins[2], lp.rightMargin)
             else appMargins[0] = maxOf(appMargins[0], lp.leftMargin)
         }
+        // Schermo diviso (VirtualSplit): la regione dell'app (sotto i tasti di Android Auto, senza la sidebar) si divide in due, 70/30
+        // di serie: l'app ha il suo pannello e la pagina l'altro, visibile e toccabile. Il confine è lo stesso per tutti e due
+        if (virtualApp.isSplit) {
+            val regionLeft = appMargins[0]
+            val regionWidth = (surfaceWidth - appMargins[0] - appMargins[2]).coerceAtLeast(0)
+            val panels = VirtualSplit.panels(regionWidth, AppSettings.virtualSplitFraction.value, AppSettings.virtualSplitSide.value)
+            lp.leftMargin = maxOf(lp.leftMargin, regionLeft + panels.browserStart)
+            lp.rightMargin = maxOf(lp.rightMargin, surfaceWidth - (regionLeft + panels.browserStart + panels.browserWidth))
+            wv.layoutParams = lp
+            wv.requestLayout()
+            appMargins[0] = regionLeft + panels.appStart
+            appMargins[2] = surfaceWidth - (regionLeft + panels.appStart + panels.appWidth)
+        }
         virtualApp.layout(
             leftPx = appMargins[0],
             topPx = appMargins[1],
@@ -1623,7 +1666,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
 
         // Un'app del telefono sullo schermo virtuale: i tocchi sulla sua vista sono suoi (la sua barra, oppure l'app). Quelli
-        // sul menu fisso della Wide (fuori dalla vista) restano del menu: con l'app aperta Home e gli altri tasti non rispondevano
+        // sulla sidebar della Wide (fuori dalla vista) restano della sidebar: con l'app aperta Home e gli altri tasti non
+        // rispondevano. Nello schermo diviso la vista è solo il pannello dell'app: il resto è della pagina, e dal tocco si sa
+        // a quale pannello vanno poi scorrimenti e Indietro
+        virtualApp.noteTap(x, y)
         if (virtualApp.isShown && virtualApp.contains(x, y)) {
             virtualApp.onClick(x, y)
             return
@@ -1678,7 +1724,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
-        if (virtualApp.isShown) {
+        if (virtualApp.receivesGestures()) {
             virtualApp.onScroll(distanceX, distanceY)
             return
         }
@@ -1711,7 +1757,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onFling(velocityX: Float, velocityY: Float) {
         if (isInputPopupVisible || customView != null || isPageCovered()) return
-        if (virtualApp.isShown) {
+        if (virtualApp.receivesGestures()) {
             virtualApp.onFling(velocityX, velocityY)
             return
         }
@@ -1733,7 +1779,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
-        if (virtualApp.isShown && !isPageCovered()) {
+        if (virtualApp.receivesGestures() && !isPageCovered()) {
             virtualApp.onScale(focusX, focusY, scaleFactor)
             return
         }

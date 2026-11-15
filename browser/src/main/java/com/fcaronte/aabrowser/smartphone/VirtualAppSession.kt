@@ -65,6 +65,12 @@ class VirtualAppSession(
     private var sharesPhoneGroup = true
     private var powered = false
 
+    /**
+     * La vista è un pannello dello schermo diviso (VirtualSplit): la densità si limita perché l'app veda la larghezza di un
+     * telefono. La vista lo mette prima di [attach], e a ogni cambio di misure l'attach lo applica di nuovo.
+     */
+    var splitMode = false
+
     /** Chiamato quando l'app comincia o smette di essere davanti sull'auto. */
     var inUseListener: ((Boolean) -> Unit)? = null
 
@@ -102,8 +108,11 @@ class VirtualAppSession(
         this.height = height
         // La dimensione scelta dall'utente per le app sullo schermo virtuale (Impostazioni): la densità sale o scende
         val scale = AppSettings.virtualAppScale.value
-        this.dpi = (dpi * scale / 100).coerceIn(60, 1000)
-        Log.i(TAG, "surface ${width}x$height, density $dpi x $scale% = ${this.dpi} (display $displayId, phase $phase)")
+        val scaled = (dpi * scale / 100).coerceIn(60, 1000)
+        // Nello schermo diviso il pannello è stretto: la densità scende quanto serve perché l'app veda almeno la larghezza di
+        // un telefono (VirtualSplit.density) e si impagini come su un telefono
+        this.dpi = if (splitMode) VirtualSplit.density(scaled, width) else scaled
+        Log.i(TAG, "surface ${width}x$height, density $dpi x $scale% = ${this.dpi}${if (splitMode) " (split)" else ""} (display $displayId, phase $phase)")
         if (displayId <= 0 && phase != Phase.RUNNING) step = 1
 
         if (displayId > 0) {
