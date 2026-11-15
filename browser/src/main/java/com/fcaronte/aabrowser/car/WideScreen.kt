@@ -1576,7 +1576,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             if (rtl) appMargins[2] = maxOf(appMargins[2], lp.rightMargin)
             else appMargins[0] = maxOf(appMargins[0], lp.leftMargin)
         }
-        // Schermo diviso (VirtualSplit): la regione dell'app (sotto i tasti di Android Auto, senza la sidebar) si divide in due, 70/30
+        // Schermo diviso (VirtualSplit): la regione dell'app (sotto i tasti di Android Auto, senza la sidebar) si divide in due, 65/35
         // di serie: l'app ha il suo pannello e la pagina l'altro, visibile e toccabile. Il confine è lo stesso per tutti e due
         if (virtualApp.isSplit) {
             val regionLeft = appMargins[0]

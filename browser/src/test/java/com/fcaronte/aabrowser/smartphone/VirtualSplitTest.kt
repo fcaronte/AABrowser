@@ -4,16 +4,17 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Lo schermo diviso: 70/30 di serie, il pannello dell'app in verticale e leggibile, i pannelli che non si sovrappongono. */
+/** Lo schermo diviso: 65/35 di serie, il pannello dell'app in verticale e leggibile, i pannelli che non si sovrappongono. */
 class VirtualSplitTest {
 
     @Test
-    fun theDefaultIsSeventyThirty() {
+    fun theDefaultIsSixtyFiveThirtyFive() {
+        assertEquals(35, VirtualSplit.DEFAULT_PERCENT)
         val panels = VirtualSplit.panels(1000, VirtualSplit.DEFAULT_PERCENT, VirtualSplit.Side.RIGHT)
-        assertEquals(700, panels.browserWidth)
-        assertEquals(300, panels.appWidth)
+        assertEquals(650, panels.browserWidth)
+        assertEquals(350, panels.appWidth)
         assertEquals(0, panels.browserStart)
-        assertEquals(700, panels.appStart)
+        assertEquals(650, panels.appStart)
     }
 
     @Test

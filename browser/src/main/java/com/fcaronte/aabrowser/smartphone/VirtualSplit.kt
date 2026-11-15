@@ -5,13 +5,13 @@ package com.fcaronte.aabrowser.smartphone
  * browser nel resto. Le misure sono pixel di una regione (la finestra della Main senza il dock, o la superficie della Wide senza
  * le fasce dell'host); qui non c'è niente di Android, così si provano con i test.
  *
- * Il rapporto non è 50/50: di serie l'app ha il 30%, da 20% a 50% dalle Impostazioni (niente trascinamento: nella Wide l'host non
+ * Il rapporto non è 50/50: di serie l'app ha il 35% (era il 30%), da 20% a 50% dalle Impostazioni (niente trascinamento: nella Wide l'host non
  * dà la posizione del dito, quindi la dimensione si sceglie solo lì).
  */
 object VirtualSplit {
     const val MIN_PERCENT = 20
     const val MAX_PERCENT = 50
-    const val DEFAULT_PERCENT = 30
+    const val DEFAULT_PERCENT = 35
     const val STEP_PERCENT = 5
 
     /** Larghezza minima, in dp logici, che un'app vede nel pannello: sotto le app si impaginano male (telefoni stretti, 320 dp). */
