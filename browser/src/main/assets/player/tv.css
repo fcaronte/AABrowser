@@ -12,24 +12,28 @@ body.has-video .art {
 }
 
 /*
- * Cambio canale a schermo intero: in alto al centro (la barra dello zoom è in basso; negli angoli ci sono i tasti di
- * Android Auto e il menu della Main), solo a schermo intero e finché la barra è in vista (video-zoom.js: bar-shown).
+ * Cambio canale a schermo intero: in alto, a tutta larghezza (la barra dello zoom è in basso; negli angoli ci sono i tasti di
+ * Android Auto e il menu della Main), solo a schermo intero e finché la barra è in vista (video-zoom.js: bar-shown). Una fila
+ * di canali con quello in onda al centro, e ai lati i tasti che cambiano di uno e di una pagina.
  */
 .zap {
     position: absolute;
-    left: 50%;
+    left: 12px;
+    right: 12px;
     top: 8px;
-    transform: translateX(-50%);
     z-index: 2;
     display: none;
     align-items: center;
     gap: 2px;
-    width: max-content;
-    max-width: min(520px, calc(100% - 24px));
     padding: 4px;
     border-radius: 28px;
     background: rgba(0, 0, 0, 0.62);
     color: #fff;
+}
+
+/* Nella Wide l'angolo in alto a destra è del tasto che Android Auto vuole per forza: la fila si ferma prima (player.css) */
+.in-wide .zap {
+    padding-inline-end: calc(4px + var(--host-end, 96px));
 }
 
 .stage:fullscreen.bar-shown .zap {
@@ -43,47 +47,88 @@ body.has-video .art {
     border-radius: 24px;
 }
 
-.zap-channel {
-    min-width: 0;
-    padding: 0 8px;
-    text-align: center;
+[dir="rtl"] .zap .zoom-button svg {
+    transform: scaleX(-1);
 }
 
-.zap-line {
+.zap-middle {
+    flex: 1;
+    min-width: 0;
+}
+
+/* La fila: tante schede quante ne stanno (tv.js), uguali, con quella in onda in evidenza */
+.zap-strip {
     display: flex;
+    gap: 6px;
+}
+
+.zap-chip {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 64px;
+    padding: 6px 8px;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-size: 17px;
-    font-weight: 700;
+    gap: 3px;
+    cursor: pointer;
+    overflow: hidden;
 }
 
-.zap-line img {
+.zap-chip:active {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.zap-chip.current {
+    background: rgba(255, 255, 255, 0.26);
+    border-color: #fff;
+}
+
+.zap-chip img {
     flex: none;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     object-fit: contain;
 }
 
-.zap-line img[hidden] {
+.zap-chip img[hidden] {
     display: none;
 }
 
-.zap-line span {
-    min-width: 0;
+.zap-chip .zap-name {
+    max-width: 100%;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    word-break: break-word;
 }
 
 /* Caricamento o canale non disponibile: a schermo intero il messaggio della pagina non si vede */
 .zap-status {
+    margin-top: 2px;
+    text-align: center;
     font-size: 13px;
     color: rgba(255, 255, 255, 0.78);
 }
 
 .zap-status:empty {
     display: none;
+}
+
+/* Schermo stretto (il telefono in verticale): niente scorrimento a pagine, tre canali e basta */
+@media (max-width: 520px) {
+    .zap-pager {
+        display: none;
+    }
 }
 
 .source {

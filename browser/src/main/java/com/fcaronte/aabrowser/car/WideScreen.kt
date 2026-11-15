@@ -662,11 +662,24 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      * pagina si vede accanto a lei (o torna nascosta sotto) e i due pannelli si riadattano.
      */
     private fun refreshSplit() {
+        // Con lo schermo diviso acceso un'app che gira ma è nascosta torna accanto alla pagina (prima restava nascosta finché
+        // non si andava su un'altra pagina e la si riapriva)
+        if (AppSettings.virtualSplitEnabled.value) virtualApp.reshowIfRunning()
         virtualApp.onSettingsChanged()
         webView?.visibility = if (virtualApp.isShown && !virtualApp.isSplit) View.INVISIBLE else View.VISIBLE
         applyVisibleArea()
+        // La pagina torna visibile con le misure nuove: si ridisegna (dopo essere stata nascosta sotto l'app)
+        webView?.post {
+            webView?.requestLayout()
+            webView?.invalidate()
+        }
         updateFocusMark()
         invalidate()
+        Log.d(
+            TAG,
+            "refreshSplit: split=${AppSettings.virtualSplitEnabled.value} appShown=${virtualApp.isShown} " +
+                "page=${splitBrowserX[0]}..${splitBrowserX[1]} app=${splitAppX[0]}..${splitAppX[1]} pageVisible=${webView?.visibility == View.VISIBLE}"
+        )
     }
 
     // I preferiti cambiati altrove (Impostazioni, ripristino, la stella): desktop e zoom si rileggono, e la home aperta si aggiorna
@@ -1201,6 +1214,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             if (isRtl) margins[2] = maxOf(margins[2], pageLp?.rightMargin ?: 0)
             else margins[0] = maxOf(margins[0], pageLp?.leftMargin ?: 0)
         }
+        // Schermo diviso: il video riempie il pannello del browser e non copre l'app, che resta dov'è e si usa (utente,
+        // 15/11/2026: «non deve coprire la split view»)
+        if (virtualApp.isSplit) {
+            margins[0] = maxOf(margins[0], splitBrowserX[0])
+            margins[2] = maxOf(margins[2], surfaceWidth - splitBrowserX[1])
+        }
         lp.leftMargin = margins[0]
         lp.topMargin = margins[1]
         lp.rightMargin = margins[2]
@@ -1660,7 +1679,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      */
     private fun updateFocusMark() {
         val mark = focusMarkReference ?: return
-        val show = virtualApp.isSplit && customView == null
+        val show = virtualApp.isSplit
         if (!show) {
             mark.visibility = View.GONE
             return
@@ -1757,21 +1776,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Un'app del telefono sullo schermo virtuale: i tocchi sulla sua vista sono suoi (la sua barra, oppure l'app). Quelli
         // sulla sidebar della Wide (fuori dalla vista) restano della sidebar: con l'app aperta Home e gli altri tasti non
         // rispondevano. Nello schermo diviso la vista è solo il pannello dell'app: il resto è della pagina, e dal tocco si sa
-        // a quale pannello vanno poi scorrimenti e Indietro. Un video a schermo intero copre anche il pannello dell'app: con
-        // lui davanti i tocchi sono del video (il tasto di uscita del lettore sta spesso in basso a destra, sotto l'app) e non
-        // spostano il pannello attivo
-        if (customView == null) {
-            val onApp = virtualApp.isShown && virtualApp.contains(x, y)
-            if (virtualApp.isSplit) {
-                if (onApp) virtualApp.setFocus(true) else if (inBrowserPanel(x, y)) virtualApp.setFocus(false)
-                logSplitTap(x, y, if (onApp) "app" else if (inBrowserPanel(x, y)) "page" else "dock")
-            }
-            if (onApp) {
-                virtualApp.onClick(x, y)
-                return
-            }
-        } else if (virtualApp.isSplit) {
-            logSplitTap(x, y, "video")
+        // a quale pannello vanno poi scorrimenti e Indietro. Un video a schermo intero nello schermo diviso riempie solo il
+        // pannello del browser (layoutCustomView): l'app resta toccabile, e il resto va al video
+        val onApp = virtualApp.isShown && virtualApp.contains(x, y)
+        if (virtualApp.isSplit) {
+            val onPage = !onApp && inBrowserPanel(x, y)
+            if (onApp) virtualApp.setFocus(true) else if (onPage) virtualApp.setFocus(false)
+            logSplitTap(x, y, if (onApp) "app" else if (onPage) (if (customView != null) "video" else "page") else "dock")
+        }
+        if (onApp) {
+            virtualApp.onClick(x, y)
+            return
         }
 
         lastTapAt = SystemClock.uptimeMillis()
@@ -1827,11 +1842,14 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
-        if (isInputPopupVisible || customView != null || isPageCovered()) return
+        if (isInputPopupVisible || isPageCovered()) return
+        // Nello schermo diviso con un video a schermo intero nel pannello del browser l'app resta usabile: lo scorrimento va a lei
+        // se è il pannello attivo (il video non scorre)
         if (virtualApp.receivesGestures()) {
             virtualApp.onScroll(distanceX, distanceY)
             return
         }
+        if (customView != null) return
         val wv = webView ?: return
         // Pagina di un video di YouTube: niente scorrimento nativo, decide lo script (prima le colonne, video in alto)
         if (!isYouTubeWatchPage(wv.url)) wv.scrollBy(distanceX.toInt(), distanceY.toInt())
@@ -1860,11 +1878,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onFling(velocityX: Float, velocityY: Float) {
-        if (isInputPopupVisible || customView != null || isPageCovered()) return
+        if (isInputPopupVisible || isPageCovered()) return
         if (virtualApp.receivesGestures()) {
             virtualApp.onFling(velocityX, velocityY)
             return
         }
+        if (customView != null) return
         val wv = webView ?: return
         if (isYouTubeWatchPage(wv.url)) {
             // Come lo scorrimento: il fling nativo sposterebbe la pagina e il video
@@ -1884,9 +1903,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
         // Il pizzico ha la posizione delle dita: nello schermo diviso va al pannello sotto di loro, e quel pannello riceve poi
-        // anche scorrimenti e Indietro. Con un video a schermo intero davanti l'app non è toccabile
+        // anche scorrimenti e Indietro
         val onApp = if (virtualApp.isSplit) {
-            customView == null && virtualApp.contains(focusX, focusY).also { inApp ->
+            virtualApp.contains(focusX, focusY).also { inApp ->
                 if (inApp) virtualApp.setFocus(true) else if (inBrowserPanel(focusX, focusY)) virtualApp.setFocus(false)
             }
         } else {

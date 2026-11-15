@@ -21,14 +21,9 @@
     const channelsBox = byId('channels');
     const space = byId('channelsSpace');
     const message = byId('message');
-    // Il pannello del cambio canale a schermo intero (tv.html): nome, logo e lo stesso messaggio della pagina
-    const zapName = byId('zapName');
-    const zapLogo = byId('zapLogo');
+    // Il pannello del cambio canale a schermo intero (tv.html): la fila dei canali e lo stesso messaggio della pagina
+    const zapStrip = byId('zapStrip');
     const zapStatus = byId('zapStatus');
-    zapLogo.referrerPolicy = 'no-referrer';
-    zapLogo.addEventListener('error', () => {
-        zapLogo.hidden = true;
-    });
 
     // { source, group (indice o 'fav'), last: canale con la sua lista (s), favs: [canali, ognuno con la sua lista (s)] }
     const state = readState();
@@ -47,6 +42,7 @@
     }
     let groups = [];
     let items = []; // canali mostrati: un gruppo, la ricerca o i preferiti
+    let zapStart = null; // dove comincia la fila dei canali a schermo intero dopo uno scorrimento a pagine; null = segue il canale in onda
     let current = null; // { s, k, n, l, g }
     let hls = null;
     let ts = null;
@@ -256,6 +252,8 @@
         space.style.height = (items.length * ROW) + 'px';
         channelsBox.scrollTop = 0;
         drawRows();
+        zapStart = null;
+        renderZap();
     }
 
     function drawRows() {
@@ -373,14 +371,9 @@
     function showChannel(channel) {
         byId('title').textContent = channel.n;
         byId('subtitle').textContent = channel.g || '';
-        zapName.textContent = channel.n;
-        if (channel.l) {
-            zapLogo.src = channel.l;
-            zapLogo.hidden = false;
-        } else {
-            zapLogo.removeAttribute('src');
-            zapLogo.hidden = true;
-        }
+        // La fila dei canali si rimette con quello in onda al centro
+        zapStart = null;
+        renderZap();
         const art = byId('art');
         const image = byId('artImage');
         if (channel.l) {
@@ -561,6 +554,66 @@
         if (attempt && attempt.catch) attempt.catch(() => {});
     }
 
+    // ------------------------------------------------------------------
+    // La fila dei canali a schermo intero: il canale in onda al centro, da toccare per saltare dritti a uno
+    // ------------------------------------------------------------------
+
+    /** Quante schede stanno nella fila: una ogni 128 px circa, da 3 a 9. */
+    function zapCount() {
+        const width = byId('stage').clientWidth || window.innerWidth;
+        const narrow = width <= 520;
+        // Pannello: margini, tasti (⏮ ⏭ e, se c'è posto, le pagine) e nella Wide la fascia del tasto dell'host
+        const free = width - 32 - (narrow ? 2 : 4) * 50 - (document.documentElement.classList.contains('in-wide') ? 96 : 0);
+        return Math.max(3, Math.min(9, Math.floor(free / 128)));
+    }
+
+    function zapBounds() {
+        const count = Math.min(zapCount(), items.length);
+        const index = current ? items.findIndex((channel) => sameChannel(channel, current)) : -1;
+        const centred = index < 0 ? 0 : index - Math.floor(count / 2);
+        const max = Math.max(0, items.length - count);
+        return { count, start: Math.min(max, Math.max(0, zapStart === null ? centred : zapStart)), max };
+    }
+
+    function renderZap() {
+        zapStrip.textContent = '';
+        if (!items.length) return;
+        const { count, start } = zapBounds();
+        for (let i = start; i < start + count; i++) {
+            const channel = items[i];
+            // Né <button> né «play» nei nomi delle classi: gli script generici di Android Auto cliccano per etichetta
+            const chip = document.createElement('div');
+            chip.className = 'zap-chip' + (sameChannel(channel, current) ? ' current' : '');
+            chip.setAttribute('role', 'button');
+            if (channel.l) {
+                const logo = document.createElement('img');
+                logo.referrerPolicy = 'no-referrer';
+                logo.alt = '';
+                logo.addEventListener('error', () => logo.remove());
+                logo.src = channel.l;
+                chip.appendChild(logo);
+            }
+            const name = document.createElement('div');
+            name.className = 'zap-name';
+            name.textContent = channel.n;
+            chip.appendChild(name);
+            chip.addEventListener('click', () => {
+                play(channel);
+                zoom.keepBar();
+            });
+            zapStrip.appendChild(chip);
+        }
+    }
+
+    /** Scorre la fila di una pagina (tante schede quante se ne vedono), senza cambiare canale. */
+    function pageZap(direction) {
+        if (!items.length) return;
+        const { count, start, max } = zapBounds();
+        zapStart = Math.min(max, Math.max(0, start + direction * count));
+        renderZap();
+        zoom.keepBar();
+    }
+
     function step(offset) {
         if (!items.length) return;
         const index = current ? items.findIndex((channel) => sameChannel(channel, current)) : -1;
@@ -602,7 +655,8 @@
         isVideo: () => document.body.classList.contains('has-video') || (!!current && !!document.fullscreenElement),
     });
 
-    // Cambio canale a schermo intero: gli stessi canali di ⏮ ⏭ di sotto (l'elenco mostrato), e la barra resta in vista
+    // Cambio canale a schermo intero: ⏮ ⏭ cambiano di uno (gli stessi canali di ⏮ ⏭ di sotto: l'elenco mostrato), «‹‹» e «››» scorrono
+    // la fila di una pagina senza cambiare canale, e la barra resta in vista
     byId('zapPrevious').addEventListener('click', () => {
         step(-1);
         zoom.keepBar();
@@ -611,6 +665,14 @@
         step(1);
         zoom.keepBar();
     });
+    byId('zapPagePrevious').addEventListener('click', () => pageZap(-1));
+    byId('zapPageNext').addEventListener('click', () => pageZap(1));
+    // La fila si disegna quando la barra compare (la larghezza vale solo a schermo intero) e a ogni cambio di misure
+    new MutationObserver(() => {
+        if (byId('stage').classList.contains('bar-shown')) renderZap();
+    }).observe(byId('stage'), { attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('fullscreenchange', () => renderZap());
+    window.addEventListener('resize', () => renderZap());
     // Senza video (canale che parte o non parte) la copertina sta sopra il riquadro e prende lei il tocco
     byId('art').addEventListener('click', () => {
         if (document.fullscreenElement) zoom.toggleBar();

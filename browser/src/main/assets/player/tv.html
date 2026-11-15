@@ -44,21 +44,27 @@
                 <img id="artImage" alt="">
                 <svg class="note" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
             </div>
-            <!-- Cambio canale a schermo intero: compare in alto, con la barra dello zoom, a un tocco sul video (tv.js).
-                 Sta dentro il riquadro perché a schermo intero il resto della pagina non prende i tocchi -->
+            <!-- Cambio canale a schermo intero: in alto, con la barra dello zoom, a un tocco sul video (tv.js). Una fila di canali
+                 (quello in onda al centro) da toccare per saltare dritti a quello che interessa; ⏮ ⏭ cambiano di uno, «‹‹» e «››»
+                 scorrono la fila di una pagina senza cambiare canale (nella Wide il trascinamento non c'è). Sta dentro il
+                 riquadro perché a schermo intero il resto della pagina non prende i tocchi. Niente etichette sui tasti né
+                 «play» nelle classi: gli script generici di Android Auto cliccano per etichetta e nome -->
             <div class="zap" id="zap">
+                <button class="zoom-button zap-pager" id="zapPagePrevious">
+                    <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z"/></svg>
+                </button>
                 <button class="zoom-button" id="zapPrevious">
                     <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
                 </button>
-                <div class="zap-channel">
-                    <div class="zap-line">
-                        <img id="zapLogo" alt="" hidden>
-                        <span id="zapName"></span>
-                    </div>
+                <div class="zap-middle">
+                    <div class="zap-strip" id="zapStrip"></div>
                     <div class="zap-status" id="zapStatus"></div>
                 </div>
                 <button class="zoom-button" id="zapNext">
                     <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
+                <button class="zoom-button zap-pager" id="zapPageNext">
+                    <svg viewBox="0 0 24 24"><path d="M13 6v12l8.5-6L13 6zm-.5 6L4 6v12l8.5-6z"/></svg>
                 </button>
             </div>
         </div>

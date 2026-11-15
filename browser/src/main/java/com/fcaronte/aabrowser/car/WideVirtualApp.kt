@@ -268,6 +268,18 @@ class WideVirtualApp(
         callbacks.onShownChanged(true)
     }
 
+    /**
+     * Lo schermo diviso si accende con un'app che gira ma è nascosta (ci si era andati su un'altra pagina quando era spento):
+     * torna accanto alla pagina, come un'app che resta (utente, 15/11/2026: lo schermo diviso «dovrebbe essere persistente»).
+     * Senza un'app aperta, o se è già davanti, non fa niente.
+     */
+    fun reshowIfRunning() {
+        if (wantShown || layer == null || session == null) return
+        wantShown = true
+        focusOnApp = true
+        show()
+    }
+
     /** L'app esce di scena (home, un'altra pagina): la vista sparisce, il display si ferma e l'app resta aperta. */
     fun hide() {
         if (!wantShown && layer?.visibility != View.VISIBLE) return

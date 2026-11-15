@@ -641,15 +641,26 @@ fun MainScreen(
                 // Schermo diviso (VirtualSplit): con un'app del telefono scelta e lo schermo diviso acceso, l'app sta nel suo
                 // pannello e il browser (l'ultima scheda web usata) nell'altro. Senza schermo diviso tutto com'era
                 val activeIsApp = VirtualApps.isAppUrl(activeTab?.url)
-                val splitActive = splitOn && activeIsApp && isBrowserVisible
                 var lastWebTabId by remember { mutableStateOf<String?>(null) }
+                var lastAppTabId by remember { mutableStateOf<String?>(null) }
                 LaunchedEffect(activeTab?.id, activeIsApp) {
-                    if (activeTab != null && !activeIsApp) lastWebTabId = activeTab.id
+                    if (activeTab != null) {
+                        if (activeIsApp) lastAppTabId = activeTab.id else lastWebTabId = activeTab.id
+                    }
                 }
-                val companionId = if (splitActive) {
+                // L'app dello schermo diviso: la scheda scelta se è un'app, altrimenti l'ultima app usata finché la sua scheda c'è:
+                // lo schermo diviso resta cambiando scheda (utente, 15/11/2026: «dovrebbe essere persistente»; prima l'app si
+                // staccava e tornava solo riscegliendo la sua scheda)
+                val splitAppId = if (splitOn && isBrowserVisible) {
+                    if (activeIsApp) activeTab?.id
+                    else TabManager.tabs.firstOrNull { it.id == lastAppTabId && VirtualApps.isAppUrl(it.url) }?.id
+                } else null
+                val splitActive = splitAppId != null
+                // Il browser accanto all'app: la scheda web scelta, o con l'app scelta l'ultima scheda web usata
+                val companionId = if (!splitActive) null else if (!activeIsApp) activeTab?.id else {
                     (TabManager.tabs.firstOrNull { it.id == lastWebTabId && !VirtualApps.isAppUrl(it.url) }
                         ?: TabManager.tabs.firstOrNull { !VirtualApps.isAppUrl(it.url) })?.id
-                } else null
+                }
                 // Nessuna pagina da mostrare accanto all'app: si apre la pagina iniziale in una scheda in secondo piano
                 LaunchedEffect(splitActive, companionId) {
                     if (splitActive && companionId == null) {
@@ -679,19 +690,21 @@ fun MainScreen(
                     val sortedTabs = TabManager.tabs.sortedBy {
                         when (it.id) {
                             activeTab?.id -> 2
-                            companionId -> 1
+                            companionId, splitAppId -> 1
                             else -> 0
                         }
                     }
                     sortedTabs.forEach { tab ->
                         val isTabActive = activeTab?.id == tab.id
-                        // Il browser dello schermo diviso si vede e si usa come una scheda scelta (riproduzione, schermata)
+                        // Il browser dello schermo diviso si vede e si usa come una scheda scelta (riproduzione, schermata); l'app
+                        // dello schermo diviso resta davanti e toccabile anche se la scheda scelta è un'altra
                         val isCompanion = tab.id == companionId
-                        val interactive = isTabActive || isCompanion
+                        val isSplitApp = tab.id == splitAppId
+                        val interactive = isTabActive || isCompanion || isSplitApp
                         androidx.compose.runtime.key(tab.id) { // Se qui forzo il ricaricamneto immediato della pagina web al cambio giorno notte si blocca la musica in riproduzione
                             val virtualApp = VirtualApps.packageOf(tab.url)
                             val tabModifier = when {
-                                splitActive && virtualApp != null && isTabActive ->
+                                splitActive && virtualApp != null && isSplitApp ->
                                     if (splitSide == VirtualSplit.Side.RIGHT) {
                                         Modifier.fillMaxSize().padding(start = dockPadding + splitWebWidth, top = appTopPadding)
                                     } else {
@@ -714,12 +727,12 @@ fun MainScreen(
                                     VirtualAppTab(
                                         tabId = tab.id,
                                         packageName = virtualApp,
-                                        isActive = isTabActive && isBrowserVisible,
+                                        isActive = (isTabActive || isSplitApp) && isBrowserVisible,
                                         inCar = isAutomotive,
                                         onOpenApps = openAppsPage,
                                         onClose = { closeTabById(tab.id) },
-                                        onShowFeedback = { if (isTabActive) feedbackMessage = it },
-                                        split = splitActive && isTabActive,
+                                        onShowFeedback = { if (isTabActive || isSplitApp) feedbackMessage = it },
+                                        split = splitActive && isSplitApp,
                                         onToggleSplit = { AppSettings.setVirtualSplitEnabled(context, !splitOn) }
                                     )
                                 } else BrowserScreen(
