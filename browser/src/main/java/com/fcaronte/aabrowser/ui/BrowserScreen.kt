@@ -235,7 +235,6 @@ fun BrowserScreen(
     reloadTrigger: Int = 0,
     backTrigger: Int = 0,
     forwardTrigger: Int = 0,
-    isDesktopMode: Boolean = false,
     carInputManager: CarInputManager? = null,
     desktopModeOverride: Boolean? = null,
     mobileZoomOverride: Float? = null,
@@ -268,10 +267,9 @@ fun BrowserScreen(
     val isAppDark = isAppDarkOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
     val activeDarkPages = isAppDark && darkPages
 
-    // Scelta per sito (icona desktop/mobile), preferito della scheda e impostazione generale: i callback della WebView
-    // nascono una volta sola, quindi leggono sempre il valore attuale e non quello della prima composizione
+    // Scelta per sito (icona desktop/mobile) e preferito della scheda: i callback della WebView nascono una volta sola,
+    // quindi leggono sempre il valore attuale e non quello della prima composizione
     val currentDesktopOverride by rememberUpdatedState(desktopModeOverride)
-    val currentGlobalDesktop by rememberUpdatedState(isDesktopMode)
     val desktopSitesVersion by DesktopModeSites.version
     var daznDesktopForced by remember(tabId) { mutableStateOf(false) }
     val actualDisplayScale = mobileZoomOverride ?: globalDisplayScale
@@ -295,9 +293,9 @@ fun BrowserScreen(
     val currentIsGlobalSearchActive by rememberUpdatedState(isGlobalSearchActive)
     val currentOpenVirtualApp by rememberUpdatedState(onOpenVirtualApp)
 
-    // Un solo punto (DesktopModeSites.wantsDesktop) per user agent, zoom e icona: sito, poi preferito, poi generale
+    // Un solo punto (DesktopModeSites.wantsDesktop) per user agent, zoom e icona: sito, poi preferito, altrimenti mobile
     fun needsDesktopForUrl(pageUrl: String?): Boolean =
-        DesktopModeSites.wantsDesktop(pageUrl, currentDesktopOverride, currentGlobalDesktop, daznDesktopForced)
+        DesktopModeSites.wantsDesktop(pageUrl, currentDesktopOverride, daznDesktopForced)
 
     fun isDaznUrl(pageUrl: String?): Boolean =
         pageUrl?.contains("dazn.com", ignoreCase = true) == true
@@ -464,11 +462,11 @@ fun BrowserScreen(
         webViewReference?.evaluateJavascript("if (typeof window.__aabAudioBoost === 'object' && window.__aabAudioBoost.refresh) { window.__aabAudioBoost.refresh(); }", null)
     }
 
-    // Desktop o mobile cambiato per il sito (icona), per il preferito o nelle Impostazioni: la pagina aperta cambia user
+    // Desktop o mobile cambiato per il sito (icona) o per il preferito: la pagina aperta cambia user
     // agent e si ricarica. Conta lo user agent che la WebView usa davvero (come nella Wide): se coincide già con quello
     // voluto non si tocca niente, quindi pagine locali, siti che restano desktop e altre schede non si ricaricano.
     // Prima la scelta per sito non entrava in questo calcolo: l'icona cambiava e la pagina restava com'era
-    LaunchedEffect(desktopSitesVersion, desktopModeOverride, isDesktopMode) {
+    LaunchedEffect(desktopSitesVersion, desktopModeOverride) {
         val wv = webViewReference ?: return@LaunchedEffect
         val currentUrl = wv.url
         if (currentUrl.isNullOrBlank() || !UrlUtils.isWebUrl(currentUrl) || LocalPlayer.isPlayerUrl(currentUrl)) {

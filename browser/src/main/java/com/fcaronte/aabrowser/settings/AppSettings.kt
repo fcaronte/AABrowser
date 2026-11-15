@@ -16,6 +16,7 @@ import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.fcaronte.aabrowser.CarService
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.model.FavoritesRepository
 import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AppLog
 import com.fcaronte.aabrowser.utils.CarShareTarget
@@ -124,9 +125,6 @@ object AppSettings {
 
     private val _displayScale = mutableFloatStateOf(1.0f)
     val displayScale: State<Float> = _displayScale
-
-    private val _desktopMode = mutableStateOf(false)
-    val desktopMode: State<Boolean> = _desktopMode
 
     private val _desktopScale = mutableFloatStateOf(1.0f)
     val desktopScale: State<Float> = _desktopScale
@@ -260,7 +258,18 @@ object AppSettings {
                 ?: FABLocation.BOTTOM_RIGHT.name
         )
         _displayScale.floatValue = prefs.getFloat("display_scale", 1.0f)
-        _desktopMode.value = prefs.getBoolean("desktop_mode", false)
+        // 2.8: la modalità desktop generale non c'è più (ogni sito ha la sua scelta, il preferito anche lo zoom). Chi l'aveva
+        // accesa la ritrova come scelta dei suoi preferiti: prima valeva per tutti i siti senza una scelta propria
+        if (prefs.contains("desktop_mode")) {
+            if (prefs.getBoolean("desktop_mode", false)) {
+                try {
+                    FavoritesRepository(context).keepLegacyDesktopMode()
+                } catch (e: Exception) {
+                    AppLog.w("AppSettings", "Desktop mode migration failed: ${e.javaClass.simpleName}")
+                }
+            }
+            prefs.edit { remove("desktop_mode") }
+        }
         _desktopScale.floatValue = prefs.getFloat("desktop_scale", 1.0f)
         _lastUrl.value = prefs.getString("last_url", "") ?: ""
         _wideLastUrl.value = prefs.getString("wide_last_url", "") ?: ""
@@ -527,11 +536,6 @@ object AppSettings {
     fun setDisplayScale(context: Context, scale: Float) {
         _displayScale.floatValue = scale
         saveFloat(context, "display_scale", scale)
-    }
-
-    fun setDesktopMode(context: Context, enabled: Boolean) {
-        _desktopMode.value = enabled
-        saveBoolean(context, "desktop_mode", enabled)
     }
 
     fun setDesktopScale(context: Context, scale: Float) {

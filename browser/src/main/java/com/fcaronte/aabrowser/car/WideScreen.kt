@@ -787,10 +787,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
         if (!desktopModeToggleEnabled(url)) return
         val enabled = !desktopModeEnabled(url)
-        // Senza scelta per il sito vale il preferito, poi l'impostazione generale
+        // Senza scelta per il sito vale il preferito, altrimenti mobile
         DesktopModeSites.setOverride(
             carContext, site, enabled,
-            baseline = favoriteFor(url)?.isDesktopMode ?: AppSettings.desktopMode.value
+            baseline = favoriteFor(url)?.isDesktopMode ?: false
         )
         CarToast.makeText(
             carContext,
@@ -1112,9 +1112,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun needsDesktopForUrl(url: String?): Boolean {
         if (url != null && url.startsWith(HomePage.BASE_URL)) return false
-        // Come nel Main (DesktopModeSites.wantsDesktop): scelta per il sito, poi preferito, poi impostazione generale;
+        // Come nel Main (DesktopModeSites.wantsDesktop): scelta per il sito, poi preferito, altrimenti mobile;
         // i siti "solo desktop" restano desktop. La scelta per il sito mancava: l'icona cambiava e la pagina no
-        return DesktopModeSites.wantsDesktop(url, favoriteFor(url)?.isDesktopMode, AppSettings.desktopMode.value, daznDesktopForced)
+        return DesktopModeSites.wantsDesktop(url, favoriteFor(url)?.isDesktopMode, daznDesktopForced)
     }
 
     /** Host senza "www.": "https://www.dazn.com/it" e "https://dazn.com" sono lo stesso sito. */

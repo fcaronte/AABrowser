@@ -437,9 +437,10 @@ internal object SettingsSchema {
             Card(listOf(Switch("dark_pages", R.string.dark_pages_label, R.string.dark_pages_desc))),
             Card(
                 listOf(
-                    Switch("desktop_mode", R.string.desktop_mode_label, R.string.desktop_mode_desc),
-                    Stepper("desktop_scale", 25, 150, 5, format = R.string.desktop_zoom_label, showIf = listOf(on("desktop_mode"))),
-                    Stepper("display_scale", 25, 150, 5, format = R.string.mobile_zoom_label, showIf = listOf(off("desktop_mode"))),
+                    // Lo zoom di base delle pagine: ogni sito può avere il suo (preferito > modifica), e desktop o mobile si sceglie
+                    // per sito dall'icona; l'impostazione generale «modalità desktop» è stata tolta nella 2.8
+                    Stepper("display_scale", 25, 150, 5, format = R.string.mobile_zoom_label),
+                    Stepper("desktop_scale", 25, 150, 5, format = R.string.desktop_zoom_label),
                 )
             ),
             Card(

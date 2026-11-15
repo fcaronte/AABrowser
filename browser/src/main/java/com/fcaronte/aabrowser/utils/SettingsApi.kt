@@ -274,7 +274,6 @@ object SettingsApi {
 
         // --- Pagine web ---
         flag("dark_pages", { AppSettings.darkPages.value }) { c, v -> AppSettings.setDarkPages(c, v) }
-        flag("desktop_mode", { AppSettings.desktopMode.value }) { c, v -> AppSettings.setDesktopMode(c, v) }
         number("desktop_scale", 25..150, 5, { (AppSettings.desktopScale.value * 100).roundToInt() }) { c, n -> AppSettings.setDesktopScale(c, n / 100f) }
         number("display_scale", 25..150, 5, { (AppSettings.displayScale.value * 100).roundToInt() }) { c, n -> AppSettings.setDisplayScale(c, n / 100f) }
         flag("adblock", { AdBlockSettings.isEnabled.value }) { c, v -> AdBlockSettings.setEnabled(c, v) }

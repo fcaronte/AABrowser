@@ -103,7 +103,6 @@
     <string name="dark_pages_label">डार्क वेब पेज</string>
     <string name="dark_pages_desc">वेबसाइटों पर डार्क मोड लागू करें</string>
     <string name="desktop_mode_label">डेस्कटॉप मोड</string>
-    <string name="desktop_mode_desc">वेबसाइटों का डेस्कटॉप संस्करण अनुरोध करें</string>
     <string name="desktop_zoom_label">डेस्कटॉप ज़ूम: %d%%</string>
     <string name="mobile_zoom_label">मोबाइल ज़ूम: %d%%</string>
     <string name="mobile_zoom_desc">मोबाइल मोड में वेब पेजों का ज़ूम समायोजित करें</string>

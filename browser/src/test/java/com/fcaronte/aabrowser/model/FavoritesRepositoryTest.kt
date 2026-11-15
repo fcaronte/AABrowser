@@ -8,6 +8,33 @@ import org.junit.Test
 
 class FavoritesRepositoryTest {
     @Test
+    fun theOldGeneralDesktopModeBecomesTheChoiceOfFavoritesWithoutOne() {
+        val list = listOf(
+            FavoriteSite("a", "Sito", "https://example.com"),
+            FavoriteSite("b", "Mobile", "https://m.example.org", isDesktopMode = false),
+            FavoriteSite("c", "Desktop", "https://pc.example.net", isDesktopMode = true),
+            FavoriteSite("d", "Media", "https://player.local/"),
+            FavoriteSite("e", "App", "app://com.example.app"),
+        )
+
+        val migrated = FavoritesRepository.withLegacyDesktopMode(list)!!
+
+        // Chi non aveva una scelta ora è desktop come prima; le scelte già fatte, le pagine di CarWeb e le app restano come sono
+        assertEquals(listOf<Boolean?>(true, false, true, null, null), migrated.map { it.isDesktopMode })
+        assertEquals(list.map { it.url }, migrated.map { it.url })
+    }
+
+    @Test
+    fun nothingToMigrateLeavesTheListAlone() {
+        val list = listOf(
+            FavoriteSite("a", "Mobile", "https://example.com", isDesktopMode = false),
+            FavoriteSite("b", "Media", "https://player.local/"),
+        )
+        assertEquals(null, FavoritesRepository.withLegacyDesktopMode(list))
+        assertEquals(null, FavoritesRepository.withLegacyDesktopMode(emptyList()))
+    }
+
+    @Test
     fun radioDefaultIsInsertedAfterMediaAndIptv() {
         val favorites = mutableListOf(
             FavoriteSite("a", "Google", "https://google.com"),

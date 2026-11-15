@@ -103,7 +103,6 @@
     <string name="dark_pages_label">Темные веб-страницы</string>
     <string name="dark_pages_desc">Принудительный темный режим на сайтах</string>
     <string name="desktop_mode_label">Режим ПК</string>
-    <string name="desktop_mode_desc">Запрашивать настольную версию сайтов</string>
     <string name="desktop_zoom_label">Масштаб ПК: %d%%</string>
     <string name="mobile_zoom_label">Масштаб мобильный: %d%%</string>
     <string name="mobile_zoom_desc">Настройка масштаба веб-страниц в мобильном режиме</string>

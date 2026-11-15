@@ -98,7 +98,6 @@
     <string name="dark_pages_label">Páginas web escuras</string>
     <string name="dark_pages_desc">Forçar o modo escuro nos sites</string>
     <string name="desktop_mode_label">Modo de ambiente de trabalho</string>
-    <string name="desktop_mode_desc">Pedir versão para computador dos sites</string>
     <string name="desktop_zoom_label">Zoom de ambiente de trabalho: %d%%</string>
     <string name="mobile_zoom_label">Zoom móvel: %d%%</string>
     <string name="mobile_zoom_desc">Ajustar o zoom das páginas web no modo móvel</string>

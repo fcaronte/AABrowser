@@ -103,7 +103,6 @@
     <string name="dark_pages_label">صفحات الويب الداكنة</string>
     <string name="dark_pages_desc">فرض الوضع الداكن على مواقع الويب</string>
     <string name="desktop_mode_label">وضع سطح المكتب</string>
-    <string name="desktop_mode_desc">طلب إصدار سطح المكتب لمواقع الويب</string>
     <string name="desktop_zoom_label">تكبير سطح المكتب: %d%%</string>
     <string name="mobile_zoom_label">تكبير الهاتف: %d%%</string>
     <string name="mobile_zoom_desc">ضبط تكبير صفحات الويب في وضع الهواتف</string>

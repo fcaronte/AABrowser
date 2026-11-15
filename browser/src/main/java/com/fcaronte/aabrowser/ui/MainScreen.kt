@@ -620,7 +620,6 @@ fun MainScreen(
 
                 // Gestione globale delle schede (sempre in composizione per il background play)
                 val activeTab = TabManager.activeTab
-                val isDesktopMode by AppSettings.desktopMode
                 val searchEngine by AppSettings.searchEngine
                 val isBrowserVisible = currentScreen == Screen.Browser
 
@@ -729,7 +728,6 @@ fun MainScreen(
                                     reloadTrigger = if (isTabActive) reloadTrigger else 0,
                                     backTrigger = if (isTabActive) backTrigger else 0,
                                     forwardTrigger = if (isTabActive) forwardTrigger else 0,
-                                    isDesktopMode = isDesktopMode,
                                     carInputManager = carInputManager,
                                     desktopModeOverride = tab.desktopModeOverride,
                                     mobileZoomOverride = tab.mobileZoomOverride,
@@ -838,14 +836,12 @@ fun MainScreen(
                             val desktopModeOn = remember(
                                 activeTab?.url,
                                 activeTab?.desktopModeOverride,
-                                isDesktopMode,
                                 desktopModeSitesVersion
                             ) {
                                 desktopModeSite?.let {
                                     DesktopModeSites.isEnabledForUrl(
                                         activeTab?.url,
-                                        activeTab?.desktopModeOverride,
-                                        isDesktopMode
+                                        activeTab?.desktopModeOverride
                                     )
                                 }
                             }
@@ -863,10 +859,10 @@ fun MainScreen(
                                     feedbackMessage = desktopModeRequiredMsg
                                 } else if (site != null && isEnabled != null) {
                                     val enable = !isEnabled
-                                    // Senza scelta per il sito vale il preferito della scheda, poi l'impostazione generale
+                                    // Senza scelta per il sito vale il preferito della scheda, altrimenti mobile
                                     DesktopModeSites.setOverride(
                                         context, site, enable,
-                                        baseline = activeTab?.desktopModeOverride ?: isDesktopMode
+                                        baseline = activeTab?.desktopModeOverride ?: false
                                     )
                                     feedbackMessage = if (enable) desktopModeOnMsg else desktopModeOffMsg
                                 }

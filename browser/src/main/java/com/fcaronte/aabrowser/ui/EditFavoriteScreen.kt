@@ -335,7 +335,7 @@ fun EditFavoriteScreen(
 
                 item {
                     AnimatedVisibility(visible = displaySettingsExpanded) {
-                        val isDesktop = isDesktopOverride ?: AppSettings.desktopMode.value
+                        val isDesktop = isDesktopOverride ?: false
                         SettingsCard {
                             Column(
                                 modifier = Modifier

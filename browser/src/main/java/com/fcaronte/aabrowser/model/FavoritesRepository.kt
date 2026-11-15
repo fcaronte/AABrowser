@@ -146,6 +146,14 @@ class FavoritesRepository(private val context: Context) {
         return defaults
     }
 
+    /**
+     * La modalità desktop generale (tolta nella 2.8) valeva per i siti senza una scelta propria: chi l'aveva accesa la ritrova
+     * come scelta di ogni preferito che non ne aveva una (le pagine di CarWeb e le app restano come sono).
+     */
+    fun keepLegacyDesktopMode() {
+        withLegacyDesktopMode(loadFavorites())?.let { saveFavorites(it) }
+    }
+
     /** Aggiunge i preferiti predefiniti che nella lista salvata mancano (stesso indirizzo); quanti ne ha aggiunti. */
     fun addMissingDefaults(): Int {
         val list = loadFavorites().toMutableList()
@@ -172,6 +180,13 @@ class FavoritesRepository(private val context: Context) {
             "12" to 7, // Podcast
             "13" to 8 // Altre App
         )
+
+        /** [list] con la modalità desktop generale come scelta dei preferiti che non ne avevano una; null se non cambia niente. */
+        fun withLegacyDesktopMode(list: List<FavoriteSite>): List<FavoriteSite>? {
+            fun inherits(site: FavoriteSite) = site.isDesktopMode == null && !isOwnPage(site.url)
+            if (list.none(::inherits)) return null
+            return list.map { if (inherits(it)) it.copy(isDesktopMode = true) else it }
+        }
 
         private val UNSAFE_SCHEMES = listOf("javascript:", "vbscript:", "data:", "file:", "content:", "intent:", "about:")
 

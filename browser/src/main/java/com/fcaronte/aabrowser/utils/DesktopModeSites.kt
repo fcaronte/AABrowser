@@ -11,8 +11,8 @@ import androidx.core.content.edit
  * Desktop o mobile per sito: l'icona nella barra delle schede, nel menu radiale e nella Wide scrive qui la scelta
  * (salvata come "1|sito" o "0|sito", vale anche per i sottodomini).
  *
- * L'ordine è sempre lo stesso: scelta per il sito, poi quella del preferito, poi quella generale delle Impostazioni.
- * [wantsDesktop] è l'unico punto che lo applica: Main, Wide e icone lo chiamano tutti, così la pagina riceve lo user
+ * L'ordine è sempre lo stesso: scelta per il sito, poi quella del preferito, altrimenti mobile (dalla 2.8 non c'è più
+ * l'impostazione generale: ogni sito ha la sua scelta e il preferito anche lo zoom). [wantsDesktop] è l'unico punto che lo applica: Main, Wide e icone lo chiamano tutti, così la pagina riceve lo user
  * agent che l'icona mostra. Prima la scelta per sito cambiava solo l'icona: la WebView sceglieva lo user agent senza
  * leggerla e al tocco la pagina restava com'era.
  *
@@ -49,15 +49,15 @@ object DesktopModeSites {
         return synchronized(overrides) { resolveOverride(host, overrides) }
     }
 
-    fun isEnabledForUrl(url: String?, favoriteOverride: Boolean?, global: Boolean): Boolean =
-        overrideForUrl(url) ?: favoriteOverride ?: global
+    fun isEnabledForUrl(url: String?, favoriteOverride: Boolean?): Boolean =
+        overrideForUrl(url) ?: favoriteOverride ?: false
 
     /**
      * Cosa chiede davvero la pagina: la scelta di [isEnabledForUrl], più i siti che funzionano solo in desktop
      * (WhatsApp Web, gli accessi) e DAZN dopo il clic su un evento, che l'utente non può cambiare.
      */
-    fun wantsDesktop(url: String?, favoriteOverride: Boolean?, global: Boolean, daznForced: Boolean = false): Boolean =
-        isEnabledForUrl(url, favoriteOverride, global) ||
+    fun wantsDesktop(url: String?, favoriteOverride: Boolean?, daznForced: Boolean = false): Boolean =
+        isEnabledForUrl(url, favoriteOverride) ||
                 WebViewScriptRouter.isDesktopRequired(url) ||
                 (daznForced && url?.contains("dazn.com", ignoreCase = true) == true)
 
@@ -74,9 +74,9 @@ object DesktopModeSites {
     }
 
     /**
-     * Salva la scelta per il sito. [baseline] è quello che il sito avrebbe senza scelta sua (preferito, altrimenti
-     * impostazione generale): se la scelta coincide non si salva niente, altrimenti un preferito "desktop" non si
-     * poteva più riportare a mobile (la scelta mobile sembrava uguale al generale e veniva scartata).
+     * Salva la scelta per il sito. [baseline] è quello che il sito avrebbe senza scelta sua (il preferito, altrimenti
+     * mobile): se la scelta coincide non si salva niente, altrimenti un preferito "desktop" non si poteva più riportare
+     * a mobile (la scelta mobile sembrava uguale a quella di base e veniva scartata).
      */
     fun setOverride(context: Context, host: String, enabled: Boolean, baseline: Boolean) {
         val key = siteKey(host) ?: return
@@ -130,15 +130,14 @@ object DesktopModeSites {
         }.maxByOrNull { it.first.length }?.second
     }
 
-    /** La decisione di [wantsDesktop] senza Android: sito, scelte salvate, preferito, impostazione generale, obblighi. */
+    /** La decisione di [wantsDesktop] senza Android: sito, scelte salvate, preferito (altrimenti mobile), obblighi. */
     internal fun decide(
         host: String?,
         entries: Collection<String>,
         favoriteOverride: Boolean?,
-        global: Boolean,
         required: Boolean = false,
         daznForced: Boolean = false
-    ): Boolean = (resolveOverride(host, entries) ?: favoriteOverride ?: global) || required || daznForced
+    ): Boolean = (resolveOverride(host, entries) ?: favoriteOverride ?: false) || required || daznForced
 
     private fun entryHost(entry: String): String? {
         val separator = entry.indexOf('|')

@@ -104,7 +104,6 @@
     <string name="dark_pages_label">Pagine Web scure</string>
     <string name="dark_pages_desc">Forza la modalità scura sui siti web</string>
     <string name="desktop_mode_label">Modalità Desktop</string>
-    <string name="desktop_mode_desc">Richiedi la versione desktop dei siti web</string>
     <string name="desktop_zoom_label">Zoom Desktop: %d%%</string>
     <string name="mobile_zoom_label">Zoom Mobile: %d%%</string>
     <string name="mobile_zoom_desc">Regola lo zoom delle pagine web in modalità mobile</string>

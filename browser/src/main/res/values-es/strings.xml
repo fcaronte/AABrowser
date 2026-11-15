@@ -103,7 +103,6 @@
     <string name="dark_pages_label">Páginas web oscuras</string>
     <string name="dark_pages_desc">Forzar el modo oscuro en los sitios web</string>
     <string name="desktop_mode_label">Modo escritorio</string>
-    <string name="desktop_mode_desc">Solicitar la versión de escritorio de los sitios web</string>
     <string name="desktop_zoom_label">Zoom de escritorio: %d%%</string>
     <string name="mobile_zoom_label">Zoom móvil: %d%%</string>
     <string name="mobile_zoom_desc">Ajustar el zoom de las páginas web en modo móvil</string>

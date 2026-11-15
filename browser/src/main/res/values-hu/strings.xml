@@ -103,7 +103,6 @@
     <string name="dark_pages_label">Sötét weboldalak</string>
     <string name="dark_pages_desc">Sötét mód kényszerítése webhelyeken</string>
     <string name="desktop_mode_label">Asztali mód</string>
-    <string name="desktop_mode_desc">Webhelyek asztali verziójának kérése</string>
     <string name="desktop_zoom_label">Asztali nagyítás: %d%%</string>
     <string name="mobile_zoom_label">Mobil nagyítás: %d%%</string>
     <string name="mobile_zoom_desc">Weboldalak nagyításának beállítása mobil módban</string>
