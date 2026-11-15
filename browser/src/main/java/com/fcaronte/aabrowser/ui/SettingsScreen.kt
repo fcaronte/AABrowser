@@ -87,6 +87,7 @@ import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockLists
+import com.fcaronte.aabrowser.utils.GitHubRepo
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.SitePermissions
 import com.fcaronte.aabrowser.utils.SponsorBlock
@@ -180,7 +181,6 @@ fun SettingsScreen(
         (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_CAR
 
     val dataClearedMsg = stringResource(R.string.data_cleared)
-    val readmeUrl = stringResource(R.string.url_readme)
     val notAvailableInCarMsg = stringResource(R.string.not_available_in_car)
     val shareLogsPhoneOnlyMsg = stringResource(R.string.share_logs_phone_only)
     val logScope = rememberCoroutineScope()
@@ -1361,7 +1361,8 @@ fun SettingsScreen(
                             description = stringResource(R.string.open_readme_desc),
                             buttonText = stringResource(R.string.open_readme),
                             onClick = {
-                                handleExternalLink(context, readmeUrl, isCarMode) {
+                                // Il repository ha due nomi per un po' (GitHubRepo): l'indirizzo si legge al tocco
+                                handleExternalLink(context, GitHubRepo.readmeUrl(), isCarMode) {
                                     qrUrlToShow = it
                                 }
                             }
@@ -1372,7 +1373,6 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // FOOTER: GitHub & Donation
-                    val githubUrl = stringResource(R.string.url_github)
                     val paypalUrl = stringResource(R.string.url_paypal)
                     val buyMeACoffeeUrl = stringResource(R.string.url_buymeacoffee)
                     
@@ -1394,7 +1394,7 @@ fun SettingsScreen(
                                     .pointerInput(Unit) {
                                         detectTapGestures(
                                             onTap = {
-                                                handleExternalLink(context, githubUrl, isCarMode) { qrUrlToShow = it }
+                                                handleExternalLink(context, GitHubRepo.pageUrl(), isCarMode) { qrUrlToShow = it }
                                             },
                                             // Pressione lunga: log dell'app da condividere (segnalazioni). Solo dal
                                             // telefono: dall'auto la scelta dell'app si aprirebbe sul telefono, fuori vista

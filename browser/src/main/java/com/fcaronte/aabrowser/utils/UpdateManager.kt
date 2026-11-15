@@ -33,10 +33,6 @@ import java.security.MessageDigest
 
 object UpdateManager {
     private const val TAG = "UpdateManager"
-    private const val REPO_URL = "https://api.github.com/repos/fcaronte/AABrowser/releases/latest"
-    private const val DOWNLOAD_PAGE = "https://github.com/fcaronte/AABrowser/releases"
-    // browser_download_url degli APK delle release (API di GitHub): https://github.com + questo percorso
-    private const val RELEASE_DOWNLOAD_PATH = "/fcaronte/AABrowser/releases/download/"
     private const val NETWORK_TIMEOUT_MS = 15_000
     private const val CHANNEL_ID = "com.fcaronte.aabrowser.updates"
     private const val NOTIFICATION_ID = 1001
@@ -85,49 +81,69 @@ object UpdateManager {
             // L'app è ripartita: se c'era un aggiornamento pronto da installare, o è fatto o si ricomincia
             (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(READY_NOTIFICATION_ID)
             try {
-                val url = URL(REPO_URL)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                // Senza limiti una rete che non risponde lasciava il controllo appeso
-                connection.connectTimeout = NETWORK_TIMEOUT_MS
-                connection.readTimeout = NETWORK_TIMEOUT_MS
-                connection.connect()
-
-                if (connection.responseCode == 200) {
-                    val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val json = JSONObject(response)
-                    val latestVersion = json.getString("tag_name").replace("v", "")
-
-                    val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                    val currentVersion =
-                        if (isTestingOldVersion(context)) TEST_OLD_VERSION else pInfo.versionName ?: "1.0"
-
-                    // Recupera l'URL dell'APK se disponibile negli assets
-                    var downloadUrl = DOWNLOAD_PAGE
-                    val assets = json.optJSONArray("assets")
-                    if (assets != null && assets.length() > 0) {
-                        for (i in 0 until assets.length()) {
-                            val asset = assets.getJSONObject(i)
-                            if (asset.getString("name").endsWith(".apk")) {
-                                downloadUrl = asset.getString("browser_download_url")
-                                break
-                            }
-                        }
-                    }
-
-                    UpdateInfo(
-                        isAvailable = isVersionNewer(latestVersion, currentVersion),
-                        latestVersion = "v$latestVersion",
-                        downloadUrl = downloadUrl
-                    )
-                } else {
-                    UpdateInfo(false, "", "")
+                // Il repository ha cambiato nome (GitHubRepo): prima il nuovo, poi il vecchio. Il primo che ha una release
+                // decide anche i link che l'app apre
+                for (name in GitHubRepo.NAMES) {
+                    val release = latestRelease(name) ?: continue
+                    GitHubRepo.markLive(name)
+                    return@withContext updateFrom(context, name, release)
                 }
+                UpdateInfo(false, "", "")
             } catch (e: Exception) {
                 AppLog.e(TAG, "Error checking for updates: ${e.message}")
                 UpdateInfo(false, "", "")
             }
         }
+    }
+
+    /**
+     * La release più recente del repository chiamato [name]. null se GitHub non la dà con quel nome (404 finché il
+     * repository non è rinominato, o un'altra risposta): si prova il nome seguente. Un errore di rete invece passa a chi
+     * chiama: il nome seguente sta sullo stesso server e darebbe lo stesso errore, dopo altri 15 secondi di attesa.
+     */
+    private fun latestRelease(name: String): JSONObject? {
+        val connection = URL(GitHubRepo.latestReleaseApiUrl(name)).openConnection() as HttpURLConnection
+        try {
+            connection.requestMethod = "GET"
+            // Senza limiti una rete che non risponde lasciava il controllo appeso
+            connection.connectTimeout = NETWORK_TIMEOUT_MS
+            connection.readTimeout = NETWORK_TIMEOUT_MS
+            connection.connect()
+            if (connection.responseCode != 200) {
+                Log.d(TAG, "Update: the repository $name answered HTTP ${connection.responseCode}")
+                return null
+            }
+            return JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun updateFrom(context: Context, name: String, release: JSONObject): UpdateInfo {
+        val latestVersion = release.getString("tag_name").replace("v", "")
+
+        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val currentVersion =
+            if (isTestingOldVersion(context)) TEST_OLD_VERSION else pInfo.versionName ?: "1.0"
+
+        // Recupera l'URL dell'APK se disponibile negli assets
+        var downloadUrl = GitHubRepo.releasesPageUrl(name)
+        val assets = release.optJSONArray("assets")
+        if (assets != null && assets.length() > 0) {
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                if (asset.getString("name").endsWith(".apk")) {
+                    downloadUrl = asset.getString("browser_download_url")
+                    break
+                }
+            }
+        }
+
+        return UpdateInfo(
+            isAvailable = isVersionNewer(latestVersion, currentVersion),
+            latestVersion = "v$latestVersion",
+            downloadUrl = downloadUrl
+        )
     }
 
     private fun isVersionNewer(latest: String, current: String): Boolean {
@@ -163,8 +179,8 @@ object UpdateManager {
             AppLog.e(TAG, "Cannot start download: downloadUrl is blank")
             return false
         }
-        // Si scaricano solo le release ufficiali: KingInstaller installa senza chiedere
-        if (!isOfficialReleaseUrl(info.downloadUrl)) {
+        // Si scaricano solo le release ufficiali (con il nome vecchio o quello nuovo del repository): KingInstaller installa senza chiedere
+        if (!GitHubRepo.isOfficialReleaseUrl(info.downloadUrl)) {
             AppLog.w(TAG, "Refusing download outside the official releases")
             Toast.makeText(context, context.getString(R.string.update_download_failed), Toast.LENGTH_SHORT).show()
             return false
@@ -312,13 +328,6 @@ object UpdateManager {
         }
         stagedFile.delete()
         return null
-    }
-
-    /** Indirizzo di un APK delle release di AABrowser su GitHub, letto come indirizzo e non come testo. */
-    private fun isOfficialReleaseUrl(url: String): Boolean {
-        val uri = Uri.parse(url)
-        return uri.scheme == "https" && uri.host == "github.com" && uri.port == -1 && uri.userInfo == null &&
-            uri.path?.startsWith(RELEASE_DOWNLOAD_PATH) == true && uri.pathSegments.none { it == "." || it == ".." }
     }
 
     /**

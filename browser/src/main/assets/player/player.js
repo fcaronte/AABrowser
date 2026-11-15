@@ -886,7 +886,7 @@
         media,
         lyricsTrack,
         config.strings || {},
-        config.client || 'CarWeb (https://github.com/fcaronte/AABrowser)'
+        config.client || 'CarWeb'
     );
 
     updateToggles();

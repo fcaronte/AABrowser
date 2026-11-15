@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.utils
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceResponse
-import com.fcaronte.aabrowser.BuildConfig
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -29,7 +28,8 @@ internal object RadioApi {
     private const val TAG = "RadioApi"
     private const val DISCOVERY_HOST = "all.api.radio-browser.info"
     private const val API_SUFFIX = ".api.radio-browser.info"
-    private val USER_AGENT = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+    // Con il nome del repository che risponde (GitHubRepo), che può cambiare mentre l'app è aperta
+    private val userAgent: String get() = GitHubRepo.userAgent()
     private const val MAX_STATIONS = 200
     private const val MAX_PLAYLIST_STATIONS = 5000
     private const val MAX_FOUND_STATIONS = 30
@@ -94,7 +94,7 @@ internal object RadioApi {
             .put("bars", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_bars))
             .put("wave", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_wave))
             .put("circle", appContext.getString(com.fcaronte.aabrowser.R.string.player_effect_circle))
-        val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+        val client = GitHubRepo.userAgent()
         val config = JSONObject().put("token", token).put("sources", sourcesJson(appContext)).put("strings", strings).put("client", client)
             .put("saved", MediaPages.saved(context, MediaPages.RADIO))
         val html = appContext.assets.open("player/radio.html").bufferedReader().use { it.readText() }
@@ -349,7 +349,7 @@ internal object RadioApi {
                 readTimeout = 8_000
                 instanceFollowRedirects = false
                 setRequestProperty("Icy-MetaData", "1")
-                setRequestProperty("User-Agent", USER_AGENT)
+                setRequestProperty("User-Agent", userAgent)
             }
             try {
                 val code = connection.responseCode
@@ -471,7 +471,7 @@ internal object RadioApi {
                 (URL("https://$host$path").openConnection() as HttpURLConnection).apply {
                     connectTimeout = 10_000
                     readTimeout = 15_000
-                    setRequestProperty("User-Agent", USER_AGENT)
+                    setRequestProperty("User-Agent", userAgent)
                     setRequestProperty("Accept", "application/json")
                 }
             } catch (e: Exception) {

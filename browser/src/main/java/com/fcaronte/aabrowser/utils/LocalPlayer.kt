@@ -21,7 +21,6 @@ import android.webkit.WebResourceResponse
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
-import com.fcaronte.aabrowser.BuildConfig
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.ui.appColorScheme
 import org.json.JSONArray
@@ -280,7 +279,7 @@ object LocalPlayer {
             .put("lyricsSearch", context.getString(R.string.lyrics_search))
             .put("search", context.getString(R.string.player_search))
             .put("noResults", context.getString(R.string.player_no_results))
-        val client = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+        val client = GitHubRepo.userAgent()
         val config = JSONObject().put("token", token).put("strings", strings).put("client", client)
             .put("zoom", videoZoomStrings(context))
         val html = context.assets.open("player/index.html").bufferedReader().use { it.readText() }

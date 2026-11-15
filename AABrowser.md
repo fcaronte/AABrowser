@@ -37,6 +37,8 @@
 
 \- \*\*Updater/Installer\*\*: Updates are automated via \`DownloadManager\` + \`FileProvider\` and targeted for installation through \*\*KingInstaller\*\* (\`com.example.kinginstaller\`, opened on its MainActivity, which loads the file and lets the user choose how to install; the APK is downloaded into the app's own external folder, because the public Downloads are not readable by the app)
 
+\- \*\*GitHub repository name\*\*: the repository is \`fcaronte/AABrowser\`, to be renamed \`fcaronte/CarWeb\` a few days after the release that knows both names (the package name stays \`com.fcaronte.aabrowser\`: another one would need a reinstall). \`GitHubRepo\` (\`utils/GitHubRepo.kt\`) is the only place that knows the names: updates are looked up on \`CarWeb\` first and then on \`AABrowser\` (it answers 404 until the rename), APKs of either name are accepted by \`isOfficialReleaseUrl\` (the check KingInstaller depends on), and the links the app opens (GitHub icon, README) and the identification sent to Radio Browser, Apple and LRCLIB use the name that answered last (the old one until it is known: it works before the rename and, through GitHub's redirect, after it). Versions before this one only know \`AABrowser\`: after the rename they cannot download an update by themselves (the address GitHub gives has the new name) and need one manual install. Never replace \`kododake/AABrowser\` and \`slashmax/AABrowser\` (the projects CarWeb comes from, credited in the README and in \`BrowserJavascript\`). When no installation knows only the old name any more, drop it from \`GitHubRepo.NAMES\`.
+
 \---
 
 \## 3. Core Modules & Key Features

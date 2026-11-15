@@ -192,8 +192,6 @@
     <string name="settings_footer_donation">If you like the project, you can buy me a coffee to support the hours of sleep lost writing this code and arguing with Gemini 😂</string>
 
     <!-- URLs & Defaults (Not for translation) -->
-    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
-    <string name="url_readme" translatable="false">https://github.com/fcaronte/AABrowser/blob/main/README.md</string>
     <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/4</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 

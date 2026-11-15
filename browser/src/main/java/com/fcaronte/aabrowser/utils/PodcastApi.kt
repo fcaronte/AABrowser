@@ -3,7 +3,6 @@ package com.fcaronte.aabrowser.utils
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceResponse
-import com.fcaronte.aabrowser.BuildConfig
 import com.fcaronte.aabrowser.R
 import org.json.JSONArray
 import org.json.JSONObject
@@ -24,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal object PodcastApi {
     private const val TAG = "PodcastApi"
-    private val USER_AGENT = "CarWeb/${BuildConfig.VERSION_NAME} (https://github.com/fcaronte/AABrowser)"
+    // Con il nome del repository che risponde (GitHubRepo), che può cambiare mentre l'app è aperta
+    private val userAgent: String get() = GitHubRepo.userAgent()
     private const val MINE = "mine"
     private const val MAX_CHART = 100
     private const val MAX_RESULTS = 50
@@ -375,7 +375,7 @@ internal object PodcastApi {
                 connectTimeout = 10_000
                 readTimeout = 20_000
                 instanceFollowRedirects = false
-                setRequestProperty("User-Agent", USER_AGENT)
+                setRequestProperty("User-Agent", userAgent)
                 setRequestProperty("Accept", "application/rss+xml, application/xml, text/xml, */*")
             }
             try {
@@ -397,7 +397,7 @@ internal object PodcastApi {
         val connection = (URL(address).openConnection() as HttpURLConnection).apply {
             connectTimeout = 10_000
             readTimeout = 15_000
-            setRequestProperty("User-Agent", USER_AGENT)
+            setRequestProperty("User-Agent", userAgent)
             setRequestProperty("Accept", "application/json")
         }
         try {

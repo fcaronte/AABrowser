@@ -189,7 +189,6 @@
     <string name="settings_footer_donation">यदि आपको प्रोजेक्ट पसंद है, तो आप इस कोड को लिखने और Gemini के साथ बहस करने में खोई हुई नींद के घंटों का समर्थन करने के लिए मुझे एक कॉफी खरीद सकते हैं 😂</string>
 
     <!-- URLs & Defaults (Not for translation) -->
-    <string name="url_github" translatable="false">https://github.com/fcaronte/AABrowser</string>
     <string name="url_paypal" translatable="false">https://www.paypal.com/paypalme/FCaronte/4</string>
     <string name="url_buymeacoffee" translatable="false">https://buymeacoffee.com/fcaronte</string>
 

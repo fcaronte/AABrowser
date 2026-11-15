@@ -820,7 +820,7 @@
         media,
         getLyricsTrack,
         S,
-        config.client || 'CarWeb (https://github.com/fcaronte/AABrowser)'
+        config.client || 'CarWeb'
     );
 
     if ('mediaSession' in navigator) {
