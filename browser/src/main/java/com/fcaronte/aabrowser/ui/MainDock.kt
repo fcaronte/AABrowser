@@ -102,13 +102,13 @@ fun MainDock(
 }
 
 // Scudo barrato se il sito è escluso dall'AdBlock, telefono se il sito è già in desktop (come nel tasto a ventaglio)
-private fun SidebarAction.dockIcon(adBlockOff: Boolean?, desktopModeOn: Boolean?): ImageVector = when (this) {
+internal fun SidebarAction.dockIcon(adBlockOff: Boolean?, desktopModeOn: Boolean?): ImageVector = when (this) {
     SidebarAction.ADBLOCK -> if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser
     SidebarAction.DESKTOP -> if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows
     else -> icon()
 }
 
-// Le icone dei tasti della sidebar nella Main (nella Wide sono disegnate a mano: WideDockIcons)
+// Le icone dei tasti della sidebar: le stesse nella Main e nella Wide (WideDockIcons le disegna su un bitmap)
 private fun SidebarAction.icon(): ImageVector = when (this) {
     SidebarAction.HOME -> Icons.Default.Home
     SidebarAction.BACK -> Icons.AutoMirrored.Filled.ArrowBack
