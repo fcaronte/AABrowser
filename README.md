@@ -114,6 +114,11 @@ from the misuse of this application. Use at your own risk.
   from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
 * **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
+* **Bluetooth mouse and keyboard (new):** connect a Bluetooth mouse or keyboard to the phone, open Settings > Bluetooth mouse and keyboard >
+  "Open the control screen" and leave it open on the phone: the mouse moves a pointer on the car screen (left click = tap, right click or
+  the side button = back, wheel = scroll, drag = scroll like a finger) and the keyboard types into pages, with the shortcuts of a
+  computer browser (Esc or Alt+← back, F5 reload, Ctrl+L search, Ctrl+T, Ctrl+W and Ctrl+Tab for tabs). It works in CarWeb and CarWebWide,
+  and, like everything else on the car screen, only while the car is parked (or with Passenger mode). The pointer speed is a choice in Settings.
 * **What's new (new):** the first time you open the app after an update a box lists what changed; Settings > What's new shows it again.
 * **One settings page for CarWeb and CarWebWide (new):** the same page, with sections you can open and close, on the phone, in the car
   and on CarWebWide (gear in the side menu, or the button on the home). What only the phone can do (files, addresses and passwords, backup)
@@ -367,6 +372,12 @@ proprio rischio e pericolo.
   è in alto nella pagina.
 * **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
   ordine e quanti vedere insieme; gli altri sono a uno scorrimento di distanza.
+* **Mouse e tastiera Bluetooth (novità):** collega un mouse o una tastiera Bluetooth al telefono, apri Impostazioni > Mouse e tastiera Bluetooth >
+  «Apri la schermata di controllo» e lasciala aperta sul telefono: il mouse muove un puntatore sullo schermo dell'auto (clic sinistro = tocco,
+  clic destro o tasto laterale = indietro, rotellina = scorrimento, trascinamento = scorre come un dito) e la tastiera scrive nelle pagine, con i
+  tasti rapidi di un browser per computer (Esc o Alt+← indietro, F5 ricarica, Ctrl+L cerca, Ctrl+T, Ctrl+W e Ctrl+Tab per le schede). Funziona in
+  CarWeb e in CarWebWide e, come tutto il resto sullo schermo dell'auto, solo a veicolo fermo (o con la Modalità passeggero). La velocità del
+  puntatore si sceglie nelle Impostazioni.
 * **Novità (novità):** la prima volta che apri l'app dopo un aggiornamento un riquadro elenca cosa è cambiato; Impostazioni > Novità lo mostra di nuovo.
 * **Una pagina di impostazioni per CarWeb e CarWebWide (novità):** la stessa pagina, con sezioni che si aprono e si chiudono, sul telefono, in auto
   e su CarWebWide (l'ingranaggio nel menu laterale, o il tasto nella home). Quello che solo il telefono può fare (file, indirizzi e password,
