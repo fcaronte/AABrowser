@@ -189,6 +189,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // La sidebar non scende mai sotto questo margine dal bordo alto e basso dello schermo
         const val SIDEBAR_MIN_EDGE_PX = 8
 
+        // Il tasto in alto a destra dell'host sta sopra la pagina solo se questa arriva fino a meno di tanti pixel dal bordo
+        const val HOST_BUTTON_ZONE_PX = 140
+
         // Primo avvio: il controllo dell'impaginazione delle pagine di CarWeb, dopo che l'area visibile si è assestata
         const val LAYOUT_CHECK_DELAY_MS = 1500L
         const val LAYOUT_CHECK_TOLERANCE_PX = 12
@@ -395,9 +398,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var stableArea: Rect? = null
 
     // Video a schermo intero e sidebar (barra di CarWeb Media, video-zoom.js; scritta dei siti, video-fit.js). "Sidebar
-    // sempre": il video sta accanto alla sidebar, che fa da bordo dello schermo. "Sidebar al tocco" (AppSettings.wideVideoMenuOnTap,
-    // una scelta per tutti i siti): il video va sotto la sidebar, che torna con i comandi e all'uscita dallo schermo intero
-    private val videoMenuOnTap: Boolean get() = AppSettings.wideVideoMenuOnTap.value
+    // sempre": il video sta accanto alla sidebar, che fa da bordo dello schermo. La scelta «Sidebar al tocco» (il video sotto la
+    // sidebar, che spariva e tornava con i comandi) è stata tolta il 15/11/2026: la sidebar resta dov'è e si toglie con il tasto
+    // in alto a destra (utente: «non ha più senso»); il valore salvato da prima non conta più
+    private val videoMenuOnTap: Boolean get() = false
     private var sidebarHiddenForVideo = false
 
     // Margine in alto e in basso che Android Auto tiene di solito in ogni disposizione (superficie e bordi laterali della
@@ -1634,6 +1638,29 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     private fun applyVisibleArea() {
         layoutVisibleArea()
+        applyPageFlags()
+    }
+
+    // Come la Wide è mostrata, detto alle pagine di CarWeb (home, Media...): la classe «wide-small» quando l'area è piccola sulla
+    // destra (il menu delle app di Android Auto: il collegamento «CarWeb» della home si nasconde) e lo spazio per il tasto
+    // dell'host in alto a destra (--host-end), che nello schermo diviso con l'app a destra non serve: il pannello della pagina non
+    // arriva fino all'angolo. Si rimette a ogni pagina caricata (force) e quando cambia qualcosa
+    private var pageFlags: String? = null
+
+    private fun applyPageFlags(force: Boolean = false) {
+        val wv = webView ?: return
+        val area = (stableArea ?: visibleArea)?.takeUnless { it.isEmpty }
+        val small = area != null && surfaceWidth > 0 && area.width() < surfaceWidth / 2
+        val clear = virtualApp.isSplit && surfaceWidth - splitBrowserX[1] >= HOST_BUTTON_ZONE_PX
+        val flags = "$small/$clear"
+        if (!force && flags == pageFlags) return
+        pageFlags = flags
+        wv.evaluateJavascript(
+            "(function(r){r.classList.toggle('wide-small',$small);" +
+                (if (clear) "r.style.setProperty('--host-end','12px');" else "r.style.removeProperty('--host-end');") +
+                "})(document.documentElement)",
+            null
+        )
     }
 
     private fun layoutVisibleArea() {
@@ -1773,7 +1800,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      */
     private fun updateFocusMark() {
         val mark = focusMarkReference ?: return
-        val show = virtualApp.isSplit
+        // Spento il 15/11/2026: sul bordo alto del pannello attivo sembrava una linea vuota, un difetto (utente, foto dello schermo
+        // diviso). Scorrimenti e Indietro vanno comunque al pannello toccato per ultimo
+        val show = false
         if (!show) {
             mark.visibility = View.GONE
             return
@@ -2631,7 +2660,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 @JavascriptInterface
                                 @Suppress("unused")
-                                fun videoMenuOnTap(): Boolean = AppSettings.wideVideoMenuOnTap.value
+                                fun videoMenuOnTap(): Boolean = false
 
                                 @JavascriptInterface
                                 @Suppress("unused")
@@ -2949,6 +2978,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                         lastUrl = url
                                         saveUrl(url)
                                         scheduleLayoutCheck()
+                                        applyPageFlags(force = true)
                                     }
 
                                     // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)

@@ -362,11 +362,6 @@ internal object SettingsSchema {
                 listOf(
                     Switch("wide_reopen_last_page", R.string.wide_reopen_last_page),
                     Choice("wide_sidebar_size", R.string.wide_sidebar_size, optionsData = "wide_sidebar_size_options", buttons = true),
-                    Choice(
-                        "wide_video_menu_on_tap", R.string.wide_video_menu_label,
-                        options = listOf(Option("0", R.string.video_menu_always), Option("1", R.string.video_menu_touch)),
-                        buttons = true
-                    ),
                 )
             )
         )

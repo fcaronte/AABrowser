@@ -49,10 +49,10 @@
     }
 
     // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
+    // La scelta «Sidebar sempre / al tocco» è stata tolta (15/11/2026): la sidebar della Wide resta dov'è e si toglie con il tasto in alto
+    // a destra. Senza ponte, la pagina non mostra la scelta e non chiama l'app
     function wideBridge() {
-        const bridge = window.AndroidBridge;
-        return bridge && typeof bridge.hasFixedSidebar === 'function' && typeof bridge.videoMenuOnTap === 'function' &&
-            typeof bridge.setVideoMenu === 'function' ? bridge : null;
+        return null;
     }
 
     // Il menu fisso: sempre in vista (il video si ferma al suo bordo) o solo insieme alla scritta

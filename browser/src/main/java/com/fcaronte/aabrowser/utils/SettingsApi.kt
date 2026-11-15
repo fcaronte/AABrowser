@@ -268,9 +268,6 @@ object SettingsApi {
         pick("wide_sidebar_size", { AppSettings.wideSidebarSize.value.toString() }) { c, v ->
             v.toIntOrNull()?.takeIf { it in AppSettings.wideSidebarSizes }?.let { AppSettings.setWideSidebarSize(c, it) } != null
         }
-        pick("wide_video_menu_on_tap", { flagText(AppSettings.wideVideoMenuOnTap.value) }) { c, v ->
-            parseFlag(v)?.let { AppSettings.setWideVideoMenuOnTap(c, it) } != null
-        }
 
         // --- Modalità passeggero ---
         flag("passenger_mode", { AppSettings.passengerMode.value }) { c, v -> AppSettings.setPassengerMode(c, v) }

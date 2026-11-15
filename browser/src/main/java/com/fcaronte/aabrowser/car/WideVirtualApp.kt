@@ -338,7 +338,11 @@ class WideVirtualApp(
         val height = layer?.height ?: 0
         val split = AppSettings.virtualSplitEnabled.value
         val width = if (split && available > 0 && height > 0) VirtualSplit.displayWidth(available, height) else ViewGroup.LayoutParams.MATCH_PARENT
-        val gravity = if (width == ViewGroup.LayoutParams.MATCH_PARENT) FrameLayout.LayoutParams.UNSPECIFIED_GRAVITY else Gravity.CENTER_HORIZONTAL
+        // Il display sta attaccato alla barra: l'eventuale banda nera resta sul bordo dello schermo e non in mezzo (utente, foto dello
+        // schermo diviso, 15/11/2026). In RTL resta al centro come prima
+        val rtl = callbacks.isRtl()
+        val gravity = if (width == ViewGroup.LayoutParams.MATCH_PARENT) FrameLayout.LayoutParams.UNSPECIFIED_GRAVITY
+        else if (rtl) Gravity.CENTER_HORIZONTAL else Gravity.START
         if (params.marginStart != offset || params.width != width || params.gravity != gravity) {
             params.marginStart = offset
             params.width = width
@@ -346,7 +350,7 @@ class WideVirtualApp(
             texture.layoutParams = params
         }
         // Nei tocchi: l'app comincia dopo la barra solo se la barra sta a sinistra, e dopo la banda nera che la centra
-        val shift = if (width == ViewGroup.LayoutParams.MATCH_PARENT) 0 else (available - width) / 2
+        val shift = if (width == ViewGroup.LayoutParams.MATCH_PARENT || !rtl) 0 else (available - width) / 2
         appOffset = (if (callbacks.isRtl()) 0 else offset) + shift
     }
 
