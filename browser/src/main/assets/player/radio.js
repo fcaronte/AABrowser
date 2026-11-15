@@ -7,6 +7,9 @@
     // Lo stato sta anche nell'app, che lo mette nei backup (store.js)
     const store = window.AABPageStore('radio', STORE_KEY, config);
     const ROW = 56;
+    // Una stazione che non parte, o che a un certo punto smette di mandare audio, lo deve dire (vedi "Una stazione che non parte")
+    const START_TIMEOUT_MS = 20_000;   // dal tocco sulla stazione al primo suono
+    const STALL_MS = 8_000;            // a stazione partita: tempo di riproduzione fermo
     const byId = (id) => document.getElementById(id);
     const media = byId('media');
     const channelsBox = byId('channels');
@@ -29,6 +32,11 @@
     let showFavorites = false;
     let drawPending = false;
     let requestToken = 0;
+    let startTimer = null;      // dal tocco al primo suono
+    let watchTimer = null;      // a stazione partita: il tempo di riproduzione avanza?
+    let watchTime = -1;
+    let watchSince = 0;
+    let stallShown = false;     // il messaggio "nessun audio" in questo momento è il nostro
     let listToken = 0;          // l'elenco arrivato dopo aver scelto un'altra lista si scarta
     // Risultato di una ricerca a voce: può contenere stazioni fuori dalla lista e nomi scritti diversamente
     let foundStations = null;
@@ -321,8 +329,67 @@
         metadataTimer = setInterval(pollIcyMetadata, 15_000);
     }
 
+    // ------------------------------------------------------------------
+    // Una stazione che non parte o che si ferma
+    // ------------------------------------------------------------------
+    //
+    // Radio Browser dà per buona una stazione quando il server risponde e manda un po' di audio, ma ce ne sono che non
+    // rispondono mai e altre con la sorgente ferma: a ogni collegamento il server rimanda la stessa scorta di audio (una
+    // decina di secondi, "sempre lo stesso pezzo") e poi niente. La pagina restava muta senza dire nulla.
+    // Il primo suono deve arrivare entro START_TIMEOUT_MS; poi, se il tempo di riproduzione non avanza per STALL_MS senza
+    // che sia in pausa, lo dice. Il messaggio sparisce da solo quando l'audio riprende (evento playing).
+    function clearStall() {
+        if (!stallShown) return;
+        stallShown = false;
+        message('');
+    }
+
+    // Chi chiama questa scrive subito il suo messaggio (caricamento, stazione non disponibile): qui non si tocca
+    function stopWatching() {
+        clearTimeout(startTimer);
+        clearInterval(watchTimer);
+        startTimer = null;
+        watchTimer = null;
+        stallShown = false;
+    }
+
+    function watchStart(token) {
+        clearTimeout(startTimer);
+        startTimer = setTimeout(() => {
+            startTimer = null;
+            if (token === requestToken && current) message(S.unavailable || 'Station unavailable');
+        }, START_TIMEOUT_MS);
+    }
+
+    function checkProgress() {
+        // In pausa, o con il contesto audio ancora sospeso (senza un tocco ferma l'elemento): non è la stazione
+        const suspended = !!sourceNode && !!audioContext && audioContext.state !== 'running';
+        if (!current || media.paused || media.ended || suspended) {
+            watchSince = Date.now();
+            return;
+        }
+        if (media.currentTime !== watchTime) {
+            watchTime = media.currentTime;
+            watchSince = Date.now();
+            clearStall();
+        } else if (!stallShown && Date.now() - watchSince >= STALL_MS) {
+            stallShown = true;
+            message(S.stalled || 'No audio from the station');
+        }
+    }
+
+    function watchPlayback() {
+        clearTimeout(startTimer);
+        clearInterval(watchTimer);
+        startTimer = null;
+        watchTime = media.currentTime;
+        watchSince = Date.now();
+        watchTimer = setInterval(checkProgress, 1000);
+    }
+
     function stopStream() {
         stopMetadataPolling();
+        stopWatching();
         if (hls) {
             hls.destroy();
             hls = null;
@@ -448,7 +515,9 @@
             if (currentIsHls && window.Hls && Hls.isSupported()) {
                 hls = new Hls({ backBufferLength: 30, maxBufferLength: 30 });
                 hls.on(Hls.Events.ERROR, (_, data) => {
-                    if (data.fatal) message(S.unavailable || 'Station unavailable');
+                    if (!data.fatal) return;
+                    stopWatching();
+                    message(S.unavailable || 'Station unavailable');
                 });
                 if (Hls.Events.FRAG_PARSING_METADATA) {
                     hls.on(Hls.Events.FRAG_PARSING_METADATA, (_, data) => {
@@ -466,7 +535,16 @@
             // Con la sorgente ora sicura (hls.js o tramite) l'elemento passa dal contesto, se c'è già
             connectElement();
             const attempt = media.play();
-            if (attempt && attempt.catch) attempt.catch(() => {});
+            watchStart(token);
+            if (attempt && attempt.catch) {
+                attempt.catch((error) => {
+                    // Senza un tocco il browser non fa partire il suono: non è colpa della stazione
+                    if (error && error.name === 'NotAllowedError' && token === requestToken) {
+                        clearTimeout(startTimer);
+                        startTimer = null;
+                    }
+                });
+            }
         } catch (_) {
             if (token === requestToken) message(S.unavailable || 'Station unavailable');
         }
@@ -683,12 +761,17 @@
     byId('previous').addEventListener('click', () => step(-1));
     media.addEventListener('playing', () => {
         document.body.classList.add('is-playing');
+        stallShown = false;
         message('');
+        watchPlayback();
         startMetadataPolling();
         visual.update();
     });
     media.addEventListener('pause', () => {
         document.body.classList.remove('is-playing');
+        clearInterval(watchTimer);
+        watchTimer = null;
+        clearStall();
         visual.update();
     });
 
@@ -727,7 +810,9 @@
     document.addEventListener('visibilitychange', () => visual.update());
     updateEffectsButton();
     media.addEventListener('error', () => {
-        if (current) message(S.unavailable || 'Station unavailable');
+        if (!current) return;
+        stopWatching();
+        message(S.unavailable || 'Station unavailable');
     });
 
     lyricsController = window.createLyricsController(

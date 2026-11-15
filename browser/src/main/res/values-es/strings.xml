@@ -421,6 +421,7 @@
     <string name="radio_no_results">No se encontraron emisoras</string>
     <string name="radio_error">No se pudieron cargar las emisoras</string>
     <string name="radio_unavailable">Emisora no disponible</string>
+    <string name="radio_stalled">La emisora no envía audio</string>
     <string name="share_carweb_label">Compartir en CarWeb</string>
     <string name="share_carweb_desc">Añade CarWeb al menú Compartir del teléfono: los enlaces, fotos, vídeos y archivos de audio se abren en una pestaña. Con el coche conectado se abren allí; con «Siempre», lejos del coche, se abre la aplicación en el teléfono.</string>
     <string name="share_carweb_when">Cuándo mostrarla en el menú Compartir</string>

@@ -75,6 +75,7 @@ internal object RadioApi {
             .put("noResults", appContext.getString(com.fcaronte.aabrowser.R.string.radio_no_results))
             .put("error", appContext.getString(com.fcaronte.aabrowser.R.string.radio_error))
             .put("unavailable", appContext.getString(com.fcaronte.aabrowser.R.string.radio_unavailable))
+            .put("stalled", appContext.getString(com.fcaronte.aabrowser.R.string.radio_stalled))
             .put("lyricsButton", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_button))
             .put("lyricsLoading", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_loading))
             .put("lyricsNotFound", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_not_found))
