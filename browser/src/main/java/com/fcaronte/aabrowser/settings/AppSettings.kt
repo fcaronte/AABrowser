@@ -101,7 +101,7 @@ object AppSettings {
     val wideReopenLastPage: State<Boolean> = _wideReopenLastPage
 
     // Wide, video a schermo intero con il menu fisso: true = il menu sta sotto il video e compare con i comandi
-    // ("Menu al tocco" nella barra del video), false = il video si ferma al bordo del menu
+    // ("Sidebar al tocco" nella barra del video), false = il video si ferma al bordo della sidebar
     private val _wideVideoMenuOnTap = mutableStateOf(false)
     val wideVideoMenuOnTap: State<Boolean> = _wideVideoMenuOnTap
 

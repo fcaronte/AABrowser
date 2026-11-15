@@ -7,7 +7,7 @@ import org.json.JSONObject
 /**
  * Adatta / Riempi / Allunga per i video dei siti a schermo intero: lo script (assets/scripts/video-fit.js, all'inizio
  * di ogni pagina nella Main e nella Wide) mostra il modo in alto al centro toccando lo schermo, e nella Wide con il menu
- * fisso anche la scelta "Menu sempre" / "Menu al tocco". Le pagine di CarWeb Media hanno la loro barra con lo zoom
+ * fisso anche la scelta "Sidebar sempre" / "Sidebar al tocco". Le pagine di CarWeb Media hanno la loro barra con lo zoom
  * (assets/player/video-zoom.js). I testi nella lingua dell'app.
  */
 object VideoFit {

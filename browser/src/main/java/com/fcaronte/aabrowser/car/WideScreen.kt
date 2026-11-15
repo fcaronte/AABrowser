@@ -311,9 +311,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
-    // Video a schermo intero e menu fisso (barra di CarWeb Media, video-zoom.js; scritta dei siti, video-fit.js). "Menu
-    // sempre": il video sta accanto al menu, che fa da bordo dello schermo. "Menu al tocco" (AppSettings.wideVideoMenuOnTap,
-    // una scelta per tutti i siti): il video va sotto il menu, che torna con i comandi e all'uscita dallo schermo intero
+    // Video a schermo intero e sidebar (barra di CarWeb Media, video-zoom.js; scritta dei siti, video-fit.js). "Sidebar
+    // sempre": il video sta accanto alla sidebar, che fa da bordo dello schermo. "Sidebar al tocco" (AppSettings.wideVideoMenuOnTap,
+    // una scelta per tutti i siti): il video va sotto la sidebar, che torna con i comandi e all'uscita dallo schermo intero
     private val videoMenuOnTap: Boolean get() = AppSettings.wideVideoMenuOnTap.value
     private var sidebarHiddenForVideo = false
 
@@ -1165,7 +1165,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     // La pagina può arrivare un attimo prima della vista a schermo intero: lo stato resta e vale quando arriva. La scelta
-    // si cambia solo a schermo intero, e nascondere il menu si può solo con "Menu al tocco"
+    // si cambia solo a schermo intero, e nascondere la sidebar si può solo con "Sidebar al tocco"
     private fun setVideoMenu(onTap: Boolean, visible: Boolean) {
         val changed = customView != null && onTap != videoMenuOnTap
         if (changed) AppSettings.setWideVideoMenuOnTap(carContext, onTap)

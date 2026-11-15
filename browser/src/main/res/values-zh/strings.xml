@@ -303,7 +303,7 @@
     <string name="grant_permissions_button">授予权限并开始</string>
     <string name="skip_onboarding_button">我知道我在做什么 (跳过)</string>
     <string name="wide_reopen_last_page">重新打开最后一页</string>
-    <string name="wide_sidebar_size">菜单大小</string>
+    <string name="wide_sidebar_size">侧边栏大小</string>
     <string name="wide_no_favorites">没有收藏。使用放大镜进行搜索。</string>
 
     <!-- File chooser -->
@@ -330,8 +330,8 @@
     <string name="video_fill">填充</string>
     <string name="video_stretch">拉伸</string>
     <string name="video_fullscreen">全屏</string>
-    <string name="video_menu_always">菜单常显</string>
-    <string name="video_menu_touch">点按显示菜单</string>
+    <string name="video_menu_always">侧边栏常显</string>
+    <string name="video_menu_touch">点按显示侧边栏</string>
     <string name="lyrics_button">歌词</string>
     <string name="lyrics_loading">正在加载歌词…</string>
     <string name="lyrics_not_found">未找到歌词。</string>
@@ -518,7 +518,7 @@
     <string name="tab_bar_action_up">上移</string>
     <string name="settings_restart_needed">重新启动应用以应用此设置。</string>
     <string name="settings_page_error">无法保存该设置。</string>
-    <string name="wide_video_menu_label">全屏视频时的菜单</string>
+    <string name="wide_video_menu_label">全屏视频时的侧边栏</string>
     <string name="main_dock_label">CarWeb 中的侧边栏</string>
     <string name="main_dock_desc">在 CarWeb 中显示与 CarWebWide 相同的侧边栏，此时圆形菜单按钮只用于打开和关闭它。</string>
     <string name="sidebar_actions_label">侧边栏按钮</string>

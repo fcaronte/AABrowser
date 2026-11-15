@@ -139,7 +139,7 @@
             button('mode').textContent = S[mode] || mode;
             const menu = button('menu');
             menu.hidden = !(fixedMenu && inFullscreen());
-            menu.textContent = menuMode === 'always' ? (S.menuAlways || 'Menu') : (S.menuTouch || 'Menu');
+            menu.textContent = menuMode === 'always' ? (S.menuAlways || 'Sidebar') : (S.menuTouch || 'Sidebar');
             bar.classList.toggle('in-fullscreen', inFullscreen());
         }
 

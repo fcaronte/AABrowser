@@ -304,7 +304,7 @@
     <string name="grant_permissions_button">अनुमतियां दें और शुरू करें</string>
     <string name="skip_onboarding_button">मैं जानता हूँ कि मैं क्या कर रहा हूँ (छोड़ें)</string>
     <string name="wide_reopen_last_page">पिछला पृष्ठ फिर से खोलें</string>
-    <string name="wide_sidebar_size">मेनू का आकार</string>
+    <string name="wide_sidebar_size">साइडबार का आकार</string>
     <string name="wide_no_favorites">कोई पसंदीदा नहीं। खोजने के लिए आवर्धक लेंस का उपयोग करें।</string>
 
     <!-- File chooser -->
@@ -331,8 +331,8 @@
     <string name="video_fill">भरें</string>
     <string name="video_stretch">खींचें</string>
     <string name="video_fullscreen">पूर्ण स्क्रीन</string>
-    <string name="video_menu_always">मेनू हमेशा</string>
-    <string name="video_menu_touch">टैप पर मेनू</string>
+    <string name="video_menu_always">साइडबार हमेशा</string>
+    <string name="video_menu_touch">टैप पर साइडबार</string>
     <string name="lyrics_button">गीत के बोल</string>
     <string name="lyrics_loading">बोल लोड हो रहे हैं…</string>
     <string name="lyrics_not_found">बोल नहीं मिले।</string>
@@ -519,7 +519,7 @@
     <string name="tab_bar_action_up">ऊपर ले जाएँ</string>
     <string name="settings_restart_needed">इस सेटिंग को लागू करने के लिए ऐप को फिर से शुरू करें।</string>
     <string name="settings_page_error">सेटिंग सहेजी नहीं जा सकी।</string>
-    <string name="wide_video_menu_label">फ़ुलस्क्रीन वीडियो के साथ मेनू</string>
+    <string name="wide_video_menu_label">फ़ुलस्क्रीन वीडियो के साथ साइडबार</string>
     <string name="main_dock_label">CarWeb में साइडबार</string>
     <string name="main_dock_desc">CarWeb में CarWebWide जैसा ही साइडबार दिखाता है। तब गोल मेनू बटन उसे केवल खोलता और बंद करता है।</string>
     <string name="sidebar_actions_label">साइडबार के बटन</string>

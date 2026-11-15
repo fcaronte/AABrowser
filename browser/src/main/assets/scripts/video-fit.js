@@ -6,7 +6,7 @@
  * Regole e scritta in fogli di stile costruiti (niente innerHTML né <style>: Trusted Types e CSP dei siti), la scritta
  * in uno shadow DOM dentro l'elemento a schermo intero: il resto della pagina Chromium lo rende intoccabile. Quando è a
  * schermo intero il solo <video> (comandi standard del browser) la scritta non c'è: i suoi figli non si vedono.
- * Nella Wide con il menu fisso accanto c'è la scelta "Menu sempre" / "Menu al tocco" (la salva l'app, vale per tutti
+ * Nella Wide con il menu fisso accanto c'è la scelta "Sidebar sempre" / "Sidebar al tocco" (la salva l'app, vale per tutti
  * i siti e per CarWeb Media): al tocco il menu compare e sparisce con la scritta. I testi li mette l'app (VideoFit).
  */
 (function (labels) {
@@ -218,7 +218,7 @@
         log('label shown in ' + describe(parent));
         button.textContent = labels[mode] || mode;
         menuButton.hidden = !fixedMenu;
-        menuButton.textContent = (menuOnTap ? labels.menuTouch : labels.menuAlways) || 'Menu';
+        menuButton.textContent = (menuOnTap ? labels.menuTouch : labels.menuAlways) || 'Sidebar';
         syncMenu(true);
         clearTimeout(hideTimer);
         hideTimer = setTimeout(hide, HIDE_MS);

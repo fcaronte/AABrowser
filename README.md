@@ -51,8 +51,8 @@ from the misuse of this application. Use at your own risk.
 * **Videos of the sites in fullscreen (YouTube and the others, new in 2.7):** a tap shows at the top the picture mode Fit, Fill
   (cropped) or Stretch, remembered for each site. Not shown when a site puts only the bare video in fullscreen (the
   browser's standard controls). In the Widescreen every fullscreen video goes under Android Auto's buttons, centred
-  (Back leaves fullscreen even when a site's button sits under them), and with the fixed menu you choose "Menu always"
-  (the video stops at its edge) or "Menu on tap" (the menu shows with the controls), once for all the sites.
+  (Back leaves fullscreen even when a site's button sits under them), and with the sidebar you choose "Sidebar always"
+  (the video stops at its edge) or "Sidebar on tap" (the sidebar shows with the controls), once for all the sites.
 * **Radio in CarWeb Media:** browse and play stations from Radio-Browser.info at `/radio`. The country
   is chosen from the app language and, when available, its region (for example, English (UK) selects
   the UK); other countries and your own M3U lists (URL or file) can be added in Settings > TV, Radio and Podcasts and picked
@@ -293,9 +293,9 @@ proprio rischio e pericolo.
 * **Video dei siti a schermo intero (YouTube e gli altri, novità 2.7):** un tocco mostra in alto il modo dell'immagine Adatta,
   Riempi (tagliata) o Allunga, ricordato per ogni sito. Non compare quando un sito mette a schermo intero il solo video
   (i comandi standard del browser). Nella Widescreen ogni video a schermo intero va sotto i tasti di Android Auto,
-  centrato (Indietro esce dallo schermo intero anche se un tasto del sito finisce sotto), e con il menu fisso si sceglie
-  «Menu sempre» (il video si ferma al suo bordo) o «Menu al tocco» (il menu compare con i comandi), una volta per tutti
-  i siti.
+  centrato (Indietro esce dallo schermo intero anche se un tasto del sito finisce sotto), e con la sidebar si sceglie
+  «Sidebar sempre» (il video si ferma al suo bordo) o «Sidebar al tocco» (la sidebar compare con i comandi), una volta per
+  tutti i siti.
 * **Radio in CarWeb Media:** cerca e ascolta le stazioni di Radio-Browser.info da `/radio`. Il Paese
   viene scelto in base alla lingua dell'app e, se presente, alla relativa regione (per esempio, inglese
   (Regno Unito) seleziona il Regno Unito); altri Paesi e le tue liste M3U (da URL o da file) si aggiungono nelle

@@ -325,7 +325,7 @@ internal object SettingsSchema {
         )
     )
 
-    // Quello che prima stava nella home della Wide: la dimensione del menu fisso e il video a schermo intero
+    // Quello che prima stava nella home della Wide: la dimensione della sidebar e il video a schermo intero
     private fun wide() = Section(
         "wide", R.string.wide_app_name,
         listOf(

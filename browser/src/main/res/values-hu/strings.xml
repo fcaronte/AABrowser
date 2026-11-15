@@ -304,7 +304,7 @@
     <string name="grant_permissions_button">Engedélyek megadása és indítás</string>
     <string name="skip_onboarding_button">Tudom, mit csinálok (Kihagyás)</string>
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>
-    <string name="wide_sidebar_size">Menü mérete</string>
+    <string name="wide_sidebar_size">Oldalsáv mérete</string>
     <string name="wide_no_favorites">Nincs kedvenc. A kereséshez használd a nagyítót.</string>
 
     <!-- File chooser -->
@@ -331,8 +331,8 @@
     <string name="video_fill">Kitöltés</string>
     <string name="video_stretch">Nyújtás</string>
     <string name="video_fullscreen">Teljes képernyő</string>
-    <string name="video_menu_always">Menü mindig</string>
-    <string name="video_menu_touch">Menü érintésre</string>
+    <string name="video_menu_always">Oldalsáv mindig</string>
+    <string name="video_menu_touch">Oldalsáv érintésre</string>
     <string name="lyrics_button">Dalszöveg</string>
     <string name="lyrics_loading">Dalszöveg betöltése…</string>
     <string name="lyrics_not_found">Nem található dalszöveg.</string>
@@ -519,7 +519,7 @@
     <string name="tab_bar_action_up">Fel</string>
     <string name="settings_restart_needed">Indítsd újra az alkalmazást a beállítás érvényesítéséhez.</string>
     <string name="settings_page_error">A beállítást nem sikerült elmenteni.</string>
-    <string name="wide_video_menu_label">Menü teljes képernyős videónál</string>
+    <string name="wide_video_menu_label">Oldalsáv teljes képernyős videónál</string>
     <string name="main_dock_label">Oldalsáv a CarWebben</string>
     <string name="main_dock_desc">A CarWebben is megjeleníti a CarWebWide oldalsávját. A kerek menügomb ilyenkor csak megnyitja és bezárja.</string>
     <string name="sidebar_actions_label">Az oldalsáv gombjai</string>

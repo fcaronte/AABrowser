@@ -308,7 +308,7 @@
     <string name="grant_permissions_button">منح الأذونات والبدء</string>
     <string name="skip_onboarding_button">أنا أعرف ما أفعله (تخطي)</string>
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>
-    <string name="wide_sidebar_size">حجم القائمة</string>
+    <string name="wide_sidebar_size">حجم الشريط الجانبي</string>
     <string name="wide_no_favorites">لا توجد مفضلة. استخدم العدسة للبحث.</string>
 
     <!-- File chooser -->
@@ -335,8 +335,8 @@
     <string name="video_fill">ملء</string>
     <string name="video_stretch">تمديد</string>
     <string name="video_fullscreen">ملء الشاشة</string>
-    <string name="video_menu_always">القائمة دائمًا</string>
-    <string name="video_menu_touch">القائمة عند اللمس</string>
+    <string name="video_menu_always">الشريط الجانبي دائمًا</string>
+    <string name="video_menu_touch">الشريط الجانبي عند اللمس</string>
     <string name="lyrics_button">كلمات الأغنية</string>
     <string name="lyrics_loading">جارٍ تحميل الكلمات…</string>
     <string name="lyrics_not_found">لم يتم العثور على الكلمات.</string>
@@ -523,7 +523,7 @@
     <string name="tab_bar_action_up">انقل لأعلى</string>
     <string name="settings_restart_needed">أعد تشغيل التطبيق لتطبيق هذا الإعداد.</string>
     <string name="settings_page_error">تعذّر حفظ الإعداد.</string>
-    <string name="wide_video_menu_label">القائمة مع الفيديو بملء الشاشة</string>
+    <string name="wide_video_menu_label">الشريط الجانبي مع الفيديو بملء الشاشة</string>
     <string name="main_dock_label">الشريط الجانبي في CarWeb</string>
     <string name="main_dock_desc">يعرض في CarWeb الشريط الجانبي نفسه الموجود في CarWebWide. يصبح زر القائمة الدائري مخصصًا لفتحه وإغلاقه فقط.</string>
     <string name="sidebar_actions_label">أزرار الشريط الجانبي</string>

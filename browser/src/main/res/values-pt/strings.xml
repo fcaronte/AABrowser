@@ -305,7 +305,7 @@
     <string name="grant_permissions_button">Conceder permissões e iniciar</string>
     <string name="skip_onboarding_button">Sei o que estou a fazer (Ignorar)</string>
     <string name="wide_reopen_last_page">Reabrir última página</string>
-    <string name="wide_sidebar_size">Tamanho do menu</string>
+    <string name="wide_sidebar_size">Tamanho da barra lateral</string>
     <string name="wide_no_favorites">Sem favoritos. Use a lupa para pesquisar.</string>
 
     <!-- File chooser -->
@@ -332,8 +332,8 @@
     <string name="video_fill">Preencher</string>
     <string name="video_stretch">Esticar</string>
     <string name="video_fullscreen">Ecrã inteiro</string>
-    <string name="video_menu_always">Menu sempre</string>
-    <string name="video_menu_touch">Menu ao tocar</string>
+    <string name="video_menu_always">Barra lateral sempre</string>
+    <string name="video_menu_touch">Barra lateral ao tocar</string>
     <string name="lyrics_button">Letras</string>
     <string name="lyrics_loading">Carregando letras…</string>
     <string name="lyrics_not_found">Letras não encontradas.</string>
@@ -520,7 +520,7 @@
     <string name="tab_bar_action_up">Mover para cima</string>
     <string name="settings_restart_needed">Reinicie o aplicativo para aplicar esta configuração.</string>
     <string name="settings_page_error">Não foi possível guardar a definição.</string>
-    <string name="wide_video_menu_label">Menu com o vídeo em ecrã inteiro</string>
+    <string name="wide_video_menu_label">Barra lateral com o vídeo em ecrã inteiro</string>
     <string name="main_dock_label">Barra lateral no CarWeb</string>
     <string name="main_dock_desc">Mostra no CarWeb a mesma barra lateral do CarWebWide. O botão redondo do menu serve então só para a abrir e fechar.</string>
     <string name="sidebar_actions_label">Botões da barra lateral</string>
