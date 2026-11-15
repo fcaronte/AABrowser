@@ -525,10 +525,10 @@
     <string name="vapp_keyboard_error">Клавиатура: %1$s</string>
     <string name="standby_title">CarWeb активен</string>
     <string name="standby_hint">Проведите пальцем, чтобы разблокировать</string>
-    <string name="vapp_standby_label">Экран ожидания на телефоне</string>
+    <string name="vapp_standby_label">Заставка на телефоне</string>
     <string name="vapp_standby_desc">Пока приложение телефона на экране автомобиля, телефон остаётся включённым, но показывает чёрный экран «CarWeb активен» (проведите, чтобы разблокировать), и снова показывает его, когда вы перестаёте пользоваться телефоном.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">Кнопки справа на панели вкладок</string>
+    <string name="tab_bar_actions_label">Кнопки справа от вкладок</string>
     <string name="tab_bar_actions_desc">Выберите, какие показывать и в каком порядке. Если оставить больше кнопок, чем нужно видеть сразу, остальные доступны смахиванием кнопок вправо или влево.</string>
     <string name="tab_bar_actions_visible">Кнопок на виду: %1$d</string>
     <string name="tab_bar_action_up">Вверх</string>

@@ -523,10 +523,10 @@
     <string name="vapp_keyboard_error">Tastatur: %1$s</string>
     <string name="standby_title">CarWeb ist aktiv</string>
     <string name="standby_hint">Zum Entsperren wischen</string>
-    <string name="vapp_standby_label">Standby-Bildschirm am Telefon</string>
+    <string name="vapp_standby_label">Bildschirmschoner am Telefon</string>
     <string name="vapp_standby_desc">Solange eine App des Telefons auf dem Autobildschirm läuft, bleibt das Telefon an, zeigt aber einen schwarzen Bildschirm „CarWeb ist aktiv“ (zum Entsperren wischen) und zeigt ihn wieder, wenn du das Telefon nicht mehr benutzt.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">Tasten rechts in der Tab-Leiste</string>
+    <string name="tab_bar_actions_label">Tasten rechts neben den Tabs</string>
     <string name="tab_bar_actions_desc">Wähle, welche angezeigt werden und in welcher Reihenfolge. Wenn du mehr behältst, als du gleichzeitig sehen willst, erreichst du die anderen durch Wischen der Tasten nach rechts oder links.</string>
     <string name="tab_bar_actions_visible">Gleichzeitig sichtbare Tasten: %1$d</string>
     <string name="tab_bar_action_up">Nach oben</string>

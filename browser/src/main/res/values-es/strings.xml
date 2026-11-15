@@ -524,10 +524,10 @@
     <string name="vapp_keyboard_error">Teclado: %1$s</string>
     <string name="standby_title">CarWeb está activo</string>
     <string name="standby_hint">Desliza para desbloquear</string>
-    <string name="vapp_standby_label">Pantalla de espera en el teléfono</string>
+    <string name="vapp_standby_label">Salvapantallas del teléfono</string>
     <string name="vapp_standby_desc">Mientras una app del teléfono está en la pantalla del coche, el teléfono sigue encendido pero muestra una pantalla negra «CarWeb está activo» (desliza para desbloquear), y la vuelve a mostrar cuando dejas de usarlo.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">Botones a la derecha de la barra</string>
+    <string name="tab_bar_actions_label">Botones a la derecha de las pestañas</string>
     <string name="tab_bar_actions_desc">Elige cuáles mostrar y en qué orden. Si dejas más de los que quieres ver a la vez, los demás se alcanzan deslizando los botones a derecha o izquierda.</string>
     <string name="tab_bar_actions_visible">Botones visibles a la vez: %1$d</string>
     <string name="tab_bar_action_up">Subir</string>

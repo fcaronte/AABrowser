@@ -482,10 +482,10 @@
     <string name="vapp_keyboard_error">Tastiera: %1$s</string>
     <string name="standby_title">CarWeb attivo</string>
     <string name="standby_hint">Scorri per sbloccare</string>
-    <string name="vapp_standby_label">Schermata di attesa sul telefono</string>
+    <string name="vapp_standby_label">Salvaschermo telefono</string>
     <string name="vapp_standby_desc">Mentre un\'app del telefono è sullo schermo dell\'auto, il telefono resta acceso ma mostra una schermata nera “CarWeb attivo” (scorri per sbloccare), e la rimostra quando non lo usi più.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">Pulsanti a destra della barra</string>
+    <string name="tab_bar_actions_label">Pulsanti a destra delle schede</string>
     <string name="tab_bar_actions_desc">Scegli quali mostrare e in che ordine. Se ne tieni più di quanti ne vuoi vedere insieme, gli altri si raggiungono strisciando i pulsanti a destra o a sinistra.</string>
     <string name="tab_bar_actions_visible">Pulsanti visibili insieme: %1$d</string>
     <string name="tab_bar_action_up">Sposta su</string>

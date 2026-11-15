@@ -523,10 +523,10 @@
     <string name="vapp_keyboard_error">कीबोर्ड: %1$s</string>
     <string name="standby_title">CarWeb चालू है</string>
     <string name="standby_hint">अनलॉक करने के लिए स्वाइप करें</string>
-    <string name="vapp_standby_label">फ़ोन पर स्टैंडबाय स्क्रीन</string>
+    <string name="vapp_standby_label">फ़ोन स्क्रीनसेवर</string>
     <string name="vapp_standby_desc">जब तक फ़ोन का कोई ऐप कार की स्क्रीन पर है, फ़ोन चालू रहता है पर काली स्क्रीन “CarWeb चालू है” दिखाता है (अनलॉक करने के लिए स्वाइप करें), और फ़ोन का उपयोग बंद करने पर उसे फिर दिखाता है।</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">टैब बार के दाईं ओर के बटन</string>
+    <string name="tab_bar_actions_label">टैब के दाईं ओर के बटन</string>
     <string name="tab_bar_actions_desc">चुनें कि कौन से दिखें और किस क्रम में। यदि आप एक साथ दिखाने से अधिक रखते हैं, तो बाकी बटनों को दाएँ या बाएँ स्वाइप करके पहुँचा जा सकता है।</string>
     <string name="tab_bar_actions_visible">एक साथ दिखने वाले बटन: %1$d</string>
     <string name="tab_bar_action_up">ऊपर ले जाएँ</string>

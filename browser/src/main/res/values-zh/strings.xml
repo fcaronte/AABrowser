@@ -522,10 +522,10 @@
     <string name="vapp_keyboard_error">键盘：%1$s</string>
     <string name="standby_title">CarWeb 运行中</string>
     <string name="standby_hint">滑动解锁</string>
-    <string name="vapp_standby_label">手机待机画面</string>
+    <string name="vapp_standby_label">手机屏保</string>
     <string name="vapp_standby_desc">手机应用显示在车机屏幕上时，手机保持唤醒，但显示黑色的“CarWeb 运行中”画面（滑动解锁），不再使用手机时会再次显示该画面。</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">标签栏右侧的按钮</string>
+    <string name="tab_bar_actions_label">标签页右侧的按钮</string>
     <string name="tab_bar_actions_desc">选择要显示的按钮及其顺序。如果保留的按钮多于想同时看到的数量，其余按钮可通过向左或向右滑动按钮来访问。</string>
     <string name="tab_bar_actions_visible">同时可见的按钮：%1$d</string>
     <string name="tab_bar_action_up">上移</string>

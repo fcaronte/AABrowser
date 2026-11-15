@@ -527,10 +527,10 @@
     <string name="vapp_keyboard_error">لوحة المفاتيح: %1$s</string>
     <string name="standby_title">CarWeb نشط</string>
     <string name="standby_hint">اسحب لإلغاء القفل</string>
-    <string name="vapp_standby_label">شاشة الاستعداد على الهاتف</string>
+    <string name="vapp_standby_label">شاشة توقف الهاتف</string>
     <string name="vapp_standby_desc">ما دام تطبيق من الهاتف على شاشة السيارة، يبقى الهاتف مضاءً لكنه يعرض شاشة سوداء «CarWeb نشط» (اسحب لإلغاء القفل)، ويعرضها من جديد عندما تتوقف عن استخدامه.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">الأزرار على يمين شريط علامات التبويب</string>
+    <string name="tab_bar_actions_label">الأزرار على يمين علامات التبويب</string>
     <string name="tab_bar_actions_desc">اختر ما تريد عرضه وبأي ترتيب. إذا أبقيت أكثر مما تريد رؤيته دفعة واحدة، يمكن الوصول إلى الباقي بتمرير الأزرار يميناً أو يساراً.</string>
     <string name="tab_bar_actions_visible">الأزرار الظاهرة معاً: %1$d</string>
     <string name="tab_bar_action_up">انقل لأعلى</string>

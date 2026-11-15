@@ -524,10 +524,10 @@
     <string name="vapp_keyboard_error">Teclado: %1$s</string>
     <string name="standby_title">CarWeb ativo</string>
     <string name="standby_hint">Deslize para desbloquear</string>
-    <string name="vapp_standby_label">Ecrã de espera no telemóvel</string>
+    <string name="vapp_standby_label">Protetor de ecrã do telemóvel</string>
     <string name="vapp_standby_desc">Enquanto uma app do telemóvel está no ecrã do automóvel, o telemóvel fica ligado mas mostra um ecrã preto «CarWeb ativo» (deslize para desbloquear), e volta a mostrá-lo quando deixa de o usar.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">Botões à direita da barra</string>
+    <string name="tab_bar_actions_label">Botões à direita dos separadores</string>
     <string name="tab_bar_actions_desc">Escolha quais mostrar e por que ordem. Se mantiver mais do que quer ver de cada vez, os outros alcançam-se deslizando os botões para a direita ou para a esquerda.</string>
     <string name="tab_bar_actions_visible">Botões visíveis em simultâneo: %1$d</string>
     <string name="tab_bar_action_up">Mover para cima</string>

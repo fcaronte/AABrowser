@@ -523,10 +523,10 @@
     <string name="vapp_keyboard_error">Billentyűzet: %1$s</string>
     <string name="standby_title">A CarWeb aktív</string>
     <string name="standby_hint">Húzd el a feloldáshoz</string>
-    <string name="vapp_standby_label">Készenléti képernyő a telefonon</string>
+    <string name="vapp_standby_label">Telefon képernyővédő</string>
     <string name="vapp_standby_desc">Amíg egy telefonos alkalmazás az autó képernyőjén van, a telefon ébren marad, de fekete „A CarWeb aktív” képernyőt mutat (húzd el a feloldáshoz), és újra megmutatja, ha nem használod.</string>
     <!-- Barra delle schede personalizzabile; contenuti protetti delle app sullo schermo virtuale -->
-    <string name="tab_bar_actions_label">A lapsáv jobb oldali gombjai</string>
+    <string name="tab_bar_actions_label">A lapok jobb oldali gombjai</string>
     <string name="tab_bar_actions_desc">Válaszd ki, melyik látszódjon és milyen sorrendben. Ha többet tartasz meg, mint amennyit egyszerre látni szeretnél, a többit a gombok jobbra vagy balra húzásával éred el.</string>
     <string name="tab_bar_actions_visible">Egyszerre látható gombok: %1$d</string>
     <string name="tab_bar_action_up">Fel</string>

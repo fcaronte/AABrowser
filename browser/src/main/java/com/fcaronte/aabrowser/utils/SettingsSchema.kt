@@ -322,10 +322,11 @@ internal object SettingsSchema {
                         "custom_search_engine", R.string.search_engine_label,
                         descOn = R.string.search_engine_custom_on, descOff = R.string.search_engine_custom_off
                     ),
+                    // Un elenco che si apre (chiuso di serie): a pulsanti affiancati i nomi non si leggevano
                     Choice(
                         "search_engine", R.string.search_engine_selection_label,
-                        options = SearchEngine.entries.map { Option(it.name, text = it.name) },
-                        buttons = true, showIf = listOf(on("custom_search_engine"))
+                        options = SearchEngine.entries.map { Option(it.name, text = searchEngineName(it)) },
+                        showIf = listOf(on("custom_search_engine"))
                     ),
                 )
             ),
@@ -431,6 +432,14 @@ internal object SettingsSchema {
         )
     )
 
+    /** Il nome del motore di ricerca come lo scrive chi lo fa (sono nomi propri: uguali in ogni lingua). */
+    private fun searchEngineName(engine: SearchEngine): String = when (engine) {
+        SearchEngine.GOOGLE -> "Google"
+        SearchEngine.DUCKDUCKGO -> "DuckDuckGo"
+        SearchEngine.BING -> "Bing"
+        SearchEngine.YAHOO -> "Yahoo"
+    }
+
     private fun web() = Section(
         "web", R.string.settings_category_web,
         listOf(
@@ -474,7 +483,7 @@ internal object SettingsSchema {
                     Switch("force_max_youtube_quality", R.string.force_max_youtube_quality_label, R.string.force_max_youtube_quality_desc),
                     Choice(
                         "youtube_quality", R.string.youtube_quality_selected_label, optionsData = "youtube_quality_options",
-                        buttons = true, showIf = listOf(on("force_max_youtube_quality"))
+                        showIf = listOf(on("force_max_youtube_quality"))
                     ),
                 )
             ),
