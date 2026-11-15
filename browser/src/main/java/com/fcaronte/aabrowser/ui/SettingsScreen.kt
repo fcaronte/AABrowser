@@ -87,6 +87,7 @@ import com.fcaronte.aabrowser.settings.SearchEngine
 import com.fcaronte.aabrowser.settings.TabBarMode
 import com.fcaronte.aabrowser.settings.ThemeMode
 import com.fcaronte.aabrowser.utils.AdBlockLists
+import com.fcaronte.aabrowser.utils.AutoOpenFavorite
 import com.fcaronte.aabrowser.utils.GitHubRepo
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.SitePermissions
@@ -322,7 +323,8 @@ fun SettingsScreen(
 
                             // Auto-Open Favorite
                             val autoOpenFavoriteId by AppSettings.autoOpenFavoriteId
-                            val favorites = favoritesViewModel.favorites
+                            // I siti preferiti e le app del telefono con la stella (Altre App)
+                            val favoriteApps = AutoOpenFavorite.options(context, favoritesViewModel.favorites)
                             var expandedAutoOpenFavorite by remember { mutableStateOf(false) }
                             SettingsCard {
                                 Column(modifier = Modifier.padding(bottom = if (autoOpenFavoriteId != null && expandedAutoOpenFavorite) 16.dp else 0.dp)) {
@@ -335,7 +337,7 @@ fun SettingsScreen(
                                                 if (autoOpenFavoriteId == null) {
                                                     AppSettings.setAutoOpenFavoriteId(
                                                         context,
-                                                        favorites.firstOrNull()?.id
+                                                        favoriteApps.firstOrNull()?.first
                                                     )
                                                 }
                                                 expandedAutoOpenFavorite = true
@@ -346,10 +348,10 @@ fun SettingsScreen(
                                         }
                                     )
 
-                                    if (autoOpenFavoriteId != null && favorites.isNotEmpty()) {
+                                    if (autoOpenFavoriteId != null && favoriteApps.isNotEmpty()) {
                                         SettingsChoiceList(
                                             title = stringResource(R.string.selected_favorite_label),
-                                            options = favorites.map { it.id to it.name },
+                                            options = favoriteApps,
                                             selectedKey = autoOpenFavoriteId,
                                             expanded = expandedAutoOpenFavorite,
                                             onExpandedChange = { expandedAutoOpenFavorite = it },

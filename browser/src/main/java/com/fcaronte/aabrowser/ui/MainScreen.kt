@@ -74,6 +74,7 @@ import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AppLocale
 import com.fcaronte.aabrowser.utils.AppLog
+import com.fcaronte.aabrowser.utils.AutoOpenFavorite
 import com.fcaronte.aabrowser.utils.DesktopModeSites
 import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.IptvSources
@@ -277,10 +278,23 @@ fun MainScreen(
             TabManager.preloadFavorites(favoritesViewModel.favorites, preloadLimit)
         }
 
-        // 2. Se è impostato un preferito come pagina iniziale, ci assicuriamo che sia aperto e attivo
-        if (autoOpenId != null && !commandOpenedPage && favoritesViewModel.favorites.isNotEmpty()) {
+        // 2. Se è impostato un preferito come pagina iniziale, ci assicuriamo che sia aperto e attivo. Può essere anche
+        // un'app del telefono con la stella (indirizzo app://pacchetto): la sua scheda si apre come dalla home
+        val autoOpenApp = AutoOpenFavorite.appPackage(autoOpenId)
+        if (autoOpenId != null && !commandOpenedPage && (favoritesViewModel.favorites.isNotEmpty() || autoOpenApp != null)) {
             val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
-            if (favorite != null) {
+            if (autoOpenApp != null) {
+                if (VirtualApps.isAvailable(context, autoOpenApp)) {
+                    TabManager.openOrSwitchTo(
+                        url = VirtualApps.urlFor(autoOpenApp),
+                        title = VirtualApps.label(context, autoOpenApp)
+                    )
+                    currentScreen = Screen.Browser
+                } else {
+                    // Disinstallata dopo la scelta: come un preferito che non c'è più
+                    currentScreen = if (TabManager.activeTab != null) Screen.Browser else Screen.Dashboard
+                }
+            } else if (favorite != null) {
                 val targetIndex = TabManager.findTabIndexByUrlOrHost(favorite.url)
                 if (targetIndex != -1) {
                     TabManager.switchTab(targetIndex)
