@@ -518,7 +518,7 @@
     <string name="tab_bar_actions_desc">Elige cuáles mostrar y en qué orden. Si dejas más de los que quieres ver a la vez, los demás se alcanzan deslizando los botones a derecha o izquierda.</string>
     <string name="tab_bar_actions_visible">Botones visibles a la vez: %1$d</string>
     <string name="tab_bar_action_up">Subir</string>
-    <string name="settings_phone_note">Los demás ajustes están en CarWeb, en el teléfono.</string>
+    <string name="settings_restart_needed">Reinicia la aplicación para aplicar este ajuste.</string>
     <string name="settings_page_error">No se pudo guardar el ajuste.</string>
     <string name="wide_video_menu_label">Menú con el vídeo a pantalla completa</string>
     <string name="main_dock_label">Barra lateral en CarWeb</string>

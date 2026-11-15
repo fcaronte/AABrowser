@@ -940,8 +940,8 @@ object VoiceCommands {
         val uri = parseUri(url) ?: return null
         if (uri.host?.lowercase() != PLAYER_HOST) return null
         val path = uri.path.orEmpty().trimEnd('/')
-        // Una foto o un video condivisi sono una pagina a sé: i comandi vocali non passano da lì
-        if (path.startsWith("/shared")) return null
+        // Una foto o un video condivisi, le Altre App e le Impostazioni sono pagine a sé: i comandi vocali non passano da lì
+        if (path.startsWith("/shared") || path == "/apps" || path == "/settings") return null
         return when (path) {
             "/tv" -> MediaSection.TV
             "/radio" -> MediaSection.RADIO

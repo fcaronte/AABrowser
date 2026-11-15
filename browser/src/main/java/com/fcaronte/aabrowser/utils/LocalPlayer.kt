@@ -126,6 +126,8 @@ object LocalPlayer {
                 path == "/settings" || path == "/settings/" -> SettingsApi.page(context, token, themeCss(context))
                 path == "/settings.js" -> asset(context, "player/settings.js", "application/javascript")
                 path == "/settings.css" -> asset(context, "player/settings.css", "text/css")
+                path == "/settings-paypal.svg" -> asset(context, "player/settings-paypal.svg", "image/svg+xml")
+                path == "/settings-coffee.svg" -> asset(context, "player/settings-coffee.svg", "image/svg+xml")
                 // Foto, video e file audio condivisi dal telefono ("Condividi su CarWeb")
                 path.startsWith(SharedMedia.PAGE_PATH) -> sharedPage(context, path.removePrefix(SharedMedia.PAGE_PATH))
                 path in TV_LIBRARIES -> asset(context, "player$path", "application/javascript")
@@ -298,7 +300,8 @@ object LocalPlayer {
      * In chiaro "only light" impedisce alla WebView di scurire da sola la pagina (scurimento automatico dei siti).
      * Nella Wide "automatico" segue il giorno/notte dell'auto (configurazione del CarContext).
      */
-    private fun themeCss(context: Context): String {
+    // Anche la pagina delle impostazioni la riceve di nuovo a ogni cambio di tema, senza ricaricarsi (SettingsApi)
+    internal fun themeCss(context: Context): String {
         val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
         val scheme = appColorScheme(context, systemIsDark = night)
@@ -318,6 +321,16 @@ object LocalPlayer {
             "art-from" to scheme.surfaceVariant,
             "art-to" to scheme.background,
             "note" to scheme.outline,
+            // Per le impostazioni, che hanno lo stesso aspetto delle schede di Material: intestazioni, scelte, avvisi
+            "outline" to scheme.outline,
+            "secondary-container" to scheme.secondaryContainer,
+            "on-secondary-container" to scheme.onSecondaryContainer,
+            "primary-container" to scheme.primaryContainer,
+            "on-primary-container" to scheme.onPrimaryContainer,
+            "error" to scheme.error,
+            "on-error" to scheme.onError,
+            "error-container" to scheme.errorContainer,
+            "on-error-container" to scheme.onErrorContainer,
         )
         val variables = colors.entries.joinToString("") { (name, color) ->
             "--$name:" + String.format(Locale.ROOT, "#%06X", color.toArgb() and 0xFFFFFF) + ";"

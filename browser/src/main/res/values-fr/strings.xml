@@ -518,7 +518,7 @@
     <string name="tab_bar_actions_desc">Choisissez lesquels afficher et dans quel ordre. Si vous en gardez plus que vous n\'en voulez voir à la fois, les autres s\'atteignent en faisant glisser les boutons vers la droite ou la gauche.</string>
     <string name="tab_bar_actions_visible">Boutons visibles à la fois : %1$d</string>
     <string name="tab_bar_action_up">Monter</string>
-    <string name="settings_phone_note">Les autres réglages sont dans CarWeb, sur le téléphone.</string>
+    <string name="settings_restart_needed">Redémarrez l\'application pour appliquer ce réglage.</string>
     <string name="settings_page_error">Impossible d\'enregistrer le réglage.</string>
     <string name="wide_video_menu_label">Menu avec la vidéo en plein écran</string>
     <string name="main_dock_label">Barre latérale dans CarWeb</string>

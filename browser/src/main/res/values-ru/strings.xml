@@ -519,7 +519,7 @@
     <string name="tab_bar_actions_desc">Выберите, какие показывать и в каком порядке. Если оставить больше кнопок, чем нужно видеть сразу, остальные доступны смахиванием кнопок вправо или влево.</string>
     <string name="tab_bar_actions_visible">Кнопок на виду: %1$d</string>
     <string name="tab_bar_action_up">Вверх</string>
-    <string name="settings_phone_note">Остальные настройки находятся в CarWeb на телефоне.</string>
+    <string name="settings_restart_needed">Перезапустите приложение, чтобы применить эту настройку.</string>
     <string name="settings_page_error">Не удалось сохранить настройку.</string>
     <string name="wide_video_menu_label">Меню при видео на весь экран</string>
     <string name="main_dock_label">Боковая панель в CarWeb</string>

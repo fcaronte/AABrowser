@@ -1,4 +1,40 @@
-/* Impostazioni come pagina: colori e barra di player.css; qui righe alte (da toccare in auto) e interruttori grandi. */
+/*
+ * Impostazioni come pagina: l'aspetto delle schede di Material (intestazioni di sezione che si chiudono, schede con il bordo
+ * leggero, interruttori) con i colori del tema dell'app (variabili di player.css, sostituite da LocalPlayer). Righe alte e
+ * pulsanti grandi, da toccare in auto.
+ */
+
+:root {
+    --sec-bg: var(--secondary-container, var(--soft));
+    --sec-fg: var(--on-secondary-container, var(--text));
+    --outline-c: var(--outline, var(--line));
+    --card-border: color-mix(in srgb, var(--outline-c) 20%, transparent);
+    --pri-cont: var(--primary-container, var(--soft));
+    --on-pri-cont: var(--on-primary-container, var(--text));
+    --error-c: var(--error, #b3261e);
+    --on-error-c: var(--on-error, #ffffff);
+    --err-cont: var(--error-container, #f9dedc);
+    --on-err-cont: var(--on-error-container, #410e0b);
+}
+
+/* player.css tiene la pagina ferma (il player scorre dentro): le impostazioni sono lunghe e scorrono */
+html {
+    height: auto;
+}
+
+body {
+    display: block;
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
 
 .settings-title {
     flex: 1;
@@ -10,37 +46,86 @@
 .settings {
     max-width: 760px;
     margin: 0 auto;
-    padding: 8px 16px 0;
+    padding: 12px 16px 0;
 }
 
-.group {
-    margin-bottom: 18px;
+/* --- Sezioni --- */
+
+.section {
+    margin-bottom: 12px;
 }
 
-.group-title {
-    margin: 14px 4px 8px;
-    color: var(--accent);
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+.sec-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--sec-bg);
+    color: var(--sec-fg);
+    text-align: left;
 }
+
+.sec-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.chev {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    transition: transform 0.15s;
+}
+
+.chev.small {
+    width: 24px;
+    height: 24px;
+}
+
+[aria-expanded="true"] > .chev {
+    transform: rotate(180deg);
+}
+
+.sec-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sec-head + .sec-body {
+    margin-top: 12px;
+}
+
+.card {
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: var(--panel);
+}
+
+/* --- Righe --- */
 
 .row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     min-height: 64px;
-    padding: 10px 16px;
-    margin-bottom: 8px;
-    border-radius: 16px;
-    background: var(--panel);
+    padding: 16px;
 }
 
 .row.column {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 12px;
+}
+
+.row.heading {
+    min-height: 0;
+    padding-bottom: 8px;
 }
 
 .text {
@@ -49,38 +134,40 @@
 }
 
 .label {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
 }
 
 .desc {
-    margin-top: 2px;
-    color: var(--muted);
+    margin-top: 3px;
+    color: color-mix(in srgb, var(--text) 62%, transparent);
     font-size: 14px;
     line-height: 1.35;
 }
 
-/* Interruttore: 64 x 36, abbastanza grande per un dito sull'auto */
+/* Interruttore come quello di Material: la levetta è piccola da spento e si allarga da acceso */
 .switch {
     position: relative;
     flex: none;
-    width: 64px;
-    height: 36px;
-    border-radius: 18px;
-    background: var(--raised);
-    border: 2px solid var(--line);
-    transition: background 0.15s;
+    width: 56px;
+    height: 32px;
+    border-radius: 16px;
+    background: var(--soft);
+    border: 2px solid var(--outline-c);
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .switch .knob {
     position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 26px;
-    height: 26px;
+    top: 50%;
+    left: 6px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
     border-radius: 50%;
-    background: var(--muted);
-    transition: transform 0.15s, background 0.15s;
+    background: var(--outline-c);
+    transition: left 0.15s, width 0.15s, height 0.15s, margin-top 0.15s, background 0.15s;
 }
 
 .switch.on {
@@ -89,12 +176,251 @@
 }
 
 .switch.on .knob {
-    transform: translateX(28px);
+    left: 26px;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
     background: var(--on-accent);
 }
 
 .switch:disabled {
     opacity: 0.45;
+}
+
+/* --- Scelte --- */
+
+.choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.choice {
+    flex: 1 1 0;
+    min-width: 64px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 22px;
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.choice.active {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.pick {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--soft) 70%, transparent);
+    color: var(--text);
+    text-align: left;
+}
+
+.pick:disabled {
+    opacity: 0.6;
+}
+
+.pick-title {
+    color: color-mix(in srgb, var(--muted) 80%, transparent);
+    font-size: 13px;
+}
+
+.pick-value {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--soft) 50%, transparent);
+    text-align: left;
+}
+
+.option.selected {
+    background: var(--pri-cont);
+    color: var(--on-pri-cont);
+}
+
+.option-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.radio {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--outline-c);
+    border-radius: 50%;
+}
+
+.option.selected .radio {
+    border-color: var(--accent);
+}
+
+.option.selected .radio::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+/* --- Numeri con − e + --- */
+
+.stepper {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+}
+
+.stepper-value {
+    min-width: 64px;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.step {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background: var(--soft);
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+}
+
+.step:active {
+    background: var(--pressed);
+}
+
+.step:disabled {
+    opacity: 0.3;
+}
+
+/* --- Pulsanti --- */
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.buttons .btn {
+    flex: 1 1 0;
+}
+
+.buttons.single {
+    flex: none;
+}
+
+.buttons.single .btn {
+    flex: none;
+}
+
+.btn {
+    min-height: 44px;
+    padding: 0 22px;
+    border-radius: 22px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.btn.outline {
+    border: 1px solid var(--outline-c);
+    background: transparent;
+    color: var(--accent);
+}
+
+.btn.text {
+    padding: 0 16px;
+    background: transparent;
+    color: var(--accent);
+}
+
+.btn.armed {
+    border-color: transparent;
+    background: var(--err-cont);
+    color: var(--on-err-cont);
+}
+
+.btn.danger {
+    background: var(--error-c);
+    color: var(--on-error-c);
+}
+
+.btn:disabled {
+    opacity: 0.35;
+}
+
+.icon-btn {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--muted);
+}
+
+.icon-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-btn:active {
+    background: var(--pressed);
+}
+
+/* --- Gruppi che si aprono (tasti della barra delle schede e della sidebar) --- */
+
+.group-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px;
+    text-align: left;
+}
+
+.group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 16px 16px;
+}
+
+.group-body .row {
+    padding: 8px 0 0;
 }
 
 .actions {
@@ -108,9 +434,9 @@
     align-items: center;
     gap: 8px;
     min-height: 52px;
-    padding: 4px 4px 4px 12px;
+    padding: 4px 8px 4px 12px;
     border-radius: 12px;
-    background: var(--raised);
+    background: color-mix(in srgb, var(--soft) 70%, transparent);
 }
 
 .action.off {
@@ -129,37 +455,312 @@
     font-size: 12px;
 }
 
-.step {
-    flex: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+.action .step {
+    width: 40px;
+    height: 40px;
     background: transparent;
-    color: var(--text);
+    font-size: 15px;
+}
+
+/* --- Elenchi (liste di TV, Radio e Podcast; siti con un permesso) --- */
+
+.items {
+    padding: 0 16px 8px;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.sites {
+    padding: 8px 16px 16px;
+}
+
+.site-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.site {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--soft) 50%, transparent);
+}
+
+.site-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    text-align: left;
+}
+
+.site-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.perm {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.perm.allowed {
+    color: var(--accent);
+}
+
+.perm.blocked {
+    color: var(--error-c);
+}
+
+.perm-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 2px 0;
+}
+
+.perm-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+}
+
+/* --- Cancella dati --- */
+
+.check-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.check {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 44px;
     font-size: 16px;
 }
 
-.step:active {
-    background: var(--pressed);
+.check input {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
 }
 
-.step:disabled {
-    opacity: 0.3;
-}
+/* --- Piè di pagina: GitHub, PayPal, Buy Me a Coffee --- */
 
-.settings-note {
+.settings-footer {
     max-width: 760px;
-    margin: 4px auto 0;
-    padding: 0 20px 24px;
+    margin: 0 auto;
+    padding: 8px 16px 40px;
+}
+
+.footer-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.footer-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.footer-donate {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-text {
+    color: color-mix(in srgb, var(--text) 70%, transparent);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.footer-logos {
+    display: flex;
+    gap: 16px;
+}
+
+.footer-caption {
+    color: color-mix(in srgb, var(--text) 50%, transparent);
+    font-size: 11px;
+    text-align: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.logo svg,
+.logo img {
+    width: 100%;
+    height: 100%;
+    fill: #24292f;
+}
+
+/* --- Avvisi e riquadri --- */
+
+.settings-error {
+    margin: 12px 16px;
+}
+
+.notice {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    z-index: 40;
+    max-width: min(560px, calc(100% - 32px));
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 15px;
+    transform: translateX(-50%);
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal[hidden],
+.notice[hidden],
+.settings-error[hidden] {
+    display: none;
+}
+
+.modal-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 560px;
+    max-height: 100%;
+    padding: 20px;
+    border-radius: 24px;
+    background: var(--panel);
+}
+
+.modal-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal-body {
+    overflow-y: auto;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.4;
 }
 
-.settings-error {
-    margin: 0 16px 16px;
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
 }
 
-.settings-error[hidden] {
-    display: none;
+.paragraphs p {
+    margin: 0 0 8px;
+}
+
+.paragraphs .gap {
+    height: 8px;
+}
+
+.qr {
+    display: block;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: 8px;
+    background: #ffffff;
+    image-rendering: pixelated;
+}
+
+/* Sullo schermo dell'auto le pagine sono impaginate in pixel più piccoli di quelli fisici: testi e pulsanti un po' più grandi */
+@media (min-width: 900px) {
+    .label {
+        font-size: 19px;
+    }
+
+    .desc,
+    .perm-text {
+        font-size: 15px;
+    }
+
+    .sec-title {
+        font-size: 21px;
+    }
+
+    .btn,
+    .choice {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .step,
+    .icon-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .action {
+        min-height: 56px;
+    }
+
+    .action-name,
+    .check {
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 520px) {
+    .settings {
+        padding: 10px 12px 0;
+    }
+
+    .row {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .stepper-value {
+        min-width: 52px;
+    }
 }

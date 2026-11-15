@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Handler
+import android.os.Looper
 import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.compose.runtime.State
@@ -540,7 +542,9 @@ object AppSettings {
     fun setForceEnglish(context: Context, enabled: Boolean) {
         _forceEnglish.value = enabled
         saveBoolean(context, "force_english", enabled)
-        updateLocale()
+        // La pagina delle impostazioni scrive da un thread della WebView: la lingua si cambia sul thread principale
+        if (Looper.myLooper() == Looper.getMainLooper()) updateLocale()
+        else Handler(Looper.getMainLooper()).post { updateLocale() }
     }
 
     fun setCustomSearchEngine(context: Context, enabled: Boolean) {

@@ -11,9 +11,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.DesktopWindows
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RemoveModerator
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -95,4 +106,21 @@ private fun SidebarAction.dockIcon(adBlockOff: Boolean?, desktopModeOn: Boolean?
     SidebarAction.ADBLOCK -> if (adBlockOff == true) Icons.Default.RemoveModerator else Icons.Default.VerifiedUser
     SidebarAction.DESKTOP -> if (desktopModeOn == true) Icons.Default.Smartphone else Icons.Default.DesktopWindows
     else -> icon()
+}
+
+// Le icone dei tasti della sidebar nella Main (nella Wide sono disegnate a mano: WideDockIcons)
+private fun SidebarAction.icon(): ImageVector = when (this) {
+    SidebarAction.HOME -> Icons.Default.Home
+    SidebarAction.BACK -> Icons.AutoMirrored.Filled.ArrowBack
+    SidebarAction.FORWARD -> Icons.AutoMirrored.Filled.ArrowForward
+    SidebarAction.RELOAD -> Icons.Default.Refresh
+    SidebarAction.TABS -> Icons.Default.Layers
+    SidebarAction.SEARCH -> Icons.Default.Search
+    SidebarAction.FAVORITE -> Icons.Default.Star
+    SidebarAction.ADBLOCK -> Icons.Default.VerifiedUser
+    SidebarAction.DESKTOP -> Icons.Default.DesktopWindows
+    SidebarAction.VOICE -> Icons.Default.Mic
+    SidebarAction.SHARE -> Icons.Default.Share
+    SidebarAction.SETTINGS -> Icons.Default.Settings
+    SidebarAction.EXIT -> Icons.AutoMirrored.Filled.ExitToApp
 }

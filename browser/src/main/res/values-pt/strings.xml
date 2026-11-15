@@ -518,7 +518,7 @@
     <string name="tab_bar_actions_desc">Escolha quais mostrar e por que ordem. Se mantiver mais do que quer ver de cada vez, os outros alcançam-se deslizando os botões para a direita ou para a esquerda.</string>
     <string name="tab_bar_actions_visible">Botões visíveis em simultâneo: %1$d</string>
     <string name="tab_bar_action_up">Mover para cima</string>
-    <string name="settings_phone_note">As outras definições estão no CarWeb, no telemóvel.</string>
+    <string name="settings_restart_needed">Reinicie o aplicativo para aplicar esta configuração.</string>
     <string name="settings_page_error">Não foi possível guardar a definição.</string>
     <string name="wide_video_menu_label">Menu com o vídeo em ecrã inteiro</string>
     <string name="main_dock_label">Barra lateral no CarWeb</string>

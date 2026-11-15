@@ -99,55 +99,6 @@ sealed class Screen {
     object TabManager : Screen()
 }
 
-fun calculateCacheSize(context: android.content.Context): String {
-    return try {
-        var size: Long = 0
-
-        // 1. Cache standard Android (Internal & External)
-        context.cacheDir?.let { size += getDirSize(it) }
-        context.externalCacheDir?.let { size += getDirSize(it) }
-        
-        // 2. Code Cache
-        context.codeCacheDir?.let { size += getDirSize(it) }
-
-        // 3. Cache specifica di Chromium / WebView
-        val appDataDir = context.applicationInfo.dataDir
-        val webViewDir = java.io.File(appDataDir, "app_webview")
-        
-        if (webViewDir.exists()) {
-            // Analisi approfondita delle sottocartelle di cache
-            val cacheCandidates = listOf(
-                "Cache", "Code Cache", "GPUCache", "ShaderCache", "GrShaderCache",
-                "Default/Cache", "Default/Code Cache", "Default/GPUCache", "Default/Service Worker/CacheStorage",
-                "blob_storage"
-            )
-            for (path in cacheCandidates) {
-                val dir = java.io.File(webViewDir, path)
-                if (dir.exists()) size += getDirSize(dir)
-            }
-        }
-
-        // Formattazione
-        val df = java.text.DecimalFormat("#.##")
-        if (size <= 0) "0 B"
-        else if (size < 1024) "$size B"
-        else if (size < 1024 * 1024) "${df.format(size / 1024.0)} KB"
-        else if (size < 1024 * 1024 * 1024) "${df.format(size / (1024.0 * 1024.0))} MB"
-        else "${df.format(size / (1024.0 * 1024.0 * 1024.0))} GB"
-    } catch (e: Exception) {
-        "..."
-    }
-}
-
-private fun getDirSize(dir: java.io.File): Long {
-    var size: Long = 0
-    dir.listFiles()?.forEach { file ->
-        if (file.isFile) size += file.length()
-        else if (file.isDirectory) size += getDirSize(file)
-    }
-    return size
-}
-
 @Composable
 fun MainScreen(
     carInputManager: CarInputManager? = null,
@@ -975,12 +926,12 @@ fun MainScreen(
                     }
 
                     is Screen.Settings -> {
-                        SettingsScreen(
-                            favoritesViewModel = favoritesViewModel,
+                        // La pagina https://player.local/settings, la stessa della Wide: un solo menu per le due app
+                        SettingsWebScreen(
+                            focus = settingsLists,
                             onBack = { currentScreen = previousScreen },
                             onShowFeedback = { feedbackMessage = it },
-                            isCarModeOverride = isAutomotive,
-                            focusLists = settingsLists
+                            isCarMode = isAutomotive
                         )
                     }
 

@@ -1,15 +1,17 @@
 package com.fcaronte.aabrowser.settings
 
+import com.fcaronte.aabrowser.R
+
 /**
  * I tasti a destra della barra delle schede. L'utente sceglie quali mostrare, in che ordine e quanti ne vede insieme: gli
  * altri si raggiungono scorrendo i tasti a destra e a sinistra (Impostazioni > barra delle schede).
  */
-enum class TabBarAction(val id: String) {
-    VOICE("voice"),
-    ADBLOCK("adblock"),
-    DESKTOP("desktop"),
-    BACK("back"),
-    FORWARD("forward");
+enum class TabBarAction(val id: String, val labelRes: Int) {
+    VOICE("voice", R.string.voice_command_button),
+    ADBLOCK("adblock", R.string.adblock_this_site),
+    DESKTOP("desktop", R.string.desktop_mode_this_site),
+    BACK("back", R.string.back_button),
+    FORWARD("forward", R.string.forward_button);
 
     companion object {
         /** Quelli di sempre, nell'ordine di sempre. */

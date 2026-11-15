@@ -6,8 +6,8 @@
     <title>CarWeb</title>
     <link rel="stylesheet" href="/player.css">
     <link rel="stylesheet" href="/settings.css">
-    <!-- Colori Material You del telefono, inseriti dall'app (vuoto = colori di player.css) -->
-    <style>/*AAB_THEME*/</style>
+    <!-- Colori Material You del telefono, inseriti dall'app (vuoto = colori di player.css); la pagina li aggiorna a ogni cambio di tema -->
+    <style id="theme">/*AAB_THEME*/</style>
     <!-- Token e testi tradotti, inseriti dall'app quando serve la pagina (SettingsApi) -->
     <script>/*AAB_CONFIG*/</script>
 </head>
@@ -21,10 +21,13 @@
 
 <main class="settings" id="sections"></main>
 
-<!-- Le altre impostazioni sono ancora quelle del telefono: lo dice la pagina -->
-<p class="settings-note" id="note"></p>
+<footer class="settings-footer" id="footer"></footer>
 
 <div class="message settings-error" id="error" hidden></div>
+
+<!-- Avvisi brevi in basso, e riquadri al centro (conferme, novità, codice QR): niente finestre di sistema, si vedono anche in auto -->
+<div class="notice" id="notice" role="status" hidden></div>
+<div class="modal" id="modal" hidden></div>
 
 <script src="/settings.js"></script>
 </body>

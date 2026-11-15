@@ -335,6 +335,9 @@ class VoiceCommandsTest {
         assertEquals(MediaSection.MEDIA, VoiceCommands.mediaSectionOf("https://player.local/"))
         assertEquals(MediaSection.PODCAST, VoiceCommands.mediaSectionOf("https://player.local/podcast"))
         assertNull(VoiceCommands.mediaSectionOf("https://player.local/shared/id1"))
+        // Le Altre App e le Impostazioni stanno su player.local ma non sono una pagina di Media
+        assertNull(VoiceCommands.mediaSectionOf("https://player.local/apps"))
+        assertNull(VoiceCommands.mediaSectionOf("https://player.local/settings"))
         assertNull(VoiceCommands.mediaSectionOf("https://www.youtube.com/tv"))
         assertNull(VoiceCommands.mediaSectionOf(null))
         MediaSection.entries.forEach {
