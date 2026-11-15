@@ -406,13 +406,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var visibleArea: Rect? = null
     private var stableArea: Rect? = null
 
-    // Video a schermo intero e sidebar (barra di CarWeb Media, video-zoom.js; scritta dei siti, video-fit.js). "Sidebar
-    // sempre": il video sta accanto alla sidebar, che fa da bordo dello schermo. La scelta «Sidebar al tocco» (il video sotto la
-    // sidebar, che spariva e tornava con i comandi) è stata tolta il 15/11/2026: la sidebar resta dov'è e si toglie con il tasto
-    // in alto a destra (utente: «non ha più senso»); il valore salvato da prima non conta più
-    private val videoMenuOnTap: Boolean get() = false
-    private var sidebarHiddenForVideo = false
-
     // Margine in alto e in basso che Android Auto tiene di solito in ogni disposizione (superficie e bordi laterali della
     // visible area): la fascia dei suoi tasti. Quello che toglie in più, come la chiamata in corso, si riconosce da qui
     private val usualAreaTop = HashMap<String, Int>()
@@ -1322,8 +1315,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val lp = (view.layoutParams as? FrameLayout.LayoutParams)
             ?: FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         val margins = area?.let { fullscreenMargins(it) } ?: IntArray(4)
-        // Dock sempre in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto)
-        if (dockVisible && !videoMenuOnTap) {
+        // Dock in vista: il video si ferma al suo bordo (utente, 10/11/2026: con Allunga finiva sotto); per dargli tutta l'area si
+        // toglie il dock con il tasto in alto a destra. La scelta «Sidebar al tocco» (il video sotto il dock) è stata tolta il
+        // 15/11/2026: utente, «non ha più senso»
+        if (dockVisible) {
             if (isRtl) margins[2] = maxOf(margins[2], pageLp?.rightMargin ?: 0)
             else margins[0] = maxOf(margins[0], pageLp?.leftMargin ?: 0)
         }
@@ -1366,22 +1361,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         )
     }
 
-    // La pagina può arrivare un attimo prima della vista a schermo intero: lo stato resta e vale quando arriva. La scelta
-    // si cambia solo a schermo intero, e nascondere la sidebar si può solo con "Sidebar al tocco"
-    private fun setVideoMenu(onTap: Boolean, visible: Boolean) {
-        val changed = customView != null && onTap != videoMenuOnTap
-        if (changed) AppSettings.setWideVideoMenuOnTap(carContext, onTap)
-        sidebarHiddenForVideo = videoMenuOnTap && !visible
-        applySidebarOverVideo()
-        if (changed) customView?.let { layoutCustomView(it, webView?.layoutParams as? FrameLayout.LayoutParams) }
-    }
-
-    private fun applySidebarOverVideo() {
-        val sb = sidebarContainerReference ?: return
-        if (!dockVisible) return
-        sb.visibility = if (sidebarHiddenForVideo && customView != null) View.INVISIBLE else View.VISIBLE
-    }
-
     private fun usualAreaKey(area: Rect): String = "${surfaceWidth}x$surfaceHeight ${area.left}-${area.right}"
 
     // Solo aree assestate (dopo l'animazione dei tasti), così un passaggio intermedio non conta come il solito
@@ -1419,7 +1398,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         customView = view
         customViewCallback = callback
         closeVideoOnBack.isEnabled = true
-        applySidebarOverVideo()
         updateFocusMark()
     }
 
@@ -1428,8 +1406,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         (view.parent as? ViewGroup)?.removeView(view)
         customView = null
         closeVideoOnBack.isEnabled = false
-        sidebarHiddenForVideo = false
-        applySidebarOverVideo()
         updateFocusMark()
         try {
             customViewCallback?.onCustomViewHidden()
@@ -1707,7 +1683,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         )
 
         if (fixed) {
-            sb.visibility = if (sidebarHiddenForVideo && customView != null) View.INVISIBLE else View.VISIBLE
+            sb.visibility = View.VISIBLE
             sb.alpha = 1f
             layoutSidebar(sb, sidebarWidthPx, sidebarEdge, rtl)
         } else {
@@ -2715,28 +2691,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @Suppress("unused")
                                 fun sponsorBlockMessage(): String = strings.getString(R.string.sponsorblock_skipped)
 
-                                // Video a schermo intero (barra di CarWeb Media, scritta dei siti): con il menu fisso
-                                // sceglie se resta accanto al video o compare solo con i comandi. Vale solo a schermo
-                                // intero (setVideoMenu), la scelta è una per tutti i siti
-                                @JavascriptInterface
-                                @Suppress("unused")
-                                fun hasFixedSidebar(): Boolean = dockVisible
-
                                 // La TV chiede se un'altra app suona, prima di riprendere da sola dopo una pausa non voluta
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun otherAudioPlaying(): Boolean =
                                     LocalPlayer.isPlayerHost(pageHost) && VirtualAppAudio.otherAudioPlaying(carContext)
-
-                                @JavascriptInterface
-                                @Suppress("unused")
-                                fun videoMenuOnTap(): Boolean = false
-
-                                @JavascriptInterface
-                                @Suppress("unused")
-                                fun setVideoMenu(onTap: Boolean, visible: Boolean) {
-                                    post { this@WideScreen.setVideoMenu(onTap, visible) }
-                                }
 
                                 @JavascriptInterface
                                 @Suppress("unused")

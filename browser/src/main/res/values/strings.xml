@@ -339,8 +339,6 @@
     <string name="video_fill">Fill</string>
     <string name="video_stretch">Stretch</string>
     <string name="video_fullscreen">Fullscreen</string>
-    <string name="video_menu_always">Sidebar always</string>
-    <string name="video_menu_touch">Sidebar on tap</string>
     <string name="lyrics_button">Lyrics</string>
     <string name="lyrics_loading">Loading lyrics…</string>
     <string name="lyrics_not_found">Lyrics not found.</string>
@@ -540,7 +538,6 @@
     <string name="tab_bar_action_up">Move up</string>
     <string name="settings_restart_needed">Restart the app to apply this setting.</string>
     <string name="settings_page_error">Could not save the setting.</string>
-    <string name="wide_video_menu_label">Sidebar with a fullscreen video</string>
     <string name="main_dock_label">Sidebar in CarWeb</string>
     <string name="main_dock_desc">Shows in CarWeb the same sidebar as CarWebWide. The round menu button then just opens and closes it.</string>
     <string name="sidebar_actions_label">Sidebar buttons</string>

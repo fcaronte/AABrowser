@@ -21,8 +21,6 @@ object VideoFit {
             .put("fit", app.getString(R.string.video_fit))
             .put("fill", app.getString(R.string.video_fill))
             .put("stretch", app.getString(R.string.video_stretch))
-            .put("menuAlways", app.getString(R.string.video_menu_always))
-            .put("menuTouch", app.getString(R.string.video_menu_touch))
         val text = source ?: context.assets.open("scripts/video-fit.js").bufferedReader().use { it.readText() }
             .also { source = it }
         return text.replace("/*AAB_LABELS*/null", labels.toString())

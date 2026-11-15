@@ -335,8 +335,6 @@
     <string name="video_fill">Füllen</string>
     <string name="video_stretch">Strecken</string>
     <string name="video_fullscreen">Vollbild</string>
-    <string name="video_menu_always">Seitenleiste immer</string>
-    <string name="video_menu_touch">Seitenleiste beim Tippen</string>
     <string name="lyrics_button">Liedtext</string>
     <string name="lyrics_loading">Liedtext wird geladen…</string>
     <string name="lyrics_not_found">Kein Liedtext gefunden.</string>
@@ -532,7 +530,6 @@
     <string name="tab_bar_action_up">Nach oben</string>
     <string name="settings_restart_needed">Starte die App neu, um diese Einstellung zu übernehmen.</string>
     <string name="settings_page_error">Die Einstellung konnte nicht gespeichert werden.</string>
-    <string name="wide_video_menu_label">Seitenleiste bei Vollbildvideo</string>
     <string name="main_dock_label">Seitenleiste in CarWeb</string>
     <string name="main_dock_desc">Zeigt in CarWeb dieselbe Seitenleiste wie CarWebWide. Die runde Menütaste öffnet und schließt sie dann nur.</string>
     <string name="sidebar_actions_label">Tasten der Seitenleiste</string>

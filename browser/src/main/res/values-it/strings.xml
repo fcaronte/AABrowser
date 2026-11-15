@@ -294,8 +294,6 @@
     <string name="video_fill">Riempi</string>
     <string name="video_stretch">Allunga</string>
     <string name="video_fullscreen">Schermo intero</string>
-    <string name="video_menu_always">Sidebar sempre</string>
-    <string name="video_menu_touch">Sidebar al tocco</string>
     <string name="lyrics_button">Testi</string>
     <string name="lyrics_loading">Caricamento testi…</string>
     <string name="lyrics_not_found">Testo non trovato.</string>
@@ -491,7 +489,6 @@
     <string name="tab_bar_action_up">Sposta su</string>
     <string name="settings_restart_needed">Riavvia l\'app per applicare questa impostazione.</string>
     <string name="settings_page_error">Impossibile salvare l\'impostazione.</string>
-    <string name="wide_video_menu_label">Sidebar con il video a schermo intero</string>
     <string name="main_dock_label">Sidebar anche in CarWeb</string>
     <string name="main_dock_desc">Mostra in CarWeb la stessa sidebar di CarWebWide. Il tasto rotondo del menu serve allora solo ad aprirla e chiuderla.</string>
     <string name="sidebar_actions_label">Tasti della sidebar</string>

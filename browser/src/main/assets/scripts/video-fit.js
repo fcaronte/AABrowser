@@ -6,8 +6,7 @@
  * Regole e scritta in fogli di stile costruiti (niente innerHTML né <style>: Trusted Types e CSP dei siti), la scritta
  * in uno shadow DOM dentro l'elemento a schermo intero: il resto della pagina Chromium lo rende intoccabile. Quando è a
  * schermo intero il solo <video> (comandi standard del browser) la scritta non c'è: i suoi figli non si vedono.
- * Nella Wide con il menu fisso accanto c'è la scelta "Sidebar sempre" / "Sidebar al tocco" (la salva l'app, vale per tutti
- * i siti e per CarWeb Media): al tocco il menu compare e sparisce con la scritta. I testi li mette l'app (VideoFit).
+ * I testi li mette l'app (VideoFit).
  */
 (function (labels) {
     'use strict';
@@ -22,11 +21,8 @@
     let target = null;          // il video a schermo intero
     let host = null;            // la scritta
     let button = null;
-    let menuButton = null;
     let hideTimer = 0;
     let resizeObserver = null;
-    let fixedMenu = false;      // Wide con il menu fisso
-    let menuOnTap = false;
     let lastLogged = '';
 
     // Righe nel registro dell'app (le vede chi condivide il log): solo forme e misure, mai indirizzi. Quella di prima non si
@@ -46,22 +42,6 @@
         const first = typeof element.className === 'string' ? element.className.trim().split(/\s+/)[0] : '';
         return element.tagName.toLowerCase() + id + (first ? '.' + first.slice(0, 24) : '') + ' ' +
             Math.round(rect.width) + 'x' + Math.round(rect.height);
-    }
-
-    // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
-    // La scelta «Sidebar sempre / al tocco» è stata tolta (15/11/2026): la sidebar della Wide resta dov'è e si toglie con il tasto in alto
-    // a destra. Senza ponte, la pagina non mostra la scelta e non chiama l'app
-    function wideBridge() {
-        return null;
-    }
-
-    // Il menu fisso: sempre in vista (il video si ferma al suo bordo) o solo insieme alla scritta
-    function syncMenu(labelShown) {
-        const bridge = wideBridge();
-        if (!fixedMenu || !bridge) return;
-        try {
-            bridge.setVideoMenu(menuOnTap, !menuOnTap || labelShown);
-        } catch (_) {}
     }
 
     function readMode() {
@@ -185,10 +165,7 @@
             saveMode();
             apply();
         });
-        menuButton = makeButton(() => {
-            menuOnTap = !menuOnTap;
-        });
-        row.append(button, menuButton);
+        row.append(button);
         shadow.appendChild(row);
     }
 
@@ -217,16 +194,12 @@
         if (host.parentNode !== parent) parent.appendChild(host);
         log('label shown in ' + describe(parent));
         button.textContent = labels[mode] || mode;
-        menuButton.hidden = !fixedMenu;
-        menuButton.textContent = (menuOnTap ? labels.menuTouch : labels.menuAlways) || 'Sidebar';
-        syncMenu(true);
         clearTimeout(hideTimer);
         hideTimer = setTimeout(hide, HIDE_MS);
     }
 
     function hide() {
         clearTimeout(hideTimer);
-        if (host && host.isConnected) syncMenu(false);
         if (host) host.remove();
     }
 
@@ -255,18 +228,9 @@
         target = fullscreen ? largestVideo(fullscreen) : null;
         log(fullscreen ? 'fullscreen ' + describe(fullscreen) + ', video ' + describe(target) : 'fullscreen left');
         if (!target) {
-            // All'uscita il menu lo rimette la Wide: niente richieste che arriverebbero dopo
-            fixedMenu = false;
             hide();
             if (fullscreen) findLater(fullscreen, 1);
             return;
-        }
-        const bridge = wideBridge();
-        try {
-            fixedMenu = !!(bridge && bridge.hasFixedSidebar());
-            menuOnTap = fixedMenu && bridge.videoMenuOnTap();
-        } catch (_) {
-            fixedMenu = false;
         }
         apply();
         if (window.ResizeObserver) {

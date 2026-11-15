@@ -4,8 +4,7 @@
  * Wide la pagina chiede che si sposti solo il video: window.__aabScrollOnly); il modo dell'immagine Adatta (intera),
  * Riempi (tagliata ai bordi) o Allunga (deformata); lo schermo intero, del riquadro con la sua barra. La barra compare
  * toccando il video e sparisce dopo qualche secondo (e finché è visibile il riquadro ha la classe bar-shown: la TV ci
- * aggancia il suo pannello del cambio canale). Nella Wide con il menu fisso, a schermo intero, la barra sceglie
- * anche se il menu resta sopra il video o compare solo insieme a lei.
+ * aggancia il suo pannello del cambio canale).
  */
 (function (root) {
     'use strict';
@@ -29,13 +28,6 @@
         return STEPS.slice().reverse().find((step) => step < zoom - 0.01) || STEPS[0];
     }
 
-    // Il ponte della Wide (WideScreen): nella Main questi metodi non ci sono
-    // La scelta «Sidebar sempre / al tocco» è stata tolta (15/11/2026): la sidebar della Wide resta dov'è e si toglie con il tasto in alto
-    // a destra. Senza ponte, la pagina non mostra la scelta e non chiama l'app
-    function wideBridge() {
-        return null;
-    }
-
     function readMode() {
         try {
             const mode = root.localStorage.getItem(MODE_KEY);
@@ -47,7 +39,7 @@
 
     /**
      * [stage]: il riquadro del video; [video]: l'elemento video, che finisce in un contenitore che scorre; [strings]:
-     * fit, fill, stretch, fullscreen, menuAlways, menuTouch; [isVideo]: c'è un video da mostrare (la barra non compare con l'audio).
+     * fit, fill, stretch, fullscreen; [isVideo]: c'è un video da mostrare (la barra non compare con l'audio).
      */
     function attach(options) {
         const stage = options.stage;
@@ -69,7 +61,6 @@
             '<button class="zoom-button" data-zoom="reset"></button>' +
             '<button class="zoom-button" data-zoom="in">+</button>' +
             '<button class="zoom-button zoom-mode" data-zoom="mode"></button>' +
-            '<button class="zoom-button zoom-mode" data-zoom="menu" hidden></button>' +
             '<button class="zoom-button" data-zoom="full">' +
             '<svg class="icon-enter" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>' +
             '<svg class="icon-exit" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>' +
@@ -80,22 +71,10 @@
 
         let zoom = 1;
         let mode = readMode();
-        let menuMode = 'always'; // 'touch': il menu fisso sta sotto il video e compare con la barra (scelta salvata dall'app)
-        let fixedMenu = false;  // Wide con il menu fisso, a schermo intero
-        let size = null;        // dimensioni del video all'ultimo calcolo, per tenere fermo il centro
+        let size = null; // dimensioni del video all'ultimo calcolo, per tenere fermo il centro
         let hideTimer = 0;
 
         const inFullscreen = () => doc.fullscreenElement === stage;
-
-        // Il menu fisso a schermo intero: sempre in vista, con il video accanto, o sotto il video e in vista solo insieme
-        // alla barra. La Wide sa la scelta, non solo se il menu si vede: il video non cambia a ogni tocco
-        function syncMenu() {
-            const bridge = wideBridge();
-            if (!bridge || !fixedMenu) return;
-            try {
-                bridge.setVideoMenu(menuMode === 'touch', !inFullscreen() || menuMode === 'always' || !bar.hidden);
-            } catch (_) {}
-        }
 
         const offset = (boxSide, side) => Math.max(0, (boxSide - side) / 2);
 
@@ -137,9 +116,6 @@
             button('out').disabled = zoom <= STEPS[0];
             button('in').disabled = zoom >= STEPS[STEPS.length - 1];
             button('mode').textContent = S[mode] || mode;
-            const menu = button('menu');
-            menu.hidden = !(fixedMenu && inFullscreen());
-            menu.textContent = menuMode === 'always' ? (S.menuAlways || 'Sidebar') : (S.menuTouch || 'Sidebar');
             bar.classList.toggle('in-fullscreen', inFullscreen());
         }
 
@@ -152,7 +128,6 @@
             clearTimeout(hideTimer);
             bar.hidden = true;
             stage.classList.remove('bar-shown');
-            syncMenu();
         }
 
         function showBar() {
@@ -160,7 +135,6 @@
             bar.hidden = false;
             stage.classList.add('bar-shown');
             updateBar();
-            syncMenu();
             clearTimeout(hideTimer);
             hideTimer = setTimeout(hideBar, HIDE_MS);
         }
@@ -201,10 +175,6 @@
                     size = null;
                     layout();
                     break;
-                case 'menu':
-                    // La salva l'app (setVideoMenu): vale anche per i video degli altri siti
-                    menuMode = menuMode === 'always' ? 'touch' : 'always';
-                    break;
                 case 'full':
                     if (doc.fullscreenElement) {
                         doc.exitFullscreen().catch(() => {});
@@ -225,17 +195,8 @@
         video.addEventListener('loadedmetadata', layout);
         video.addEventListener('resize', layout);
         doc.addEventListener('fullscreenchange', () => {
-            // All'uscita il menu lo rimette la Wide
-            const bridge = wideBridge();
-            try {
-                fixedMenu = !!(bridge && inFullscreen() && bridge.hasFixedSidebar());
-                if (fixedMenu) menuMode = bridge.videoMenuOnTap() ? 'touch' : 'always';
-            } catch (_) {
-                fixedMenu = false;
-            }
             updateBar();
             layout();
-            syncMenu();
         });
         if (typeof root.ResizeObserver === 'function') new root.ResizeObserver(layout).observe(box);
         layout();

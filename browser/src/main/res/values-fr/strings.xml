@@ -336,8 +336,6 @@
     <string name="video_fill">Remplir</string>
     <string name="video_stretch">Étirer</string>
     <string name="video_fullscreen">Plein écran</string>
-    <string name="video_menu_always">Barre latérale toujours</string>
-    <string name="video_menu_touch">Barre latérale au toucher</string>
     <string name="lyrics_button">Paroles</string>
     <string name="lyrics_loading">Chargement des paroles…</string>
     <string name="lyrics_not_found">Paroles introuvables.</string>
@@ -533,7 +531,6 @@
     <string name="tab_bar_action_up">Monter</string>
     <string name="settings_restart_needed">Redémarrez l\'application pour appliquer ce réglage.</string>
     <string name="settings_page_error">Impossible d\'enregistrer le réglage.</string>
-    <string name="wide_video_menu_label">Barre latérale avec la vidéo en plein écran</string>
     <string name="main_dock_label">Barre latérale dans CarWeb</string>
     <string name="main_dock_desc">Affiche dans CarWeb la même barre latérale que CarWebWide. Le bouton rond du menu sert alors seulement à l\'ouvrir et la fermer.</string>
     <string name="sidebar_actions_label">Boutons de la barre latérale</string>
