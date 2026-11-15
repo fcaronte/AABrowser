@@ -149,6 +149,7 @@ fun DashboardScreen(
 
     siteToEdit?.let { site ->
         val feedbackMsg = stringResource(R.string.favorite_updated)
+        val notAllowedMsg = stringResource(R.string.favorite_not_allowed)
         EditFavoriteScreen(
             site = site,
             currentWebView = currentWebView,
@@ -157,9 +158,9 @@ fun DashboardScreen(
             onBack = { siteToEdit = null },
             urlLocked = viewModel.isFixed(site),
             onConfirm = { name, url, color, favicon, isDesktop, mobileZoom, desktopZoom ->
-                viewModel.updateFavorite(site, name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
+                val updated = viewModel.updateFavorite(site, name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
                 siteToEdit = null
-                onShowFeedback(feedbackMsg)
+                onShowFeedback(if (updated) feedbackMsg else notAllowedMsg)
             }
         )
         return

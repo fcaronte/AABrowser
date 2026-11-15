@@ -8,7 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class FavoritesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = FavoritesRepository(application)
@@ -27,7 +26,7 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /** Le pagine di CarWeb e le app del telefono hanno già il loro posto (home, Altre App): non diventano un preferito. */
-    fun canAdd(url: String): Boolean = !FavoritesRepository.isOwnPage(url) && !FavoritesRepository.isUnsafeUrl(url)
+    fun canAdd(url: String): Boolean = FavoriteEdits.canAdd(url)
 
     /** Fisso (non si elimina né cambia indirizzo): solo la pagina di CarWeb vera, mai un suo doppione. */
     fun isFixed(site: FavoriteSite): Boolean = FavoritesRepository.isFixed(site, favorites)
@@ -42,30 +41,20 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         mobileZoom: Float? = null,
         desktopZoom: Float? = null
     ): Boolean {
-        if (!canAdd(url)) return false
-        val address = FavoritesRepository.normalizeUrl(url)
-        if (favorites.any { FavoritesRepository.normalizeUrl(it.url) == address }) return true
-        val newSite = FavoriteSite(
-            id = UUID.randomUUID().toString(),
-            name = name,
-            url = url,
-            color = color,
-            faviconUrl = faviconUrl,
-            isDesktopMode = isDesktopMode,
-            mobileZoom = mobileZoom,
-            desktopZoom = desktopZoom
+        // Le stesse regole della home della Wide (FavoriteEdits): né pagine di CarWeb né app, niente doppioni
+        val result = FavoriteEdits.add(
+            favorites,
+            FavoriteEdits.Input(name, url, color, faviconUrl, isDesktopMode, mobileZoom, desktopZoom)
         )
-        favorites.add(newSite)
-        repository.saveFavorites(favorites)
-        return true
+        if (result == FavoriteEdits.Result.OK) repository.saveFavorites(favorites)
+        return result == FavoriteEdits.Result.OK
     }
 
     fun removeFavorite(site: FavoriteSite) {
-        if (isFixed(site)) return
-        favorites.remove(site)
-        repository.saveFavorites(favorites)
+        if (FavoriteEdits.delete(favorites, site.id) == FavoriteEdits.Result.OK) repository.saveFavorites(favorites)
     }
 
+    /** false se i dati non vanno (indirizzo non consentito o senza sito): il preferito resta com'era. */
     fun updateFavorite(
         site: FavoriteSite,
         name: String,
@@ -75,37 +64,24 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         isDesktopMode: Boolean? = site.isDesktopMode,
         mobileZoom: Float? = site.mobileZoom,
         desktopZoom: Float? = site.desktopZoom
-    ) {
-        val index = favorites.indexOfFirst { it.id == site.id }
-        if (index != -1) {
-            favorites[index] = site.copy(
-                name = name,
-                // Un preferito fisso resta sul suo indirizzo
-                url = if (isFixed(site)) site.url else url,
-                color = color,
-                faviconUrl = faviconUrl,
-                isDesktopMode = isDesktopMode,
-                mobileZoom = mobileZoom,
-                desktopZoom = desktopZoom
-            )
-            repository.saveFavorites(favorites)
-        }
+    ): Boolean {
+        // Un preferito fisso resta sul suo indirizzo (FavoriteEdits.update)
+        val result = FavoriteEdits.update(
+            favorites,
+            site.id,
+            FavoriteEdits.Input(name, url, color, faviconUrl, isDesktopMode, mobileZoom, desktopZoom)
+        )
+        if (result == FavoriteEdits.Result.OK) repository.saveFavorites(favorites)
+        return result == FavoriteEdits.Result.OK
     }
 
-    fun moveLeft(index: Int) {
-        if (index > 0 && index < favorites.size) {
-            val item = favorites.removeAt(index)
-            favorites.add(index - 1, item)
-            repository.saveFavorites(favorites)
-        }
-    }
+    fun moveLeft(index: Int) = move(index, -1)
 
-    fun moveRight(index: Int) {
-        if (index >= 0 && index < favorites.size - 1) {
-            val item = favorites.removeAt(index)
-            favorites.add(index + 1, item)
-            repository.saveFavorites(favorites)
-        }
+    fun moveRight(index: Int) = move(index, 1)
+
+    private fun move(index: Int, direction: Int) {
+        val id = favorites.getOrNull(index)?.id ?: return
+        if (FavoriteEdits.move(favorites, id, direction) == FavoriteEdits.Result.OK) repository.saveFavorites(favorites)
     }
 
     fun resetToDefaults() {
