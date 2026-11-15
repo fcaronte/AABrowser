@@ -17,6 +17,13 @@ object VirtualSplit {
     /** Larghezza minima, in dp logici, che un'app vede nel pannello: sotto le app si impaginano male (telefoni stretti, 320 dp). */
     const val MIN_LOGICAL_WIDTH_DP = 320
 
+    /**
+     * Larghezza minima del display dell'app, in dp dello schermo che lo mostra (quello dell'auto, non quelli dell'app): più
+     * stretto, anche con la densità abbassata per farci stare 320 dp, le cose sono troppo piccole per il dito. Con la colonna
+     * di Android Auto accanto, la regione della Wide è stretta e il 30% dava un pannello di 24 mm.
+     */
+    const val MIN_DISPLAY_DP = 240
+
     // Un'app vuole un display in verticale: se il pannello non lo è già (schermi molto larghi, 50%), il display è alto quanto il
     // pannello e largo quanto un telefono in piedi, con le bande nere ai lati
     private const val PORTRAIT_RATIO = 9f / 16f
@@ -36,10 +43,22 @@ object VirtualSplit {
     /** Posizioni e larghezze dei due pannelli, dall'inizio della regione. */
     class Panels(val browserStart: Int, val browserWidth: Int, val appStart: Int, val appWidth: Int)
 
-    /** Divide una regione larga [total] pixel: all'app [percent]% (tra [MIN_PERCENT] e [MAX_PERCENT]), al browser il resto. */
-    fun panels(total: Int, percent: Int, side: Side): Panels {
+    /**
+     * Larghezza del pannello dell'app in una regione larga [total]: la percentuale scelta, ma mai meno di [minPanel] (la barra
+     * dell'app più [MIN_DISPLAY_DP] dp, nei pixel di chi la chiama), dentro il massimo [MAX_PERCENT]%. In una regione larga
+     * il minimo non conta; in una stretta (la Wide con la colonna dell'host) il 30% sarebbe troppo poco per usare l'app.
+     */
+    fun appPanelWidth(total: Int, percent: Int, minPanel: Int = 0): Int {
         val width = total.coerceAtLeast(0)
-        val app = (width.toLong() * clampPercent(percent) / 100).toInt()
+        val wanted = (width.toLong() * clampPercent(percent) / 100).toInt()
+        val cap = (width.toLong() * MAX_PERCENT / 100).toInt()
+        return maxOf(wanted, minOf(minPanel.coerceAtLeast(0), cap))
+    }
+
+    /** Divide una regione larga [total] pixel: all'app [percent]% (tra [MIN_PERCENT] e [MAX_PERCENT], o il minimo [minPanel]), al browser il resto. */
+    fun panels(total: Int, percent: Int, side: Side, minPanel: Int = 0): Panels {
+        val width = total.coerceAtLeast(0)
+        val app = appPanelWidth(width, percent, minPanel)
         val browser = width - app
         return if (side == Side.RIGHT) Panels(0, browser, browser, app) else Panels(app, browser, 0, app)
     }

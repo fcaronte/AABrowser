@@ -61,6 +61,38 @@ class VirtualSplitTest {
     }
 
     @Test
+    fun aNarrowRegionGivesTheAppAReadablePanelWithinTheMaximum() {
+        // La Wide con la colonna dell'host accanto: 503 px di regione a 119 dpi. Il 30% darebbe 150 px (112 di display): il minimo
+        // è la barra (38 px) più 240 dp dell'auto (178 px) = 216 px
+        val minPanel = 38 + (VirtualSplit.MIN_DISPLAY_DP * 119 / 160)
+        assertEquals(150, VirtualSplit.appPanelWidth(503, 30, 0))
+        assertEquals(minPanel, VirtualSplit.appPanelWidth(503, 30, minPanel))
+        val panels = VirtualSplit.panels(503, 30, VirtualSplit.Side.RIGHT, minPanel)
+        assertEquals(minPanel, panels.appWidth)
+        assertEquals(503 - minPanel, panels.browserWidth)
+        assertEquals(503 - minPanel, panels.appStart)
+        // Una regione larga: il minimo non conta (1000 px, 30% = 300 > 216)
+        assertEquals(300, VirtualSplit.appPanelWidth(1000, 30, minPanel))
+        // Mai oltre il massimo del 50%, anche se il minimo è più grande (una regione stretta davvero)
+        assertEquals(200, VirtualSplit.appPanelWidth(400, 30, minPanel))
+        assertEquals(125, VirtualSplit.appPanelWidth(250, 20, 400))
+    }
+
+    @Test
+    fun theMinimumNeverBreaksTheTilingOfThePanels() {
+        for (total in listOf(0, 1, 100, 503, 800, 1075, 2217)) {
+            for (min in listOf(0, 50, 216, 600)) {
+                for (side in VirtualSplit.Side.entries) {
+                    val p = VirtualSplit.panels(total, 30, side, min)
+                    assertEquals("somma $total/$min/$side", total, p.browserWidth + p.appWidth)
+                    assertTrue(p.appWidth <= total * VirtualSplit.MAX_PERCENT / 100)
+                    assertTrue(p.browserWidth >= 0 && p.appWidth >= 0)
+                }
+            }
+        }
+    }
+
+    @Test
     fun theDisplayIsAlwaysPortrait() {
         // Un pannello stretto e alto lo è già: il display è largo quanto il pannello
         assertEquals(318, VirtualSplit.displayWidth(318, 514))

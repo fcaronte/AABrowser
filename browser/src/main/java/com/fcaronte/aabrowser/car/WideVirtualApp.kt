@@ -62,6 +62,9 @@ class WideVirtualApp(
 
         /** Lingua scritta da destra a sinistra: la barra sta a destra e l'app comincia prima. */
         fun isRtl(): Boolean
+
+        /** Nello schermo diviso cambia il pannello che riceve scorrimenti e Indietro: il segno sul pannello si sposta. */
+        fun onFocusChanged()
     }
 
     private var session: VirtualAppSession? = null
@@ -109,6 +112,9 @@ class WideVirtualApp(
 
     /** A chi vanno i gesti senza posizione (scorrimento, fling, pizzico, Indietro): all'app, o nello schermo diviso al pannello toccato per ultimo. */
     fun receivesGestures(): Boolean = isShown && (!isSplit || focusOnApp)
+
+    /** Nello schermo diviso: il pannello che riceve scorrimenti e Indietro è quello dell'app (altrimenti è quello del browser). */
+    val focusedOnApp: Boolean get() = focusOnApp
 
     // ------------------------------------------------------------------ viste
 
@@ -332,9 +338,15 @@ class WideVirtualApp(
         appOffset = (if (callbacks.isRtl()) 0 else offset) + shift
     }
 
-    /** Un tocco dell'host (coordinate della superficie): nello schermo diviso dice quale pannello riceve scorrimenti e Indietro. */
-    fun noteTap(x: Float, y: Float) {
-        if (isSplit) focusOnApp = contains(x, y)
+    /**
+     * Nello schermo diviso dice quale pannello riceve scorrimenti e Indietro, dal punto toccato o pizzicato dall'utente
+     * (l'host non dà la posizione del dito per il resto). La Wide chiama solo per i punti dentro un pannello: un tocco sulla
+     * sidebar o sotto un video a schermo intero non sposta niente.
+     */
+    fun setFocus(onApp: Boolean) {
+        if (!isSplit || focusOnApp == onApp) return
+        focusOnApp = onApp
+        callbacks.onFocusChanged()
     }
 
     /** Il punto (coordinate della superficie dell'host) sta sulla vista dell'app: la sidebar fissa della Wide ne è fuori. */

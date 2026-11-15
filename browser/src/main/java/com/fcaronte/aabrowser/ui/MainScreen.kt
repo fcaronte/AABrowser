@@ -661,7 +661,11 @@ fun MainScreen(
                 var tabsWidthPx by remember { mutableIntStateOf(0) }
                 val tabsDensity = LocalDensity.current
                 val splitRegion = (with(tabsDensity) { tabsWidthPx.toDp() } - dockPadding).coerceAtLeast(0.dp)
-                val splitAppWidth = splitRegion * (VirtualSplit.clampPercent(splitPercent) / 100f)
+                // Mai più stretto della barra dell'app (44 dp) più 240 dp, dentro il massimo: in una finestra stretta il 30% non basta
+                val splitAppWidth = maxOf(
+                    splitRegion * (VirtualSplit.clampPercent(splitPercent) / 100f),
+                    minOf((44 + VirtualSplit.MIN_DISPLAY_DP).dp, splitRegion * (VirtualSplit.MAX_PERCENT / 100f))
+                )
                 val splitWebWidth = splitRegion - splitAppWidth
 
                 Box(

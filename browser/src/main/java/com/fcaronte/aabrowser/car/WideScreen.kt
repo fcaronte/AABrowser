@@ -188,6 +188,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Come il blocco popup di Chrome, ma più largo (i login aprono il popup qualche secondo dopo il tocco)
         private const val USER_GESTURE_MS = 10_000L
 
+        // Quanti tocchi dello schermo diviso scrivere nel log (a ogni apertura della Wide): bastano per capire dove vanno
+        private const val SPLIT_TAP_LOG_LIMIT = 60
+
         // Margine extra dei tasti del dock, solo dal lato del bordo dello schermo
         const val SIDEBAR_OUTER_TOUCH_TOLERANCE_PX = 20
 
@@ -275,6 +278,23 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             hideShareCode()
         }
     }
+
+    // Indietro dell'auto con un video a schermo intero: lo chiude (senza, restava il tasto Indietro della sidebar, che nello
+    // schermo diviso e con la sidebar nascosta non c'è)
+    private val closeVideoOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            hideCustomView()
+        }
+    }
+
+    // Schermo diviso: un segno sottile sul bordo alto del pannello che riceve scorrimenti e Indietro (l'host non dà la posizione
+    // del dito per quelli: vanno al pannello toccato per ultimo, e il segno lo mostra). Le ascisse dei due pannelli e il bordo
+    // alto, in pixel della superficie, quando lo schermo diviso è acceso
+    private var focusMarkReference: View? = null
+    private var splitBrowserX = IntArray(2)
+    private var splitAppX = IntArray(2)
+    private var splitTopY = 0
+    private var splitTapsLogged = 0
 
     // Tastiera passeggero (al posto di quella di Android Auto) e copertura dell'auto in movimento, sulla superficie
     private var passengerKeyboard: WidePassengerKeyboard? = null
@@ -365,6 +385,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
 
         override fun isRtl(): Boolean = this@WideScreen.isRtl
+
+        override fun onFocusChanged() {
+            handler.post { updateFocusMark() }
+        }
     })
 
     // Sito della pagina principale, letto dal thread del ponte JavaScript (proxy DAZN)
@@ -418,6 +442,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     init {
         activeInstance = this
+        // Risponde l'ultimo registrato: quello che sta più sopra (tastiera, codice QR) prima del video a schermo intero
+        carContext.onBackPressedDispatcher.addCallback(this, closeVideoOnBack)
         carContext.onBackPressedDispatcher.addCallback(this, closeKeyboardOnBack)
         carContext.onBackPressedDispatcher.addCallback(this, closeQrOnBack)
         try {
@@ -629,6 +655,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         virtualApp.onSettingsChanged()
         webView?.visibility = if (virtualApp.isShown && !virtualApp.isSplit) View.INVISIBLE else View.VISIBLE
         applyVisibleArea()
+        updateFocusMark()
         invalidate()
     }
 
@@ -1252,15 +1279,19 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         voiceCardReference?.bringToFront()
         customView = view
         customViewCallback = callback
+        closeVideoOnBack.isEnabled = true
         applySidebarOverVideo()
+        updateFocusMark()
     }
 
     private fun hideCustomView() {
         val view = customView ?: return
         (view.parent as? ViewGroup)?.removeView(view)
         customView = null
+        closeVideoOnBack.isEnabled = false
         sidebarHiddenForVideo = false
         applySidebarOverVideo()
+        updateFocusMark()
         try {
             customViewCallback?.onCustomViewHidden()
         } catch (_: Exception) {
@@ -1555,13 +1586,20 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (virtualApp.isSplit) {
             val regionLeft = appMargins[0]
             val regionWidth = (surfaceWidth - appMargins[0] - appMargins[2]).coerceAtLeast(0)
-            val panels = VirtualSplit.panels(regionWidth, AppSettings.virtualSplitFraction.value, AppSettings.virtualSplitSide.value)
+            // Mai un pannello troppo stretto per il dito: la barra dell'app più 240 dp dell'auto (VirtualSplit.MIN_DISPLAY_DP)
+            val minAppPanel = (VirtualSplit.MIN_DISPLAY_DP * surfaceDensity / 160f).toInt() + (if (dockVisible) sidebarWidthPx() else 0)
+            val panels = VirtualSplit.panels(
+                regionWidth, AppSettings.virtualSplitFraction.value, AppSettings.virtualSplitSide.value, minAppPanel
+            )
             lp.leftMargin = maxOf(lp.leftMargin, regionLeft + panels.browserStart)
             lp.rightMargin = maxOf(lp.rightMargin, surfaceWidth - (regionLeft + panels.browserStart + panels.browserWidth))
             wv.layoutParams = lp
             wv.requestLayout()
             appMargins[0] = regionLeft + panels.appStart
             appMargins[2] = surfaceWidth - (regionLeft + panels.appStart + panels.appWidth)
+            splitBrowserX = intArrayOf(regionLeft + panels.browserStart, regionLeft + panels.browserStart + panels.browserWidth)
+            splitAppX = intArrayOf(regionLeft + panels.appStart, regionLeft + panels.appStart + panels.appWidth)
+            splitTopY = appMargins[1]
         }
         virtualApp.layout(
             leftPx = appMargins[0],
@@ -1577,6 +1615,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             )
         }
         customView?.let { layoutCustomView(it, lp) }
+        updateFocusMark()
 
         updatePopupPosition()
         updateVoiceCardPosition()
@@ -1605,6 +1644,35 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         lp.leftMargin = (r.centerX() - w / 2).coerceIn(r.left, maxOf(r.left, r.right - w))
         lp.topMargin = (r.centerY() - h / 2).coerceIn(r.top, maxOf(r.top, r.bottom - h))
         card.layoutParams = lp
+    }
+
+    /**
+     * Il segno del pannello attivo nello schermo diviso: una riga di 3 dp sul bordo alto del pannello che riceve scorrimenti e
+     * Indietro, azzurra come il tasto dello schermo diviso acceso. Non si vede senza schermo diviso né sotto un video a
+     * schermo intero, e non prende tocchi.
+     */
+    private fun updateFocusMark() {
+        val mark = focusMarkReference ?: return
+        val show = virtualApp.isSplit && customView == null
+        if (!show) {
+            mark.visibility = View.GONE
+            return
+        }
+        val x = if (virtualApp.focusedOnApp) splitAppX else splitBrowserX
+        val lp = (mark.layoutParams as? FrameLayout.LayoutParams) ?: FrameLayout.LayoutParams(0, 0)
+        lp.gravity = Gravity.TOP or Gravity.START
+        lp.leftMargin = x[0]
+        lp.topMargin = splitTopY
+        lp.width = (x[1] - x[0]).coerceAtLeast(0)
+        lp.height = (3 * mark.resources.displayMetrics.density).toInt().coerceAtLeast(2)
+        mark.layoutParams = lp
+        mark.visibility = View.VISIBLE
+    }
+
+    /** Il punto (coordinate della superficie) sta sul pannello della pagina, che nello schermo diviso è la sua WebView. */
+    private fun inBrowserPanel(x: Float, y: Float): Boolean {
+        val wv = webView ?: return false
+        return wv.visibility == View.VISIBLE && x >= wv.left && x < wv.right && y >= wv.top && y < wv.bottom
     }
 
     /**
@@ -1671,20 +1739,32 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             return
         }
 
-        // Un'app del telefono sullo schermo virtuale: i tocchi sulla sua vista sono suoi (la sua barra, oppure l'app). Quelli
-        // sulla sidebar della Wide (fuori dalla vista) restano della sidebar: con l'app aperta Home e gli altri tasti non
-        // rispondevano. Nello schermo diviso la vista è solo il pannello dell'app: il resto è della pagina, e dal tocco si sa
-        // a quale pannello vanno poi scorrimenti e Indietro
-        virtualApp.noteTap(x, y)
-        if (virtualApp.isShown && virtualApp.contains(x, y)) {
-            virtualApp.onClick(x, y)
-            return
-        }
-
+        // La scheda della tastiera e del microfono sta sopra a tutto: i tocchi sono suoi (prima, nella zona dell'app, andavano
+        // all'app che sta sotto)
         if (isInputPopupVisible) {
             dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_DOWN, x, y)
             dispatchTouchToOverlay(popupOverlayReference, MotionEvent.ACTION_UP, x, y)
             return
+        }
+
+        // Un'app del telefono sullo schermo virtuale: i tocchi sulla sua vista sono suoi (la sua barra, oppure l'app). Quelli
+        // sulla sidebar della Wide (fuori dalla vista) restano della sidebar: con l'app aperta Home e gli altri tasti non
+        // rispondevano. Nello schermo diviso la vista è solo il pannello dell'app: il resto è della pagina, e dal tocco si sa
+        // a quale pannello vanno poi scorrimenti e Indietro. Un video a schermo intero copre anche il pannello dell'app: con
+        // lui davanti i tocchi sono del video (il tasto di uscita del lettore sta spesso in basso a destra, sotto l'app) e non
+        // spostano il pannello attivo
+        if (customView == null) {
+            val onApp = virtualApp.isShown && virtualApp.contains(x, y)
+            if (virtualApp.isSplit) {
+                if (onApp) virtualApp.setFocus(true) else if (inBrowserPanel(x, y)) virtualApp.setFocus(false)
+                logSplitTap(x, y, if (onApp) "app" else if (inBrowserPanel(x, y)) "page" else "dock")
+            }
+            if (onApp) {
+                virtualApp.onClick(x, y)
+                return
+            }
+        } else if (virtualApp.isSplit) {
+            logSplitTap(x, y, "video")
         }
 
         lastTapAt = SystemClock.uptimeMillis()
@@ -1726,6 +1806,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         dispatchTouch(MotionEvent.ACTION_DOWN, x, y)
         dispatchTouch(MotionEvent.ACTION_UP, x, y)
+    }
+
+    /** Dove va un tocco nello schermo diviso (solo punto e pannello, mai la pagina): per capire dai log cosa è successo. */
+    private fun logSplitTap(x: Float, y: Float, target: String) {
+        if (splitTapsLogged >= SPLIT_TAP_LOG_LIMIT) return
+        splitTapsLogged++
+        Log.d(
+            TAG,
+            "split tap x=${x.toInt()} y=${y.toInt()} -> $target (focus=${if (virtualApp.focusedOnApp) "app" else "page"}) " +
+                "page=${splitBrowserX[0]}..${splitBrowserX[1]} app=${splitAppX[0]}..${splitAppX[1]} surface=${surfaceWidth}x$surfaceHeight"
+        )
     }
 
     override fun onScroll(distanceX: Float, distanceY: Float) {
@@ -1785,7 +1876,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     }
 
     override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
-        if (virtualApp.receivesGestures() && !isPageCovered()) {
+        // Il pizzico ha la posizione delle dita: nello schermo diviso va al pannello sotto di loro, e quel pannello riceve poi
+        // anche scorrimenti e Indietro. Con un video a schermo intero davanti l'app non è toccabile
+        val onApp = if (virtualApp.isSplit) {
+            customView == null && virtualApp.contains(focusX, focusY).also { inApp ->
+                if (inApp) virtualApp.setFocus(true) else if (inBrowserPanel(focusX, focusY)) virtualApp.setFocus(false)
+            }
+        } else {
+            virtualApp.receivesGestures()
+        }
+        if (onApp && !isPageCovered()) {
             virtualApp.onScale(focusX, focusY, scaleFactor)
             return
         }
@@ -2755,6 +2855,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     // L'app del telefono sullo schermo virtuale: sopra pagina e dock, sotto popup, tastiera e copertura
                     frame.addView(virtualApp.install(ctx, sidebarWidthPx()), FrameLayout.LayoutParams(-1, -1))
                     virtualApp.setSidebarVisible(dockVisible)
+                    // Il segno del pannello attivo nello schermo diviso (non prende tocchi)
+                    val focusMark = View(ctx).apply {
+                        setBackgroundColor(0xCC8AB4F8.toInt())
+                        visibility = View.GONE
+                        isClickable = false
+                        isFocusable = false
+                    }
+                    focusMarkReference = focusMark
+                    frame.addView(focusMark, FrameLayout.LayoutParams(0, 0))
                     frame.addView(qrOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(popupOverlay, FrameLayout.LayoutParams(-1, -1))
                     frame.addView(keyboard.view, FrameLayout.LayoutParams(-1, -1))
@@ -3103,8 +3212,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         } catch (_: Exception) {
         }
         customView = null
+        closeVideoOnBack.isEnabled = false
         customViewCallback = null
         backdrop = null
+        focusMarkReference = null
 
         try {
             webView?.url?.let {
