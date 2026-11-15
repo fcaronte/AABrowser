@@ -513,4 +513,5 @@
     <string name="bt_input_on">Stai comandando %1$s sullo schermo dell\'auto</string>
     <string name="bt_input_off">Nessuna schermata di CarWeb è davanti sull\'auto. Apri lì CarWeb o CarWebWide.</string>
     <string name="bt_input_hint">Tieni aperta questa schermata: il mouse e la tastiera collegati al telefono comandano lo schermo dell\'auto. Clic destro o Esc: indietro. F5: ricarica. Ctrl+L: cerca. Ctrl+T e Ctrl+W: nuova scheda e chiudi scheda. Ctrl+Tab: scheda successiva. Tocca questa schermata per riattivare il mouse. Indietro per uscire.</string>
+    <string name="bt_search_hint">Invio per cercare, Esc per annullare</string>
 </resources>

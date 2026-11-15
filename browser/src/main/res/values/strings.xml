@@ -562,4 +562,5 @@
     <string name="bt_input_on">Controlling %1$s on the car screen</string>
     <string name="bt_input_off">No CarWeb screen is in front on the car. Open CarWeb or CarWebWide there.</string>
     <string name="bt_input_hint">Keep this screen open: the mouse and keyboard connected to the phone control the car screen. Right click or Esc: back. F5: reload. Ctrl+L: search. Ctrl+T and Ctrl+W: new and close tab. Ctrl+Tab: next tab. Tap this screen to turn the mouse on again. Back leaves.</string>
+    <string name="bt_search_hint">Enter to search, Esc to cancel</string>
 </resources>

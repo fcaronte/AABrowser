@@ -555,4 +555,5 @@
     <string name="bt_input_on">Controlas %1$s en la pantalla del coche</string>
     <string name="bt_input_off">Ninguna pantalla de CarWeb está delante en el coche. Abre allí CarWeb o CarWebWide.</string>
     <string name="bt_input_hint">Mantén abierta esta pantalla: el ratón y el teclado conectados al teléfono controlan la pantalla del coche. Clic derecho o Esc: atrás. F5: recargar. Ctrl+L: buscar. Ctrl+T y Ctrl+W: nueva pestaña y cerrar pestaña. Ctrl+Tab: pestaña siguiente. Toca esta pantalla para reactivar el ratón. Atrás para salir.</string>
+    <string name="bt_search_hint">Intro para buscar, Esc para cancelar</string>
 </resources>

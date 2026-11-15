@@ -553,4 +553,5 @@
     <string name="bt_input_on">正在控制车载屏幕上的 %1$s</string>
     <string name="bt_input_off">车载屏幕上没有 CarWeb 界面位于前台。请在车载屏幕上打开 CarWeb 或 CarWebWide。</string>
     <string name="bt_input_hint">请保持此界面打开：连接到手机的鼠标和键盘将控制车载屏幕。右键或 Esc：返回。F5：刷新。Ctrl+L：搜索。Ctrl+T 和 Ctrl+W：新建和关闭标签页。Ctrl+Tab：下一个标签页。点按此界面可重新启用鼠标。按返回键退出。</string>
+    <string name="bt_search_hint">按 Enter 搜索，按 Esc 取消</string>
 </resources>

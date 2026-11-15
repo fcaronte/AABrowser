@@ -363,6 +363,15 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var btLastY = 0f
     private var btDragging = false
     private var btKeysLogged = 0
+
+    // Ricerca scritta con la tastiera Bluetooth (la lente, Ctrl+L): la tastiera di Android Auto è a schermo intero e non riceve i
+    // tasti del telefono (utente, 15/11/2026: «se uso la lente mi si apre ancora la tastiera a schermo»), quindi con la schermata
+    // Bluetooth aperta il testo si scrive in una scheda sulla superficie: Invio cerca, Esc o un tocco annullano
+    private var btSearchCard: LinearLayout? = null
+    private var btSearchTitleView: TextView? = null
+    private var btSearchLineView: TextView? = null
+    private val btSearchText = StringBuilder()
+    private var btSearchSubmit: ((String) -> Unit)? = null
     private val btTarget = object : BtInputRouter.Target {
         override val label = "CarWebWide"
 
@@ -1061,6 +1070,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val target = SiteSearch.targetFor(from)
         val title = strings.getString(R.string.wide_search_on, target.label)
         val search: (String) -> Unit = { query -> loadUrl(SiteSearch.resolve(strings, from, query)) }
+        // Con la schermata Bluetooth del telefono aperta si scrive con quella tastiera, in una scheda sulla superficie
+        if (BtInputRouter.capturing && !isDriveLocked() && btSearchCard != null) {
+            showBtSearch(title, search)
+            return
+        }
         // Tastiera passeggero sulla superficie; sotto la copertura in movimento resta quella di Android Auto
         val keyboard = passengerKeyboard
         if (AppSettings.passengerKeyboard.value && keyboard != null && !isDriveLocked()) {
@@ -1876,6 +1890,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // In movimento senza la Modalità passeggero la pagina è coperta: i tocchi si fermano
         if (isDriveLocked()) return
 
+        // La scheda della ricerca scritta con la tastiera Bluetooth: un tocco la chiude
+        if (isBtSearchOpen) {
+            hideBtSearch()
+            return
+        }
+
         // Il codice QR della pagina: un tocco qualsiasi lo chiude
         if (qrOverlayReference?.isVisible == true) {
             hideShareCode()
@@ -2101,6 +2121,50 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
+    private val isBtSearchOpen: Boolean get() = btSearchSubmit != null
+
+    private fun showBtSearch(title: String, onSubmit: (String) -> Unit) {
+        btSearchText.setLength(0)
+        btSearchSubmit = onSubmit
+        btSearchTitleView?.text = title + "\n" + strings.getString(R.string.bt_search_hint)
+        updateBtSearch()
+        btSearchCard?.visibility = View.VISIBLE
+    }
+
+    private fun hideBtSearch() {
+        btSearchSubmit = null
+        btSearchCard?.visibility = View.GONE
+    }
+
+    private fun updateBtSearch() {
+        btSearchLineView?.text = btSearchText.toString() + "|"
+    }
+
+    /** Un tasto con la ricerca aperta: scrive nella scheda, Backspace toglie, Invio cerca. */
+    private fun btSearchKey(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return true
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                val query = btSearchText.toString().trim()
+                val submit = btSearchSubmit
+                hideBtSearch()
+                if (query.isNotEmpty()) submit?.invoke(query)
+                return true
+            }
+
+            KeyEvent.KEYCODE_DEL -> if (btSearchText.isNotEmpty()) {
+                btSearchText.setLength(btSearchText.offsetByCodePoints(btSearchText.length, -1))
+            }
+
+            else -> {
+                val ch = event.unicodeChar
+                if (!event.isCtrlPressed && ch >= 32 && ch != 127) btSearchText.appendCodePoint(ch)
+            }
+        }
+        updateBtSearch()
+        return true
+    }
+
     /**
      * Un tasto della tastiera Bluetooth. Alla WebView di una Presentation i tasti veri non arrivano (prova dell'utente del
      * 15/11/2026: il mouse funziona, la tastiera no), quindi si scrive con JavaScript nel campo con il focus: la strada che già
@@ -2110,6 +2174,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun btKey(event: KeyEvent): Boolean {
         if (isPageCovered()) return false
         val wv = webView ?: return false
+        if (isBtSearchOpen) return btSearchKey(event)
         if (event.action != KeyEvent.ACTION_DOWN) return true
         val ctrl = event.isCtrlPressed
         val named = when (event.keyCode) {
@@ -2152,6 +2217,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
     /** Un tasto rapido o un pulsante del mouse: Indietro chiude prima quello che sta sopra (codice QR, tastiera, popup). */
     private fun btShortcut(shortcut: BtInput.Shortcut): Boolean {
+        // Con la ricerca aperta l'unico comando è Esc, che la chiude
+        if (isBtSearchOpen) {
+            if (shortcut == BtInput.Shortcut.BACK) hideBtSearch()
+            return true
+        }
         when (shortcut) {
             BtInput.Shortcut.BACK -> when {
                 closeQrOnBack.isEnabled -> closeQrOnBack.handleOnBackPressed()
@@ -3125,6 +3195,37 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                     frame.addView(driveLock, FrameLayout.LayoutParams(-1, -1))
                     // L'ascolto dei comandi vocali resta visibile anche sopra la copertura in movimento
                     frame.addView(voiceCard, FrameLayout.LayoutParams(-1, -2).apply { gravity = Gravity.TOP })
+                    // La scheda della ricerca scritta con la tastiera Bluetooth (showBtSearch)
+                    val btSearch = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        visibility = View.GONE
+                        val pad = (16 * dp).toInt()
+                        setPadding(pad * 2, pad, pad * 2, pad)
+                        minimumWidth = (360 * dp).toInt()
+                        background = GradientDrawable().apply {
+                            setColor("#F0202124".toColorInt())
+                            cornerRadius = 16 * dp
+                            setStroke(1, "#44464A".toColorInt())
+                        }
+                    }
+                    val btSearchTitle = TextView(ctx).apply {
+                        textSize = 16f
+                        setTextColor("#BDC1C6".toColorInt())
+                        gravity = Gravity.CENTER
+                    }
+                    val btSearchLine = TextView(ctx).apply {
+                        textSize = 26f
+                        setTextColor(Color.WHITE)
+                        gravity = Gravity.CENTER
+                        setPadding(0, (8 * dp).toInt(), 0, (4 * dp).toInt())
+                    }
+                    btSearch.addView(btSearchTitle, LinearLayout.LayoutParams(-1, -2))
+                    btSearch.addView(btSearchLine, LinearLayout.LayoutParams(-1, -2))
+                    btSearchCard = btSearch
+                    btSearchTitleView = btSearchTitle
+                    btSearchLineView = btSearchLine
+                    frame.addView(btSearch, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
                     // Il puntatore del mouse Bluetooth, sopra a tutto: non prende tocchi, si sposta con translationX/Y
                     val btCursor = BtCursorView(ctx, 24 * dp)
                     btCursorView = btCursor
@@ -3476,6 +3577,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         backdrop = null
         focusMarkReference = null
         btCursorView = null
+        btSearchCard = null
+        btSearchTitleView = null
+        btSearchLineView = null
+        btSearchSubmit = null
 
         try {
             webView?.url?.let {

@@ -555,4 +555,5 @@
     <string name="bt_input_on">Vous contrôlez %1$s sur l\'écran de la voiture</string>
     <string name="bt_input_off">Aucun écran CarWeb n\'est au premier plan sur la voiture. Ouvrez-y CarWeb ou CarWebWide.</string>
     <string name="bt_input_hint">Gardez cet écran ouvert : la souris et le clavier connectés au téléphone commandent l\'écran de la voiture. Clic droit ou Échap : retour. F5 : recharger. Ctrl+L : rechercher. Ctrl+T et Ctrl+W : nouvel onglet et fermer l\'onglet. Ctrl+Tab : onglet suivant. Touchez cet écran pour réactiver la souris. Retour pour quitter.</string>
+    <string name="bt_search_hint">Entrée pour chercher, Échap pour annuler</string>
 </resources>

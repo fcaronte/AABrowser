@@ -558,4 +558,5 @@
     <string name="bt_input_on">أنت تتحكم في %1$s على شاشة السيارة</string>
     <string name="bt_input_off">لا توجد شاشة من CarWeb في المقدمة على السيارة. افتح CarWeb أو CarWebWide هناك.</string>
     <string name="bt_input_hint">أبقِ هذه الشاشة مفتوحة: الماوس ولوحة المفاتيح المتصلان بالهاتف يتحكمان في شاشة السيارة. النقر بزر الماوس الأيمن أو Esc: رجوع. F5: إعادة التحميل. Ctrl+L: بحث. Ctrl+T وCtrl+W: علامة تبويب جديدة وإغلاقها. Ctrl+Tab: علامة التبويب التالية. المس هذه الشاشة لإعادة تفعيل الماوس. زر الرجوع للخروج.</string>
+    <string name="bt_search_hint">Enter للبحث، Esc للإلغاء</string>
 </resources>

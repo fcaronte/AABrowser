@@ -554,4 +554,5 @@
     <string name="bt_input_on">Du steuerst %1$s auf dem Autobildschirm</string>
     <string name="bt_input_off">Im Auto ist kein CarWeb-Bildschirm im Vordergrund. Öffne dort CarWeb oder CarWebWide.</string>
     <string name="bt_input_hint">Lass diesen Bildschirm geöffnet: Maus und Tastatur am Smartphone steuern den Autobildschirm. Rechtsklick oder Esc: zurück. F5: neu laden. Strg+L: suchen. Strg+T und Strg+W: neuer Tab und Tab schließen. Strg+Tab: nächster Tab. Tippe auf diesen Bildschirm, um die Maus wieder zu aktivieren. Zurück beendet.</string>
+    <string name="bt_search_hint">Eingabe zum Suchen, Esc zum Abbrechen</string>
 </resources>

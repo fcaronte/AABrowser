@@ -556,4 +556,5 @@
     <string name="bt_input_on">Вы управляете %1$s на экране автомобиля</string>
     <string name="bt_input_off">На экране автомобиля нет открытого CarWeb. Откройте там CarWeb или CarWebWide.</string>
     <string name="bt_input_hint">Не закрывайте этот экран: мышь и клавиатура, подключённые к телефону, управляют экраном автомобиля. Правый клик или Esc: назад. F5: обновить. Ctrl+L: поиск. Ctrl+T и Ctrl+W: новая и закрыть вкладку. Ctrl+Tab: следующая вкладка. Коснитесь этого экрана, чтобы снова включить мышь. «Назад» — выход.</string>
+    <string name="bt_search_hint">Enter — искать, Esc — отмена</string>
 </resources>

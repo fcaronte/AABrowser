@@ -31,12 +31,14 @@ private const val MAX_ICON_RETRIES = 5
 fun siteIconModel(url: String, faviconUrl: String?, domain: String, context: Context? = null): Any = when {
     // Un'app del telefono sullo schermo virtuale: la sua icona (la scheda ha come indirizzo app://pacchetto)
     VirtualApps.isAppUrl(url) ->
-        context?.let { c -> VirtualApps.packageOf(url)?.let { VirtualApps.icon(c, it) } } ?: R.drawable.ic_apps
-    LocalPlayer.isAppsUrl(url) -> R.drawable.ic_apps
-    LocalPlayer.isRadioUrl(url) -> R.drawable.ic_radio
-    LocalPlayer.isPodcastUrl(url) -> R.drawable.ic_podcast
-    LocalPlayer.isTvUrl(url) -> R.drawable.ic_tv
-    LocalPlayer.isPlayerUrl(url) -> R.drawable.ic_aab_media
+        context?.let { c -> VirtualApps.packageOf(url)?.let { VirtualApps.icon(c, it) } } ?: R.drawable.ic_tile_apps
+    // Le icone delle pagine di CarWeb sono quelle della Wide (assets/player/*.svg, convertite in vettori: ic_tile_*), non i glifi
+    // bianchi di prima: utente, 15/11/2026, «le icone preferisco quelle della Wide e le mettiamo sulla Main»
+    LocalPlayer.isAppsUrl(url) -> R.drawable.ic_tile_apps
+    LocalPlayer.isRadioUrl(url) -> R.drawable.ic_tile_radio
+    LocalPlayer.isPodcastUrl(url) -> R.drawable.ic_tile_podcast
+    LocalPlayer.isTvUrl(url) -> R.drawable.ic_tile_tv
+    LocalPlayer.isPlayerUrl(url) -> R.drawable.ic_tile_media
     !faviconUrl.isNullOrEmpty() -> faviconUrl
     else -> "https://www.google.com/s2/favicons?domain=$domain&sz=128"
 }

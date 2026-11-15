@@ -554,4 +554,5 @@
     <string name="bt_input_on">Vezérli: %1$s az autó képernyőjén</string>
     <string name="bt_input_off">Az autón egyik CarWeb-képernyő sincs előtérben. Nyissa meg ott a CarWebet vagy a CarWebWide-ot.</string>
     <string name="bt_input_hint">Tartsa nyitva ezt a képernyőt: a telefonhoz csatlakoztatott egér és billentyűzet az autó képernyőjét vezérli. Jobb kattintás vagy Esc: vissza. F5: újratöltés. Ctrl+L: keresés. Ctrl+T és Ctrl+W: új fül és fül bezárása. Ctrl+Tab: következő fül. Érintse meg ezt a képernyőt az egér újbóli bekapcsolásához. A Vissza gomb kilép.</string>
+    <string name="bt_search_hint">Enter: keresés, Esc: mégse</string>
 </resources>
