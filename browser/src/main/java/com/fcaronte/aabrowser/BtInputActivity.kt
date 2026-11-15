@@ -32,6 +32,7 @@ class BtInputActivity : ComponentActivity() {
 
     private lateinit var root: FrameLayout
     private lateinit var status: TextView
+    private lateinit var column: LinearLayout
     private var strings: Context? = null
 
     private val refresh = object : Runnable {
@@ -44,11 +45,32 @@ class BtInputActivity : ComponentActivity() {
         }
     }
 
+    // Dopo qualche secondo senza toccare la scritta sparisce e la luminosità scende: lo schermo è tutto nero, come un telefono
+    // bloccato, ma acceso e in ascolto (con lo schermo spento il sistema non dà gli eventi a nessuna app). Un tocco la riporta
+    private val goBlack = Runnable {
+        column.animate().alpha(0f).setDuration(FADE_MS).start()
+        setBrightness(BLACK_BRIGHTNESS)
+    }
+
+    private fun setBrightness(value: Float) {
+        window.attributes = window.attributes.apply { screenBrightness = value }
+    }
+
+    private fun showText() {
+        column.animate().cancel()
+        column.alpha = 1f
+        setBrightness(BRIGHTNESS)
+        root.removeCallbacks(goBlack)
+        root.postDelayed(goBlack, BLACK_AFTER_MS)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Si vede anche sopra il blocco schermo: il telefono può restare bloccato, la schermata nera sta davanti e cattura
+        setShowWhenLocked(true)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // Luminosità bassa, qualunque sia quella scelta: il telefono resta acceso per ore e la schermata è quasi tutta nera
-        window.attributes = window.attributes.apply { screenBrightness = BRIGHTNESS }
+        setBrightness(BRIGHTNESS)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -67,7 +89,7 @@ class BtInputActivity : ComponentActivity() {
             setPadding((24 * density).toInt(), (top * density).toInt(), (24 * density).toInt(), 0)
         }
         status = label("", 20f, OFF_COLOR, top = 14)
-        val column = LinearLayout(this).apply {
+        column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             val wrap = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -100,11 +122,13 @@ class BtInputActivity : ComponentActivity() {
         super.onResume()
         BtInputRouter.startCapture()
         root.postDelayed(refresh, 0)
+        showText()
         capture()
     }
 
     override fun onPause() {
         root.removeCallbacks(refresh)
+        root.removeCallbacks(goBlack)
         root.releasePointerCapture()
         BtInputRouter.stopCapture()
         super.onPause()
@@ -125,7 +149,10 @@ class BtInputActivity : ComponentActivity() {
 
     // Un tocco riprova a catturare il mouse, se il sistema l'ha tolto
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (event.actionMasked == MotionEvent.ACTION_DOWN && !root.hasPointerCapture()) capture()
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            showText()
+            if (!root.hasPointerCapture()) capture()
+        }
         return super.dispatchTouchEvent(event)
     }
 
@@ -138,6 +165,9 @@ class BtInputActivity : ComponentActivity() {
     private companion object {
         const val STATUS_MS = 500L
         const val BRIGHTNESS = 0.2f
+        const val BLACK_BRIGHTNESS = 0.02f
+        const val BLACK_AFTER_MS = 8_000L
+        const val FADE_MS = 800L
         val TITLE_COLOR = Color.argb(230, 255, 255, 255)
         val HINT_COLOR = Color.argb(180, 255, 255, 255)
         val ON_COLOR = Color.rgb(138, 180, 248)

@@ -186,6 +186,13 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         // Dopo aver scritto dalla tastiera il campo riprende il focus: per questo tempo il popup non si apre
         const val INPUT_POPUP_SUPPRESS_MS = 1500L
 
+        // La sidebar non scende mai sotto questo margine dal bordo alto e basso dello schermo
+        const val SIDEBAR_MIN_EDGE_PX = 8
+
+        // Primo avvio: il controllo dell'impaginazione delle pagine di CarWeb, dopo che l'area visibile si è assestata
+        const val LAYOUT_CHECK_DELAY_MS = 1500L
+        const val LAYOUT_CHECK_TOLERANCE_PX = 12
+
         // Mouse Bluetooth: fino a questo spostamento (in dp) il pulsante sinistro è un clic, oltre trascina la pagina
         const val BT_CLICK_SLOP_DP = 8f
 
@@ -352,6 +359,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private var btLastX = 0f
     private var btLastY = 0f
     private var btDragging = false
+    private var btKeysLogged = 0
     private val btTarget = object : BtInputRouter.Target {
         override val label = "CarWebWide"
 
@@ -480,12 +488,53 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Ricalcoli ritardati all'avvio, per correggere i valori transitori della UI dell'host
     private val startupReapplyRunnable = Runnable { applyVisibleArea() }
 
+    // Primo avvio (utente, 15/11/2026: «IPTV ecc. sono con lo schermo fuori sul lato destro, poi se riprovo vanno a posto»): una
+    // pagina di CarWeb caricata mentre l'area visibile ancora si assesta può restare impaginata alla larghezza di prima. Dopo
+    // l'assestamento si controlla una volta: se l'impaginazione non è larga quanto la WebView, la pagina si ricarica
+    private val createdAt = SystemClock.uptimeMillis()
+    private var layoutCheckedUrl: String? = null
+    private val checkLayoutRunnable = Runnable { healStaleLayout() }
+
+    private fun scheduleLayoutCheck() {
+        handler.removeCallbacks(checkLayoutRunnable)
+        val settled = createdAt + STARTUP_REAPPLY_DELAYS_MS.last() + 700L
+        handler.postDelayed(checkLayoutRunnable, maxOf(LAYOUT_CHECK_DELAY_MS, settled - SystemClock.uptimeMillis()))
+    }
+
+    private fun healStaleLayout() {
+        val wv = webView ?: return
+        val url = wv.url ?: return
+        val own = url.startsWith("https://player.local/") || url.startsWith(HomePage.BASE_URL)
+        if (!own || url == layoutCheckedUrl || customView != null || wv.width <= 0) return
+        val width = wv.width
+        wv.evaluateJavascript(
+            "(function(){var r=window.devicePixelRatio||1;return Math.round(window.innerWidth*r)+','+" +
+                "Math.round(document.documentElement.scrollWidth*r);})()"
+        ) { value ->
+            val parts = value?.trim('"')?.split(',')?.mapNotNull { it.toIntOrNull() }
+            if (parts == null || parts.size != 2) return@evaluateJavascript
+            val stale = abs(parts[0] - width) > LAYOUT_CHECK_TOLERANCE_PX || parts[1] - width > LAYOUT_CHECK_TOLERANCE_PX
+            Log.d(TAG, "layout check: view=$width inner=${parts[0]} scroll=${parts[1]} stale=$stale")
+            if (stale && webView === wv && wv.url == url) {
+                layoutCheckedUrl = url
+                wv.reload()
+            }
+        }
+    }
+
     private var downTime = 0L
     private val iconPan: CarIcon = CarIcon.PAN
     // Tre righe: mostra o nasconde il dock (la sidebar e la barra dell'app del telefono)
     private val iconSidebarToggle: CarIcon by lazy {
         maskIcon { c, p, s ->
             for (y in floatArrayOf(0.30f, 0.50f, 0.70f)) c.drawLine(s * 0.24f, s * y, s * 0.76f, s * y, p)
+        }
+    }
+    // Una X: con la sidebar in vista il tasto la chiude, come il tasto rotondo della Main con il dock
+    private val iconSidebarClose: CarIcon by lazy {
+        maskIcon { c, p, s ->
+            c.drawLine(s * 0.30f, s * 0.30f, s * 0.70f, s * 0.70f, p)
+            c.drawLine(s * 0.70f, s * 0.30f, s * 0.30f, s * 0.70f, p)
         }
     }
     private val sidebarDesktopButton: ImageButton? get() = dockButtons[SidebarAction.DESKTOP]
@@ -595,7 +644,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         val strip = ActionStrip.Builder()
             .addAction(
                 Action.Builder()
-                    .setIcon(iconSidebarToggle)
+                    .setIcon(if (dockVisible) iconSidebarClose else iconSidebarToggle)
                     .setOnClickListener { toggleDock() }
                     .build()
             )
@@ -617,6 +666,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         dockVisible = !dockVisible
         virtualApp.setSidebarVisible(dockVisible)
         applyVisibleArea()
+        // L'icona del tasto in alto a destra cambia (tre righe / X): il modello va richiesto di nuovo
+        invalidate()
     }
 
     /** Indietro: chiude il video a schermo intero, poi l'app del telefono torna indietro da sola, altrimenti la pagina precedente. */
@@ -1414,9 +1465,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         if (rtl) sb.setPadding(0, 0, edgeInset, 0) else sb.setPadding(edgeInset, 0, 0, 0)
 
         val scale = sidebarSizeScale() * surfaceScale()
-        val top = stableArea?.top ?: 0
+        // Simmetrica rispetto al centro dello SCHERMO: la fascia in alto dell'host (dove sta il tasto in alto a destra, più alta
+        // di quella in basso: nei log 96 px contro 13) non conta, la sidebar sta sul bordo sinistro e non c'è niente da evitare
+        // (utente, 15/11/2026, nello schermo diviso: «non devi considerarlo»). Il margine è quello in basso, uguale sopra
         val bottom = stableArea?.bottom ?: surfaceHeight
-        val height = bottom - top
+        val edge = (surfaceHeight - bottom).coerceAtLeast(SIDEBAR_MIN_EDGE_PX)
+        val height = (surfaceHeight - 2 * edge).coerceAtLeast(1)
         val count = sb.childCount
         if (count == 0) return
         var icon = minOf((SIDEBAR_ICON_DP * scale).toInt(), width)
@@ -1426,14 +1480,10 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             icon = minOf(icon, (height - (count - 1) * gap) / count).coerceAtLeast(1)
         }
         val total = count * icon + (count - 1) * gap
-        // Al centro dello SCHERMO, non dell'area libera: l'host riserva in alto una fascia più alta di quella in basso (nei log
-        // 96 px contro 13) e i tasti, centrati nell'area libera, risultavano spostati in basso (utente, 15/11/2026). Mai dentro
-        // le fasce dell'host: dove al centro non ci stanno si spostano quanto serve (a dock pieno occupano tutta l'area libera)
-        val centered = if (surfaceHeight > 0) (surfaceHeight - total) / 2 else top + (height - total) / 2
-        val firstTop = centered.coerceIn(top, maxOf(top, bottom - total)).coerceAtLeast(0)
+        val firstTop = ((surfaceHeight - total) / 2).coerceAtLeast(0)
         Log.d(
             TAG,
-            "dock count=$count icon=$icon gap=$gap total=$total first=$firstTop free=$top..$bottom surfaceHeight=$surfaceHeight"
+            "dock count=$count icon=$icon gap=$gap total=$total first=$firstTop edge=$edge surfaceHeight=$surfaceHeight"
         )
         val iconPadding = icon / 10
         for (i in 0 until count) {
@@ -2022,12 +2072,53 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         }
     }
 
-    /** Un tasto della tastiera Bluetooth: alla pagina (o al campo con il focus), come su un browser per computer. */
+    /**
+     * Un tasto della tastiera Bluetooth. Alla WebView di una Presentation i tasti veri non arrivano (prova dell'utente del
+     * 15/11/2026: il mouse funziona, la tastiera no), quindi si scrive con JavaScript nel campo con il focus: la strada che già
+     * funziona per la tastiera di Android Auto ([BrowserJavascript.getBtKeyScript]). I tasti si eseguono alla pressione,
+     * ripetizioni comprese; il rilascio non fa niente.
+     */
     private fun btKey(event: KeyEvent): Boolean {
         if (isPageCovered()) return false
         val wv = webView ?: return false
-        if (!wv.hasFocus()) wv.requestFocus()
-        return wv.dispatchKeyEvent(event)
+        if (event.action != KeyEvent.ACTION_DOWN) return true
+        val ctrl = event.isCtrlPressed
+        val named = when (event.keyCode) {
+            KeyEvent.KEYCODE_DEL -> "backspace"
+            KeyEvent.KEYCODE_FORWARD_DEL -> "delete"
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> "enter"
+            KeyEvent.KEYCODE_DPAD_LEFT -> "left"
+            KeyEvent.KEYCODE_DPAD_RIGHT -> "right"
+            KeyEvent.KEYCODE_DPAD_UP -> "up"
+            KeyEvent.KEYCODE_DPAD_DOWN -> "down"
+            KeyEvent.KEYCODE_MOVE_HOME -> "home"
+            KeyEvent.KEYCODE_MOVE_END -> "end"
+            KeyEvent.KEYCODE_PAGE_UP -> "pageup"
+            KeyEvent.KEYCODE_PAGE_DOWN -> "pagedown"
+            KeyEvent.KEYCODE_TAB -> if (event.isShiftPressed) "shifttab" else "tab"
+            KeyEvent.KEYCODE_A -> if (ctrl) "selectall" else null
+            KeyEvent.KEYCODE_C -> if (ctrl) "copy" else null
+            KeyEvent.KEYCODE_X -> if (ctrl) "cut" else null
+            KeyEvent.KEYCODE_Z -> if (ctrl) (if (event.isShiftPressed) "redo" else "undo") else null
+            KeyEvent.KEYCODE_Y -> if (ctrl) "redo" else null
+            else -> null
+        }
+        var text = ""
+        val action = named ?: run {
+            // Un carattere: quello che il tasto dà con i modificatori premuti (maiuscole, AltGr, lettere accentate della
+            // tastiera). Nessun carattere (Maiusc, Ctrl, F1...) = niente; i tasti "morti" degli accenti non si compongono
+            val ch = event.unicodeChar
+            if (ctrl || ch < 32 || ch == 127) return false
+            text = String(Character.toChars(ch))
+            "text"
+        }
+        wv.evaluateJavascript(BrowserJavascript.getBtKeyScript(action, text)) { result ->
+            if (btKeysLogged < SPLIT_TAP_LOG_LIMIT) {
+                btKeysLogged++
+                Log.d(TAG, "bt key $action -> $result")
+            }
+        }
+        return true
     }
 
     /** Un tasto rapido o un pulsante del mouse: Indietro chiude prima quello che sta sopra (codice QR, tastiera, popup). */
@@ -2857,6 +2948,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                     if (view?.url == url) {
                                         lastUrl = url
                                         saveUrl(url)
+                                        scheduleLayoutCheck()
                                     }
 
                                     // Fix e script per sito (Spotify, YouTube, chat, viewport, ...)

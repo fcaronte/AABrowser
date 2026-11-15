@@ -665,6 +665,14 @@ svg {
 }
 
 /* Schermo stretto (il telefono in verticale): un modulo a una colonna, e nessun tasto dell'host da evitare */
+/* La Wide vista in piccolo sulla destra (la home di Android Auto): il collegamento a CarWeb resterebbe sotto altri elementi, e
+   da lì non serve (la Main si apre dalla sua icona) */
+@media (max-width: 760px) {
+    .in-wide #openMain {
+        display: none;
+    }
+}
+
 @media (max-width: 640px) {
     .top {
         padding-inline-end: 0;

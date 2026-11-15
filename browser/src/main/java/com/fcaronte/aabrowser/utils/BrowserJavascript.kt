@@ -224,6 +224,104 @@ object BrowserJavascript {
     }
 
     /**
+     * Un tasto di una tastiera Bluetooth nella pagina della Wide. Alla WebView di una Presentation i tasti veri non arrivano (il
+     * mouse sì, come tocchi): si scrive con JavaScript, la strada che già funziona per la tastiera di Android Auto, ma senza il
+     * filtro dei doppioni di [getInjectTextScript] (una doppia di una dattilografa veloce non è un doppione). [action]: "text"
+     * (con [text]), "backspace", "delete", "enter", "left", "right", "up", "down", "home", "end", "pageup", "pagedown", "tab",
+     * "shifttab", "selectall", "copy", "cut", "undo", "redo". Nel campo con il focus scrive o sposta il cursore; senza un campo
+     * le frecce, Pag, Home, Fine e Spazio scorrono la pagina e Tab passa al controllo dopo. Restituisce cosa ha fatto (log).
+     */
+    fun getBtKeyScript(action: String, text: String = ""): String {
+        return """
+        (function(action, text) {
+            $EDITABLE_FIELD_JS
+            $INSERT_TEXT_JS
+            const el = [document.activeElement, window.__aabTypingTarget, window.__savedInputElement].find(isEditable);
+            const field = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && typeof el.selectionStart === 'number';
+            const root = document.scrollingElement || document.documentElement;
+            const scroll = (dx, dy) => { root.scrollBy(dx, dy); return 'scroll'; };
+            const setValue = (value, caret) => {
+                const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+                Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
+                try { el.selectionStart = el.selectionEnd = caret; } catch (e) {}
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                return 'value';
+            };
+            if (el && document.activeElement !== el) el.focus({ preventScroll: true });
+
+            if (action === 'text') {
+                if (!el) return text === ' ' ? scroll(0, Math.round(innerHeight * 0.85)) : 'no-target';
+                const method = insertText(el, text);
+                if (method) return method;
+                if (field) {
+                    const val = el.value || '';
+                    return setValue(val.substring(0, el.selectionStart) + text + val.substring(el.selectionEnd), el.selectionStart + text.length);
+                }
+                el.textContent = (el.textContent || '') + text;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                return 'textContent';
+            }
+            if (action === 'backspace' || action === 'delete') {
+                if (!el) return 'no-target';
+                if (document.execCommand(action === 'backspace' ? 'delete' : 'forwardDelete')) return 'exec';
+                if (!field) return 'none';
+                let from = el.selectionStart, to = el.selectionEnd;
+                if (from === to) { if (action === 'backspace') from = Math.max(0, from - 1); else to = Math.min(el.value.length, to + 1); }
+                return setValue(el.value.slice(0, from) + el.value.slice(to), from);
+            }
+            if (action === 'enter') {
+                const target = el || document.activeElement || document.body;
+                const init = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+                const go = target.dispatchEvent(new KeyboardEvent('keydown', init));
+                target.dispatchEvent(new KeyboardEvent('keypress', init));
+                if (go) {
+                    if (el && el.tagName === 'TEXTAREA') insertText(el, '\n');
+                    else if (el && el.isContentEditable) document.execCommand('insertParagraph');
+                    else if (el && el.form) { if (el.form.requestSubmit) el.form.requestSubmit(); else el.form.submit(); }
+                    else if (/^(A|BUTTON|SUMMARY)${'$'}/.test(target.tagName)) target.click();
+                }
+                target.dispatchEvent(new KeyboardEvent('keyup', init));
+                return go ? 'enter' : 'enter-handled';
+            }
+            if (['left', 'right', 'up', 'down', 'home', 'end'].includes(action)) {
+                if (field) {
+                    const length = el.value.length, collapsed = el.selectionStart === el.selectionEnd;
+                    let at;
+                    if (action === 'left') at = collapsed ? Math.max(0, el.selectionStart - 1) : el.selectionStart;
+                    else if (action === 'right') at = collapsed ? Math.min(length, el.selectionEnd + 1) : el.selectionEnd;
+                    else at = (action === 'home' || action === 'up') ? 0 : length;
+                    el.setSelectionRange(at, at);
+                    return 'caret';
+                }
+                if (el) {
+                    const unit = (action === 'home' || action === 'end') ? 'lineboundary' : (action === 'up' || action === 'down') ? 'line' : 'character';
+                    getSelection().modify('move', (action === 'left' || action === 'home' || action === 'up') ? 'backward' : 'forward', unit);
+                    document.dispatchEvent(new Event('selectionchange'));
+                    return 'caret';
+                }
+                if (action === 'home') return scroll(0, -root.scrollTop);
+                if (action === 'end') return scroll(0, root.scrollHeight);
+                return scroll(action === 'left' ? -56 : action === 'right' ? 56 : 0, action === 'up' ? -56 : action === 'down' ? 56 : 0);
+            }
+            if (action === 'pageup' || action === 'pagedown') return scroll(0, Math.round(innerHeight * 0.85) * (action === 'pageup' ? -1 : 1));
+            if (action === 'tab' || action === 'shifttab') {
+                const list = Array.from(document.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]'))
+                    .filter(e => !e.disabled && e.tabIndex >= 0 && e.type !== 'hidden' && (e.offsetWidth || e.offsetHeight || e.getClientRects().length));
+                if (!list.length) return 'none';
+                const at = list.indexOf(document.activeElement);
+                const next = list[action === 'tab' ? (at + 1) % list.length : (at <= 0 ? list.length - 1 : at - 1)];
+                next.focus();
+                next.scrollIntoView({ block: 'nearest' });
+                return 'focus';
+            }
+            const commands = { selectall: 'selectAll', copy: 'copy', cut: 'cut', undo: 'undo', redo: 'redo' };
+            if (commands[action]) return document.execCommand(commands[action]) ? 'exec' : 'none';
+            return 'unknown';
+        })(${JSONObject.quote(action)}, ${JSONObject.quote(text)});
+        """.trimIndent()
+    }
+
+    /**
      * Wide: Android Auto concede la tastiera alle app con template solo a schermo intero e intanto la pagina
      * perde il focus. Questo script memorizza il campo di testo PRIMA di aprire la tastiera e ne restituisce
      * testo e suggerimento (per precompilarla); null se non c'è un campo scrivibile.
