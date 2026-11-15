@@ -11,6 +11,8 @@ body {
     position: sticky;
     top: 0;
     z-index: 2;
+    /* Su uno schermo stretto lo stato di Shizuku e la ricerca vanno su due righe */
+    flex-wrap: wrap;
 }
 
 .shizuku {
@@ -48,10 +50,10 @@ body {
     color: #ef4444;
 }
 
-.apps-search {
-    padding: 8px 14px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--line);
+/* Nella barra, a destra dello stato di Shizuku: prende lo spazio che resta */
+.bar .search {
+    flex: 1 1 180px;
+    min-width: 0;
 }
 
 .search {

@@ -33,9 +33,12 @@ object VirtualApps {
             .takeIf { PACKAGE_NAME.matches(it) }
     }
 
-    /** L'attività da aprire per il pacchetto (quella dell'icona nel launcher), null se non c'è o è CarWeb stessa. */
+    /**
+     * L'attività da aprire per il pacchetto (quella dell'icona nel launcher), null se non c'è. CarWeb stessa si può aprire
+     * (dal 15/11/2026, richiesta dell'utente): è il modo di usare la Main dentro la pagina della Wide, sul display virtuale.
+     */
     fun launchComponent(context: Context, packageName: String): ComponentName? {
-        if (packageName == context.packageName || !PACKAGE_NAME.matches(packageName)) return null
+        if (!PACKAGE_NAME.matches(packageName)) return null
         return try {
             context.packageManager.getLaunchIntentForPackage(packageName)?.component
         } catch (_: Exception) {
@@ -43,7 +46,7 @@ object VirtualApps {
         }
     }
 
-    /** Si può aprire sul display virtuale: installata, con un'attività nel launcher, non CarWeb. */
+    /** Si può aprire sul display virtuale: installata, con un'attività nel launcher (anche CarWeb). */
     fun isAvailable(context: Context, packageName: String): Boolean = launchComponent(context, packageName) != null
 
     fun label(context: Context, packageName: String): String = try {
@@ -62,7 +65,7 @@ object VirtualApps {
         VirtualAppSession.Kind.FAILED -> context.getString(R.string.vapp_error_failed, problem.detail)
     }
 
-    /** Tutte le app con un'icona nel launcher (tranne CarWeb), per nome. */
+    /** Tutte le app con un'icona nel launcher (CarWeb compresa), per nome. */
     fun installed(context: Context): List<AppEntry> {
         val pm = context.packageManager
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
@@ -75,7 +78,7 @@ object VirtualApps {
         val byPackage = LinkedHashMap<String, AppEntry>()
         for (info in found) {
             val pkg = info.activityInfo.packageName
-            if (pkg == context.packageName || byPackage.containsKey(pkg)) continue
+            if (byPackage.containsKey(pkg)) continue
             byPackage[pkg] = AppEntry(pkg, info.loadLabel(pm)?.toString()?.takeIf { it.isNotBlank() } ?: pkg)
         }
         return byPackage.values.sortedBy { it.name.lowercase() }

@@ -239,7 +239,7 @@ fun MainScreen(
 
         // 2. Se è impostato un preferito come pagina iniziale, ci assicuriamo che sia aperto e attivo. Può essere anche
         // un'app del telefono con la stella (indirizzo app://pacchetto): la sua scheda si apre come dalla home
-        val autoOpenApp = AutoOpenFavorite.appPackage(autoOpenId)
+        val autoOpenApp = AutoOpenFavorite.appToOpenAtStart(context, autoOpenId)
         if (autoOpenId != null && !commandOpenedPage && (favoritesViewModel.favorites.isNotEmpty() || autoOpenApp != null)) {
             val favorite = favoritesViewModel.favorites.find { it.id == autoOpenId }
             if (autoOpenApp != null) {

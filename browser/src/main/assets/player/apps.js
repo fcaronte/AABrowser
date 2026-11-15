@@ -56,7 +56,6 @@
     const shizuku = byId('shizuku');
     const shizukuText = byId('shizukuText');
     const authorize = byId('authorize');
-    const searchBar = byId('searchBar');
     const search = byId('search');
 
     let apps = [];
@@ -172,15 +171,6 @@
             });
     }
 
-    byId('searchToggle').addEventListener('click', () => {
-        searchBar.hidden = !searchBar.hidden;
-        if (!searchBar.hidden) search.focus();
-        else {
-            search.value = '';
-            query = '';
-            render();
-        }
-    });
     search.addEventListener('input', () => {
         query = search.value;
         render();
@@ -189,7 +179,7 @@
         fetch(api('/api/apps/authorize')).catch(() => {});
     });
 
-    byId('searchToggle').setAttribute('aria-label', strings.search || 'Search');
+    search.setAttribute('aria-label', strings.search || 'Search');
     search.placeholder = strings.search || '';
     authorize.textContent = strings.authorize || '';
     document.title = strings.title || document.title;
