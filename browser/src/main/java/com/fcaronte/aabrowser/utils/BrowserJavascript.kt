@@ -1436,7 +1436,7 @@ object BrowserJavascript {
                 return;
             }
             let title = document.title;
-            let artist = "AABrowser Audio";
+            let artist = "CarWeb Audio";
             let artUrl = "";
             let duration = media && isFinite(media.duration) ? media.duration : 0;
 

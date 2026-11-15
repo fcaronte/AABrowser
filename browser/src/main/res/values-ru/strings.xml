@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">Уведомление CarWeb</string>
-    <string name="notification_title">AABrowser запущен</string>
+    <string name="notification_title">CarWeb запущен</string>
     <string name="notification_text">Нажмите, чтобы остановить</string>
 
     <string name="settings_name">Настройки</string>
@@ -255,7 +255,7 @@
     <string name="import_error">Ошибка восстановления.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Добро пожаловать в AABrowser</string>
+    <string name="welcome_title">Добро пожаловать в CarWeb</string>
     <string name="welcome_subtitle">Полнофункциональный браузер для Android Auto. Для оптимальной работы предоставьте следующие разрешения:</string>
     <string name="perm_mic_title">Микрофон</string>
     <string name="perm_mic_desc">Используется для голосового ввода и поиска на сайтах.</string>
@@ -267,7 +267,7 @@
     <string name="perm_local_network_desc">Позволяет страницам открывать сайты и устройства домашней сети (Home Assistant, роутер, NAS).</string>
     <string name="perm_web_location_title">Местоположение для сайтов (необязательно)</string>
     <string name="perm_web_location_desc">Точное местоположение GPS для карт в браузере, например Google Maps: каждый сайт спрашивает перед использованием. В машине (телефон заблокирован) Android также требует «Разрешить в любом режиме».</string>
-    <string name="web_location_phone_toast">Для местоположения на сайтах в машине: на телефоне разрешите AABrowser точное местоположение и «Разрешить в любом режиме»</string>
+    <string name="web_location_phone_toast">Для местоположения на сайтах в машине: на телефоне разрешите CarWeb точное местоположение и «Разрешить в любом режиме»</string>
     <string name="site_permission_mic_title">Микрофон</string>
     <string name="site_permission_location_title">Местоположение</string>
     <string name="site_permission_files_title">Файлы телефона</string>
@@ -351,7 +351,7 @@
     <string name="ssl_warning_cancel">Отмена</string>
     <string name="voice_command_button">Голосовая команда</string>
     <string name="voice_command_hint">Например: «включи … на YouTube», «включи … на радио», «покажи … на ТВ», «найди … на Amazon», «открой …», «пауза»</string>
-    <string name="voice_command_hint_wheel">После воспроизведения чего-либо в AABrowser: дважды нажмите ⏮ на руле</string>
+    <string name="voice_command_hint_wheel">После воспроизведения чего-либо в CarWeb: дважды нажмите ⏮ на руле</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Поиск: %1$s</string>
@@ -364,8 +364,8 @@
     <string name="voice_command_podcast">Подкаст: %1$s</string>
     <string name="voice_command_not_heard">Ничего не слышно, попробуйте ещё раз</string>
     <string name="voice_command_unavailable">Распознавание речи недоступно</string>
-    <string name="voice_command_mic_permission">AABrowser нужен доступ к микрофону: разрешите его на телефоне</string>
-    <string name="voice_command_open_app">Откройте AABrowser (Main или Wide), чтобы пользоваться голосовыми командами</string>
+    <string name="voice_command_mic_permission">CarWeb нужен доступ к микрофону: разрешите его на телефоне</string>
+    <string name="voice_command_open_app">Откройте CarWeb (Main или Wide), чтобы пользоваться голосовыми командами</string>
     <string name="share_logs_title">Поделиться журналами</string>
     <string name="share_logs_failed">Не удалось экспортировать журналы: %1$s</string>
     <string name="share_logs_phone_only">Поделитесь журналами с телефона</string>

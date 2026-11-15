@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">Notification CarWeb</string>
-    <string name="notification_title">AABrowser en cours d\'exécution</string>
+    <string name="notification_title">CarWeb en cours d\'exécution</string>
     <string name="notification_text">Appuyez pour arrêter</string>
 
     <string name="settings_name">Paramètres</string>
@@ -254,7 +254,7 @@
     <string name="import_error">Échec de la restauration.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Bienvenue dans AABrowser</string>
+    <string name="welcome_title">Bienvenue dans CarWeb</string>
     <string name="welcome_subtitle">Le navigateur complet conçu pour Android Auto. Pour garantir des performances optimales, veuillez accorder les autorisations suivantes :</string>
     <string name="perm_mic_title">Microphone</string>
     <string name="perm_mic_desc">Utilisé pour la dictée vocale et la saisie de recherche dans les sites Web.</string>
@@ -266,7 +266,7 @@
     <string name="perm_local_network_desc">Permet aux pages d\'accéder aux sites et appareils de votre réseau domestique (Home Assistant, routeur, NAS).</string>
     <string name="perm_web_location_title">Position pour les sites web (facultatif)</string>
     <string name="perm_web_location_desc">Position GPS précise pour les cartes dans le navigateur, comme Google Maps : chaque site demande avant de l\'utiliser. En voiture (téléphone verrouillé), Android demande aussi « Toujours autoriser ».</string>
-    <string name="web_location_phone_toast">Pour la position sur les sites en voiture : sur le téléphone, réglez la position d\'AABrowser sur précise et « Toujours autoriser »</string>
+    <string name="web_location_phone_toast">Pour la position sur les sites en voiture : sur le téléphone, réglez la position de CarWeb sur précise et « Toujours autoriser »</string>
     <string name="site_permission_mic_title">Microphone</string>
     <string name="site_permission_location_title">Position</string>
     <string name="site_permission_files_title">Fichiers du téléphone</string>
@@ -350,7 +350,7 @@
     <string name="ssl_warning_cancel">Annuler</string>
     <string name="voice_command_button">Commande vocale</string>
     <string name="voice_command_hint">Essayez : « mets … sur YouTube », « mets … à la radio », « regarde … à la télé », « cherche … sur Amazon », « ouvre … », « pause »</string>
-    <string name="voice_command_hint_wheel">Après avoir lu quelque chose dans AABrowser : appuyez deux fois sur ⏮ au volant</string>
+    <string name="voice_command_hint_wheel">Après avoir lu quelque chose dans CarWeb : appuyez deux fois sur ⏮ au volant</string>
     <string name="voice_command_youtube">YouTube : %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music : %1$s</string>
     <string name="voice_command_search">Recherche : %1$s</string>
@@ -363,8 +363,8 @@
     <string name="voice_command_podcast">Podcast : %1$s</string>
     <string name="voice_command_not_heard">Je n\'ai rien entendu, réessayez</string>
     <string name="voice_command_unavailable">La reconnaissance vocale n\'est pas disponible</string>
-    <string name="voice_command_mic_permission">AABrowser a besoin de l\'autorisation du micro : accordez-la sur le téléphone</string>
-    <string name="voice_command_open_app">Ouvrez AABrowser (Main ou Wide) pour utiliser les commandes vocales</string>
+    <string name="voice_command_mic_permission">CarWeb a besoin de l\'autorisation du micro : accordez-la sur le téléphone</string>
+    <string name="voice_command_open_app">Ouvrez CarWeb (Main ou Wide) pour utiliser les commandes vocales</string>
     <string name="share_logs_title">Partager les journaux</string>
     <string name="share_logs_failed">Impossible d\'exporter les journaux : %1$s</string>
     <string name="share_logs_phone_only">Partagez les journaux depuis le téléphone</string>

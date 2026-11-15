@@ -249,7 +249,7 @@ class CarMediaService : MediaBrowserServiceCompat() {
             val loadingTitle = getString(R.string.weather_loading)
             val loadingMetadata = MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, loadingTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "AABrowser")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.app_name))
                 .build()
             setSessionMetadata(loadingMetadata)
             // Già coi tasti mentre carica: se la posizione tarda il player restava senza ⏮ (niente doppio tocco)

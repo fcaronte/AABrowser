@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">CarWeb Benachrichtigung</string>
-    <string name="notification_title">AABrowser läuft</string>
+    <string name="notification_title">CarWeb läuft</string>
     <string name="notification_text">Tippen zum Stoppen</string>
 
     <string name="settings_name">Einstellungen</string>
@@ -253,7 +253,7 @@
     <string name="import_error">Wiederherstellung fehlgeschlagen.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Willkommen bei AABrowser</string>
+    <string name="welcome_title">Willkommen bei CarWeb</string>
     <string name="welcome_subtitle">Der komplette Browser für Android Auto. Um eine optimale Leistung zu gewährleisten, gewähren Sie bitte folgende Berechtigungen:</string>
     <string name="perm_mic_title">Mikrofon</string>
     <string name="perm_mic_desc">Wird für Sprachdiktat und Sucheingaben auf Websites verwendet.</string>
@@ -265,7 +265,7 @@
     <string name="perm_local_network_desc">Ermöglicht Seiten den Zugriff auf Websites und Geräte in Ihrem Heimnetz (Home Assistant, Router, NAS).</string>
     <string name="perm_web_location_title">Standort für Websites (optional)</string>
     <string name="perm_web_location_desc">Genaue GPS-Position für Karten im Browser, z. B. Google Maps: Jede Website fragt, bevor sie sie verwendet. Im Auto (Telefon gesperrt) braucht Android zusätzlich „Immer zulassen“.</string>
-    <string name="web_location_phone_toast">Für den Standort auf Websites im Auto: Stellen Sie auf dem Telefon den Standort von AABrowser auf genau und „Immer zulassen“</string>
+    <string name="web_location_phone_toast">Für den Standort auf Websites im Auto: Stellen Sie auf dem Telefon den Standort von CarWeb auf genau und „Immer zulassen“</string>
     <string name="site_permission_mic_title">Mikrofon</string>
     <string name="site_permission_location_title">Standort</string>
     <string name="site_permission_files_title">Dateien des Telefons</string>
@@ -349,7 +349,7 @@
     <string name="ssl_warning_cancel">Abbrechen</string>
     <string name="voice_command_button">Sprachbefehl</string>
     <string name="voice_command_hint">Zum Beispiel: „spiele … auf YouTube“, „spiele … im Radio“, „schau … im Fernsehen“, „suche … auf Amazon“, „öffne …“, „Pause“</string>
-    <string name="voice_command_hint_wheel">Nachdem in AABrowser etwas abgespielt wurde: drücken Sie zweimal ⏮ am Lenkrad</string>
+    <string name="voice_command_hint_wheel">Nachdem in CarWeb etwas abgespielt wurde: drücken Sie zweimal ⏮ am Lenkrad</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Suche: %1$s</string>
@@ -362,8 +362,8 @@
     <string name="voice_command_podcast">Podcast: %1$s</string>
     <string name="voice_command_not_heard">Nichts gehört, bitte erneut versuchen</string>
     <string name="voice_command_unavailable">Spracherkennung ist nicht verfügbar</string>
-    <string name="voice_command_mic_permission">AABrowser braucht die Mikrofonberechtigung: Erteilen Sie sie auf dem Handy</string>
-    <string name="voice_command_open_app">Öffnen Sie AABrowser (Main oder Wide), um Sprachbefehle zu nutzen</string>
+    <string name="voice_command_mic_permission">CarWeb braucht die Mikrofonberechtigung: Erteilen Sie sie auf dem Handy</string>
+    <string name="voice_command_open_app">Öffnen Sie CarWeb (Main oder Wide), um Sprachbefehle zu nutzen</string>
     <string name="share_logs_title">Protokolle teilen</string>
     <string name="share_logs_failed">Protokolle konnten nicht exportiert werden: %1$s</string>
     <string name="share_logs_phone_only">Teilen Sie die Protokolle vom Handy aus</string>

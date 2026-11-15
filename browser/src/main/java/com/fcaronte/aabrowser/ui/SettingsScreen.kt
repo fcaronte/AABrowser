@@ -1843,7 +1843,7 @@ private fun exportAndShareLogs(context: Context, scope: CoroutineScope) {
     scope.launch {
         val result = withContext(Dispatchers.IO) {
             runCatching {
-                val logFile = File(context.cacheDir, "AABrowser_logs.txt")
+                val logFile = File(context.cacheDir, "CarWeb_logs.txt")
                 val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "--pid=${android.os.Process.myPid()}"))
                 val logText = process.inputStream.bufferedReader().use { it.readText() }
                 logFile.writeText(logText.ifBlank { "No logs captured." })

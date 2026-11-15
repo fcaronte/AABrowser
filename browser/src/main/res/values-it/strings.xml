@@ -321,7 +321,7 @@
     <string name="voice_command_podcast">Podcast: %1$s</string>
     <string name="voice_command_not_heard">Non ho sentito nulla, riprova</string>
     <string name="voice_command_unavailable">Riconoscimento vocale non disponibile</string>
-    <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo ad CarWeb sul telefono</string>
+    <string name="voice_command_mic_permission">Serve il permesso del microfono: concedilo a CarWeb sul telefono</string>
     <string name="voice_command_open_app">Apri CarWeb (Main o Wide) per usare i comandi vocali</string>
     <string name="share_logs_title">Condividi i log</string>
     <string name="share_logs_failed">Impossibile esportare i log: %1$s</string>

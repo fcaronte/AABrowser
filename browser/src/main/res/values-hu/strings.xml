@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">CarWeb értesítés</string>
-    <string name="notification_title">Az AABrowser fut</string>
+    <string name="notification_title">A CarWeb fut</string>
     <string name="notification_text">Koppintson a leállításhoz</string>
 
     <string name="settings_name">Beállítások</string>
@@ -253,7 +253,7 @@
     <string name="import_error">A visszaállítás sikertelen.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">Üdvözli az AABrowser</string>
+    <string name="welcome_title">Üdvözli a CarWeb</string>
     <string name="welcome_subtitle">Az Android Auto számára tervezett teljes körű böngésző. Az optimális teljesítmény érdekében kérjük, adja meg a következő engedélyeket:</string>
     <string name="perm_mic_title">Mikrofon</string>
     <string name="perm_mic_desc">Hangalapú diktáláshoz és webhelyeken belüli kereséshez használatos.</string>
@@ -265,7 +265,7 @@
     <string name="perm_local_network_desc">Lehetővé teszi, hogy az oldalak elérjék az otthoni hálózat webhelyeit és eszközeit (Home Assistant, router, NAS).</string>
     <string name="perm_web_location_title">Helymeghatározás weboldalaknak (opcionális)</string>
     <string name="perm_web_location_desc">Pontos GPS-pozíció a böngészőben futó térképekhez, például a Google Térképhez: minden weboldal előbb megkérdezi. Autóban (zárolt telefonnal) az Android a „Mindig engedélyezett” beállítást is kéri.</string>
-    <string name="web_location_phone_toast">Az autóban a weboldalak helymeghatározásához a telefonon állítsa az AABrowser helymeghatározását pontosra és „Mindig engedélyezett” értékre</string>
+    <string name="web_location_phone_toast">Az autóban a weboldalak helymeghatározásához a telefonon állítsa a CarWeb helymeghatározását pontosra és „Mindig engedélyezett” értékre</string>
     <string name="site_permission_mic_title">Mikrofon</string>
     <string name="site_permission_location_title">Tartózkodási hely</string>
     <string name="site_permission_files_title">A telefon fájljai</string>
@@ -349,7 +349,7 @@
     <string name="ssl_warning_cancel">Mégse</string>
     <string name="voice_command_button">Hangparancs</string>
     <string name="voice_command_hint">Például: „játszd le … a YouTube-on”, „játszd le … a rádióban”, „mutasd … a tévében”, „keresd meg … az Amazon oldalon”, „nyisd meg …”, „szünet”</string>
-    <string name="voice_command_hint_wheel">Miután az AABrowserben lejátszottál valamit: nyomd meg kétszer a ⏮ gombot a kormányon</string>
+    <string name="voice_command_hint_wheel">Miután a CarWebben lejátszottál valamit: nyomd meg kétszer a ⏮ gombot a kormányon</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">Keresés: %1$s</string>
@@ -362,8 +362,8 @@
     <string name="voice_command_podcast">Podcast: %1$s</string>
     <string name="voice_command_not_heard">Nem hallottam semmit, próbáld újra</string>
     <string name="voice_command_unavailable">A hangfelismerés nem érhető el</string>
-    <string name="voice_command_mic_permission">Az AABrowsernek mikrofonengedély kell: add meg a telefonon</string>
-    <string name="voice_command_open_app">Nyisd meg az AABrowsert (Main vagy Wide) a hangparancsokhoz</string>
+    <string name="voice_command_mic_permission">A CarWebnek mikrofonengedély kell: add meg a telefonon</string>
+    <string name="voice_command_open_app">Nyisd meg a CarWebet (Main vagy Wide) a hangparancsokhoz</string>
     <string name="share_logs_title">Naplók megosztása</string>
     <string name="share_logs_failed">Nem sikerült exportálni a naplókat: %1$s</string>
     <string name="share_logs_phone_only">A naplókat a telefonról oszd meg</string>

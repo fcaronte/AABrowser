@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">إشعار CarWeb</string>
-    <string name="notification_title">AABrowser قيد التشغيل</string>
+    <string name="notification_title">CarWeb قيد التشغيل</string>
     <string name="notification_text">انقر للإيقاف</string>
 
     <string name="settings_name">الإعدادات</string>
@@ -257,7 +257,7 @@
     <string name="import_error">فشلت الاستعادة.</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">مرحباً بك في AABrowser</string>
+    <string name="welcome_title">مرحباً بك في CarWeb</string>
     <string name="welcome_subtitle">المتصفح الكامل المصمم لـ Android Auto. لضمان الأداء الأمثل، يرجى منح الأذونات التالية:</string>
     <string name="perm_mic_title">الميكروفون</string>
     <string name="perm_mic_desc">يستخدم للإملاء الصوتي وإدخال البحث داخل مواقع الويب.</string>
@@ -269,7 +269,7 @@
     <string name="perm_local_network_desc">يتيح للصفحات الوصول إلى المواقع والأجهزة في شبكتك المنزلية (Home Assistant، جهاز التوجيه، NAS).</string>
     <string name="perm_web_location_title">الموقع لمواقع الويب (اختياري)</string>
     <string name="perm_web_location_desc">موقع GPS دقيق للخرائط في المتصفح، مثل Google Maps: يسأل كل موقع قبل استخدامه. في السيارة (الهاتف مقفل) يحتاج Android أيضاً إلى «السماح طوال الوقت».</string>
-    <string name="web_location_phone_toast">لاستخدام الموقع في المواقع داخل السيارة: على الهاتف اضبط موقع AABrowser على الدقيق و«السماح طوال الوقت»</string>
+    <string name="web_location_phone_toast">لاستخدام الموقع في المواقع داخل السيارة: على الهاتف اضبط موقع CarWeb على الدقيق و«السماح طوال الوقت»</string>
     <string name="site_permission_mic_title">الميكروفون</string>
     <string name="site_permission_location_title">الموقع</string>
     <string name="site_permission_files_title">ملفات الهاتف</string>
@@ -353,7 +353,7 @@
     <string name="ssl_warning_cancel">إلغاء</string>
     <string name="voice_command_button">أمر صوتي</string>
     <string name="voice_command_hint">جرّب: «شغّل … على YouTube»، «شغّل … على الراديو»، «شغّل … على التلفزيون»، «ابحث عن … في Amazon»، «افتح …»، «إيقاف مؤقت»</string>
-    <string name="voice_command_hint_wheel">بعد تشغيل شيء في AABrowser: اضغط مرتين على ⏮ في المقود</string>
+    <string name="voice_command_hint_wheel">بعد تشغيل شيء في CarWeb: اضغط مرتين على ⏮ في المقود</string>
     <string name="voice_command_youtube">YouTube: %1$s</string>
     <string name="voice_command_youtube_music">YouTube Music: %1$s</string>
     <string name="voice_command_search">جارٍ البحث: %1$s</string>
@@ -366,8 +366,8 @@
     <string name="voice_command_podcast">بودكاست: %1$s</string>
     <string name="voice_command_not_heard">لم أسمع شيئاً، حاول مرة أخرى</string>
     <string name="voice_command_unavailable">التعرّف على الكلام غير متاح</string>
-    <string name="voice_command_mic_permission">يحتاج AABrowser إلى إذن الميكروفون: امنحه من الهاتف</string>
-    <string name="voice_command_open_app">افتح AABrowser (Main أو Wide) لاستخدام الأوامر الصوتية</string>
+    <string name="voice_command_mic_permission">يحتاج CarWeb إلى إذن الميكروفون: امنحه من الهاتف</string>
+    <string name="voice_command_open_app">افتح CarWeb (Main أو Wide) لاستخدام الأوامر الصوتية</string>
     <string name="share_logs_title">مشاركة السجلات</string>
     <string name="share_logs_failed">تعذّر تصدير السجلات: %1$s</string>
     <string name="share_logs_phone_only">شارك السجلات من الهاتف</string>

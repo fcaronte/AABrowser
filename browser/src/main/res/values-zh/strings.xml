@@ -3,7 +3,7 @@
 
     <string name="notification_channel_name">CarWeb</string>
     <string name="notification_channel_description">CarWeb 通知</string>
-    <string name="notification_title">AABrowser 正在运行</string>
+    <string name="notification_title">CarWeb 正在运行</string>
     <string name="notification_text">点击停止</string>
 
     <string name="settings_name">设置</string>
@@ -252,7 +252,7 @@
     <string name="import_error">恢复失败。</string>
 
     <!-- Onboarding / Welcome -->
-    <string name="welcome_title">欢迎使用 AABrowser</string>
+    <string name="welcome_title">欢迎使用 CarWeb</string>
     <string name="welcome_subtitle">专为 Android Auto 设计的完整浏览器。为确保最佳性能，请授予以下权限：</string>
     <string name="perm_mic_title">麦克风</string>
     <string name="perm_mic_desc">用于网站内的语音听写和搜索输入。</string>
@@ -264,7 +264,7 @@
     <string name="perm_local_network_desc">允许网页访问家庭网络中的网站和设备（Home Assistant、路由器、NAS）。</string>
     <string name="perm_web_location_title">网站位置（可选）</string>
     <string name="perm_web_location_desc">为浏览器中的地图（如 Google 地图）提供精确 GPS 位置：每个网站在使用前都会询问。在车上（手机锁屏时）Android 还需要“始终允许”。</string>
-    <string name="web_location_phone_toast">要在车上的网站中使用位置：请在手机上将 AABrowser 的位置设为精确并“始终允许”</string>
+    <string name="web_location_phone_toast">要在车上的网站中使用位置：请在手机上将 CarWeb 的位置设为精确并“始终允许”</string>
     <string name="site_permission_mic_title">麦克风</string>
     <string name="site_permission_location_title">位置</string>
     <string name="site_permission_files_title">手机文件</string>
@@ -348,7 +348,7 @@
     <string name="ssl_warning_cancel">取消</string>
     <string name="voice_command_button">语音命令</string>
     <string name="voice_command_hint">试试：“在 YouTube 上播放 …”、“在收音机上播放 …”、“在电视上看 …”、“在亚马逊上搜索 …”、“打开 …”、“暂停”</string>
-    <string name="voice_command_hint_wheel">在 AABrowser 中播放过内容后：在方向盘上连按两次 ⏮</string>
+    <string name="voice_command_hint_wheel">在 CarWeb 中播放过内容后：在方向盘上连按两次 ⏮</string>
     <string name="voice_command_youtube">YouTube：%1$s</string>
     <string name="voice_command_youtube_music">YouTube Music：%1$s</string>
     <string name="voice_command_search">搜索：%1$s</string>
@@ -361,8 +361,8 @@
     <string name="voice_command_podcast">播客：%1$s</string>
     <string name="voice_command_not_heard">没有听到声音，请重试</string>
     <string name="voice_command_unavailable">语音识别不可用</string>
-    <string name="voice_command_mic_permission">AABrowser 需要麦克风权限：请在手机上授予</string>
-    <string name="voice_command_open_app">打开 AABrowser（Main 或 Wide）以使用语音命令</string>
+    <string name="voice_command_mic_permission">CarWeb 需要麦克风权限：请在手机上授予</string>
+    <string name="voice_command_open_app">打开 CarWeb（Main 或 Wide）以使用语音命令</string>
     <string name="share_logs_title">分享日志</string>
     <string name="share_logs_failed">无法导出日志：%1$s</string>
     <string name="share_logs_phone_only">请在手机上分享日志</string>
