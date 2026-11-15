@@ -506,7 +506,7 @@
     <string name="player_no_audio">Questo video non ha una traccia audio.</string>
     <string name="player_audio_unsupported">L\'audio di questo video (%1$s) non si può riprodurre qui: il motore del browser del telefono non decodifica questo formato.</string>
     <string name="bt_input_label">Mouse e tastiera Bluetooth</string>
-    <string name="bt_input_desc">Comanda lo schermo dell\'auto con un mouse o una tastiera Bluetooth collegati al telefono. La schermata di controllo deve restare aperta sul telefono.</string>
+    <string name="bt_input_desc">Comanda lo schermo dell\'auto con un mouse o una tastiera Bluetooth collegati al telefono. La schermata di controllo deve restare aperta sul telefono. Scorciatoia: tieni premuta l\'icona di CarWeb e scegli Bluetooth.</string>
     <string name="bt_input_open">Apri</string>
     <string name="bt_pointer_speed">Velocità del puntatore: %1$d%%</string>
     <string name="bt_input_title">Mouse e tastiera Bluetooth</string>
@@ -514,4 +514,5 @@
     <string name="bt_input_off">Nessuna schermata di CarWeb è davanti sull\'auto. Apri lì CarWeb o CarWebWide.</string>
     <string name="bt_input_hint">Tieni aperta questa schermata: il mouse e la tastiera collegati al telefono comandano lo schermo dell\'auto. Clic destro o Esc: indietro. F5: ricarica. Ctrl+L: cerca. Ctrl+T e Ctrl+W: nuova scheda e chiudi scheda. Ctrl+Tab: scheda successiva. Tocca questa schermata per riattivare il mouse. Indietro per uscire.</string>
     <string name="bt_search_hint">Invio per cercare, Esc per annullare</string>
+    <string name="bt_input_shortcut">Bluetooth</string>
 </resources>

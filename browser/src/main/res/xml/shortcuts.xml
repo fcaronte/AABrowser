@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Il tasto rapido dell'icona dell'app (tenendola premuta): apre la schermata del mouse e della tastiera Bluetooth. La attività non è
+     esportata: la avvia il sistema a nome dell'app -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="bt_input"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_bt"
+        android:shortcutShortLabel="@string/bt_input_shortcut"
+        android:shortcutLongLabel="@string/bt_input_label">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.fcaronte.aabrowser.BtInputActivity"
+            android:targetPackage="com.fcaronte.aabrowser" />
+    </shortcut>
+</shortcuts>

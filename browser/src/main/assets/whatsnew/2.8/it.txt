@@ -1,5 +1,5 @@
 • Altre App (Shizuku): le app del telefono sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con tocco, barra laterale e tastiera. Schermo diviso con il browser (65/35, a destra o a sinistra); quando l'app smette di suonare il browser riprende.
-• Mouse e tastiera Bluetooth del telefono per comandare lo schermo dell'auto (Impostazioni > Altre App): puntatore, clic, rotellina e tasti rapidi come in un browser.
+• Mouse e tastiera Bluetooth del telefono per comandare lo schermo dell'auto (Impostazioni > Altre App, o tenendo premuta l'icona dell'app): puntatore, clic, rotellina e tasti rapidi come in un browser.
 • Sidebar uguale in CarWeb e CarWebWide, con i tasti a scelta; in CarWebWide il tasto in alto a destra la mostra o la nasconde.
 • Un solo menu di Impostazioni per CarWeb e CarWebWide, con sezioni che si aprono e si chiudono. La home di CarWebWide ha l'aspetto di quella di CarWeb e i preferiti si modificano anche da lì.
 • Desktop o mobile si sceglie per sito (icona) e per preferito, con lo zoom: tolto l'interruttore generale.

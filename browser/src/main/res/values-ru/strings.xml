@@ -549,7 +549,7 @@
     <string name="player_no_audio">В этом видео нет звуковой дорожки.</string>
     <string name="player_audio_unsupported">Звук этого видео (%1$s) здесь не воспроизвести: браузерный движок телефона не декодирует этот формат.</string>
     <string name="bt_input_label">Bluetooth-мышь и клавиатура</string>
-    <string name="bt_input_desc">Управляйте экраном автомобиля с помощью Bluetooth-мыши или клавиатуры, подключённых к телефону. Экран управления должен оставаться открытым на телефоне.</string>
+    <string name="bt_input_desc">Управляйте экраном автомобиля с помощью Bluetooth-мыши или клавиатуры, подключённых к телефону. Экран управления должен оставаться открытым на телефоне. Быстрый доступ: нажмите и удерживайте значок CarWeb и выберите Bluetooth.</string>
     <string name="bt_input_open">Открыть</string>
     <string name="bt_pointer_speed">Скорость указателя: %1$d%%</string>
     <string name="bt_input_title">Bluetooth-мышь и клавиатура</string>
@@ -557,4 +557,5 @@
     <string name="bt_input_off">На экране автомобиля нет открытого CarWeb. Откройте там CarWeb или CarWebWide.</string>
     <string name="bt_input_hint">Не закрывайте этот экран: мышь и клавиатура, подключённые к телефону, управляют экраном автомобиля. Правый клик или Esc: назад. F5: обновить. Ctrl+L: поиск. Ctrl+T и Ctrl+W: новая и закрыть вкладку. Ctrl+Tab: следующая вкладка. Коснитесь этого экрана, чтобы снова включить мышь. «Назад» — выход.</string>
     <string name="bt_search_hint">Enter — искать, Esc — отмена</string>
+    <string name="bt_input_shortcut">Bluetooth</string>
 </resources>

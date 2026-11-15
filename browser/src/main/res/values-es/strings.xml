@@ -548,7 +548,7 @@
     <string name="player_no_audio">Este vídeo no tiene pista de audio.</string>
     <string name="player_audio_unsupported">El sonido de este vídeo (%1$s) no se puede reproducir aquí: el motor del navegador del teléfono no decodifica este formato.</string>
     <string name="bt_input_label">Ratón y teclado Bluetooth</string>
-    <string name="bt_input_desc">Controla la pantalla del coche con un ratón o un teclado Bluetooth conectado al teléfono. La pantalla de control debe seguir abierta en el teléfono.</string>
+    <string name="bt_input_desc">Controla la pantalla del coche con un ratón o un teclado Bluetooth conectado al teléfono. La pantalla de control debe seguir abierta en el teléfono. Acceso directo: mantén pulsado el icono de CarWeb y elige Bluetooth.</string>
     <string name="bt_input_open">Abrir</string>
     <string name="bt_pointer_speed">Velocidad del puntero: %1$d%%</string>
     <string name="bt_input_title">Ratón y teclado Bluetooth</string>
@@ -556,4 +556,5 @@
     <string name="bt_input_off">Ninguna pantalla de CarWeb está delante en el coche. Abre allí CarWeb o CarWebWide.</string>
     <string name="bt_input_hint">Mantén abierta esta pantalla: el ratón y el teclado conectados al teléfono controlan la pantalla del coche. Clic derecho o Esc: atrás. F5: recargar. Ctrl+L: buscar. Ctrl+T y Ctrl+W: nueva pestaña y cerrar pestaña. Ctrl+Tab: pestaña siguiente. Toca esta pantalla para reactivar el ratón. Atrás para salir.</string>
     <string name="bt_search_hint">Intro para buscar, Esc para cancelar</string>
+    <string name="bt_input_shortcut">Bluetooth</string>
 </resources>

@@ -73,6 +73,10 @@
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- Tasto rapido dell'icona dell'app (tenendola premuta): la schermata del mouse e della tastiera Bluetooth -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <!-- "Condividi su CarWeb" nel menu Condividi: spenta, si accende secondo l'opzione delle Impostazioni (CarShareTarget) -->

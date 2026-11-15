@@ -555,7 +555,7 @@
     <string name="player_no_audio">This video has no sound track.</string>
     <string name="player_audio_unsupported">The sound of this video (%1$s) cannot be played here: the phone\'s browser engine does not decode this format.</string>
     <string name="bt_input_label">Bluetooth mouse and keyboard</string>
-    <string name="bt_input_desc">Control the car screen with a Bluetooth mouse or keyboard connected to the phone. The control screen must stay open on the phone.</string>
+    <string name="bt_input_desc">Control the car screen with a Bluetooth mouse or keyboard connected to the phone. The control screen must stay open on the phone. Shortcut: long-press the CarWeb icon and choose Bluetooth.</string>
     <string name="bt_input_open">Open</string>
     <string name="bt_pointer_speed">Pointer speed: %1$d%%</string>
     <string name="bt_input_title">Bluetooth mouse and keyboard</string>
@@ -563,4 +563,5 @@
     <string name="bt_input_off">No CarWeb screen is in front on the car. Open CarWeb or CarWebWide there.</string>
     <string name="bt_input_hint">Keep this screen open: the mouse and keyboard connected to the phone control the car screen. Right click or Esc: back. F5: reload. Ctrl+L: search. Ctrl+T and Ctrl+W: new and close tab. Ctrl+Tab: next tab. Tap this screen to turn the mouse on again. Back leaves.</string>
     <string name="bt_search_hint">Enter to search, Esc to cancel</string>
+    <string name="bt_input_shortcut">Bluetooth</string>
 </resources>

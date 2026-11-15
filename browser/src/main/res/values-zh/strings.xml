@@ -546,7 +546,7 @@
     <string name="player_no_audio">此视频没有音轨。</string>
     <string name="player_audio_unsupported">此视频的声音（%1$s）无法在此播放：手机的浏览器引擎不支持解码这种格式。</string>
     <string name="bt_input_label">蓝牙鼠标和键盘</string>
-    <string name="bt_input_desc">使用连接到手机的蓝牙鼠标或键盘控制车载屏幕。控制界面必须在手机上保持打开。</string>
+    <string name="bt_input_desc">使用连接到手机的蓝牙鼠标或键盘控制车载屏幕。控制界面必须在手机上保持打开。 快捷方式：长按 CarWeb 图标并选择“蓝牙”。</string>
     <string name="bt_input_open">打开</string>
     <string name="bt_pointer_speed">指针速度：%1$d%%</string>
     <string name="bt_input_title">蓝牙鼠标和键盘</string>
@@ -554,4 +554,5 @@
     <string name="bt_input_off">车载屏幕上没有 CarWeb 界面位于前台。请在车载屏幕上打开 CarWeb 或 CarWebWide。</string>
     <string name="bt_input_hint">请保持此界面打开：连接到手机的鼠标和键盘将控制车载屏幕。右键或 Esc：返回。F5：刷新。Ctrl+L：搜索。Ctrl+T 和 Ctrl+W：新建和关闭标签页。Ctrl+Tab：下一个标签页。点按此界面可重新启用鼠标。按返回键退出。</string>
     <string name="bt_search_hint">按 Enter 搜索，按 Esc 取消</string>
+    <string name="bt_input_shortcut">蓝牙</string>
 </resources>

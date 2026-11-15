@@ -1,5 +1,5 @@
 • Other Apps (Shizuku): your phone's apps on the car screen, in a CarWeb tab or in CarWebWide, with touch, a side bar and the keyboard. Split view with the browser (65/35, right or left); when the app stops playing the browser resumes.
-• Bluetooth mouse and keyboard of the phone to control the car screen (Settings > Other Apps): pointer, clicks, wheel and browser-style shortcuts.
+• Bluetooth mouse and keyboard of the phone to control the car screen (Settings > Other Apps, or long-press the app icon): pointer, clicks, wheel and browser-style shortcuts.
 • The same sidebar in CarWeb and CarWebWide, with the buttons of your choice; in CarWebWide the top-right button shows or hides it.
 • One Settings menu for CarWeb and CarWebWide, with sections that open and close. The CarWebWide home looks like CarWeb's and the favorites can be edited from there too.
 • Desktop or mobile is chosen per site (icon) and per favorite, with zoom: the general switch is gone.

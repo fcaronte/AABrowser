@@ -117,7 +117,7 @@ from the misuse of this application. Use at your own risk.
 * **Audio boost (new in 2.8):** Settings > Audio boost raises the volume of pages and compatible media from 0 to +15 dB (it may not work on
   protected content; high levels can distort the sound).
 * **Bluetooth mouse and keyboard (new in 2.8):** connect a Bluetooth mouse or keyboard to the phone, open Settings > Bluetooth mouse and keyboard >
-  "Open the control screen" and leave it open on the phone: the mouse moves a pointer on the car screen (left click = tap, right click or
+  "Open" (or long-press the CarWeb icon and choose "Bluetooth") and leave that screen open on the phone: the mouse moves a pointer on the car screen (left click = tap, right click or
   the side button = back, wheel = scroll, drag = scroll like a finger) and the keyboard types into pages, with the shortcuts of a
   computer browser (Esc or Alt+← back, F5 reload, Ctrl+L search, Ctrl+T, Ctrl+W and Ctrl+Tab for tabs). It works in CarWeb and CarWebWide,
   and, like everything else on the car screen, only while the car is parked (or with Passenger mode). The pointer speed is a choice in Settings.
@@ -376,7 +376,7 @@ proprio rischio e pericolo.
 * **Potenziamento audio (novità 2.8):** Impostazioni > Potenziamento audio alza il volume delle pagine e dei contenuti compatibili da 0 a +15 dB
   (può non funzionare sui contenuti protetti; livelli alti possono distorcere il suono).
 * **Mouse e tastiera Bluetooth (novità 2.8):** collega un mouse o una tastiera Bluetooth al telefono, apri Impostazioni > Mouse e tastiera Bluetooth >
-  «Apri la schermata di controllo» e lasciala aperta sul telefono: il mouse muove un puntatore sullo schermo dell'auto (clic sinistro = tocco,
+  «Apri» (o tieni premuta l'icona di CarWeb e scegli «Bluetooth») e lascia quella schermata aperta sul telefono: il mouse muove un puntatore sullo schermo dell'auto (clic sinistro = tocco,
   clic destro o tasto laterale = indietro, rotellina = scorrimento, trascinamento = scorre come un dito) e la tastiera scrive nelle pagine, con i
   tasti rapidi di un browser per computer (Esc o Alt+← indietro, F5 ricarica, Ctrl+L cerca, Ctrl+T, Ctrl+W e Ctrl+Tab per le schede). Funziona in
   CarWeb e in CarWebWide e, come tutto il resto sullo schermo dell'auto, solo a veicolo fermo (o con la Modalità passeggero). La velocità del

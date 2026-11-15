@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Il tasto rapido «Bluetooth» dell'icona dell'app: un mouse bianco su un cerchio blu (si legge su fondo chiaro e scuro) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#1A73E8"
+        android:pathData="M0,12a12,12 0,1 1,24 0a12,12 0,1 1,-24 0z" />
+    <group
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateX="4.8"
+        android:translateY="4.8">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M13,1.07V9h7c0,-4.08 -3.05,-7.44 -7,-7.93zM4,15c0,4.42 3.58,8 8,8s8,-3.58 8,-8v-4H4v4zM11,1.07C7.05,1.56 4,4.92 4,9h7L11,1.07z" />
+    </group>
+</vector>

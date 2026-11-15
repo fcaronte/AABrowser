@@ -548,7 +548,7 @@
     <string name="player_no_audio">Cette vidéo n\'a pas de piste audio.</string>
     <string name="player_audio_unsupported">Le son de cette vidéo (%1$s) ne peut pas être lu ici : le moteur de navigation du téléphone ne décode pas ce format.</string>
     <string name="bt_input_label">Souris et clavier Bluetooth</string>
-    <string name="bt_input_desc">Commandez l\'écran de la voiture avec une souris ou un clavier Bluetooth connecté au téléphone. L\'écran de contrôle doit rester ouvert sur le téléphone.</string>
+    <string name="bt_input_desc">Commandez l\'écran de la voiture avec une souris ou un clavier Bluetooth connecté au téléphone. L\'écran de contrôle doit rester ouvert sur le téléphone. Raccourci : appuyez longuement sur l\'icône de CarWeb et choisissez Bluetooth.</string>
     <string name="bt_input_open">Ouvrir</string>
     <string name="bt_pointer_speed">Vitesse du pointeur : %1$d%%</string>
     <string name="bt_input_title">Souris et clavier Bluetooth</string>
@@ -556,4 +556,5 @@
     <string name="bt_input_off">Aucun écran CarWeb n\'est au premier plan sur la voiture. Ouvrez-y CarWeb ou CarWebWide.</string>
     <string name="bt_input_hint">Gardez cet écran ouvert : la souris et le clavier connectés au téléphone commandent l\'écran de la voiture. Clic droit ou Échap : retour. F5 : recharger. Ctrl+L : rechercher. Ctrl+T et Ctrl+W : nouvel onglet et fermer l\'onglet. Ctrl+Tab : onglet suivant. Touchez cet écran pour réactiver la souris. Retour pour quitter.</string>
     <string name="bt_search_hint">Entrée pour chercher, Échap pour annuler</string>
+    <string name="bt_input_shortcut">Bluetooth</string>
 </resources>
