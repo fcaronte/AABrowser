@@ -67,6 +67,7 @@ internal object PodcastApi {
             .put("follow", app.getString(R.string.podcast_follow))
             .put("loading", app.getString(R.string.radio_loading))
             .put("noResults", app.getString(R.string.podcast_no_results))
+            .put("noFollowed", app.getString(R.string.podcast_no_followed))
             .put("error", app.getString(R.string.podcast_error))
             .put("unavailable", app.getString(R.string.podcast_unavailable))
             .put("listened", app.getString(R.string.podcast_listened))

@@ -415,6 +415,7 @@
     <string name="tv_unavailable">Channel not available</string>
     <string name="tv_source_error">List not reachable or access denied</string>
     <string name="tv_no_results">No channels found</string>
+    <string name="tv_no_favorites">No favorite channels: tap ★ on the channel that is playing to add it.</string>
     <string name="radio_title">Radio</string>
     <string name="radio_in_country">Popular stations in %1$s</string>
     <string name="radio_search">Search stations</string>
@@ -422,6 +423,7 @@
     <string name="radio_favorites">Favorites</string>
     <string name="radio_loading">Loading…</string>
     <string name="radio_no_results">No stations found</string>
+    <string name="radio_no_favorites">No favorite stations: tap ★ on the station that is playing to add it.</string>
     <string name="radio_error">Could not load radio stations</string>
     <string name="radio_unavailable">Station unavailable</string>
     <string name="radio_stalled">No audio from the station</string>
@@ -467,6 +469,7 @@
     <string name="podcast_following">Following</string>
     <string name="podcast_follow">Follow</string>
     <string name="podcast_no_results">No podcasts found</string>
+    <string name="podcast_no_followed">No followed podcasts: open a podcast and tap Follow.</string>
     <string name="podcast_error">Could not load the podcasts</string>
     <string name="podcast_unavailable">Episode not available</string>
     <string name="podcast_listened">Played</string>

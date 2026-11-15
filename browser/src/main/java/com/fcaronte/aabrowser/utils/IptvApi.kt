@@ -28,6 +28,7 @@ internal object IptvApi {
             .put("unavailable", context.getString(R.string.tv_unavailable))
             .put("sourceError", context.getString(R.string.tv_source_error))
             .put("noResults", context.getString(R.string.tv_no_results))
+            .put("noFavorites", context.getString(R.string.tv_no_favorites))
             .put("addList", context.getString(R.string.media_lists_add))
             .put("addOnPhone", context.getString(R.string.iptv_add_on_phone))
         val config = JSONObject()

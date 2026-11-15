@@ -206,7 +206,22 @@
         saveState();
         markGroup();
         showMessage('');
-        setItems(favorites());
+        showFavoriteItems();
+    }
+
+    // Senza preferiti l'elenco vuoto dice cosa fare (solo nella pagina: il pannello del cambio canale ha il suo stato)
+    function showFavoriteItems() {
+        const list = favorites();
+        setItems(list);
+        if (list.length) {
+            if (message.textContent === S.noFavorites) {
+                message.textContent = '';
+                message.hidden = true;
+            }
+        } else if (S.noFavorites) {
+            message.textContent = S.noFavorites;
+            message.hidden = false;
+        }
     }
 
     let searchTimer = 0;
@@ -347,7 +362,7 @@
             : all.concat([{ s: sourceOf(current), k: current.k, n: current.n, l: current.l, g: current.g }]);
         saveState();
         updateFavoriteButton();
-        if (state.group === 'fav' && !searchInput.value.trim()) setItems(favorites());
+        if (state.group === 'fav' && !searchInput.value.trim()) showFavoriteItems();
         else redrawRows();
     });
 

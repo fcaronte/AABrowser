@@ -370,6 +370,7 @@
     <string name="tv_unavailable">Canale non disponibile</string>
     <string name="tv_source_error">Lista non raggiungibile o accesso negato</string>
     <string name="tv_no_results">Nessun canale trovato</string>
+    <string name="tv_no_favorites">Nessun canale preferito: tocca ★ sul canale in onda per aggiungerlo.</string>
     <string name="radio_title">Radio</string>
     <string name="radio_in_country">Stazioni popolari in %1$s</string>
     <string name="radio_search">Cerca stazioni</string>
@@ -377,6 +378,7 @@
     <string name="radio_favorites">Preferiti</string>
     <string name="radio_loading">Caricamento…</string>
     <string name="radio_no_results">Nessuna stazione trovata</string>
+    <string name="radio_no_favorites">Nessuna stazione preferita: tocca ★ sulla stazione in onda per aggiungerla.</string>
     <string name="radio_error">Impossibile caricare le stazioni radio</string>
     <string name="radio_unavailable">Stazione non disponibile</string>
     <string name="radio_stalled">Nessun audio dalla stazione</string>
@@ -419,6 +421,7 @@
     <string name="podcast_following">Seguiti</string>
     <string name="podcast_follow">Segui</string>
     <string name="podcast_no_results">Nessun podcast trovato</string>
+    <string name="podcast_no_followed">Nessun podcast seguito: apri un podcast e tocca Segui.</string>
     <string name="podcast_error">Impossibile caricare i podcast</string>
     <string name="podcast_unavailable">Episodio non disponibile</string>
     <string name="podcast_listened">Ascoltato</string>

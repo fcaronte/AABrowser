@@ -413,6 +413,7 @@
     <string name="tv_unavailable">Канал недоступен</string>
     <string name="tv_source_error">Список недоступен или доступ запрещён</string>
     <string name="tv_no_results">Каналы не найдены</string>
+    <string name="tv_no_favorites">Нет избранных каналов: нажмите ★ на текущем канале, чтобы добавить его.</string>
     <string name="radio_title">Радио</string>
     <string name="radio_in_country">Популярные станции в стране: %1$s</string>
     <string name="radio_search">Поиск радиостанций</string>
@@ -420,6 +421,7 @@
     <string name="radio_favorites">Избранное</string>
     <string name="radio_loading">Загрузка…</string>
     <string name="radio_no_results">Станции не найдены</string>
+    <string name="radio_no_favorites">Нет избранных станций: нажмите ★ на текущей станции, чтобы добавить её.</string>
     <string name="radio_error">Не удалось загрузить радиостанции</string>
     <string name="radio_unavailable">Станция недоступна</string>
     <string name="radio_stalled">Станция не передаёт звук</string>
@@ -462,6 +464,7 @@
     <string name="podcast_following">Подписки</string>
     <string name="podcast_follow">Подписаться</string>
     <string name="podcast_no_results">Подкасты не найдены</string>
+    <string name="podcast_no_followed">Нет подписок: откройте подкаст и нажмите «Подписаться».</string>
     <string name="podcast_error">Не удалось загрузить подкасты</string>
     <string name="podcast_unavailable">Выпуск недоступен</string>
     <string name="podcast_listened">Прослушано</string>

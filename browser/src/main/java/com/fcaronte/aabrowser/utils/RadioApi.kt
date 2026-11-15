@@ -73,6 +73,7 @@ internal object RadioApi {
             .put("favorites", appContext.getString(com.fcaronte.aabrowser.R.string.radio_favorites))
             .put("loading", appContext.getString(com.fcaronte.aabrowser.R.string.radio_loading))
             .put("noResults", appContext.getString(com.fcaronte.aabrowser.R.string.radio_no_results))
+            .put("noFavorites", appContext.getString(com.fcaronte.aabrowser.R.string.radio_no_favorites))
             .put("error", appContext.getString(com.fcaronte.aabrowser.R.string.radio_error))
             .put("unavailable", appContext.getString(com.fcaronte.aabrowser.R.string.radio_unavailable))
             .put("stalled", appContext.getString(com.fcaronte.aabrowser.R.string.radio_stalled))

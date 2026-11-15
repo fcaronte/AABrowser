@@ -141,6 +141,14 @@
         space.style.height = (visibleStations.length * ROW) + 'px';
         drawRows();
         setFavoriteButton();
+        updateFavoritesNotice();
+    }
+
+    // Senza preferiti l'elenco vuoto dice cosa fare; il messaggio sparisce appena c'è altro da mostrare
+    function updateFavoritesNotice() {
+        const empty = showFavorites && visibleStations.length === 0 && !byId('search').value.trim();
+        if (empty && S.noFavorites) message(S.noFavorites);
+        else if (byId('message').textContent === S.noFavorites) message('');
     }
 
     function makeRow(station, index) {

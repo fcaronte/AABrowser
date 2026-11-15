@@ -138,6 +138,14 @@
         space.style.height = (visible.length * ROW) + 'px';
         drawRows();
         updateTools();
+        updateFollowedNotice();
+    }
+
+    // Senza podcast seguiti l'elenco vuoto dice cosa fare; il messaggio sparisce appena c'è altro da mostrare
+    function updateFollowedNotice() {
+        const empty = showFollowed && !openShow && found === null && visible.length === 0;
+        if (empty && S.noFollowed) message(S.noFollowed);
+        else if (byId('message').textContent === S.noFollowed) message('');
     }
 
     function baseRow(index, isCurrent) {
