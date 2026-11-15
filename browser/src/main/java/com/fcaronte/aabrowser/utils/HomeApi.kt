@@ -109,7 +109,6 @@ object HomeApi {
         .put("moveBack", app.getString(R.string.home_move_back))
         .put("moveForward", app.getString(R.string.home_move_forward))
         .put("appTile", app.getString(R.string.vapp_tile_label))
-        .put("update", app.getString(R.string.update_available))
         .put("added", app.getString(R.string.favorite_added))
         .put("updated", app.getString(R.string.favorite_updated))
         .put("notAllowed", app.getString(R.string.favorite_not_allowed))

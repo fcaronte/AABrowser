@@ -354,6 +354,8 @@
         form = null;
         byId('modal').hidden = true;
         byId('modal').textContent = '';
+        // Di nuovo scorre la pagina (la griglia)
+        root.__aabScrollOnly = null;
     }
 
     function field(id, label, value, options) {
@@ -467,6 +469,9 @@
         zoom.appendChild(stepper);
         body.appendChild(zoom);
         sheet.appendChild(body);
+        // Nella Wide lo scorrimento dell'host muove i contenitori della pagina: con il modulo aperto solo il suo, non anche la
+        // griglia che sta dietro (lo script di scorrimento della Wide lo prevede per le pagine che lo chiedono)
+        root.__aabScrollOnly = body;
 
         const foot = el('div', 'sheet-foot');
         const cancel = el('button', 'btn', S.cancel);
