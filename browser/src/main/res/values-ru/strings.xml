@@ -30,6 +30,7 @@
     <string name="add_favorite_title">Добавить в избранное</string>
     <string name="edit_favorite_title">Изменить избранное</string>
     <string name="favorite_added">Сайт добавлен на главную</string>
+    <string name="favorite_not_allowed">Эта страница относится к CarWeb и не может быть добавлена в избранное.</string>
     <string name="favorite_updated">Избранное обновлено</string>
     <string name="field_name">Имя</string>
     <string name="field_url">URL</string>

@@ -30,6 +30,7 @@
     <string name="add_favorite_title">Kedvenc hozzáadása</string>
     <string name="edit_favorite_title">Kedvenc szerkesztése</string>
     <string name="favorite_added">Kedvenc hozzáadva a Kezdőlaphoz</string>
+    <string name="favorite_not_allowed">Ez az oldal a CarWeb része, ezért nem adható a kedvencekhez.</string>
     <string name="favorite_updated">Kedvenc frissítve</string>
     <string name="field_name">Név</string>
     <string name="field_url">URL</string>

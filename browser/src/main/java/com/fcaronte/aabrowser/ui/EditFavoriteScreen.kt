@@ -64,6 +64,8 @@ fun EditFavoriteScreen(
     inputHostView: View? = null, // Parametro originale corretto
     onBack: () -> Unit,
     onConfirm: (String, String, Long, String?, Boolean?, Float?, Float?) -> Unit,
+    // Una pagina di CarWeb di serie: l'indirizzo non si cambia
+    urlLocked: Boolean = false,
 ) {
     PhoneBackHandler(onBack = onBack)
     var nameValue by remember { mutableStateOf(TextFieldValue(site?.name ?: "")) }
@@ -253,8 +255,8 @@ fun EditFavoriteScreen(
                                 OutlinedTextField(
                                     value = urlValue,
                                     onValueChange = { urlValue = it },
-                                    // CarWeb Media è fisso: l'indirizzo non si cambia
-                                    enabled = site == null || !FavoritesRepository.isFixed(site),
+                                    // Le pagine di CarWeb di serie sono fisse: l'indirizzo non si cambia
+                                    enabled = !urlLocked,
                                     label = { Text(stringResource(R.string.field_url)) },
                                     modifier = Modifier
                                         .fillMaxWidth()

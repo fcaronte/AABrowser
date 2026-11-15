@@ -57,6 +57,8 @@ fun FavoriteCard(
     onMoveLeft: () -> Unit,
     onMoveRight: () -> Unit,
     onClick: () -> Unit,
+    // Le pagine di CarWeb dei preferiti di serie non si eliminano (un doppione sì): lo decide chi ha la lista
+    canDelete: Boolean = true,
 ) {
     val domain = remember(site.url) {
         try {
@@ -122,8 +124,8 @@ fun FavoriteCard(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-                    // CarWeb Media è fisso: si può modificare e spostare, non eliminare
-                    if (!FavoritesRepository.isFixed(site)) {
+                    // Le pagine di CarWeb di serie sono fisse: si possono modificare e spostare, non eliminare
+                    if (canDelete) {
                         IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
                             Icon(
                                 Icons.Default.Delete,

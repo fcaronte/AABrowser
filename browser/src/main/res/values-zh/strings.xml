@@ -30,6 +30,7 @@
     <string name="add_favorite_title">添加收藏</string>
     <string name="edit_favorite_title">编辑收藏</string>
     <string name="favorite_added">已添加到主屏幕收藏</string>
+    <string name="favorite_not_allowed">此页面属于 CarWeb，无法添加到收藏夹。</string>
     <string name="favorite_updated">收藏已更新</string>
     <string name="field_name">名称</string>
     <string name="field_url">网址 (URL)</string>

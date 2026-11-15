@@ -30,6 +30,7 @@
     <string name="add_favorite_title">إضافة مفضلة</string>
     <string name="edit_favorite_title">تعديل المفضلة</string>
     <string name="favorite_added">تمت إضافة المفضلة إلى الرئيسية</string>
+    <string name="favorite_not_allowed">هذه الصفحة تابعة لـ CarWeb ولا يمكن إضافتها إلى المفضلة.</string>
     <string name="favorite_updated">تم تحديث المفضلة</string>
     <string name="field_name">الاسم</string>
     <string name="field_url">رابط URL</string>

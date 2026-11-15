@@ -30,6 +30,7 @@
     <string name="add_favorite_title">Ajouter un favori</string>
     <string name="edit_favorite_title">Modifier le favori</string>
     <string name="favorite_added">Favori ajouté à l\'accueil</string>
+    <string name="favorite_not_allowed">Cette page fait partie de CarWeb et ne peut pas être ajoutée aux favoris.</string>
     <string name="favorite_updated">Favori mis à jour</string>
     <string name="field_name">Nom</string>
     <string name="field_url">URL</string>

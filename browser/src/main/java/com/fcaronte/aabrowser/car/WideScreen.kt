@@ -691,6 +691,11 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private fun addCurrentPageToFavorites() {
         val view = webView ?: return
         val url = view.url?.takeIf { UrlUtils.isWebUrl(it) } ?: return
+        // Le pagine di CarWeb hanno già il loro posto nella home: la stella non le aggiunge
+        if (FavoritesRepository.isOwnPage(url)) {
+            CarToast.makeText(carContext, strings.getString(R.string.favorite_not_allowed), CarToast.LENGTH_SHORT).show()
+            return
+        }
         val repository = FavoritesRepository(carContext)
         val list = repository.loadFavorites().toMutableList()
         val known = FavoritesRepository.normalizeUrl(url)

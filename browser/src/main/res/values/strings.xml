@@ -31,6 +31,7 @@
     <string name="add_favorite_title">Add Favorite</string>
     <string name="edit_favorite_title">Edit Favorite</string>
     <string name="favorite_added">Favorite added to Home</string>
+    <string name="favorite_not_allowed">This page is part of CarWeb and can\'t be added to favorites.</string>
     <string name="favorite_updated">Favorite updated</string>
     <string name="field_name">Name</string>
     <string name="field_url">URL</string>

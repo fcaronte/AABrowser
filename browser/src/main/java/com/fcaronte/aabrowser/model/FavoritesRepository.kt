@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import com.fcaronte.aabrowser.R
+import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import java.util.UUID
 
@@ -80,14 +81,14 @@ class FavoritesRepository(private val context: Context) {
 
     /**
      * Preferiti predefiniti arrivati con gli aggiornamenti: chi ha già la sua lista se li trova una volta in fondo
-     * (se poi li toglie non tornano). I preferiti fissi ([isFixed]) invece tornano sempre. true se ha aggiunto.
+     * (se poi li toglie non tornano). Le pagine di CarWeb (fisse, [isFixed]) invece tornano sempre. true se ha aggiunto.
      */
     private fun addNewDefaults(list: MutableList<FavoriteSite>, knownVersion: Int): Boolean {
         val present = list.map { normalizeUrl(it.url) }.toMutableSet()
         var added = false
         getDefaultFavorites().forEach { default ->
             val isNew = (DEFAULTS_ADDED_IN[default.id] ?: FIRST_DEFAULTS_VERSION) > knownVersion
-            if ((isNew || isFixed(default)) && present.add(normalizeUrl(default.url))) {
+            if ((isNew || LocalPlayer.isPlayerUrl(default.url)) && present.add(normalizeUrl(default.url))) {
                 // Id nuovo: quello del predefinito può già esistere tra i preferiti dell'utente
                 insertDefaultFavorite(list, default.copy(id = UUID.randomUUID().toString()))
                 added = true
@@ -176,8 +177,20 @@ class FavoritesRepository(private val context: Context) {
 
         fun isUnsafeUrl(url: String): Boolean = url.trim().lowercase().let { u -> UNSAFE_SCHEMES.any { u.startsWith(it) } }
 
-        /** CarWeb Media è fisso: non si può eliminare né cambiare indirizzo, e se manca torna. */
-        fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)
+        /** Una pagina di CarWeb stessa (Media, TV, Radio, Podcast, Altre App, Impostazioni) o un'app del telefono: non è un sito. */
+        fun isOwnPage(url: String): Boolean = LocalPlayer.isPlayerUrl(url) || VirtualApps.isAppUrl(url)
+
+        /**
+         * Le pagine di CarWeb dei preferiti di serie sono fisse: non si possono eliminare né cambiare indirizzo, e se mancano
+         * tornano. Fisso è solo il primo preferito con quell'indirizzo, quello vero: un doppione (la stella le aggiungeva anche
+         * dalle pagine dell'app) si può togliere come ogni altro.
+         */
+        fun isFixed(site: FavoriteSite, list: List<FavoriteSite>): Boolean {
+            if (!isOwnPage(site.url)) return false
+            val address = normalizeUrl(site.url)
+            val first = list.firstOrNull { normalizeUrl(it.url) == address }
+            return first == null || first.id == site.id
+        }
 
         // La lista in memoria della Main (FavoritesViewModel) e quella salvata sono due copie: chi cambia i preferiti da
         // fuori dalla Main (la pagina delle impostazioni, anche aperta dalla Wide) lo segnala qui e il ViewModel si rilegge

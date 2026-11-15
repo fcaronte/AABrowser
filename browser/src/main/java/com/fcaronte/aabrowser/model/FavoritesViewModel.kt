@@ -26,6 +26,13 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /** Le pagine di CarWeb e le app del telefono hanno già il loro posto (home, Altre App): non diventano un preferito. */
+    fun canAdd(url: String): Boolean = !FavoritesRepository.isOwnPage(url) && !FavoritesRepository.isUnsafeUrl(url)
+
+    /** Fisso (non si elimina né cambia indirizzo): solo la pagina di CarWeb vera, mai un suo doppione. */
+    fun isFixed(site: FavoriteSite): Boolean = FavoritesRepository.isFixed(site, favorites)
+
+    /** false se l'indirizzo non si può aggiungere ([canAdd]); un sito che c'è già non si ripete (true, niente da fare). */
     fun addFavorite(
         name: String,
         url: String,
@@ -34,7 +41,10 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         isDesktopMode: Boolean? = null,
         mobileZoom: Float? = null,
         desktopZoom: Float? = null
-    ) {
+    ): Boolean {
+        if (!canAdd(url)) return false
+        val address = FavoritesRepository.normalizeUrl(url)
+        if (favorites.any { FavoritesRepository.normalizeUrl(it.url) == address }) return true
         val newSite = FavoriteSite(
             id = UUID.randomUUID().toString(),
             name = name,
@@ -47,10 +57,11 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
         )
         favorites.add(newSite)
         repository.saveFavorites(favorites)
+        return true
     }
 
     fun removeFavorite(site: FavoriteSite) {
-        if (FavoritesRepository.isFixed(site)) return
+        if (isFixed(site)) return
         favorites.remove(site)
         repository.saveFavorites(favorites)
     }
@@ -70,7 +81,7 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
             favorites[index] = site.copy(
                 name = name,
                 // Un preferito fisso resta sul suo indirizzo
-                url = if (FavoritesRepository.isFixed(site)) site.url else url,
+                url = if (isFixed(site)) site.url else url,
                 color = color,
                 faviconUrl = faviconUrl,
                 isDesktopMode = isDesktopMode,

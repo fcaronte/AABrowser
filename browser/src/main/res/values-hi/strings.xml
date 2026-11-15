@@ -30,6 +30,7 @@
     <string name="add_favorite_title">पसंदीदा जोड़ें</string>
     <string name="edit_favorite_title">पसंदीदा संपादित करें</string>
     <string name="favorite_added">पसंदीदा होम में जोड़ा गया</string>
+    <string name="favorite_not_allowed">यह पेज CarWeb का है और पसंदीदा में नहीं जोड़ा जा सकता।</string>
     <string name="favorite_updated">पसंदीदा अपडेट किया गया</string>
     <string name="field_name">नाम</string>
     <string name="field_url">URL</string>

@@ -132,15 +132,16 @@ fun DashboardScreen(
 
     if (showAddDialog) {
         val feedbackMsg = stringResource(R.string.favorite_added)
+        val notAllowedMsg = stringResource(R.string.favorite_not_allowed)
         EditFavoriteScreen(
             currentWebView = currentWebView,
             carInputManager = carInputManager,
             inputHostView = inputHostView,
             onBack = { showAddDialog = false },
             onConfirm = { name, url, color, favicon, isDesktop, mobileZoom, desktopZoom ->
-                viewModel.addFavorite(name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
+                val added = viewModel.addFavorite(name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
                 showAddDialog = false
-                onShowFeedback(feedbackMsg)
+                onShowFeedback(if (added) feedbackMsg else notAllowedMsg)
             }
         )
         return
@@ -154,6 +155,7 @@ fun DashboardScreen(
             carInputManager = carInputManager,
             inputHostView = inputHostView,
             onBack = { siteToEdit = null },
+            urlLocked = viewModel.isFixed(site),
             onConfirm = { name, url, color, favicon, isDesktop, mobileZoom, desktopZoom ->
                 viewModel.updateFavorite(site, name, url, color, favicon, isDesktop, mobileZoom, desktopZoom)
                 siteToEdit = null
@@ -276,6 +278,7 @@ fun DashboardScreen(
                         isEditMode = isEditMode,
                         onEdit = { siteToEdit = site },
                         onDelete = { viewModel.removeFavorite(site) },
+                        canDelete = !viewModel.isFixed(site),
                         onMoveLeft = { viewModel.moveLeft(index) },
                         onMoveRight = { viewModel.moveRight(index) },
                         onClick = {

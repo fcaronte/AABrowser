@@ -117,6 +117,7 @@ fun MainScreen(
     )
 
     val favoriteAddedMsg = stringResource(R.string.favorite_added)
+    val favoriteNotAllowedMsg = stringResource(R.string.favorite_not_allowed)
     val favoriteUpdatedMsg = stringResource(R.string.favorite_updated)
 
     var previousScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
@@ -950,7 +951,9 @@ fun MainScreen(
                                 onVoiceCommand = toggleVoiceCommand,
                                 onAddToFavorites = {
                                     TabManager.activeTab?.let { activeTab ->
-                                        favoritesViewModel.addFavorite(
+                                        // Le pagine di CarWeb (Media, TV, Radio, Podcast, Altre App) e le app del telefono hanno già il
+                                        // loro posto: la stella non le aggiunge (faceva doppioni)
+                                        val added = favoritesViewModel.addFavorite(
                                             name = activeTab.title,
                                             url = activeTab.url,
                                             faviconUrl = activeTab.faviconUrl,
@@ -958,7 +961,7 @@ fun MainScreen(
                                             mobileZoom = activeTab.mobileZoomOverride,
                                             desktopZoom = activeTab.desktopZoomOverride
                                         )
-                                        feedbackMessage = favoriteAddedMsg
+                                        feedbackMessage = if (added) favoriteAddedMsg else favoriteNotAllowedMsg
                                     }
                                     onInteraction()
                                 },
