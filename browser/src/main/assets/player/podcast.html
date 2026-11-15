@@ -69,12 +69,15 @@
 
     <section class="list tv-list radio-list podcast-list">
         <div class="tv-tools">
-            <input class="search" id="search" type="search" autocomplete="off">
-            <div class="groups">
-                <button class="group active" id="allShows"></button>
-                <button class="group" id="followedShows"></button>
-                <button class="group" id="closeShow" hidden></button>
-                <button class="group" id="followShow" hidden></button>
+            <div class="search-row">
+                <input class="search" id="search" type="search" autocomplete="off">
+                <button class="icon-button favorites-toggle" id="favoritesToggle" aria-pressed="false">
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                </button>
+            </div>
+            <div class="groups" id="showTools" hidden>
+                <button class="group" id="closeShow"></button>
+                <button class="group" id="followShow"></button>
             </div>
         </div>
         <div class="channels" id="channels">

@@ -118,11 +118,41 @@ body.has-video .art {
     border-bottom: 1px solid var(--line);
 }
 
+/* La ricerca e, accanto, il tasto dei preferiti (TV, Radio, Podcast): sempre in vista, anche con tante categorie */
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-row .search {
+    flex: 1;
+    min-width: 0;
+}
+
+.favorites-toggle {
+    background: var(--panel);
+}
+
+/* .icon-button ha display: flex, che batterebbe l'attributo hidden (Podcast lo nasconde dentro un podcast aperto) */
+.favorites-toggle[hidden] {
+    display: none;
+}
+
+.favorites-toggle.active {
+    background: var(--soft);
+    color: var(--accent);
+}
+
 .groups {
     display: flex;
     gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
+}
+
+.groups[hidden] {
+    display: none;
 }
 
 .group {

@@ -133,7 +133,7 @@
 
     function renderGroups() {
         groupsBox.textContent = '';
-        addGroupChip('fav', '★ ' + S.favorites, showFavorites);
+        // I preferiti non sono più un chip tra gli altri: il tasto accanto alla ricerca sta sempre in vista
         groups.forEach((group) => {
             addGroupChip(group.i, (group.name || S.other) + ' · ' + group.count, () => showGroup(group.i));
         });
@@ -152,7 +152,28 @@
         groupsBox.appendChild(chip);
     }
 
+    // Il tasto accanto alla ricerca: i preferiti di tutte le liste; di nuovo, si torna alla categoria di prima
+    const favoritesToggle = byId('favoritesToggle');
+    favoritesToggle.setAttribute('aria-label', S.favorites);
+    favoritesToggle.title = S.favorites;
+    let groupBeforeFavorites;
+    favoritesToggle.addEventListener('click', () => {
+        searchInput.value = '';
+        if (state.group === 'fav') {
+            const back = groups.some((group) => group.i === groupBeforeFavorites)
+                ? groupBeforeFavorites
+                : (groups.length ? groups[0].i : null);
+            showGroup(back);
+        } else {
+            groupBeforeFavorites = state.group;
+            showFavorites();
+        }
+    });
+
     function markGroup() {
+        const onFavorites = state.group === 'fav';
+        favoritesToggle.classList.toggle('active', onFavorites);
+        favoritesToggle.setAttribute('aria-pressed', onFavorites ? 'true' : 'false');
         groupsBox.querySelectorAll('.group').forEach((chip) => {
             chip.classList.toggle('active', chip.dataset.key === String(state.group));
         });

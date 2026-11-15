@@ -118,12 +118,11 @@
 
     function updateTools() {
         const inShow = !!openShow;
-        byId('allShows').hidden = inShow;
-        byId('followedShows').hidden = inShow;
-        byId('closeShow').hidden = !inShow;
-        byId('followShow').hidden = !inShow;
-        byId('allShows').classList.toggle('active', !showFollowed);
-        byId('followedShows').classList.toggle('active', showFollowed);
+        // Aperto un podcast il tasto dei seguiti non serve: restano «‹ titolo» e Segui
+        byId('favoritesToggle').hidden = inShow;
+        byId('showTools').hidden = !inShow;
+        byId('favoritesToggle').classList.toggle('active', showFollowed);
+        byId('favoritesToggle').setAttribute('aria-pressed', showFollowed ? 'true' : 'false');
         if (inShow) {
             const followed = isFollowed(openShow);
             byId('closeShow').textContent = '‹ ' + openShow.title;
@@ -623,15 +622,11 @@
         searchTimer = setTimeout(() => runSearch(text), SEARCH_WAIT_MS);
     });
 
-    byId('allShows').textContent = S.all || 'All';
-    byId('followedShows').textContent = S.following || 'Following';
-    byId('allShows').addEventListener('click', () => {
-        setFollowedView(false);
-        channelsBox.scrollTop = 0;
-        render();
-    });
-    byId('followedShows').addEventListener('click', () => {
-        setFollowedView(true);
+    // Il tasto accanto alla ricerca: solo i podcast seguiti, o tutti
+    byId('favoritesToggle').setAttribute('aria-label', S.following || 'Following');
+    byId('favoritesToggle').title = S.following || 'Following';
+    byId('favoritesToggle').addEventListener('click', () => {
+        setFollowedView(!showFollowed);
         channelsBox.scrollTop = 0;
         render();
     });

@@ -602,10 +602,11 @@
         state.extra = kept;
     }
 
+    // Il tasto accanto alla ricerca: solo i preferiti (di tutte le liste), o tutte le stazioni
     function setFavoritesView(on) {
         showFavorites = on;
-        byId('favoriteStations').classList.toggle('active', on);
-        byId('allStations').classList.toggle('active', !on);
+        byId('favoritesToggle').classList.toggle('active', on);
+        byId('favoritesToggle').setAttribute('aria-pressed', on ? 'true' : 'false');
     }
 
     const picker = window.createSourcePicker(byId('source'), {
@@ -644,8 +645,8 @@
             stations = data.stations || [];
             keepExtraStations();
             saveState();
-            byId('allStations').textContent = S.allStations || 'Stations';
-            byId('favoriteStations').textContent = S.favorites || 'Favorites';
+            byId('favoritesToggle').setAttribute('aria-label', S.favorites || 'Favorites');
+            byId('favoritesToggle').title = S.favorites || 'Favorites';
             const previous = stationByUuid(state.lastUuid);
             // Aggiornando l'elenco mentre suona non si perde quello che si sta ascoltando
             if (currentUrl && current) {
@@ -763,12 +764,8 @@
         channelsBox.scrollTop = 0;
         render();
     });
-    byId('allStations').addEventListener('click', () => {
-        setFavoritesView(false);
-        render();
-    });
-    byId('favoriteStations').addEventListener('click', () => {
-        setFavoritesView(true);
+    byId('favoritesToggle').addEventListener('click', () => {
+        setFavoritesView(!showFavorites);
         render();
     });
     byId('refresh').addEventListener('click', () => loadStations(true));
