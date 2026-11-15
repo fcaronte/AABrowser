@@ -57,6 +57,11 @@ object VirtualScreenPower {
     // Un tocco sull'auto riaccende al massimo una volta al secondo
     private const val TOUCH_WAKE_MIN_INTERVAL_MS = 1_000L
 
+    // Finché la scritta "telefono in standby" è sull'auto si guarda ogni secondo se il telefono è davvero spento: l'evento
+    // di accensione può non arrivare (visto nel log: app aperta a telefono spento, acceso dalla shell nello stesso istante)
+    // e la scritta restava per sempre anche a telefono sbloccato
+    private const val ASLEEP_RECHECK_MS = 1_000L
+
     private val main = Handler(Looper.getMainLooper())
     private val users = LinkedHashSet<Any>()
     private val listeners = CopyOnWriteArrayList<() -> Unit>()
@@ -71,7 +76,10 @@ object VirtualScreenPower {
     var active = false
         private set
 
-    /** Il telefono è spento (tasto di blocco o timeout) mentre un'app è sull'auto: le viste lo dicono, un tocco lo riaccende. */
+    /**
+     * Il telefono è spento (tasto di blocco o timeout) mentre un'app è sull'auto: le viste lo dicono, un tocco lo riaccende.
+     * Va cambiato solo con [updateAsleep], che ne controlla anche la verità.
+     */
     var asleep by mutableStateOf(false)
         private set
 
@@ -115,9 +123,13 @@ object VirtualScreenPower {
     fun touchOnCar() {
         val context = appContext ?: return
         if (!active) return
+        // Telefono sveglio: se la scritta di standby era rimasta, un tocco sull'auto la toglie
+        if (isInteractive(context)) {
+            if (asleep) clearStaleAsleep()
+            return
+        }
         val now = SystemClock.uptimeMillis()
         if (now - lastTouchWake < TOUCH_WAKE_MIN_INTERVAL_MS) return
-        if (isInteractive(context)) return
         lastTouchWake = now
         // L'utente interviene: la guardia contro lo sfarfallio ricomincia
         offTimes.clear()
@@ -135,9 +147,10 @@ object VirtualScreenPower {
         val context = appContext ?: return
         active = true
         offTimes.clear()
-        asleep = !isInteractive(context)
-        Log.i(TAG, "an app is in front on the car: the phone stays awake (asleep now: $asleep)")
+        // Prima ci si mette in ascolto, poi si legge lo stato: un telefono che si accende nel mezzo non si perde più
         registerReceiver(context)
+        updateAsleep(!isInteractive(context))
+        Log.i(TAG, "an app is in front on the car: the phone stays awake (asleep now: $asleep)")
         // Il blocco dello schermo, che con ACQUIRE_CAUSES_WAKEUP accende anche un telefono spento
         ShizukuAppBridge.keepPhoneAwake(context, true)
         startStandby()
@@ -147,7 +160,7 @@ object VirtualScreenPower {
     private fun deactivate() {
         val context = appContext ?: return
         active = false
-        asleep = false
+        updateAsleep(false)
         Log.i(TAG, "no app in front on the car any more: the phone goes back to normal")
         main.removeCallbacks(wakeStep)
         unregisterReceiver(context)
@@ -170,7 +183,7 @@ object VirtualScreenPower {
 
     private fun onScreenOff() {
         if (!active) return
-        asleep = true
+        updateAsleep(true)
         notifyListeners()
         val now = SystemClock.uptimeMillis()
         offTimes.addLast(now)
@@ -186,10 +199,37 @@ object VirtualScreenPower {
     private fun onScreenOn() {
         main.removeCallbacks(wakeStep)
         if (!active) return
-        asleep = false
+        updateAsleep(false)
         notifyListeners()
         // Il blocco schermo (o la home) è tornato davanti: la schermata di attesa si rimette sopra
         startStandby()
+    }
+
+    /** Il telefono è sbloccato dall'utente: è sveglio, la scritta di standby non ha più ragione di esserci. */
+    private fun onUserPresent() {
+        if (active && asleep) clearStaleAsleep()
+    }
+
+    /** [asleep] e, finché è vero, il controllo periodico che lo riporta alla realtà. */
+    private fun updateAsleep(value: Boolean) {
+        asleep = value
+        main.removeCallbacks(recheckAsleep)
+        if (value) main.postDelayed(recheckAsleep, ASLEEP_RECHECK_MS)
+    }
+
+    // Il telefono è sveglio ma la scritta c'è ancora: l'evento di accensione non è arrivato
+    private fun clearStaleAsleep() {
+        Log.w(TAG, "the phone is awake but the standby message was still up: clearing it")
+        updateAsleep(false)
+        notifyListeners()
+    }
+
+    private val recheckAsleep = object : Runnable {
+        override fun run() {
+            val context = appContext ?: return
+            if (!active || !asleep) return
+            if (isInteractive(context)) clearStaleAsleep() else main.postDelayed(this, ASLEEP_RECHECK_MS)
+        }
     }
 
     private fun startWaking() {
@@ -214,12 +254,14 @@ object VirtualScreenPower {
                 when (intent.action) {
                     Intent.ACTION_SCREEN_OFF -> onScreenOff()
                     Intent.ACTION_SCREEN_ON -> onScreenOn()
+                    Intent.ACTION_USER_PRESENT -> onUserPresent()
                 }
             }
         }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_USER_PRESENT)
         }
         context.registerReceiver(screen, filter)
         receiver = screen
