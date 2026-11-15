@@ -1268,7 +1268,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
      * Larghezza del menu fisso ([width]) più lo spazio tra il bordo dello schermo e l'area libera ([edgeInset], dove può
      * esserci un pannello dell'host): anche quello è colorato come il menu. Sotto un pannello non si vede, senza pannello
      * (il margine dell'host accanto alla sua barra, un pannello più stretto dell'area riservata) resterebbe un vuoto tra
-     * il menu e il bordo. I tasti stanno centrati nell'area libera; su schermi bassi si stringono, mai fuori.
+     * il menu e il bordo. I tasti stanno al centro dello schermo, mai dentro le fasce dell'host; su schermi bassi si stringono, mai fuori.
      */
     private fun layoutSidebar(sb: LinearLayout, width: Int, edgeInset: Int, rtl: Boolean) {
         sb.layoutParams = FrameLayout.LayoutParams(edgeInset + width, ViewGroup.LayoutParams.MATCH_PARENT).apply {
@@ -1278,7 +1278,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
         val scale = sidebarSizeScale() * surfaceScale()
         val top = stableArea?.top ?: 0
-        val height = (stableArea?.bottom ?: surfaceHeight) - top
+        val bottom = stableArea?.bottom ?: surfaceHeight
+        val height = bottom - top
         val count = sb.childCount
         if (count == 0) return
         var icon = minOf((SIDEBAR_ICON_DP * scale).toInt(), width)
@@ -1287,7 +1288,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             gap = ((height - count * icon) / (count - 1)).coerceAtLeast(SIDEBAR_MIN_GAP_PX)
             icon = minOf(icon, (height - (count - 1) * gap) / count).coerceAtLeast(1)
         }
-        val firstTop = (top + (height - count * icon - (count - 1) * gap) / 2).coerceAtLeast(0)
+        val total = count * icon + (count - 1) * gap
+        // Al centro dello SCHERMO, non dell'area libera: l'host riserva in alto una fascia più alta di quella in basso (nei log
+        // 96 px contro 13) e i tasti, centrati nell'area libera, risultavano spostati in basso (utente, 15/11/2026). Mai dentro
+        // le fasce dell'host: dove al centro non ci stanno si spostano quanto serve (a dock pieno occupano tutta l'area libera)
+        val centered = if (surfaceHeight > 0) (surfaceHeight - total) / 2 else top + (height - total) / 2
+        val firstTop = centered.coerceIn(top, maxOf(top, bottom - total)).coerceAtLeast(0)
+        Log.d(
+            TAG,
+            "dock count=$count icon=$icon gap=$gap total=$total first=$firstTop free=$top..$bottom surfaceHeight=$surfaceHeight"
+        )
         val iconPadding = icon / 10
         for (i in 0 until count) {
             val button = sb.getChildAt(i)
