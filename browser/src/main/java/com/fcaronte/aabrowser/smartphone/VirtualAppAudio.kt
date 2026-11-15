@@ -42,6 +42,18 @@ object VirtualAppAudio {
         }
     }
 
+    /**
+     * Il telefono ha l'audio occupato da altro: una chiamata o una comunicazione in corso (Android non darebbe il focus a nessun
+     * lettore di media, quindi riprovare ogni pochi secondi non serve), oppure qualcosa suona adesso (musica, video, giochi).
+     * Lo chiede la pagina della TV quando il suo video è fermo senza che l'utente l'abbia chiesto: con il suo lettore fermo,
+     * quello che suona è di un'altra app, e non le si toglie l'audio per riprendere (finché dura la pagina aspetta, poi riprende).
+     */
+    fun otherAudioPlaying(context: Context): Boolean {
+        val manager = context.getSystemService(AudioManager::class.java) ?: return false
+        if (manager.mode != AudioManager.MODE_NORMAL) return true
+        return mediaPlayers(manager.activePlaybackConfigurations) > 0
+    }
+
     /** Una sessione di app si apre: la prima accende l'osservazione. */
     fun acquire(context: Context) {
         if (users++ == 0) start(context.applicationContext)

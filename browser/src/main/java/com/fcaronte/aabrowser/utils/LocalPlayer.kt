@@ -100,6 +100,7 @@ object LocalPlayer {
                 path == "/store.js" -> asset(context, "player/store.js", "application/javascript")
                 path == "/video-zoom.js" -> asset(context, "player/video-zoom.js", "application/javascript")
                 path == "/effects.js" -> asset(context, "player/effects.js", "application/javascript")
+                path == "/recover.js" -> asset(context, "player/recover.js", "application/javascript")
                 path == "/icon.svg" -> asset(context, "player/icon.svg", "image/svg+xml")
                 path == "/tv.svg" -> asset(context, "player/tv.svg", "image/svg+xml")
                 path == "/radio.svg" -> asset(context, "player/radio.svg", "image/svg+xml")

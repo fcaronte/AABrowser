@@ -75,6 +75,7 @@ import com.fcaronte.aabrowser.mediaservice.MediaSessionManager
 import com.fcaronte.aabrowser.model.TabManager
 import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
+import com.fcaronte.aabrowser.smartphone.VirtualAppAudio
 import com.fcaronte.aabrowser.utils.AdBlockHost
 import com.fcaronte.aabrowser.utils.AdBlockJavascript
 import com.fcaronte.aabrowser.smartphone.VirtualApps
@@ -955,6 +956,13 @@ fun BrowserScreen(
 
                                 // "Aggiungi una lista" nelle pagine di TV e Radio; false in auto, dove le liste non si
                                 // aggiungono: la pagina avvisa di farlo dal telefono
+                                // La TV chiede se un'altra app suona, prima di riprendere da sola dopo una pausa non voluta: solo le
+                                // pagine dell'app lo sanno
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun otherAudioPlaying(): Boolean =
+                                    LocalPlayer.isPlayerHost(pageHost.get()) && VirtualAppAudio.otherAudioPlaying(context)
+
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun openMediaLists(section: String): Boolean {

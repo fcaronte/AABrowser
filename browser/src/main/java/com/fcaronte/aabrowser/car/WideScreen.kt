@@ -92,6 +92,7 @@ import com.fcaronte.aabrowser.settings.AdBlockSettings
 import com.fcaronte.aabrowser.settings.AppSettings
 import com.fcaronte.aabrowser.settings.SidebarAction
 import com.fcaronte.aabrowser.settings.SidebarHost
+import com.fcaronte.aabrowser.smartphone.VirtualAppAudio
 import com.fcaronte.aabrowser.smartphone.VirtualApps
 import com.fcaronte.aabrowser.smartphone.VirtualSplit
 import com.fcaronte.aabrowser.utils.AdBlockHost
@@ -2301,6 +2302,12 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                                 @JavascriptInterface
                                 @Suppress("unused")
                                 fun hasFixedSidebar(): Boolean = dockVisible
+
+                                // La TV chiede se un'altra app suona, prima di riprendere da sola dopo una pausa non voluta
+                                @JavascriptInterface
+                                @Suppress("unused")
+                                fun otherAudioPlaying(): Boolean =
+                                    LocalPlayer.isPlayerHost(pageHost) && VirtualAppAudio.otherAudioPlaying(carContext)
 
                                 @JavascriptInterface
                                 @Suppress("unused")

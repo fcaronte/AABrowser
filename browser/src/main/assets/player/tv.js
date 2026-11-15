@@ -392,6 +392,62 @@
 
     byId('artImage').addEventListener('error', () => byId('art').classList.remove('has-art'));
 
+    // ------------------------------------------------------------------
+    // Ripresa automatica (recover.js): se l'utente non ha messo in pausa, la TV riprova sempre da sola
+    // ------------------------------------------------------------------
+
+    const recover = window.AABRecover.create();
+
+    // Il PAUSE_SCRIPT e il PLAY_SCRIPT dell'app (player di Android Auto, volante, voce, un'altra riproduzione che ha preso il
+    // player) chiamano questi ganci: una pausa chiesta così è voluta e non si riprende. Come proprietà, perché lo script
+    // dell'app può definirli prima o dopo di noi: il suo rimane (nativo), il nostro gli si affianca
+    ['aabMarkUserPause', 'aabMarkUserPlay'].forEach((name) => {
+        let native = window[name];
+        const ours = name === 'aabMarkUserPause' ? () => recover.userPause() : () => recover.userPlay();
+        try {
+            Object.defineProperty(window, name, {
+                configurable: true,
+                get: () => function () {
+                    ours();
+                    if (typeof native === 'function') return native.apply(this, arguments);
+                    return undefined;
+                },
+                set: (fn) => { native = fn; }
+            });
+        } catch (_) {
+        }
+    });
+
+    function userPause() {
+        recover.userPause();
+        media.pause();
+    }
+
+    // Un'altra app del telefono sta suonando (il ponte lo sa; senza ponte: no): non le si toglie l'audio
+    function otherAudio() {
+        try {
+            return !!(window.AndroidBridge && typeof window.AndroidBridge.otherAudioPlaying === 'function' &&
+                window.AndroidBridge.otherAudioPlaying());
+        } catch (_) {
+            return false;
+        }
+    }
+
+    setInterval(() => {
+        if (!current) return;
+        const action = recover.tick(Date.now(), {
+            paused: media.paused,
+            time: media.currentTime,
+            otherAudio: media.paused && otherAudio()
+        });
+        if (action === 'play') {
+            const attempt = media.play();
+            if (attempt && attempt.catch) attempt.catch(() => {});
+        } else if (action === 'restart') {
+            play(current, true);
+        }
+    }, 1000);
+
     function stopPlayer() {
         if (hls) {
             try {
@@ -419,21 +475,26 @@
     }
 
     // Anche un preferito di un'altra lista: parte dalla sua, senza cambiare quella scelta
-    function play(channel) {
+    // [auto]: lo riavvia la ripresa automatica (stesso canale): i suoi tentativi continuano, con le loro attese
+    function play(channel, auto) {
         current = Object.assign({}, channel, { s: sourceOf(channel) });
         retried = false;
+        recover.begin(!!auto);
         state.last = current;
         saveState();
         showChannel(current);
         redrawRows();
-        showMessage(S.loading);
+        showMessage(auto && recover.attempts >= 2 ? S.unavailable : S.loading);
         const token = ++playToken;
         api('play', { ch: current.k, source: current.s }).then((info) => {
             if (token !== playToken) return;
             stopPlayer();
             start(info);
         }).catch(() => {
-            if (token === playToken) showMessage(S.unavailable);
+            if (token !== playToken) return;
+            showMessage(S.unavailable);
+            // L'app o la rete non rispondono per un attimo: si riprova
+            recover.error(Date.now());
         });
     }
 
@@ -451,6 +512,7 @@
                     hls.recoverMediaError();
                 } else {
                     showMessage(S.unavailable);
+                    recover.error(Date.now());
                 }
             });
             hls.loadSource(info.url);
@@ -460,7 +522,10 @@
                 { type: info.kind === 'flv' ? 'flv' : 'mpegts', isLive: true, url: info.url },
                 { enableWorker: false, lazyLoad: false, autoCleanupSourceBuffer: true }
             );
-            ts.on(mpegts.Events.ERROR, () => showMessage(S.unavailable));
+            ts.on(mpegts.Events.ERROR, () => {
+                showMessage(S.unavailable);
+                recover.error(Date.now());
+            });
             ts.attachMediaElement(media);
             ts.load();
         } else {
@@ -472,6 +537,7 @@
 
     // Play: l'ultimo canale, mostrato all'apertura, parte al primo tocco; altrimenti riprende
     function resume() {
+        recover.userPlay();
         if (current && !hls && !ts && !media.getAttribute('src')) {
             play(current);
             return;
@@ -501,7 +567,14 @@
         document.body.classList.toggle('has-video', media.videoWidth > 0);
     });
     media.addEventListener('error', () => {
-        if (current && media.getAttribute('src')) showMessage(S.unavailable);
+        if (current && media.getAttribute('src')) {
+            showMessage(S.unavailable);
+            recover.error(Date.now());
+        }
+    });
+    // Un flusso dal vivo che finisce è un flusso caduto: si riconnette
+    media.addEventListener('ended', () => {
+        if (current && media.getAttribute('src')) recover.error(Date.now());
     });
 
     // Tocco sul video: la barra con zoom, modo dell'immagine e schermo intero (video-zoom.js). A schermo intero compare
@@ -534,7 +607,7 @@
         } else if (media.paused) {
             resume();
         } else {
-            media.pause();
+            userPause();
         }
     });
     byId('next').addEventListener('click', () => step(1));
@@ -543,7 +616,7 @@
     if ('mediaSession' in navigator) {
         const handlers = {
             play: () => resume(),
-            pause: () => media.pause(),
+            pause: () => userPause(),
             nexttrack: () => step(1),
             previoustrack: () => step(-1)
         };
@@ -601,7 +674,7 @@
 
     async function runVoice(voice) {
         if (voice.action === 'pause') {
-            media.pause();
+            userPause();
         } else if (voice.action === 'next') {
             step(1);
         } else if (voice.action === 'previous') {
