@@ -2,8 +2,12 @@ package com.fcaronte.aabrowser.model
 
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class FavoritesViewModel(application: Application) : AndroidViewModel(application) {
@@ -13,6 +17,13 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         favorites.addAll(repository.loadFavorites())
+        // Cambiati dalla pagina delle impostazioni (ripristino, aggiunta dei predefiniti): la lista salvata è più nuova
+        viewModelScope.launch {
+            snapshotFlow { FavoritesRepository.externalChanges.value }.drop(1).collect {
+                favorites.clear()
+                favorites.addAll(repository.loadFavorites())
+            }
+        }
     }
 
     fun addFavorite(
@@ -93,20 +104,7 @@ class FavoritesViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun addMissingDefaults(): Int {
-        val currentUrls = favorites.map { FavoritesRepository.normalizeUrl(it.url) }
-        val defaults = repository.getDefaultFavorites()
-        var addedCount = 0
-        defaults.forEach { default ->
-            val normalizedDefaultUrl = FavoritesRepository.normalizeUrl(default.url)
-            if (!currentUrls.contains(normalizedDefaultUrl)) {
-                // Genera un nuovo ID unico per evitare conflitti con quelli esistenti
-                FavoritesRepository.insertDefaultFavorite(
-                    favorites,
-                    default.copy(id = UUID.randomUUID().toString())
-                )
-                addedCount++
-            }
-        }
+        val addedCount = FavoritesRepository.addMissingDefaults(favorites, repository.getDefaultFavorites())
         if (addedCount > 0) {
             repository.saveFavorites(favorites)
         }

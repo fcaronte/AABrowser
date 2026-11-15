@@ -2,6 +2,8 @@ package com.fcaronte.aabrowser.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import com.fcaronte.aabrowser.R
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import java.util.UUID
@@ -143,6 +145,14 @@ class FavoritesRepository(private val context: Context) {
         return defaults
     }
 
+    /** Aggiunge i preferiti predefiniti che nella lista salvata mancano (stesso indirizzo); quanti ne ha aggiunti. */
+    fun addMissingDefaults(): Int {
+        val list = loadFavorites().toMutableList()
+        val added = addMissingDefaults(list, getDefaultFavorites())
+        if (added > 0) saveFavorites(list)
+        return added
+    }
+
     companion object {
         private const val TEST_PLAYER_URL = "https://web-player.streamlit.app"
         private const val OLD_PLAYER_NAME = "AABrowser Player"
@@ -168,6 +178,31 @@ class FavoritesRepository(private val context: Context) {
 
         /** CarWeb Media è fisso: non si può eliminare né cambiare indirizzo, e se manca torna. */
         fun isFixed(site: FavoriteSite): Boolean = LocalPlayer.isPlayerUrl(site.url)
+
+        // La lista in memoria della Main (FavoritesViewModel) e quella salvata sono due copie: chi cambia i preferiti da
+        // fuori dalla Main (la pagina delle impostazioni, anche aperta dalla Wide) lo segnala qui e il ViewModel si rilegge
+        private val _externalChanges = mutableIntStateOf(0)
+        val externalChanges: State<Int> = _externalChanges
+
+        fun notifyExternalChange() {
+            _externalChanges.intValue++
+        }
+
+        /**
+         * Mette in [favorites] i predefiniti di [defaults] il cui indirizzo non c'è già, ognuno con un id nuovo (non devono
+         * scontrarsi con quelli esistenti), al posto che gli spetta; quanti ne ha messi.
+         */
+        fun addMissingDefaults(favorites: MutableList<FavoriteSite>, defaults: List<FavoriteSite>): Int {
+            val known = favorites.map { normalizeUrl(it.url) }.toMutableSet()
+            var added = 0
+            defaults.forEach { default ->
+                if (known.add(normalizeUrl(default.url))) {
+                    insertDefaultFavorite(favorites, default.copy(id = UUID.randomUUID().toString()))
+                    added++
+                }
+            }
+            return added
+        }
 
         fun insertDefaultFavorite(favorites: MutableList<FavoriteSite>, site: FavoriteSite) {
             val radioUrl = normalizeUrl("${LocalPlayer.BASE_URL}radio")

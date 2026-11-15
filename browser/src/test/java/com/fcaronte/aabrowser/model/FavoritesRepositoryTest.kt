@@ -1,6 +1,7 @@
 package com.fcaronte.aabrowser.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class FavoritesRepositoryTest {
@@ -66,5 +67,28 @@ class FavoritesRepositoryTest {
             listOf("https://player.local/", "https://player.local/podcast", "https://player.local/apps", "https://youtube.com"),
             favorites.map { it.url },
         )
+    }
+
+    @Test
+    fun missingDefaultsAreAddedOnceWithNewIds() {
+        val favorites = mutableListOf(
+            FavoriteSite("u1", "Mio", "https://example.com"),
+            FavoriteSite("u2", "Media", "https://player.local/"),
+        )
+        val defaults = listOf(
+            FavoriteSite("0", "Media", "https://player.local/"),
+            FavoriteSite("2", "Radio", "https://player.local/radio"),
+            // Stesso sito scritto in un altro modo (maiuscole, www, barra finale): c'è già
+            FavoriteSite("3", "Mio", "HTTPS://www.Example.com/"),
+        )
+
+        val added = FavoritesRepository.addMissingDefaults(favorites, defaults)
+
+        assertEquals(1, added)
+        assertEquals(listOf("https://example.com", "https://player.local/", "https://player.local/radio"), favorites.map { it.url })
+        // L'id del predefinito non si riusa: potrebbe scontrarsi con uno esistente
+        assertNotEquals("2", favorites.last().id)
+        // Una seconda volta non c'è più niente da aggiungere
+        assertEquals(0, FavoritesRepository.addMissingDefaults(favorites, defaults))
     }
 }
