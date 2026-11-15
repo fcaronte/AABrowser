@@ -10,6 +10,11 @@
     // Una stazione che non parte, o che a un certo punto smette di mandare audio, lo deve dire (vedi "Una stazione che non parte")
     const START_TIMEOUT_MS = 20_000;   // dal tocco sulla stazione al primo suono
     const STALL_MS = 8_000;            // a stazione partita: tempo di riproduzione fermo
+    // Una radio non finisce: se uno stream passato dal tramite dell'app finisce così presto, il tramite non lo regge
+    const EARLY_END_S = 120;
+    // Nel sessionStorage (resta dopo il ricaricamento, anche se la copia di stato nell'app non ha fatto in tempo ad aggiornarsi)
+    const NO_EFFECTS_KEY = 'aabRadioNoEffects';   // gli effetti restano spenti
+    const RESUME_KEY = 'aabRadioResume';          // la stazione riparte da sola
     const byId = (id) => document.getElementById(id);
     const media = byId('media');
     const channelsBox = byId('channels');
@@ -49,7 +54,19 @@
         const saved = Object.assign(empty, store.read());
         // Un effetto che non esiste (valore rovinato o di un'altra versione) vale "off"
         if (!window.AABEffects.EFFECTS.includes(saved.effect)) saved.effect = 'off';
+        // Il tramite non ha retto uno stream e la pagina si è ricaricata (proxyFailed): niente effetti finché non si scelgono
+        if (session(NO_EFFECTS_KEY) === '1') saved.effect = 'off';
         return saved;
+    }
+
+    function session(key, value) {
+        try {
+            if (value === undefined) return window.sessionStorage.getItem(key);
+            if (value === null) window.sessionStorage.removeItem(key);
+            else window.sessionStorage.setItem(key, value);
+        } catch (_) {
+        }
+        return null;
     }
 
     function saveState() {
@@ -387,9 +404,17 @@
         watchTimer = setInterval(checkProgress, 1000);
     }
 
+    // Uno stream passato dal tramite dell'app arriva con una lunghezza dichiarata di comodo (la WebView non conosce quella di una
+    // radio, vedi IptvProxy.LiveStream): all'app e al resto della pagina una radio non deve risultare lunga 37 ore
+    function setLiveDuration(on) {
+        if (on) Object.defineProperty(media, 'duration', { get: () => Infinity, configurable: true });
+        else delete media.duration;
+    }
+
     function stopStream() {
         stopMetadataPolling();
         stopWatching();
+        setLiveDuration(false);
         if (hls) {
             hls.destroy();
             hls = null;
@@ -477,6 +502,8 @@
 
     function chooseEffect(effect) {
         state.effect = effect;
+        // L'utente li ha scelti di nuovo: il ricaricamento non deve più spegnerli
+        if (effect !== 'off') session(NO_EFFECTS_KEY, null);
         saveState();
         visual.reset();
         // Dentro il tocco dell'utente: contesto attivo. Uno stream diretto di un altro sito riparte dal tramite (a un
@@ -512,6 +539,7 @@
             currentUrl = info.url;
             currentIsHls = info.kind === 'hls';
             currentIsProxied = String(info.url).startsWith('/tv/stream/');
+            setLiveDuration(currentIsProxied && !currentIsHls);
             if (currentIsHls && window.Hls && Hls.isSupported()) {
                 hls = new Hls({ backBufferLength: 30, maxBufferLength: 30 });
                 hls.on(Hls.Events.ERROR, (_, data) => {
@@ -815,6 +843,31 @@
         message(S.unavailable || 'Station unavailable');
     });
 
+    // Una radio non finisce mai. Se uno stream passato dal tramite dell'app (solo con gli effetti accesi) finisce dopo pochi
+    // secondi, il tramite non lo regge: effetti spenti e pagina ricaricata, perché un elemento collegato a Web Audio non si
+    // scollega più e la stazione, suonata direttamente, resterebbe muta. La stazione riparte da sola.
+    function proxyFailed() {
+        state.effect = 'off';
+        saveState();
+        session(NO_EFFECTS_KEY, '1');
+        session(RESUME_KEY, '1');
+        stopWatching();
+        updateEffectsButton();
+        message(S.effectsOff || 'Effects turned off: this station cannot use them');
+        setTimeout(() => location.reload(), 2000);
+    }
+
+    media.addEventListener('ended', () => {
+        if (!current) return;
+        if (currentIsProxied && !currentIsHls && (state.effect !== 'off' || !!sourceNode) && media.currentTime < EARLY_END_S) {
+            proxyFailed();
+            return;
+        }
+        // Il server ha chiuso lo stream: prima restava tutto muto senza dire niente
+        stopWatching();
+        message(S.stalled || 'No audio from the station');
+    });
+
     lyricsController = window.createLyricsController(
         byId('lyricsButton'),
         media,
@@ -837,6 +890,10 @@
     // La lista automatica cambia con la lingua dell'app: una lista che non c'è più torna alla prima
     state.source = picker.has(state.source) ? state.source : ((picker.list()[0] || {}).id || '');
     picker.select(state.source);
+    // Ricaricata da proxyFailed: la stazione che suonava riparte, direttamente
+    const resumeAfterReload = session(RESUME_KEY) === '1';
+    if (resumeAfterReload) session(RESUME_KEY, null);
     const stationsReady = loadStations(false);
+    if (resumeAfterReload) stationsReady.then(() => current && play(current));
     window.aabVoice();
 })();

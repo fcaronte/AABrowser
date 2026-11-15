@@ -420,6 +420,7 @@
     <string name="radio_error">Nem sikerült betölteni a rádióállomásokat</string>
     <string name="radio_unavailable">Az állomás nem érhető el</string>
     <string name="radio_stalled">Az állomás nem küld hangot</string>
+    <string name="radio_effects_off">Az effektek kikapcsolva: ez az állomás nem támogatja őket</string>
     <string name="share_carweb_label">Megosztás a CarWebbe</string>
     <string name="share_carweb_desc">Hozzáadja a CarWebet a telefon Megosztás menüjéhez: a linkek, fotók, videók és hangfájlok egy lapon nyílnak meg. Az autóhoz csatlakozva ott nyílnak meg; a „Mindig” beállítással az autótól távol az alkalmazás a telefonon nyílik meg.</string>
     <string name="share_carweb_when">Mikor jelenjen meg a Megosztás menüben</string>

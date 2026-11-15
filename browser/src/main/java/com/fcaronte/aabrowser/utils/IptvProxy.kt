@@ -30,8 +30,11 @@ object IptvProxy {
 
     const val STREAM_PATH = "/tv/stream/"
 
-    /** Un indirizzo con gli header che la lista chiede per aprirlo (IptvHeaders): valgono anche per i suoi segmenti. */
-    private data class Target(val url: String, val headers: Map<String, String>)
+    /**
+     * Un indirizzo con gli header che la lista chiede per aprirlo (IptvHeaders): valgono anche per i suoi segmenti.
+     * [live]: uno stream audio senza fine (una radio) letto da un elemento audio, vedi [LiveStream].
+     */
+    private data class Target(val url: String, val headers: Map<String, String>, val live: Boolean = false)
 
     // id -> indirizzo, e al contrario: le liste HLS dal vivo si ricaricano ogni pochi secondi con gli stessi segmenti
     private val idsByTarget = HashMap<Target, String>()
@@ -48,8 +51,8 @@ object IptvProxy {
     private val XTREAM_STREAM = Regex("""/[^/]+/[^/]+/\d+/?""")
 
     /** Indirizzo per la pagina (percorso di player.local) al posto di [url]. */
-    fun proxyPath(url: String, headers: Map<String, String> = emptyMap()): String = synchronized(ids) {
-        val target = Target(url, headers)
+    fun proxyPath(url: String, headers: Map<String, String> = emptyMap(), live: Boolean = false): String = synchronized(ids) {
+        val target = Target(url, headers, live)
         val id = idsByTarget[target]?.takeIf { ids[it] != null } ?: UUID.randomUUID().toString().replace("-", "").also {
             ids[it] = target
             idsByTarget[target] = it
@@ -162,7 +165,20 @@ object IptvProxy {
         val closing = object : FilterInputStream(stream) {
             override fun close() = upstream.close()
         }
-        return WebResourceResponse(mime, null, 200, "OK", NO_STORE, closing)
+        return WebResourceResponse(mime, null, 200, "OK", NO_STORE, if (target.live) LiveStream(closing) else closing)
+    }
+
+    /**
+     * Uno stream senza fine (radio) letto da un elemento audio. La WebView prende available() come lunghezza del file e il
+     * lettore multimediale si ferma lì: con quello che c'era già nel buffer (32 KB, circa 2 secondi) la radio finiva dopo due
+     * secondi (nel log: durata che arriva a 2,04 s e poi "fine"). Qui la lunghezza dichiarata è la massima (circa 37 ore a
+     * 128 kbit/s) e saltare non consuma niente: una richiesta che ripartisse da un punto più avanti riceverebbe comunque
+     * quello che è in onda, invece di restare ore a scartare dati.
+     */
+    internal class LiveStream(input: InputStream) : FilterInputStream(input) {
+        override fun available(): Int = Int.MAX_VALUE
+
+        override fun skip(n: Long): Long = maxOf(n, 0L)
     }
 
     /**

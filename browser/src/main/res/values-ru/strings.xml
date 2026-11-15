@@ -422,6 +422,7 @@
     <string name="radio_error">Не удалось загрузить радиостанции</string>
     <string name="radio_unavailable">Станция недоступна</string>
     <string name="radio_stalled">Станция не передаёт звук</string>
+    <string name="radio_effects_off">Эффекты выключены: эта станция их не поддерживает</string>
     <string name="share_carweb_label">Поделиться в CarWeb</string>
     <string name="share_carweb_desc">Добавляет CarWeb в меню «Поделиться» на телефоне: ссылки, фото, видео и аудиофайлы открываются на вкладке. При подключении к машине они открываются там; с вариантом «Всегда» вне машины приложение открывается на телефоне.</string>
     <string name="share_carweb_when">Когда показывать в меню «Поделиться»</string>

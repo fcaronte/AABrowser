@@ -420,6 +420,7 @@
     <string name="radio_error">Radiosender konnten nicht geladen werden</string>
     <string name="radio_unavailable">Sender nicht verfügbar</string>
     <string name="radio_stalled">Kein Ton vom Sender</string>
+    <string name="radio_effects_off">Effekte aus: dieser Sender unterstützt sie nicht</string>
     <string name="share_carweb_label">Mit CarWeb teilen</string>
     <string name="share_carweb_desc">Fügt CarWeb dem Teilen-Menü des Telefons hinzu: Links, Fotos, Videos und Audiodateien werden in einem Tab geöffnet. Mit dem Auto verbunden öffnen sie sich dort; mit „Immer“ öffnet sich abseits des Autos die App auf dem Telefon.</string>
     <string name="share_carweb_when">Wann im Teilen-Menü anzeigen</string>

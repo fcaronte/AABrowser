@@ -76,6 +76,7 @@ internal object RadioApi {
             .put("error", appContext.getString(com.fcaronte.aabrowser.R.string.radio_error))
             .put("unavailable", appContext.getString(com.fcaronte.aabrowser.R.string.radio_unavailable))
             .put("stalled", appContext.getString(com.fcaronte.aabrowser.R.string.radio_stalled))
+            .put("effectsOff", appContext.getString(com.fcaronte.aabrowser.R.string.radio_effects_off))
             .put("lyricsButton", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_button))
             .put("lyricsLoading", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_loading))
             .put("lyricsNotFound", appContext.getString(com.fcaronte.aabrowser.R.string.lyrics_not_found))
@@ -311,14 +312,19 @@ internal object RadioApi {
         if (!isPublicHttpUrl(resolvedUrl)) return error(403, "station")
         val isHls = station.isHls || isHlsAddress(resolvedUrl)
         // hls.js legge lista e segmenti dalla pagina (https): in http la Main li bloccherebbe, l'audio diretto no
-        val url = if (viaProxy(resolvedUrl, isHls, hasHeaders = false, sameOrigin = sameOrigin)) IptvProxy.proxyPath(resolvedUrl) else resolvedUrl
+        // Un flusso audio diretto che passa dal tramite lo legge un elemento audio: serve la lunghezza "senza fine" (LiveStream)
+        val url = if (viaProxy(resolvedUrl, isHls, hasHeaders = false, sameOrigin = sameOrigin)) {
+            IptvProxy.proxyPath(resolvedUrl, live = !isHls)
+        } else {
+            resolvedUrl
+        }
         return json(JSONObject().put("url", url).put("kind", if (isHls) "hls" else "file"))
     }
 
     // Una lista dell'utente, come quelle della TV: niente conteggio su Radio Browser e anche gli indirizzi di casa
     private fun playPlaylistStation(station: Station, sameOrigin: Boolean): WebResourceResponse {
         val proxied = viaProxy(station.streamUrl, station.isHls, station.headers.isNotEmpty(), sameOrigin)
-        val url = if (proxied) IptvProxy.proxyPath(station.streamUrl, station.headers) else station.streamUrl
+        val url = if (proxied) IptvProxy.proxyPath(station.streamUrl, station.headers, live = !station.isHls) else station.streamUrl
         return json(JSONObject().put("url", url).put("kind", if (station.isHls) "hls" else "file"))
     }
 

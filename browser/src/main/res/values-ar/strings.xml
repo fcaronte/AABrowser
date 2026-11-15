@@ -424,6 +424,7 @@
     <string name="radio_error">تعذر تحميل المحطات الإذاعية</string>
     <string name="radio_unavailable">المحطة غير متاحة</string>
     <string name="radio_stalled">لا يصل صوت من المحطة</string>
+    <string name="radio_effects_off">تم إيقاف التأثيرات: هذه المحطة لا تدعمها</string>
     <string name="share_carweb_label">المشاركة إلى CarWeb</string>
     <string name="share_carweb_desc">يضيف CarWeb إلى قائمة المشاركة في الهاتف: تُفتح الروابط والصور والفيديوهات والملفات الصوتية في علامة تبويب. عند الاتصال بالسيارة تُفتح هناك؛ ومع «دائمًا»، بعيدًا عن السيارة، يُفتح التطبيق على الهاتف.</string>
     <string name="share_carweb_when">متى تظهر في قائمة المشاركة</string>
