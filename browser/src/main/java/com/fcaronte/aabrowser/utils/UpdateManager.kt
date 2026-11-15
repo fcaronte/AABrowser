@@ -56,6 +56,11 @@ object UpdateManager {
     private var isNotificationAlreadyShown = false
     var isBannerDismissed = false
 
+    /** L'esito dell'ultimo controllo (null finché non c'è stato): la home della Wide lo legge per il suo avviso. */
+    @Volatile
+    var lastInfo: UpdateInfo? = null
+        private set
+
     data class UpdateInfo(
         val isAvailable: Boolean,
         val latestVersion: String,
@@ -86,9 +91,9 @@ object UpdateManager {
                 for (name in GitHubRepo.NAMES) {
                     val release = latestRelease(name) ?: continue
                     GitHubRepo.markLive(name)
-                    return@withContext updateFrom(context, name, release)
+                    return@withContext updateFrom(context, name, release).also { lastInfo = it }
                 }
-                UpdateInfo(false, "", "")
+                UpdateInfo(false, "", "").also { lastInfo = it }
             } catch (e: Exception) {
                 AppLog.e(TAG, "Error checking for updates: ${e.message}")
                 UpdateInfo(false, "", "")

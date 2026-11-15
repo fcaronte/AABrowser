@@ -307,6 +307,10 @@
     <string name="wide_reopen_last_page">Reabrir última página</string>
     <string name="wide_sidebar_size">Tamaño de la barra lateral</string>
     <string name="wide_no_favorites">No hay favoritos. Usa la lupa para buscar.</string>
+    <string name="home_delete">Eliminar</string>
+    <string name="home_move_back">Mover antes</string>
+    <string name="home_move_forward">Mover después</string>
+    <string name="home_error">Algo salió mal. Inténtalo de nuevo.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Última carpeta: %1$s</string>

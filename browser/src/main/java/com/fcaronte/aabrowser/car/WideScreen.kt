@@ -70,6 +70,7 @@ import androidx.car.app.navigation.NavigationManager
 import androidx.car.app.navigation.NavigationManagerCallback
 import androidx.car.app.navigation.model.NavigationTemplate
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
@@ -107,6 +108,7 @@ import com.fcaronte.aabrowser.utils.DrivingState
 import com.fcaronte.aabrowser.utils.GoogleLoginManager
 import com.fcaronte.aabrowser.utils.IptvSources
 import com.fcaronte.aabrowser.utils.JsDialogRequest
+import com.fcaronte.aabrowser.utils.HomeApi
 import com.fcaronte.aabrowser.utils.LocalPlayer
 import com.fcaronte.aabrowser.utils.PopupGuard
 import com.fcaronte.aabrowser.utils.QRCodeUtils
@@ -349,10 +351,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     private val learnedReserves = HashMap<Rect, ButtonsReserve>()
     private var lastUrl: String? = null
 
-    @Volatile
-    private var homeHtml: String? = null
-
-    // Versione nuova trovata all'apertura: l'avviso in cima alla home (la home si costruisce anche dal thread di rete)
+    // Versione nuova trovata all'apertura: l'avviso della home (la home la legge da UpdateManager.lastInfo)
     @Volatile
     private var updateInfo: UpdateManager.UpdateInfo? = null
 
@@ -472,6 +471,7 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
                 watchDockActions()
                 watchSidebarSize()
                 watchVirtualSplit()
+                watchFavorites()
                 // Dopo un aggiornamento le novità, se non le si sono già lette sul telefono o nella Main (la superficie e la
                 // prima pagina arrivano prima)
                 handler.postDelayed({ showWhatsNew() }, WHATS_NEW_DELAY_MS)
@@ -659,6 +659,17 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         invalidate()
     }
 
+    // I preferiti cambiati altrove (Impostazioni, ripristino, la stella): desktop e zoom si rileggono, e la home aperta si aggiorna
+    private fun watchFavorites() {
+        lifecycleScope.launch {
+            snapshotFlow { FavoritesRepository.externalChanges.value }.drop(1).collect {
+                favoritesCache = null
+                webView?.takeIf { it.url?.startsWith(HomePage.BASE_URL) == true }
+                    ?.evaluateJavascript("window.aabRefresh && window.aabRefresh();", null)
+            }
+        }
+    }
+
     private fun watchVirtualSplit() {
         lifecycleScope.launch {
             snapshotFlow {
@@ -732,7 +743,9 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             list.add(FavoriteSite(id = UUID.randomUUID().toString(), name = name, url = url))
             repository.saveFavorites(list)
             favoritesCache = null
-            homeHtml = null
+            // La Main tiene la sua lista in memoria: si rilegge (prima la stella della Wide le restava invisibile)
+            FavoritesRepository.notifyExternalChange()
+            Snapshot.sendApplyNotifications()
         }
         CarToast.makeText(carContext, strings.getString(R.string.favorite_added), CarToast.LENGTH_SHORT).show()
     }
@@ -860,22 +873,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
     // Navigazione: home HTML, ricerca, URL
     // ------------------------------------------------------------------
 
-    private fun buildHomeHtml(): String {
-        favoritesCache = null
-        // Dopo i preferiti, le app del telefono con la stella (pagina "Altre App"): si aprono sullo schermo virtuale
-        val apps = try {
-            VirtualApps.favorites(carContext).map {
-                HomePage.Item(it.name, VirtualApps.urlFor(it.packageName), LocalPlayer.appIconUrl(it.packageName))
-            }
-        } catch (_: Exception) {
-            emptyList()
-        }
-        val items = favorites().map { HomePage.Item(it.name, it.url) } + apps
-        val updateText = updateInfo?.takeIf { it.isAvailable && !UpdateManager.isBannerDismissed }
-            ?.let { strings.getString(R.string.update_available, it.latestVersion) }
-        return HomePage.build(strings, items, updateText)
-    }
-
     /**
      * Le novità della versione, la prima volta dopo un aggiornamento: un messaggio lungo di Android Auto. Solo se non sono
      * già state lette (sul telefono o nella Main: lo stato è unico) e da fermi, perché in movimento Android Auto non mostra i
@@ -901,7 +898,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
             if (!info.isAvailable) return@launch
             updateInfo = info
             UpdateManager.showUpdateNotification(carContext, info)
-            homeHtml = null
             if (isHome()) showHome()
         }
     }
@@ -928,7 +924,6 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
         hideCustomView()
         // Nello schermo diviso la home va nel pannello del browser e l'app resta accanto
         if (!virtualApp.isSplit) virtualApp.hide()
-        homeHtml = buildHomeHtml()
         lastUrl = HOME
         val wv = webView ?: return
         if (wv.url == HomePage.BASE_URL) wv.reload() else wv.loadUrl(HomePage.BASE_URL)
@@ -2522,14 +2517,8 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 val urlString = request?.url?.toString() ?: ""
 
-                                if (urlString == HomePage.BASE_URL) {
-                                    val html = homeHtml ?: buildHomeHtml().also { homeHtml = it }
-                                    return WebResourceResponse(
-                                        "text/html",
-                                        "UTF-8",
-                                        ByteArrayInputStream(html.toByteArray(Charsets.UTF_8))
-                                    )
-                                }
+                                // La home della Wide: una pagina dell'app (HomeApi) con i colori dell'app e i preferiti modificabili
+                                HomeApi.intercept(carContext, request)?.let { return it }
 
                                 if (AdBlockHost.shouldBlock(urlString, pageHost)) {
                                     return AdBlockHost.blockedResponse(request)
@@ -2600,6 +2589,16 @@ class WideScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
 
                                 if (url.startsWith(HomePage.OPEN_MAIN)) {
                                     MainHandOver.openMainSoon(carContext)
+                                    return true
+                                }
+
+                                // I tasti in alto della home: la lente e il microfono, come nella home della Main
+                                if (url.startsWith(HomePage.SEARCH)) {
+                                    handler.post { openSearch() }
+                                    return true
+                                }
+                                if (url.startsWith(HomePage.VOICE)) {
+                                    handler.post { toggleVoiceCommand() }
                                     return true
                                 }
 

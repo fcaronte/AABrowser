@@ -310,6 +310,10 @@
     <string name="wide_reopen_last_page">إعادة فتح الصفحة الأخيرة</string>
     <string name="wide_sidebar_size">حجم الشريط الجانبي</string>
     <string name="wide_no_favorites">لا توجد مفضلة. استخدم العدسة للبحث.</string>
+    <string name="home_delete">حذف</string>
+    <string name="home_move_back">نقل إلى الأمام</string>
+    <string name="home_move_forward">نقل إلى الخلف</string>
+    <string name="home_error">حدث خطأ ما. حاول مرة أخرى.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">آخر مجلد: %1$s</string>

@@ -310,6 +310,10 @@
     <string name="wide_reopen_last_page">Reopen last page</string>
     <string name="wide_sidebar_size">Sidebar size</string>
     <string name="wide_no_favorites">No favorites. Use the magnifier to search.</string>
+    <string name="home_delete">Delete</string>
+    <string name="home_move_back">Move earlier</string>
+    <string name="home_move_forward">Move later</string>
+    <string name="home_error">Something went wrong. Try again.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Last folder: %1$s</string>

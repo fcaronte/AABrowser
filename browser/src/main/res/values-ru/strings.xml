@@ -308,6 +308,10 @@
     <string name="wide_reopen_last_page">Открыть последнюю страницу</string>
     <string name="wide_sidebar_size">Размер боковой панели</string>
     <string name="wide_no_favorites">Нет избранного. Нажмите на лупу для поиска.</string>
+    <string name="home_delete">Удалить</string>
+    <string name="home_move_back">Переместить раньше</string>
+    <string name="home_move_forward">Переместить позже</string>
+    <string name="home_error">Что-то пошло не так. Повторите попытку.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Последняя папка: %1$s</string>

@@ -306,6 +306,10 @@
     <string name="wide_reopen_last_page">Utolsó oldal újranyitása</string>
     <string name="wide_sidebar_size">Oldalsáv mérete</string>
     <string name="wide_no_favorites">Nincs kedvenc. A kereséshez használd a nagyítót.</string>
+    <string name="home_delete">Törlés</string>
+    <string name="home_move_back">Előrébb</string>
+    <string name="home_move_forward">Hátrébb</string>
+    <string name="home_error">Valami hiba történt. Próbáld újra.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Utolsó mappa: %1$s</string>

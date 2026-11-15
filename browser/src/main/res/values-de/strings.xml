@@ -306,6 +306,10 @@
     <string name="wide_reopen_last_page">Letzte Seite wieder öffnen</string>
     <string name="wide_sidebar_size">Größe der Seitenleiste</string>
     <string name="wide_no_favorites">Keine Favoriten. Nutzen Sie die Lupe zum Suchen.</string>
+    <string name="home_delete">Löschen</string>
+    <string name="home_move_back">Nach vorne verschieben</string>
+    <string name="home_move_forward">Nach hinten verschieben</string>
+    <string name="home_error">Etwas ist schiefgelaufen. Versuche es erneut.</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">Letzter Ordner: %1$s</string>

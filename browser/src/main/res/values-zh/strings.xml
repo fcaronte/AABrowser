@@ -305,6 +305,10 @@
     <string name="wide_reopen_last_page">重新打开最后一页</string>
     <string name="wide_sidebar_size">侧边栏大小</string>
     <string name="wide_no_favorites">没有收藏。使用放大镜进行搜索。</string>
+    <string name="home_delete">删除</string>
+    <string name="home_move_back">前移</string>
+    <string name="home_move_forward">后移</string>
+    <string name="home_error">出了点问题，请重试。</string>
 
     <!-- File chooser -->
     <string name="file_chooser_last_folder">上次的文件夹：%1$s</string>
