@@ -549,7 +549,7 @@
     <string name="player_audio_unsupported">O som deste vídeo (%1$s) não pode ser reproduzido aqui: o motor do navegador do telemóvel não descodifica este formato.</string>
     <string name="bt_input_label">Rato e teclado Bluetooth</string>
     <string name="bt_input_desc">Controle o ecrã do carro com um rato ou um teclado Bluetooth ligado ao telemóvel. O ecrã de controlo tem de ficar aberto no telemóvel.</string>
-    <string name="bt_input_open">Abrir o ecrã de controlo</string>
+    <string name="bt_input_open">Abrir</string>
     <string name="bt_pointer_speed">Velocidade do ponteiro: %1$d%%</string>
     <string name="bt_input_title">Rato e teclado Bluetooth</string>
     <string name="bt_input_on">Está a controlar %1$s no ecrã do carro</string>

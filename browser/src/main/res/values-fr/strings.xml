@@ -549,7 +549,7 @@
     <string name="player_audio_unsupported">Le son de cette vidéo (%1$s) ne peut pas être lu ici : le moteur de navigation du téléphone ne décode pas ce format.</string>
     <string name="bt_input_label">Souris et clavier Bluetooth</string>
     <string name="bt_input_desc">Commandez l\'écran de la voiture avec une souris ou un clavier Bluetooth connecté au téléphone. L\'écran de contrôle doit rester ouvert sur le téléphone.</string>
-    <string name="bt_input_open">Ouvrir l\'écran de contrôle</string>
+    <string name="bt_input_open">Ouvrir</string>
     <string name="bt_pointer_speed">Vitesse du pointeur : %1$d%%</string>
     <string name="bt_input_title">Souris et clavier Bluetooth</string>
     <string name="bt_input_on">Vous contrôlez %1$s sur l\'écran de la voiture</string>

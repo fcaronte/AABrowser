@@ -556,7 +556,7 @@
     <string name="player_audio_unsupported">The sound of this video (%1$s) cannot be played here: the phone\'s browser engine does not decode this format.</string>
     <string name="bt_input_label">Bluetooth mouse and keyboard</string>
     <string name="bt_input_desc">Control the car screen with a Bluetooth mouse or keyboard connected to the phone. The control screen must stay open on the phone.</string>
-    <string name="bt_input_open">Open the control screen</string>
+    <string name="bt_input_open">Open</string>
     <string name="bt_pointer_speed">Pointer speed: %1$d%%</string>
     <string name="bt_input_title">Bluetooth mouse and keyboard</string>
     <string name="bt_input_on">Controlling %1$s on the car screen</string>

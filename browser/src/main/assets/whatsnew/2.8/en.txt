@@ -1,10 +1,11 @@
-• Other Apps: with Shizuku you can use your phone's apps on the car screen, in a CarWeb tab or in CarWebWide, with touch, a side bar and the keyboard. Starred apps are tiles on the home page.
-• While an app is on the car screen the phone stays awake behind a black "CarWeb attivo" screen; if you lock it, it wakes up again by itself, or with a tap on the car screen.
-• Tab bar buttons of your choice: which ones, in what order and how many show together; the others are one swipe away.
-• Desktop or mobile site: the choice now really sticks, also on YouTube and on sites that change address (m. / www.), and the site-specific fixes come back when you return to mobile.
-• YouTube fullscreen: Fit, Fill and Stretch also work on the desktop site.
-• TV in fullscreen: a tap on the video also shows a small panel to change channel.
-• Radio: the music player's animated visual effects (bars, wave, circle), from the button next to the controls.
-• A video whose sound the phone cannot decode says so and suggests opening it with the app you normally use, from Other Apps.
+• Other Apps (Shizuku): your phone's apps on the car screen, in a CarWeb tab or in CarWebWide, with touch, a side bar and the keyboard. Split view with the browser (65/35, right or left); when the app stops playing the browser resumes.
+• Bluetooth mouse and keyboard of the phone to control the car screen (Settings > Other Apps): pointer, clicks, wheel and browser-style shortcuts.
+• The same sidebar in CarWeb and CarWebWide, with the buttons of your choice; in CarWebWide the top-right button shows or hides it.
+• One Settings menu for CarWeb and CarWebWide, with sections that open and close. The CarWebWide home looks like CarWeb's and the favorites can be edited from there too.
+• Desktop or mobile is chosen per site (icon) and per favorite, with zoom: the general switch is gone.
+• TV: if a channel stops without you pausing it, it resumes by itself; in fullscreen a row of channels to jump straight to the one you want. Favorites are always in view in TV, Radio and Podcasts.
+• Radio: animated effects (bars, wave, circle) and a message when a station does not start or stays silent.
+• Tab bar buttons of your choice, Audio boost, and Fit, Fill, Stretch also on YouTube for computers.
+• Updates and links keep working when the GitHub repository is renamed to CarWeb.
 
-Apps that hide their windows (banks, Poste) show if the phone allows it; otherwise they stay black and CarWeb tells you so. Hardware-DRM video (Netflix) stays black: a virtual screen cannot show it.
+Apps that hide their windows (banks, Poste) show if the phone allows it; hardware-DRM video (Netflix) stays black.

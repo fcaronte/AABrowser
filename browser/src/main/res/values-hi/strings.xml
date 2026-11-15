@@ -548,7 +548,7 @@
     <string name="player_audio_unsupported">इस वीडियो की आवाज़ (%1$s) यहाँ नहीं चल सकती: फ़ोन का ब्राउज़र इंजन इस फ़ॉर्मैट को डिकोड नहीं करता।</string>
     <string name="bt_input_label">ब्लूटूथ माउस और कीबोर्ड</string>
     <string name="bt_input_desc">फ़ोन से जुड़े ब्लूटूथ माउस या कीबोर्ड से कार की स्क्रीन को नियंत्रित करें। नियंत्रण स्क्रीन फ़ोन पर खुली रहनी चाहिए।</string>
-    <string name="bt_input_open">नियंत्रण स्क्रीन खोलें</string>
+    <string name="bt_input_open">खोलें</string>
     <string name="bt_pointer_speed">पॉइंटर की गति: %1$d%%</string>
     <string name="bt_input_title">ब्लूटूथ माउस और कीबोर्ड</string>
     <string name="bt_input_on">आप कार की स्क्रीन पर %1$s को नियंत्रित कर रहे हैं</string>

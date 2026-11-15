@@ -507,7 +507,7 @@
     <string name="player_audio_unsupported">L\'audio di questo video (%1$s) non si può riprodurre qui: il motore del browser del telefono non decodifica questo formato.</string>
     <string name="bt_input_label">Mouse e tastiera Bluetooth</string>
     <string name="bt_input_desc">Comanda lo schermo dell\'auto con un mouse o una tastiera Bluetooth collegati al telefono. La schermata di controllo deve restare aperta sul telefono.</string>
-    <string name="bt_input_open">Apri la schermata di controllo</string>
+    <string name="bt_input_open">Apri</string>
     <string name="bt_pointer_speed">Velocità del puntatore: %1$d%%</string>
     <string name="bt_input_title">Mouse e tastiera Bluetooth</string>
     <string name="bt_input_on">Stai comandando %1$s sullo schermo dell\'auto</string>

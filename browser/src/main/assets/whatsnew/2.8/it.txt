@@ -1,10 +1,11 @@
-• Altre App: con Shizuku usi le app del telefono sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con tocco, barra laterale e tastiera. Le app con la stella sono tessere nella home.
-• Mentre un'app è sullo schermo dell'auto il telefono resta acceso dietro una schermata nera «CarWeb attivo»; se lo blocchi si riaccende da solo, o con un tocco sull'auto.
-• Pulsanti della barra delle schede a scelta: quali, in che ordine e quanti se ne vedono insieme; gli altri si raggiungono scorrendo.
-• Sito desktop o mobile: la scelta ora resta davvero, anche su YouTube e sui siti che cambiano indirizzo (m. / www.), e i fix specifici del sito tornano quando torni a mobile.
-• YouTube a schermo intero: Adatta, Riempi e Allunga funzionano anche sul sito per computer.
-• TV a schermo intero: un tocco sul video mostra anche un piccolo pannello per cambiare canale.
-• Radio: gli effetti animati del lettore musicale (barre, onda, cerchio), dal pulsante accanto ai comandi.
-• Un video di cui il telefono non sa decodificare l'audio lo dice e suggerisce di aprirlo con l'app che usi di solito, dalle Altre App.
+• Altre App (Shizuku): le app del telefono sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con tocco, barra laterale e tastiera. Schermo diviso con il browser (65/35, a destra o a sinistra); quando l'app smette di suonare il browser riprende.
+• Mouse e tastiera Bluetooth del telefono per comandare lo schermo dell'auto (Impostazioni > Altre App): puntatore, clic, rotellina e tasti rapidi come in un browser.
+• Sidebar uguale in CarWeb e CarWebWide, con i tasti a scelta; in CarWebWide il tasto in alto a destra la mostra o la nasconde.
+• Un solo menu di Impostazioni per CarWeb e CarWebWide, con sezioni che si aprono e si chiudono. La home di CarWebWide ha l'aspetto di quella di CarWeb e i preferiti si modificano anche da lì.
+• Desktop o mobile si sceglie per sito (icona) e per preferito, con lo zoom: tolto l'interruttore generale.
+• TV: se un canale si ferma senza che tu abbia messo in pausa, riprende da solo; a schermo intero una fila di canali per saltare a quello che vuoi. I preferiti sono sempre in vista in TV, Radio e Podcast.
+• Radio: effetti animati (barre, onda, cerchio) e un messaggio quando una stazione non parte o resta muta.
+• Pulsanti a destra delle schede a scelta, Potenziamento audio e Adatta, Riempi, Allunga anche su YouTube per computer.
+• Aggiornamenti e link continuano a funzionare quando il repository GitHub cambia nome in CarWeb.
 
-Le app che nascondono la loro finestra (banche, Poste) si vedono se il telefono lo permette; altrimenti restano nere e CarWeb te lo dice. I video con DRM hardware (Netflix) restano neri: uno schermo virtuale non può mostrarli.
+Le app che nascondono la loro finestra (banche, Poste) si vedono se il telefono lo permette; i video con DRM hardware (Netflix) restano neri.

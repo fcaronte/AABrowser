@@ -549,7 +549,7 @@
     <string name="player_audio_unsupported">El sonido de este vídeo (%1$s) no se puede reproducir aquí: el motor del navegador del teléfono no decodifica este formato.</string>
     <string name="bt_input_label">Ratón y teclado Bluetooth</string>
     <string name="bt_input_desc">Controla la pantalla del coche con un ratón o un teclado Bluetooth conectado al teléfono. La pantalla de control debe seguir abierta en el teléfono.</string>
-    <string name="bt_input_open">Abrir la pantalla de control</string>
+    <string name="bt_input_open">Abrir</string>
     <string name="bt_pointer_speed">Velocidad del puntero: %1$d%%</string>
     <string name="bt_input_title">Ratón y teclado Bluetooth</string>
     <string name="bt_input_on">Controlas %1$s en la pantalla del coche</string>

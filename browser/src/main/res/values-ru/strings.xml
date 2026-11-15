@@ -550,7 +550,7 @@
     <string name="player_audio_unsupported">Звук этого видео (%1$s) здесь не воспроизвести: браузерный движок телефона не декодирует этот формат.</string>
     <string name="bt_input_label">Bluetooth-мышь и клавиатура</string>
     <string name="bt_input_desc">Управляйте экраном автомобиля с помощью Bluetooth-мыши или клавиатуры, подключённых к телефону. Экран управления должен оставаться открытым на телефоне.</string>
-    <string name="bt_input_open">Открыть экран управления</string>
+    <string name="bt_input_open">Открыть</string>
     <string name="bt_pointer_speed">Скорость указателя: %1$d%%</string>
     <string name="bt_input_title">Bluetooth-мышь и клавиатура</string>
     <string name="bt_input_on">Вы управляете %1$s на экране автомобиля</string>

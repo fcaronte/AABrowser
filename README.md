@@ -30,7 +30,7 @@ from the misuse of this application. Use at your own risk.
   (Widescreen)**, which uses the whole map area, in full screen or in split view next to the player
   or the app menu, with a side menu (the dock: back, forward, home, reload, search, AdBlock, desktop, voice, favorite, share,
   settings, exit; you choose which buttons and in what order in Settings, Home is always there) that the button at the top right
-  shows or hides, together with the side bar of a phone app when one is open (new). CarWeb can show the same side menu too (Settings),
+  shows or hides, together with the side bar of a phone app when one is open (new in 2.8). CarWeb can show the same side menu too (Settings),
   and its round menu button then opens and closes it. *Limits set by Android Auto for this kind of app:* only the
   full-screen Android Auto keyboard (or the app's Passenger keyboard), no double-tap zoom, no drag gestures
   (you seek by tapping the progress bar). Each app opens the other: **CarWebWide** at the top of the CarWeb
@@ -45,10 +45,10 @@ from the misuse of this application. Use at your own risk.
   wave, circle), lyrics from LRCLIB for local audio, and colors that follow the app theme (light, dark with
   the phone colors, AMOLED). Videos, here and in the TV: a tap on the video shows a bar with zoom − 1× + up to 6× (the
   enlarged picture moves by dragging, or with the Android Auto scroll in the Widescreen), the picture mode Fit, Fill
-  (cropped) or Stretch, and fullscreen (new in 2.7). In the TV, in fullscreen, the same tap also shows a small panel to change
-  channel (new). A video whose sound the phone cannot decode (AC-3, DTS...) says so and suggests opening the file with the app you
-  normally use on your phone, from Other Apps (new).
-* **Videos of the sites in fullscreen (YouTube and the others, new in 2.7):** a tap shows at the top the picture mode Fit, Fill
+  (cropped) or Stretch, and fullscreen. In the TV, in fullscreen, the same tap also shows a small panel to change
+  channel (new in 2.8). A video whose sound the phone cannot decode (AC-3, DTS...) says so and suggests opening the file with the app you
+  normally use on your phone, from Other Apps (new in 2.8).
+* **Videos of the sites in fullscreen (YouTube and the others):** a tap shows at the top the picture mode Fit, Fill
   (cropped) or Stretch, remembered for each site. Not shown when a site puts only the bare video in fullscreen (the
   browser's standard controls). In the Widescreen every fullscreen video goes under Android Auto's buttons, centred
   (Back leaves fullscreen even when a site's button sits under them), and with the sidebar you choose "Sidebar always"
@@ -61,8 +61,8 @@ from the misuse of this application. Use at your own risk.
   ("Now playing: A - B, next: C - D", its own name, ads and phone numbers), and artist and title are tried in both
   orders. Radio lyrics are not time-synchronized because a live stream can join midway through a song. Playback
   controls are also sent to the Android Auto player. The animated visual effects of the music player (bars, wave, circle) are
-  available here too, from the button next to the controls (new).
-* **Podcasts in CarWeb Media (new in 2.7):** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
+  available here too, from the button next to the controls (new in 2.8).
+* **Podcasts in CarWeb Media:** the most popular shows of your country (Apple's charts) at `/podcast`, search by name, and
   your own feeds by RSS address or OPML file in Settings > TV, Radio and Podcasts. Episodes resume where you stopped, and
   at the end the next one starts; voice commands can find shows and play their latest unfinished episodes. The audio
   comes straight from each publisher: no catalog or content ships with the app.
@@ -71,7 +71,7 @@ from the misuse of this application. Use at your own risk.
   file selected on the phone) and Xtream accounts (added in Settings > TV, Radio and Podcasts, which also opens from the
   "Add a list" entry of the menu at the top of the page; in the car a message says to do it on the phone; for Xtream the
   full link with username and password is enough; the page can open the relevant Settings card on the phone). Groups,
-  search and favorites, which gather channels from all your lists without switching list (new in 2.7); HLS
+  search and favorites, which gather channels from all your lists without switching list; HLS
   (also with separate audio tracks), MPEG-TS and FLV
   streams, with the user agent and referrer asked by the list, channel name and logo on the Android Auto player, ⏮ ⏭
   to change channel. Addresses and passwords stay on the phone: out of Google's backup, only in the backup file you export from Settings. Channels with AC3/E-AC3 audio may
@@ -91,19 +91,19 @@ from the misuse of this application. Use at your own risk.
 * **Voice commands:** a microphone button in both apps (and on the Android Auto player while it
   shows the weather), or a double tap on ⏮ at the steering wheel, to play songs, videos, radio stations and TV
   channels, podcasts, search, open favorites and sites and control the player. See [Voice commands](#voice-commands).
-* **Steering wheel keys on YouTube (new in 2.7):** on a single video ⏮ ⏭ jump 10 seconds, like the buttons Android Auto shows. In
+* **Steering wheel keys on YouTube:** on a single video ⏮ ⏭ jump 10 seconds, like the buttons Android Auto shows. In
   Settings you can choose previous/next video instead (⏭ opens the first suggested video), and the keys follow the choice.
   Saying "next" opens the suggested video in both cases.
-* **Share to CarWeb (new in 2.7):** the phone's Share menu has "CarWeb": links, photos, videos and audio files shared from
+* **Share to CarWeb:** the phone's Share menu has "CarWeb": links, photos, videos and audio files shared from
   other apps open in a tab of CarWeb in the car (or in CarWebWide when that is the app in front); YouTube videos start
   by themselves. With no app open in the car, it waits a minute for the one you open. In Settings the entry can be off, shown only with the car
   connected (the default) or always: away from the car it then opens CarWeb on the phone.
-* **Backup and restore (new in 2.7):** export and import bookmarks, settings, site permissions, ad-block settings and lists,
+* **Backup and restore:** export and import bookmarks, settings, site permissions, ad-block settings and lists,
   and the saved state of TV, Radio and Podcasts, using a file you can keep or move to another phone. Certificates and
   device-specific file access are not included.
-* **Phone Back (new in 2.7):** Back closes open overlays and moves through the current tab's history, then returns home;
+* **Phone Back:** Back closes open overlays and moves through the current tab's history, then returns home;
   a second Back on the home screen exits to Android without stopping playback in the car.
-* **Other Apps (new):** with [Shizuku](https://shizuku.rikka.app) running on the phone, the "Other Apps" page (next to Media, TV, Radio and
+* **Other Apps (new in 2.8):** with [Shizuku](https://shizuku.rikka.app) running on the phone, the "Other Apps" page (next to Media, TV, Radio and
   Podcasts) lists the apps of the phone: tap one to use it on the car screen, in a tab of CarWeb or in CarWebWide, with touch, a
   side bar (back, apps, keyboard, close; over the app or beside it, shown or hidden by the button at the top right, which takes the
   place of the AdBlock shield in the Widescreen, where the app also goes under Android Auto's buttons) and the phone's keyboard.
@@ -112,19 +112,21 @@ from the misuse of this application. Use at your own risk.
   Widevine L1) stays black: Android does not allow it on a virtual screen. Apps that hide their windows (Poste, banks) are shown when the
   phone allows it (CarWeb always asks) and otherwise stay black, as in AnyAuto: CarWeb tells you when an app stays black. The size of the apps is a choice in Settings. Portrait-only apps are shown with side bands. The idea comes
   from [AnyAuto](https://github.com/GitMag/AnyAuto); the code is ours. Not every phone allows it: see the status at the top of the page.
-* **Tab bar buttons (new):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
+* **Tab bar buttons (new in 2.8):** in Settings you choose which buttons show at the right of the tab bar, in what order and how many are
   visible together; the others are one swipe away.
-* **Bluetooth mouse and keyboard (new):** connect a Bluetooth mouse or keyboard to the phone, open Settings > Bluetooth mouse and keyboard >
+* **Audio boost (new in 2.8):** Settings > Audio boost raises the volume of pages and compatible media from 0 to +15 dB (it may not work on
+  protected content; high levels can distort the sound).
+* **Bluetooth mouse and keyboard (new in 2.8):** connect a Bluetooth mouse or keyboard to the phone, open Settings > Bluetooth mouse and keyboard >
   "Open the control screen" and leave it open on the phone: the mouse moves a pointer on the car screen (left click = tap, right click or
   the side button = back, wheel = scroll, drag = scroll like a finger) and the keyboard types into pages, with the shortcuts of a
   computer browser (Esc or Alt+← back, F5 reload, Ctrl+L search, Ctrl+T, Ctrl+W and Ctrl+Tab for tabs). It works in CarWeb and CarWebWide,
   and, like everything else on the car screen, only while the car is parked (or with Passenger mode). The pointer speed is a choice in Settings.
-* **What's new (new):** the first time you open the app after an update a box lists what changed; Settings > What's new shows it again.
-* **One settings page for CarWeb and CarWebWide (new):** the same page, with sections you can open and close, on the phone, in the car
+* **What's new (new in 2.8):** the first time you open the app after an update a box lists what changed; Settings > What's new shows it again.
+* **One settings page for CarWeb and CarWebWide (new in 2.8):** the same page, with sections you can open and close, on the phone, in the car
   and on CarWebWide (gear in the side menu, or the button on the home). What only the phone can do (files, addresses and passwords, backup)
   says so in the car. Desktop or mobile is chosen for each site (the icon in the dock, in the tab bar and in the menu), and the zoom
   of a site is in its favorite; the general "Desktop mode" switch is gone (if you had it on, your favorites keep it).
-* **The CarWebWide home looks like CarWeb's (new):** same colors as the app (automatic or forced theme, phone colors), same
+* **The CarWebWide home looks like CarWeb's (new in 2.8):** same colors as the app (automatic or forced theme, phone colors), same
   layout (title, microphone, search and pencil at the top, Resume and Settings at the bottom), and the pencil lets you add, change, move
   and delete favorites from the car: the changes are the same list as CarWeb's.
 * **Typing and voice:** keyboard or microphone for text fields, voice search also on YouTube.
@@ -141,7 +143,7 @@ from the misuse of this application. Use at your own risk.
   (its own section in Settings, on the phone or in the car while parked) it works while moving too, and with *Passenger keyboard*, a keyboard of the app (QWERTY, and with
   🌐 AZERTY, QWERTZ, Russian or Arabic for those languages; numbers and symbols, accented letters), you can type
   while moving, in both apps. For passengers only: the
-  driver must not use them. New in 2.7: the disclaimer is shown as an in-settings overlay, and the driving lock explains
+  driver must not use them. The disclaimer is shown as an in-settings overlay, and the driving lock explains
   where to enable the passenger options.
 * **And more:** weather on the Android Auto player when nothing plays (only in the car),
   pause on reverse gear, 11 languages, log sharing from Settings (long press on the GitHub logo), updates
@@ -281,7 +283,7 @@ proprio rischio e pericolo.
   (Widescreen)**, che usa tutta l'area della mappa, a schermo intero o in split accanto al player
   o al menu delle app, con un menu laterale (il dock: indietro, avanti, home, ricarica, cerca, AdBlock, desktop, voce, preferiti,
   condividi, impostazioni, esci; scegli quali tasti e in che ordine nelle Impostazioni, Home c'è sempre) che il tasto in alto a destra
-  mostra o nasconde, insieme alla barra laterale di un'app del telefono se ce n'è una aperta (novità). Anche CarWeb può mostrare lo stesso
+  mostra o nasconde, insieme alla barra laterale di un'app del telefono se ce n'è una aperta (novità 2.8). Anche CarWeb può mostrare lo stesso
   menu laterale (Impostazioni), e il suo tasto rotondo del menu lo apre e lo chiude. *Limiti imposti da Android Auto a questo tipo di app:*
   solo la tastiera a schermo intero di Android Auto (o la Tastiera passeggero dell'app), niente zoom col doppio
   tocco, niente trascinamenti (nel video ci si sposta toccando la barra di avanzamento). Ogni app apre l'altra:
@@ -296,10 +298,10 @@ proprio rischio e pericolo.
   cerchio), testi da LRCLIB per l'audio locale e colori che seguono il tema dell'app (chiaro, scuro con i colori del
   telefono, AMOLED). Video, qui e nella TV: toccando il video compare una barra con lo zoom − 1× + fino a 6× (l'immagine
   ingrandita si sposta trascinando, o con lo scorrimento di Android Auto nella Widescreen), il modo dell'immagine
-  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero (novità 2.7). Nella TV, a schermo intero, lo stesso tocco mostra anche
-  un piccolo pannello per cambiare canale (novità). Un video di cui il telefono non sa decodificare l'audio (AC-3, DTS...) lo dice e
-  suggerisce di aprire il file con l'app che usi di solito sul telefono, dalle Altre App (novità).
-* **Video dei siti a schermo intero (YouTube e gli altri, novità 2.7):** un tocco mostra in alto il modo dell'immagine Adatta,
+  Adatta, Riempi (tagliata) o Allunga, e lo schermo intero. Nella TV, a schermo intero, lo stesso tocco mostra anche
+  un piccolo pannello per cambiare canale (novità 2.8). Un video di cui il telefono non sa decodificare l'audio (AC-3, DTS...) lo dice e
+  suggerisce di aprire il file con l'app che usi di solito sul telefono, dalle Altre App (novità 2.8).
+* **Video dei siti a schermo intero (YouTube e gli altri):** un tocco mostra in alto il modo dell'immagine Adatta,
   Riempi (tagliata) o Allunga, ricordato per ogni sito. Non compare quando un sito mette a schermo intero il solo video
   (i comandi standard del browser). Nella Widescreen ogni video a schermo intero va sotto i tasti di Android Auto,
   centrato (Indietro esce dallo schermo intero anche se un tasto del sito finisce sotto), e con la sidebar si sceglie
@@ -313,8 +315,8 @@ proprio rischio e pericolo.
   prima ripulito ("Brano attuale: A - B, brano successivo: C - D", il suo nome, pubblicità e numeri di telefono), e
   artista e titolo si provano nei due ordini. I testi della radio non scorrono a tempo perché la riproduzione può
   iniziare a metà brano. I controlli funzionano anche dal player di Android Auto. Anche qui ci sono gli effetti animati del lettore
-  musicale (barre, onda, cerchio), dal pulsante accanto ai controlli (novità).
-* **Podcast in CarWeb Media (novità 2.7):** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
+  musicale (barre, onda, cerchio), dal pulsante accanto ai controlli (novità 2.8).
+* **Podcast in CarWeb Media:** i programmi più seguiti del tuo Paese (classifiche di Apple) su `/podcast`, la ricerca per nome
   e i tuoi feed con indirizzo RSS o file OPML nelle Impostazioni > TV, Radio e Podcast. Gli episodi riprendono da dove eri
   rimasto, e alla fine parte il successivo; i comandi vocali trovano i programmi e avviano l'ultimo episodio non ascoltato.
   L'audio arriva direttamente da chi pubblica il podcast: nell'app non c'è nessun catalogo né contenuto.
@@ -323,7 +325,7 @@ proprio rischio e pericolo.
   o da file M3U/M3U8 scelto sul telefono) e agli account Xtream (si aggiungono nelle Impostazioni > TV, Radio e Podcast, che si
   aprono anche dalla voce "Aggiungi una lista" del menu in alto nella pagina; in auto un messaggio dice di farlo dal
   telefono; per Xtream basta il link completo con utente e password; la pagina può aprire la scheda delle Impostazioni
-  sul telefono). Gruppi, ricerca e preferiti, che raccolgono i canali di tutte le liste senza cambiare lista (novità 2.7);
+  sul telefono). Gruppi, ricerca e preferiti, che raccolgono i canali di tutte le liste senza cambiare lista;
   stream HLS (anche con l'audio in una
   traccia separata), MPEG-TS e FLV, con lo user agent e il referrer chiesti dalla lista, nome e logo del canale sul
   player di Android Auto, ⏮ ⏭ per cambiare canale. Indirizzi e password restano sul telefono: fuori dal backup di Google, solo nel file di backup che esporti dalle Impostazioni. I
@@ -346,20 +348,20 @@ proprio rischio e pericolo.
 * **Comandi vocali:** pulsante microfono nelle due app (e sul player di Android Auto quando mostra
   il meteo), o doppio tocco su ⏮ al volante, per far partire canzoni, video, stazioni radio, canali TV e podcast,
   cercare, aprire preferiti e siti e comandare il player. Vedi [Comandi vocali](#comandi-vocali).
-* **Tasti al volante su YouTube (novità 2.7):** su un video singolo ⏮ ⏭ saltano di 10 secondi, come i pulsanti che mostra Android Auto.
+* **Tasti al volante su YouTube:** su un video singolo ⏮ ⏭ saltano di 10 secondi, come i pulsanti che mostra Android Auto.
   Nelle Impostazioni si può scegliere video precedente/successivo (⏭ apre il primo video suggerito), e i tasti seguono la scelta.
   A voce «avanti» o «manda avanti» apre il video suggerito in tutti e due i casi.
-* **Condividi su CarWeb (novità 2.7):** il menu Condividi del telefono ha «CarWeb»: link, foto, video e file audio
+* **Condividi su CarWeb:** il menu Condividi del telefono ha «CarWeb»: link, foto, video e file audio
   condivisi da altre app si aprono in una scheda di CarWeb in auto (o in CarWebWide se è lei in primo piano); i video
   YouTube partono da soli. Se in auto non c'è un'app aperta, aspetta un minuto quella che apri. Nelle Impostazioni la voce
   si può spegnere, mostrare solo con l'auto collegata (di serie) o sempre: lontano
   dall'auto si apre allora CarWeb sul telefono.
-* **Backup e ripristino (novità 2.7):** esporta e importa preferiti, impostazioni, permessi dei siti, impostazioni e liste
+* **Backup e ripristino:** esporta e importa preferiti, impostazioni, permessi dei siti, impostazioni e liste
   AdBlock e lo stato salvato di TV, Radio e Podcast, in un file da conservare o trasferire su un altro telefono.
   Certificati e accesso ai file legato al dispositivo non sono inclusi.
-* **Tasto Indietro del telefono (novità 2.7):** chiude prima le sovrapposizioni aperte e scorre la cronologia della scheda,
+* **Tasto Indietro del telefono:** chiude prima le sovrapposizioni aperte e scorre la cronologia della scheda,
   poi torna alla home; un secondo Indietro dalla home esce verso Android senza fermare la riproduzione in auto.
-* **Altre App (novità):** con [Shizuku](https://shizuku.rikka.app) attivo sul telefono, la pagina «Altre App» (accanto a Media, TV, Radio e
+* **Altre App (novità 2.8):** con [Shizuku](https://shizuku.rikka.app) attivo sul telefono, la pagina «Altre App» (accanto a Media, TV, Radio e
   Podcast) elenca le app del telefono: toccandone una la usi sullo schermo dell'auto, in una scheda di CarWeb o in CarWebWide, con il
   tocco, una barra laterale (indietro, app, tastiera, chiudi; sopra l'app o accanto, si mostra o si nasconde con il tasto in alto a destra, che
   nella Widescreen prende il posto dello scudo AdBlock e dove l'app va anche sotto i tasti di Android Auto) e la tastiera del telefono. Le app con
@@ -370,20 +372,22 @@ proprio rischio e pericolo.
   quando un'app resta nera. La dimensione delle app si sceglie nelle Impostazioni. Le app solo verticali si vedono con
   due bande ai lati. L'idea viene da [AnyAuto](https://github.com/GitMag/AnyAuto); il codice è nostro. Non tutti i telefoni lo permettono: lo stato
   è in alto nella pagina.
-* **Pulsanti della barra delle schede (novità):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
+* **Pulsanti della barra delle schede (novità 2.8):** nelle Impostazioni scegli quali pulsanti mostrare a destra della barra delle schede, in che
   ordine e quanti vedere insieme; gli altri sono a uno scorrimento di distanza.
-* **Mouse e tastiera Bluetooth (novità):** collega un mouse o una tastiera Bluetooth al telefono, apri Impostazioni > Mouse e tastiera Bluetooth >
+* **Potenziamento audio (novità 2.8):** Impostazioni > Potenziamento audio alza il volume delle pagine e dei contenuti compatibili da 0 a +15 dB
+  (può non funzionare sui contenuti protetti; livelli alti possono distorcere il suono).
+* **Mouse e tastiera Bluetooth (novità 2.8):** collega un mouse o una tastiera Bluetooth al telefono, apri Impostazioni > Mouse e tastiera Bluetooth >
   «Apri la schermata di controllo» e lasciala aperta sul telefono: il mouse muove un puntatore sullo schermo dell'auto (clic sinistro = tocco,
   clic destro o tasto laterale = indietro, rotellina = scorrimento, trascinamento = scorre come un dito) e la tastiera scrive nelle pagine, con i
   tasti rapidi di un browser per computer (Esc o Alt+← indietro, F5 ricarica, Ctrl+L cerca, Ctrl+T, Ctrl+W e Ctrl+Tab per le schede). Funziona in
   CarWeb e in CarWebWide e, come tutto il resto sullo schermo dell'auto, solo a veicolo fermo (o con la Modalità passeggero). La velocità del
   puntatore si sceglie nelle Impostazioni.
-* **Novità (novità):** la prima volta che apri l'app dopo un aggiornamento un riquadro elenca cosa è cambiato; Impostazioni > Novità lo mostra di nuovo.
-* **Una pagina di impostazioni per CarWeb e CarWebWide (novità):** la stessa pagina, con sezioni che si aprono e si chiudono, sul telefono, in auto
+* **Novità (novità 2.8):** la prima volta che apri l'app dopo un aggiornamento un riquadro elenca cosa è cambiato; Impostazioni > Novità lo mostra di nuovo.
+* **Una pagina di impostazioni per CarWeb e CarWebWide (novità 2.8):** la stessa pagina, con sezioni che si aprono e si chiudono, sul telefono, in auto
   e su CarWebWide (l'ingranaggio nel menu laterale, o il tasto nella home). Quello che solo il telefono può fare (file, indirizzi e password,
   backup) lo dice in auto. Desktop o mobile si sceglie per sito (l'icona nel dock, nella barra delle schede e nel menu) e lo zoom di un sito sta
   nel suo preferito; l'interruttore generale «Modalità desktop» non c'è più (se lo avevi acceso, i tuoi preferiti lo tengono).
-* **La home di CarWebWide come quella di CarWeb (novità):** stessi colori dell'app (tema automatico o forzato, colori del telefono), stessa
+* **La home di CarWebWide come quella di CarWeb (novità 2.8):** stessi colori dell'app (tema automatico o forzato, colori del telefono), stessa
   disposizione (titolo, microfono, ricerca e matita in alto, Riprendi e Impostazioni in basso), e con la matita aggiungi, cambi, sposti ed
   elimini i preferiti anche dall'auto: le modifiche sono la stessa lista di CarWeb.
 * **Scrittura e voce:** tastiera o microfono per i campi di testo, ricerca vocale anche su YouTube.
@@ -400,7 +404,7 @@ proprio rischio e pericolo.
   *Modalità passeggero* (una sezione delle Impostazioni, sul telefono o in auto da fermo) funziona anche in movimento, e con *Tastiera passeggero*, una
   tastiera dell'app (QWERTY, e con 🌐 AZERTY, QWERTZ, russa o araba per quelle lingue; numeri e simboli, lettere
   accentate), si scrive anche in movimento, nelle due app. Solo per i passeggeri: chi guida non deve usarle.
-  Novità 2.7: l'avvertenza appare come sovrapposizione nelle Impostazioni e la schermata bloccata spiega dove attivare
+  L'avvertenza appare come sovrapposizione nelle Impostazioni e la schermata bloccata spiega dove attivare
   le opzioni passeggero.
 * **E poi:** meteo sul player di Android Auto quando non suona nulla (solo in auto), pausa
   con la retromarcia, 11 lingue, condivisione del log dalle Impostazioni (tieni premuto il logo GitHub),

@@ -548,7 +548,7 @@
     <string name="player_audio_unsupported">Der Ton dieses Videos (%1$s) kann hier nicht abgespielt werden: Die Browser-Engine des Telefons dekodiert dieses Format nicht.</string>
     <string name="bt_input_label">Bluetooth-Maus und -Tastatur</string>
     <string name="bt_input_desc">Steuere den Autobildschirm mit einer Bluetooth-Maus oder -Tastatur, die mit dem Smartphone verbunden ist. Der Steuerungsbildschirm muss auf dem Smartphone geöffnet bleiben.</string>
-    <string name="bt_input_open">Steuerungsbildschirm öffnen</string>
+    <string name="bt_input_open">Öffnen</string>
     <string name="bt_pointer_speed">Zeigergeschwindigkeit: %1$d%%</string>
     <string name="bt_input_title">Bluetooth-Maus und -Tastatur</string>
     <string name="bt_input_on">Du steuerst %1$s auf dem Autobildschirm</string>

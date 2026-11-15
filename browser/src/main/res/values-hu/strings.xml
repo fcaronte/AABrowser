@@ -548,7 +548,7 @@
     <string name="player_audio_unsupported">A videó hangja (%1$s) itt nem játszható le: a telefon böngészőmotorja nem dekódolja ezt a formátumot.</string>
     <string name="bt_input_label">Bluetooth-egér és -billentyűzet</string>
     <string name="bt_input_desc">Az autó képernyőjét a telefonhoz csatlakoztatott Bluetooth-egérrel vagy -billentyűzettel vezérelheti. A vezérlőképernyőnek nyitva kell maradnia a telefonon.</string>
-    <string name="bt_input_open">Vezérlőképernyő megnyitása</string>
+    <string name="bt_input_open">Megnyitás</string>
     <string name="bt_pointer_speed">Mutató sebessége: %1$d%%</string>
     <string name="bt_input_title">Bluetooth-egér és -billentyűzet</string>
     <string name="bt_input_on">Vezérli: %1$s az autó képernyőjén</string>
